@@ -79,21 +79,21 @@ regenerated.
 
 **Steps:**
 
-- [ ] In `SearchField`, change the wrapper `<span className="mbk-search">` to
+- [x] In `SearchField`, change the wrapper `<span className="mbk-search">` to
       `<div className="mbk-search">` (finding 1: a `<div>` panel inside a
       `<span>` is invalid HTML; the served shell already uses a `div`). The
       `.mbk-search` CSS is class-based and element-agnostic; no CSS change.
-- [ ] In `HomeBody`, replace the body copy
+- [x] In `HomeBody`, replace the body copy
       `"Browse the mockup catalogue. 18 screens and 1 use case are generated from this repository."`
       with `"Browse the mockup catalogue generated from this repository."`
       (finding 3, option B: no volatile count to drift).
-- [ ] In `notes.md`, replace the bullet sentence claiming the tags are
+- [x] In `notes.md`, replace the bullet sentence claiming the tags are
       "drawn on the Welcome entry" with: the depicted fixture tags `forms`
       and `onboarding` belong to Welcome and `forms` also to Details, which
       is why the `tag:forms` tree keeps both screen rows (finding 2,
       option B); keep the caveat that no example entry declares tags in
       authored metadata yet (removed in Milestone 2).
-- [ ] `npm run build && npm run example:build && npm run example:check`; then
+- [x] `npm run build && npm run example:build && npm run example:check`; then
       `npx playwright screenshot` the regenerated `tag-filter.desktop.html`
       and `home.desktop.html` from disk and read both images to confirm no
       layout shift from the span→div change.

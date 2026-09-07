@@ -58,7 +58,7 @@ interface SearchFieldProps {
 
 function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
   return (
-    <span className="mbk-search">
+    <div className="mbk-search">
       <span aria-hidden="true">⌕</span>
       {value === undefined ? (
         "Search screens…"
@@ -67,7 +67,7 @@ function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
       )}
       <SearchTagButton />
       {pickerOpen === true ? <TagPicker activeTag={activeTag} /> : null}
-    </span>
+    </div>
   );
 }
 

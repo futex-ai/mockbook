@@ -27,9 +27,10 @@ in each entry's description and rationale, never inside the rendered screens:
 - The dark view compare screen shows the same `Welcome` comparison as the
   changed screen, in its dark view. Review compares one view at a time, so the
   two are separate pages reached from the comparison band's scheme segment.
-- The `forms` and `onboarding` tags drawn on the Welcome entry are synthetic
-  fixture labels chosen to show a tagged entry; they carry no product meaning
-  and no example entry declares tags in its authored metadata yet.
+- The `forms` and `onboarding` tags are synthetic fixture labels that carry no
+  product meaning: Welcome carries both and Details carries `forms`, which is
+  why the `tag:forms` tree keeps both screen rows. No example entry declares
+  tags in its authored metadata yet.
 - Tag chips and the search field's tag control are drawn as styled text like
   every other link inside a design screen. The chip in the accent state depicts
   the tag named by the search query; opening the picker and selecting a chip to
