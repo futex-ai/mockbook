@@ -414,6 +414,10 @@ picker; the plan moves to completed.
       a `:hover` accent-soft affordance and uses `--mokabook-accent-contrast`
       for the active glyph where the mockup CSS has no hover rule and a
       literal white; note it in the mockup notes or align the mockup CSS.
+- [ ] Also reconcile the Task 4.1 additions: the served `.mbk-chip.tag:active`
+      press feedback has no mockup rule, and the shell-design Tag picker
+      bullet mentions neither the press state nor `aria-pressed` on tag
+      chips — add the mockup rule (or note) and one contract sentence.
 - [ ] `npm run preview:build`; open the static preview's tag-filter and home
       routes from the artifact and confirm the picker markup renders and the
       shell scripts load (static preview keeps Browse client behavior).
