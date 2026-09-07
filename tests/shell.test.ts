@@ -52,6 +52,7 @@ const manifest: ManifestV3 = {
       relatedDocs: ["notes.md"],
       route: "screens/welcome.html",
       sourcePath: "entries/fixture.mockup.tsx",
+      tags: ["forms", "onboarding"],
       title: "Welcome",
       useCaseIds: ["tour"],
       viewports: ["mobile", "desktop"],
@@ -218,6 +219,14 @@ test("catalogue nav marks active, changed, and iconed rows", () => {
     /aria-current="page"[^>]*data-route="screens\/welcome\.html"/,
   );
   assert.match(html, /data-changed="true"/);
+  assert.match(
+    html,
+    /data-route="screens\/welcome\.html"[^>]*data-tags="forms onboarding"/,
+  );
+  assert.equal(
+    /data-route="screens\/details\.html"[^>]*data-tags/.test(html),
+    false,
+  );
   assert.match(html, /data-nav-collection="collection:screens"/);
   assert.match(html, /class="mbk-nav-ico folder"><svg/);
   assert.match(html, /class="mbk-nav-count">2</);

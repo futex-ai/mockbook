@@ -6,6 +6,12 @@ import {
   NavDisclosurePreference,
   type NavPreferenceStorage,
 } from "../dist/client/browse_navigation.js";
+import {
+  applyNavVisibility,
+  selectAndRevealRoute,
+} from "../dist/client/browse_navigation_state.js";
+
+const BASE = "http://127.0.0.1:4173/view/screens/welcome.html";
 
 test("stable collection keys preserve independent disclosure across reloads", () => {
   const storage = new FakeStorage();
@@ -35,6 +41,212 @@ test("legacy label paths cannot match current disclosure keys", () => {
   preference.apply(fakeDocument(current));
   assert.equal(current.open, true);
 });
+
+test("a tag term hides untagged rows and the groups they empty", () => {
+  const nav = navFixture();
+  nav.screens.open = false;
+  nav.search.value = "tag:onboarding";
+
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.welcome.hidden, false);
+  assert.equal(nav.details.hidden, true);
+  assert.equal(nav.glossary.hidden, true);
+  assert.equal(nav.screens.hidden, false);
+  assert.equal(nav.screens.open, true);
+  assert.equal(nav.docs.hidden, true);
+
+  nav.search.value = "";
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.details.hidden, false);
+  assert.equal(nav.glossary.hidden, false);
+  assert.equal(nav.docs.hidden, false);
+  assert.equal(nav.screens.open, false);
+});
+
+test("free text still matches rows that declare no tags", () => {
+  const nav = navFixture();
+  nav.search.value = "GLOSSARY";
+
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.glossary.hidden, false);
+  assert.equal(nav.welcome.hidden, true);
+  assert.equal(nav.screens.hidden, true);
+});
+
+test("navigation clears only a query that hides its destination", () => {
+  const nav = navFixture();
+  nav.search.value = "tag:onboarding";
+
+  const welcome = selectAndRevealRoute(
+    asDocument(nav.root),
+    "/view/screens/welcome.html",
+    BASE,
+    "navigation",
+  );
+
+  assert.equal(welcome, asAnchor(nav.welcome));
+  assert.equal(nav.search.value, "tag:onboarding");
+  assert.equal(nav.welcome.getAttribute("aria-current"), "page");
+  assert.equal(nav.welcome.scrolled, true);
+  assert.equal(nav.welcome.hidden, false);
+  assert.equal(nav.details.hidden, true);
+
+  const details = selectAndRevealRoute(
+    asDocument(nav.root),
+    "/view/screens/details.html",
+    BASE,
+    "navigation",
+  );
+
+  assert.equal(details, asAnchor(nav.details));
+  assert.equal(nav.search.value, "");
+  assert.equal(nav.details.hidden, false);
+  assert.equal(nav.glossary.hidden, false);
+});
+
+/** One catalogue column: two tagged screens and one untagged legacy page. */
+interface NavFixture {
+  details: FakeNode;
+  docs: FakeNode;
+  glossary: FakeNode;
+  root: FakeNode;
+  screens: FakeNode;
+  search: FakeNode;
+  welcome: FakeNode;
+}
+
+function navFixture(): NavFixture {
+  const search = new FakeNode("input", { "data-mokabook-search": "" });
+  const welcome = navRow("screens/welcome.html", "Welcome", "forms onboarding");
+  const details = navRow("screens/details.html", "Details", "forms");
+  const glossary = navRow("docs/glossary.html", "Glossary");
+  const screens = navGroup("collection:screens", welcome, details);
+  const docs = navGroup("collection:docs", glossary);
+  const root = new FakeNode("div").append(
+    search,
+    filterOption("all", "true"),
+    filterOption("changed", "false"),
+    screens,
+    docs,
+  );
+  return { details, docs, glossary, root, screens, search, welcome };
+}
+
+function navRow(route: string, label: string, tags?: string): FakeNode {
+  return new FakeNode(
+    "a",
+    {
+      "data-nav-row": "",
+      "data-route": route,
+      href: `/view/${route}`,
+      ...(tags === undefined ? {} : { "data-tags": tags }),
+    },
+    label,
+  );
+}
+
+function navGroup(key: string, ...rows: readonly FakeNode[]): FakeNode {
+  return new FakeNode("details", { "data-nav-collection": key }).append(
+    ...rows,
+  );
+}
+
+function filterOption(name: string, pressed: string): FakeNode {
+  return new FakeNode("button", {
+    "aria-pressed": pressed,
+    "data-filter": name,
+  });
+}
+
+function asDocument(node: FakeNode): Document {
+  return node as unknown as Document;
+}
+
+function asAnchor(node: FakeNode): HTMLAnchorElement {
+  return node as unknown as HTMLAnchorElement;
+}
+
+const SELECTOR = /^(?<tag>[a-z]*)\[(?<name>[a-z-]+)(?:="(?<value>[^"]*)")?\]$/;
+
+/** A nested stand-in for the served navigation column the client filters. */
+class FakeNode {
+  readonly dataset: Record<string, string> = {};
+  hidden = false;
+  open = true;
+  parentElement: FakeNode | null = null;
+  scrolled = false;
+  value = "";
+  readonly #attributes: Map<string, string>;
+  readonly #children: FakeNode[] = [];
+
+  constructor(
+    private readonly tagName: string,
+    attributes: Readonly<Record<string, string>> = {},
+    private readonly label = "",
+  ) {
+    this.#attributes = new Map(Object.entries(attributes));
+  }
+
+  get textContent(): string {
+    return this.#children.reduce(
+      (text, child) => text + child.textContent,
+      this.label,
+    );
+  }
+
+  append(...children: readonly FakeNode[]): this {
+    for (const child of children) {
+      child.parentElement = this;
+      this.#children.push(child);
+    }
+    return this;
+  }
+
+  closest(selector: string): FakeNode | null {
+    if (this.matches(selector)) return this;
+    return this.parentElement?.closest(selector) ?? null;
+  }
+
+  getAttribute(name: string): string | null {
+    return this.#attributes.get(name) ?? null;
+  }
+
+  matches(selector: string): boolean {
+    const parts = SELECTOR.exec(selector)?.groups;
+    if (!parts) throw new Error(`unmodelled selector: ${selector}`);
+    const tag = parts["tag"] ?? "";
+    const value = this.#attributes.get(parts["name"] ?? "");
+    if (tag !== "" && tag !== this.tagName) return false;
+    if (value === undefined) return false;
+    return parts["value"] === undefined || parts["value"] === value;
+  }
+
+  querySelector(selector: string): FakeNode | null {
+    return this.querySelectorAll(selector)[0] ?? null;
+  }
+
+  querySelectorAll(selector: string): FakeNode[] {
+    return this.#children.flatMap((child) => [
+      ...(child.matches(selector) ? [child] : []),
+      ...child.querySelectorAll(selector),
+    ]);
+  }
+
+  removeAttribute(name: string): void {
+    this.#attributes.delete(name);
+  }
+
+  scrollIntoView(): void {
+    this.scrolled = true;
+  }
+
+  setAttribute(name: string, value: string): void {
+    this.#attributes.set(name, value);
+  }
+}
 
 function group(key: string, open: boolean): HTMLDetailsElement {
   return {

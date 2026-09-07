@@ -5,6 +5,7 @@ import { navigationConstraintChanges } from "../dist/client/browse_navigation_st
 import {
   clearTagTerm,
   parseSearchQuery,
+  queryConstrains,
   rowMatchesQuery,
   setTagTerm,
 } from "../dist/client/search_query.js";
@@ -32,6 +33,7 @@ test("active-row constraint changes clear only controls that hide it", () => {
       changedOnly: true,
       query: "welcome",
       route: "screens/details.html",
+      tags: ["forms"],
       text: "Details",
     }),
     { clearQuery: true, showAll: true },
@@ -42,6 +44,7 @@ test("active-row constraint changes clear only controls that hide it", () => {
       changedOnly: true,
       query: "details",
       route: "screens/details.html",
+      tags: ["forms"],
       text: "Details",
     }),
     { clearQuery: false, showAll: false },
@@ -52,10 +55,58 @@ test("active-row constraint changes clear only controls that hide it", () => {
       changedOnly: false,
       query: "screens/details",
       route: "screens/details.html",
+      tags: [],
       text: "Something else",
     }),
     { clearQuery: false, showAll: false },
   );
+});
+
+test("a tag term clears the query only for a row that lacks the tag", () => {
+  assert.deepEqual(
+    navigationConstraintChanges({
+      changed: false,
+      changedOnly: false,
+      query: "tag:onboarding",
+      ...welcome,
+    }),
+    { clearQuery: false, showAll: false },
+  );
+  assert.deepEqual(
+    navigationConstraintChanges({
+      changed: false,
+      changedOnly: false,
+      query: "tag:onboarding",
+      ...details,
+    }),
+    { clearQuery: true, showAll: false },
+  );
+  assert.deepEqual(
+    navigationConstraintChanges({
+      changed: false,
+      changedOnly: false,
+      query: "tag:forms details",
+      ...details,
+    }),
+    { clearQuery: false, showAll: false },
+  );
+  assert.deepEqual(
+    navigationConstraintChanges({
+      changed: false,
+      changedOnly: false,
+      query: "tag:forms welcome",
+      ...details,
+    }),
+    { clearQuery: true, showAll: false },
+  );
+});
+
+test("only text or tag terms constrain which rows stay visible", () => {
+  assert.equal(queryConstrains(parseSearchQuery("")), false);
+  assert.equal(queryConstrains(parseSearchQuery("   ")), false);
+  assert.equal(queryConstrains(parseSearchQuery("tag:forms")), true);
+  assert.equal(queryConstrains(parseSearchQuery("welcome")), true);
+  assert.equal(queryConstrains(parseSearchQuery("tag:forms welcome")), true);
 });
 
 test("search queries split tag terms from free text in any order", () => {
@@ -165,6 +216,7 @@ test("setting a tag term keeps free text and leaves exactly one tag", () => {
   assert.equal(setTagTerm("", "forms"), "tag:forms");
   assert.equal(setTagTerm("   ", "forms"), "tag:forms");
   assert.equal(setTagTerm("welcome", "forms"), "welcome tag:forms");
+  assert.equal(setTagTerm("welcome", "Forms"), "welcome tag:forms");
   assert.equal(setTagTerm("tag:forms", "forms"), "tag:forms");
   assert.equal(
     setTagTerm("  TAG:Onboarding  Welcome   Screen tag:forms ", "onboarding"),

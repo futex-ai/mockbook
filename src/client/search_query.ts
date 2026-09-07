@@ -37,9 +37,15 @@ export function rowMatchesQuery(
   );
 }
 
+/** True when the query constrains rows. */
+export function queryConstrains(query: SearchQuery): boolean {
+  return query.freeText !== "" || query.tags.length > 0;
+}
+
 /** Rewrite raw so its only tag term is `tag:<tag>`, preserving free text. */
 export function setTagTerm(raw: string, tag: string): string {
-  return `${parseSearchQuery(raw).freeText} ${TAG_PREFIX}${tag}`.trim();
+  const term = `${TAG_PREFIX}${tag.toLowerCase()}`;
+  return `${parseSearchQuery(raw).freeText} ${term}`.trim();
 }
 
 /** Remove `tag:<tag>` terms from raw, preserving free text and other tags. */

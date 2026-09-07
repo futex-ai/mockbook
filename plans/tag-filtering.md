@@ -265,18 +265,25 @@ export function clearTagTerm(raw: string, tag: string): string;
   the same matcher in `navigationConstraintChanges` and
   `selectAndRevealRoute`)
 - Test: `tests/nav_tree.test.ts`, `tests/client_navigation_state.test.ts`,
-  `tests/client_browse_navigation.test.ts`
+  `tests/client_browse_navigation.test.ts`, `tests/shell.test.ts`,
+  `tests/client_modules.test.ts`
 
 **Steps:**
 
-- [ ] Write failing tests: `buildNavTree` carries screen tags onto leaves;
+- [x] Write failing tests: `buildNavTree` carries screen tags onto leaves;
       a DOM fixture row with `data-tags="forms onboarding"` stays visible
       under `tag:forms` while an untagged sibling hides and an emptied group
       hides; `navigationConstraintChanges` requests `clearQuery` when
       navigating to a row hidden only by a tag term. Run; expect failures.
-- [ ] Implement; keep `applyNavVisibility`'s group behavior untouched (it
-      already hides empty groups and auto-opens during filtering).
-- [ ] `npm test` — green.
+- [x] Implement; keep `applyNavVisibility`'s group behavior untouched (it
+      already hides empty groups and auto-opens during filtering). A tag-only
+      query has empty free text, so the group flag reads a new
+      `queryConstrains(query)` predicate instead of a non-empty free-text
+      test.
+- [x] Serve `search_query.js` from the browser client allowlist in
+      `src/server/client_modules.ts` and add a closure test that fails when an
+      allowlisted module imports one the server does not serve.
+- [x] `npm test` — green.
 
 #### Task 3.3: Details inspector chips and chip-click filtering
 
