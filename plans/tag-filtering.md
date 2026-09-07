@@ -187,14 +187,14 @@ tags?: readonly string[];
 
 **Steps:**
 
-- [ ] Declare `tags: ["forms", "onboarding"]` on the Welcome screen entry and
+- [x] Declare `tags: ["forms", "onboarding"]` on the Welcome screen entry and
       `tags: ["forms"]` on the Details screen entry, matching the mockup
       depiction from Milestone 1.
-- [ ] Document the authoring field and manifest addition in
+- [x] Document the authoring field and manifest addition in
       `mokabook-package.md` (grammar, screens/use-cases-only rule, omitted
       when absent, no nested inheritance); remove the notes.md caveat that no
       example entry declares tags.
-- [ ] `npm run example:build && npm run example:check`; confirm via
+- [x] `npm run example:build && npm run example:check`; confirm via
       `git diff` that the manifest gained exactly the two `tags` arrays.
 - [ ] Milestone close-out per Global Constraints (gate, commit
       `feat(registry): add validated entry tags to manifest`, push, review).

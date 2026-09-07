@@ -28,9 +28,9 @@ in each entry's description and rationale, never inside the rendered screens:
   changed screen, in its dark view. Review compares one view at a time, so the
   two are separate pages reached from the comparison band's scheme segment.
 - The `forms` and `onboarding` tags are synthetic fixture labels that carry no
-  product meaning: Welcome carries both and Details carries `forms`, which is
-  why the `tag:forms` tree keeps both screen rows. No example entry declares
-  tags in its authored metadata yet.
+  product meaning: the Welcome entry declares both and the Details entry
+  declares `forms` in their authored metadata, which is why the `tag:forms`
+  tree keeps both screen rows.
 - Tag chips and the search field's tag control are drawn as styled text like
   every other link inside a design screen. The chip in the accent state depicts
   the tag named by the search query; opening the picker and selecting a chip to

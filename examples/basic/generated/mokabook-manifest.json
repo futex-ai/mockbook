@@ -826,6 +826,9 @@
         "mobile": "screens/details.mobile.html"
       },
       "route": "screens/details.html",
+      "tags": [
+        "forms"
+      ],
       "useCaseIds": [
         "example-tour"
       ],
@@ -861,6 +864,10 @@
         "mobile": "screens/welcome.mobile.html"
       },
       "route": "screens/welcome.html",
+      "tags": [
+        "forms",
+        "onboarding"
+      ],
       "useCaseIds": [
         "example-tour"
       ],
