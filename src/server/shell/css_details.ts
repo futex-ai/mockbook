@@ -1,7 +1,8 @@
 /** Details inspector styles: the collapsible bottom panel, its two-column
- * body, and the metadata rows and chips it renders. */
+ * body, and the metadata rows and chips it renders. The chip rules also dress
+ * the tag picker the search field drops, so both surfaces draw one chip. */
 
-/** Details inspector styles. */
+/** Details inspector and shared chip styles. */
 export const SHELL_DETAILS_CSS = `
 .mbk-details {
   flex-shrink: 0;
@@ -171,6 +172,11 @@ details.mbk-details[open] > summary.mbk-details-bar .chev svg {
 
 .mbk-chip.tag.active svg {
   color: var(--mokabook-accent-contrast);
+}
+
+.mbk-chip.tag:active {
+  box-shadow: inset 0 1px 2px rgba(20, 28, 22, 0.14);
+  transform: translateY(1px);
 }
 
 @media (max-width: 56.25rem) {

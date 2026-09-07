@@ -357,12 +357,12 @@ picker; the plan moves to completed.
 
 **Steps:**
 
-- [ ] Write failing tests: shell HTML contains the button and hidden panel
+- [x] Write failing tests: shell HTML contains the button and hidden panel
       listing `forms onboarding` for the example catalogue; a catalogue with
       no tags renders neither. Run; expect failures.
-- [ ] Implement markup and CSS; panel geometry per the mockups (field-width
+- [x] Implement markup and CSS; panel geometry per the mockups (field-width
       card, 10px radius, `--chrome-shadow`, sheet below 56.25rem).
-- [ ] `npm test` — green.
+- [x] `npm test` — green.
 
 #### Task 4.2: Picker behavior, focus, keyboard
 

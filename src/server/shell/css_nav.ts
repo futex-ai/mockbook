@@ -1,5 +1,8 @@
-/** Shell scaffold styles: full-height frame, top bar, and the catalogue
- * navigation column with its filter, tree rows, icons, and drawer states. */
+/** Shell scaffold styles: full-height frame, top bar with the search field's
+ * tag control and the picker it drops, and the catalogue navigation column
+ * with its filter, tree rows, icons, and drawer states. The picker is
+ * anchored to the field, and spans the bar as a sheet below the breakpoint;
+ * the top bar's own stacking context lifts it over the drawer and the views. */
 
 /** Top bar and navigation styles. */
 export const SHELL_NAV_CSS = `
@@ -87,6 +90,7 @@ export const SHELL_NAV_CSS = `
 }
 
 .mbk-search {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -112,6 +116,53 @@ export const SHELL_NAV_CSS = `
 
 .mbk-search input::placeholder {
   color: var(--chrome-muted);
+}
+
+.mbk-search-tag {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-right: -5px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--chrome-muted);
+  cursor: pointer;
+}
+
+.mbk-search-tag:hover {
+  background: var(--chrome-border);
+  color: var(--chrome-ink-2);
+}
+
+.mbk-tag-picker {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 7px);
+  right: -1px;
+  left: -1px;
+  padding: 9px 11px 11px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 10px;
+  background: var(--chrome-surface);
+  box-shadow: var(--chrome-shadow);
+}
+
+.mbk-tag-picker-head {
+  margin-bottom: 8px;
+  color: var(--chrome-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mbk-tag-picker .mbk-chips {
+  max-height: 210px;
+  overflow-y: auto;
 }
 
 .mbk-modes {
@@ -381,6 +432,18 @@ details.mbk-nav-group > summary::-webkit-details-marker {
 @media (max-width: 56.25rem) {
   .mbk-menu {
     display: inline-flex;
+  }
+
+  .mbk-search {
+    position: static;
+  }
+
+  .mbk-tag-picker {
+    top: calc(100% + 1px);
+    right: 0;
+    left: 0;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
   }
 
   .mbk-nav {

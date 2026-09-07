@@ -117,24 +117,54 @@ const taggedFlowManifest: ManifestV3 = {
   ),
 };
 
+const untaggedManifest: ManifestV3 = {
+  ...manifest,
+  entries: manifest.entries.map((entry) => {
+    if (entry.kind === "collection") return entry;
+    const { tags: _tags, ...untagged } = entry;
+    return untagged;
+  }),
+};
+
 const context = {
   base: "origin/main",
   mode: "browse" as const,
   updateVersion: 1,
 };
 
-const TAG_ICON =
-  '<svg aria-hidden="true" fill="none" height="11" stroke="currentColor" ' +
-  'stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
-  'viewBox="0 0 24 24" width="11">' +
-  '<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0l-7.4-7.4A2 2 0 0 1 2.6 12V5a2 2 0 0 1 2-2h7a2 2 0 0 1 1.4.6l7.6 7.6a2 2 0 0 1 0 2.8z"></path>' +
-  '<path d="M7.6 7.6h.01"></path></svg>';
+/** The shell's tag glyph at one rendered size. */
+function tagIcon(size: number): string {
+  return (
+    `<svg aria-hidden="true" fill="none" height="${size}" stroke="currentColor" ` +
+    'stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+    `viewBox="0 0 24 24" width="${size}">` +
+    '<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0l-7.4-7.4A2 2 0 0 1 2.6 12V5a2 2 0 0 1 2-2h7a2 2 0 0 1 1.4.6l7.6 7.6a2 2 0 0 1 0 2.8z"></path>' +
+    '<path d="M7.6 7.6h.01"></path></svg>'
+  );
+}
 
-/** One details tag chip exactly as the approved mockup draws it. */
+/** One tag chip exactly as the approved mockup draws it, on either surface. */
 function tagChip(tag: string): string {
   return (
-    `<button class="mbk-chip tag" data-mokabook-tag="${tag}" type="button">` +
-    `${TAG_ICON}${tag}</button>`
+    `<button aria-pressed="false" class="mbk-chip tag" ` +
+    `data-mokabook-tag="${tag}" type="button">${tagIcon(11)}${tag}</button>`
+  );
+}
+
+/** The tag control the search field carries at its trailing edge. */
+const TAG_TOGGLE =
+  '<button aria-controls="mb-tag-picker" aria-expanded="false" ' +
+  'aria-label="Filter by tag" class="mbk-search-tag" ' +
+  `data-mokabook-tag-toggle="" type="button">${tagIcon(13)}</button>`;
+
+/** The panel the tag control drops under the search field, closed. */
+function tagPicker(...tags: readonly string[]): string {
+  return (
+    '<div aria-label="Tags" class="mbk-tag-picker" hidden="" id="mb-tag-picker" ' +
+    'role="group"><div class="mbk-tag-picker-head">Tags</div>' +
+    '<span class="mbk-chips">' +
+    tags.map(tagChip).join("") +
+    "</span></div>"
   );
 }
 
@@ -175,6 +205,13 @@ function darkTokenSelectors(css: string): string[] {
     .split("}")
     .filter((block) => block.includes("var(--mbk-dark-screen-"))
     .map((block) => block.slice(0, block.lastIndexOf("{")).trim());
+}
+
+/** The details inspector alone, so top-bar chips cannot satisfy a check. */
+function detailsSection(html: string): string {
+  const start = html.indexOf('<details class="mbk-details"');
+  assert.ok(start > -1);
+  return html.slice(start);
 }
 
 function routePage(catalogue: Catalogue, route: string): string {
@@ -496,7 +533,7 @@ test("details inspector chips the tags an entry declares", () => {
     ),
   );
 
-  const untagged = routePage(dark, "screens/details.html");
+  const untagged = detailsSection(routePage(dark, "screens/details.html"));
   assert.equal(untagged.includes('mbk-meta-k">Tags'), false);
   assert.equal(untagged.includes("data-mokabook-tag"), false);
 });
@@ -513,6 +550,38 @@ test("a use case chips its tags in the same details row", () => {
     ),
   );
   assert.equal(flow.includes('mbk-meta-k">Generated'), false);
+});
+
+test("the catalogue names every declared tag once, in sorted order", () => {
+  assert.deepEqual(createCatalogue(manifest).tags, ["forms", "onboarding"]);
+  assert.deepEqual(createCatalogue(taggedFlowManifest).tags, [
+    "forms",
+    "onboarding",
+  ]);
+  assert.deepEqual(createCatalogue(untaggedManifest).tags, []);
+});
+
+test("the search field carries a tag control over a closed picker", () => {
+  const html = homePage(createCatalogue(manifest), context);
+  assert.ok(
+    html.includes(
+      'data-mokabook-search="" placeholder="Search screens…" type="search"/>' +
+        TAG_TOGGLE +
+        tagPicker("forms", "onboarding") +
+        "</div>",
+    ),
+  );
+
+  const untagged = homePage(createCatalogue(untaggedManifest), context);
+  assert.match(untagged, /data-mokabook-search/);
+  assert.equal(untagged.includes("mbk-search-tag"), false);
+  assert.equal(untagged.includes("mb-tag-picker"), false);
+
+  const review = reviewPage("origin/main", createCatalogue(manifest), {
+    ...context,
+    mode: "review",
+  });
+  assert.equal(review.includes("mb-tag-picker"), false);
 });
 
 test("missing routes and review keep the catalogue shell", () => {
@@ -610,12 +679,54 @@ test("tag chips select in the accent and the bar clears the scrim", () => {
       ".mbk-chip.tag.active svg { color: var(--mokabook-accent-contrast); }",
     ),
   );
+  assert.ok(
+    css.includes(
+      ".mbk-chip.tag:active { box-shadow: inset 0 1px 2px " +
+        "rgba(20, 28, 22, 0.14); transform: translateY(1px); }",
+    ),
+  );
   assert.match(
     SHELL_CSS,
     /\.mbk-topbar \{[^}]*position: relative;[^}]*z-index: 11;/,
   );
   assert.match(SHELL_CSS, /\.mbk-skip-link \{[^}]*z-index: 20;/);
   assert.match(SHELL_CSS, /\.mbk-nav \{[^}]*z-index: 10;/);
+});
+
+test("the tag picker drops from the field and sheets under the bar", () => {
+  const css = flatCss(SHELL_CSS);
+  assert.match(SHELL_CSS, /\.mbk-search \{[^}]*position: relative;/);
+  assert.match(
+    SHELL_CSS,
+    /\.mbk-search-tag \{[^}]*width: 20px;[^}]*height: 20px;[^}]*cursor: pointer;/,
+  );
+  assert.ok(
+    css.includes(
+      ".mbk-search-tag:hover { background: var(--chrome-border); " +
+        "color: var(--chrome-ink-2); }",
+    ),
+  );
+  assert.match(
+    SHELL_CSS,
+    /\.mbk-tag-picker \{[^}]*position: absolute;[^}]*top: calc\(100% \+ 7px\);[^}]*border-radius: 10px;[^}]*background: var\(--chrome-surface\);[^}]*box-shadow: var\(--chrome-shadow\);/,
+  );
+  assert.match(
+    SHELL_CSS,
+    /\.mbk-tag-picker-head \{[^}]*font-size: 11px;[^}]*text-transform: uppercase;/,
+  );
+  assert.ok(
+    css.includes(
+      ".mbk-tag-picker .mbk-chips { max-height: 210px; " +
+        "overflow-y: auto; }",
+    ),
+  );
+  assert.ok(css.includes(".mbk-search { position: static; }"));
+  assert.ok(
+    css.includes(
+      ".mbk-tag-picker { top: calc(100% + 1px); right: 0; left: 0; " +
+        "border-top: 0; border-radius: 0 0 12px 12px; }",
+    ),
+  );
 });
 
 test("dark scheme paints device screens and leaves the chrome light", () => {

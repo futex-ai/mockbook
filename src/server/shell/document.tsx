@@ -9,6 +9,7 @@ import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
 import { SchemeSwitch } from "./head.js";
 import { CatalogueNav } from "./nav.js";
+import { SearchTagPicker } from "./tags.js";
 import { ShellMain, viewTitle } from "./views.js";
 import type { ShellView } from "./views.js";
 
@@ -41,6 +42,7 @@ function TopBar(props: { catalogue: Catalogue; context: ShellContext }) {
             placeholder="Search screens…"
             type="search"
           />
+          <SearchTagPicker tags={props.catalogue.tags} />
         </div>
       ) : null}
       {props.catalogue.hasDarkFragments ? <SchemeSwitch /> : null}

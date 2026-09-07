@@ -12,7 +12,8 @@ import type { ColorScheme } from "../../authoring/types.js";
 import { encodeUrlPath } from "../../config/paths.js";
 import type { ManifestScreen, ManifestUseCase } from "../../registry/types.js";
 import type { Catalogue } from "../catalogue.js";
-import { ChevronIcon, FlowIcon, TagIcon } from "./icons.js";
+import { ChevronIcon, FlowIcon } from "./icons.js";
+import { TagChip } from "./tags.js";
 import type { RoutedEntry, RouteTarget } from "./target.js";
 
 function MetaRow(props: { children: ReactNode; label: string }) {
@@ -66,15 +67,7 @@ function TagChips(props: { values: readonly string[] }) {
     <MetaRow label="Tags">
       <span className="mbk-chips">
         {props.values.map((tag) => (
-          <button
-            className="mbk-chip tag"
-            data-mokabook-tag={tag}
-            key={tag}
-            type="button"
-          >
-            <TagIcon size={11} />
-            {tag}
-          </button>
+          <TagChip key={tag} tag={tag} />
         ))}
       </span>
     </MetaRow>
