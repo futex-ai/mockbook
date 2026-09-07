@@ -70,6 +70,7 @@ const manifest: ManifestV3 = {
       relatedDocs: [],
       route: "screens/details.html",
       sourcePath: "entries/fixture.mockup.tsx",
+      tags: ["billing"],
       title: "Details",
       useCaseIds: ["tour"],
       viewports: ["mobile", "desktop"],
@@ -113,7 +114,9 @@ const darkManifest: ManifestV3 = {
 const taggedFlowManifest: ManifestV3 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
-    entry.kind === "use-case" ? { ...entry, tags: ["onboarding"] } : entry,
+    entry.kind === "use-case"
+      ? { ...entry, tags: ["onboarding", "walkthrough"] }
+      : entry,
   ),
 };
 
@@ -292,8 +295,12 @@ test("catalogue nav marks active, changed, and iconed rows", () => {
     html,
     /data-route="screens\/welcome\.html"[^>]*data-tags="forms onboarding"/,
   );
+  assert.match(
+    html,
+    /data-route="screens\/details\.html"[^>]*data-tags="billing"/,
+  );
   assert.equal(
-    /data-route="screens\/details\.html"[^>]*data-tags/.test(html),
+    /data-route="user-flows\/tour\.html"[^>]*data-tags/.test(html),
     false,
   );
   assert.match(html, /data-nav-collection="collection:screens"/);
@@ -533,7 +540,10 @@ test("details inspector chips the tags an entry declares", () => {
     ),
   );
 
-  const untagged = detailsSection(routePage(dark, "screens/details.html"));
+  const second = detailsSection(routePage(dark, "screens/details.html"));
+  assert.ok(second.includes(tagsRow("billing")));
+
+  const untagged = detailsSection(routePage(dark, "user-flows/tour.html"));
   assert.equal(untagged.includes('mbk-meta-k">Tags'), false);
   assert.equal(untagged.includes("data-mokabook-tag"), false);
 });
@@ -546,17 +556,23 @@ test("a use case chips its tags in the same details row", () => {
   assert.ok(
     flow.includes(
       '<code class="mbk-code">entries/fixture.mockup.tsx</code></span></div>' +
-        tagsRow("onboarding"),
+        tagsRow("onboarding", "walkthrough"),
     ),
   );
   assert.equal(flow.includes('mbk-meta-k">Generated'), false);
 });
 
 test("the catalogue names every declared tag once, in sorted order", () => {
-  assert.deepEqual(createCatalogue(manifest).tags, ["forms", "onboarding"]);
-  assert.deepEqual(createCatalogue(taggedFlowManifest).tags, [
+  assert.deepEqual(createCatalogue(manifest).tags, [
+    "billing",
     "forms",
     "onboarding",
+  ]);
+  assert.deepEqual(createCatalogue(taggedFlowManifest).tags, [
+    "billing",
+    "forms",
+    "onboarding",
+    "walkthrough",
   ]);
   assert.deepEqual(createCatalogue(untaggedManifest).tags, []);
 });
@@ -567,7 +583,7 @@ test("the search field carries a tag control over a closed picker", () => {
     html.includes(
       'data-mokabook-search="" placeholder="Search screens…" type="search"/>' +
         TAG_TOGGLE +
-        tagPicker("forms", "onboarding") +
+        tagPicker("billing", "forms", "onboarding") +
         "</div>",
     ),
   );
