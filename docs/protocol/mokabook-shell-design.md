@@ -17,10 +17,12 @@ This document describes the implemented shell design, including active-row
 ancestor disclosure, conditional filter clearing, nearest-row scrolling, the
 `tag:` search term, the details inspector's tag chips, the search field's tag
 control with its picker panel, and the top bar's stacking above the navigation
-drawer scrim. One recorded state is still outstanding: below the breakpoint the
-served brand keeps the product name beside its mark, so that bar overflows a
-390px viewport and carries the mode switch off screen instead of narrowing to
-the mark. Every other state recorded here is implemented.
+drawer scrim. One recorded state is still outstanding, and it predates the tag
+work: the mark-only narrow brand was recorded with the earlier shell design and
+the served shell has never implemented it, so below the breakpoint the brand
+still keeps the product name beside its mark, that bar overflows a 390px
+viewport, and the mode switch sits off screen. Every other state recorded here
+is implemented.
 
 ## Design Mockups
 
@@ -103,11 +105,11 @@ scrollable region scrolls internally:
   a centred search field (max-width 440px, `⌕` glyph), the color-scheme
   control when the catalogue has one, and a right-aligned Browse/Review
   segmented mode switch. Below the breakpoint a menu button precedes the brand
-  and opens the navigation drawer, and wherever the bar keeps the search field
-  the brand drops to its mark alone so the field keeps its room. A query splits
-  into terms: every `tag:<tag>` term matches only rows whose entry declares that
-  tag, and the remaining words rejoin into one phrase that matches row titles
-  and routes as a single substring. A row stays visible only when it matches
+  and opens the navigation drawer, and wherever that narrow bar keeps the search
+  field the brand drops to its mark alone so the field keeps its room. A query
+  splits into terms: every `tag:<tag>` term matches only rows whose entry
+  declares that tag, and the remaining words rejoin into one phrase that must
+  appear in a row's title or route. A row stays visible only when it matches
   every tag term and that phrase; tag terms hide the groups they empty and open
   the groups they keep, and they compose with the All/Changed filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
