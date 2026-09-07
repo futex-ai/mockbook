@@ -130,6 +130,7 @@ function toManifestEntry(
       kind: "use-case",
       route: entry.route,
       steps: entry.steps.map((step) => ({ ...step })),
+      ...(entry.tags && entry.tags.length > 0 ? { tags: [...entry.tags] } : {}),
     };
   }
   return {
@@ -149,6 +150,7 @@ function toManifestEntry(
     },
     kind: "screen",
     route: entry.route,
+    ...(entry.tags && entry.tags.length > 0 ? { tags: [...entry.tags] } : {}),
     useCaseIds: [...entry.useCaseIds],
     viewports: ["mobile", "desktop"],
   };

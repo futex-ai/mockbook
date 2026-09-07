@@ -163,19 +163,19 @@ tags?: readonly string[];
 
 **Steps:**
 
-- [ ] Write failing tests: a tagged screen serializes `"tags": ["forms"]`
+- [x] Write failing tests: a tagged screen serializes `"tags": ["forms"]`
       and an untagged screen omits the key entirely (byte-stability);
       `parseManifest` accepts entries with and without `tags` and rejects a
       non-string element; `routeChangeProjection` output differs when only
       `tags` changed (drives the Changed filter). Run; expect failures.
-- [ ] In `toManifestEntry`, spread tags with the existing optional pattern:
+- [x] In `toManifestEntry`, spread tags with the existing optional pattern:
       `...(entry.tags && entry.tags.length > 0 ? { tags: [...entry.tags] } : {})`
       for screen and use-case branches.
-- [ ] In `manifest_validation.ts`, accept the optional field with the same
+- [x] In `manifest_validation.ts`, accept the optional field with the same
       optional-string-array shape used for existing lists.
-- [ ] In `routeChangeProjection`, add `tags: entry.kind === "collection" ? undefined : entry.tags`
+- [x] In `routeChangeProjection`, add `tags: entry.kind === "collection" ? undefined : entry.tags`
       to the common projection object.
-- [ ] `npm test` — green.
+- [x] `npm test` — green.
 
 #### Task 2.3: Fixture tags, docs, regeneration
 

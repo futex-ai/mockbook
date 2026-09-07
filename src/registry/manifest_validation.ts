@@ -125,6 +125,12 @@ function validateEntry(entry: Record<string, unknown>): void {
     );
   }
   validateRoute(entry.route, String(entry.id));
+  if (entry.tags !== undefined && !stringArray(entry.tags)) {
+    throw new MokabookError(
+      "manifest-invalid",
+      `${String(entry.id)} has invalid tags`,
+    );
+  }
   if (kind === "screen") validateScreen(entry);
   else validateUseCase(entry);
 }
