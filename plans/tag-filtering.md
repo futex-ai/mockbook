@@ -97,7 +97,7 @@ regenerated.
       `npx playwright screenshot` the regenerated `tag-filter.desktop.html`
       and `home.desktop.html` from disk and read both images to confirm no
       layout shift from the span→div change.
-- [ ] Milestone close-out per Global Constraints (gate, commit
+- [x] Milestone close-out per Global Constraints (gate, commit
       `docs(design): align mockups with review findings`, push, review).
 
 ---
