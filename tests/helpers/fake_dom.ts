@@ -30,6 +30,7 @@ export class FakeClassList {
 
 /** One element of the fake shell tree. */
 export class FakeNode {
+  activeElement: FakeNode | null = null;
   readonly classList = new FakeClassList();
   readonly dataset: Record<string, string> = {};
   readonly dispatched: Event[] = [];
@@ -70,14 +71,35 @@ export class FakeNode {
     return this.parentElement?.closest(selector) ?? null;
   }
 
+  contains(other: FakeNode | null): boolean {
+    for (let node = other; node; node = node.parentElement)
+      if (node === this) return true;
+    return false;
+  }
+
   dispatchEvent(event: Event): boolean {
     this.dispatched.push(event);
     this.onDispatch?.(event);
     return true;
   }
 
+  /** Record this node as the focused element on the tree root, as a document
+   * records its `activeElement`. */
+  focus(): void {
+    this.treeRoot().activeElement = this;
+  }
+
   getAttribute(name: string): string | null {
     return this.#attributes.get(name) ?? null;
+  }
+
+  getElementById(id: string): FakeNode | null {
+    for (const child of this.#children) {
+      if (child.getAttribute("id") === id) return child;
+      const found = child.getElementById(id);
+      if (found) return found;
+    }
+    return null;
   }
 
   matches(selector: string): boolean {
@@ -111,6 +133,11 @@ export class FakeNode {
 
   setAttribute(name: string, value: string): void {
     this.#attributes.set(name, value);
+  }
+
+  /** The node the client modules view as the document. */
+  treeRoot(): FakeNode {
+    return this.parentElement?.treeRoot() ?? this;
   }
 }
 

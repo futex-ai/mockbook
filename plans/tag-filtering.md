@@ -373,19 +373,21 @@ picker; the plan moves to completed.
   refocuses the button without touching the query; outside click closes;
   focus moves to the active-or-first chip on open; roving tabindex with
   Left/Right/Home/End across the wrapped chip row, Enter/Space selects)
-- Test: `tests/client_browse.test.ts`, new `tests/browser/browse_tags.spec.ts`
+- Test: new `tests/client_tag_filter.test.ts` (the tag chip cases move out of
+  `tests/client_browse_details.test.ts` so one suite owns the module), new
+  `tests/browser/browse_tags.spec.ts`
 
 **Steps:**
 
-- [ ] Write failing tests: unit coverage for open/close/Escape/outside-click
+- [x] Write failing tests: unit coverage for open/close/Escape/outside-click
       state and roving tabindex order; browser coverage: open picker →
       select `forms` → input reads `tag:forms`, tree filters, panel closes,
       button refocused; reopen → `forms` chip active; select it again →
       term cleared; narrow viewport → panel spans the bar width. Run; expect
       failures.
-- [ ] Implement in `tag_filter.ts`; no new persisted state (the query
+- [x] Implement in `tag_filter.ts`; no new persisted state (the query
       persists via existing browse state; the panel is ephemeral).
-- [ ] `npm test && npm run test:browser` — green.
+- [x] `npm test && npm run test:browser` — green.
 
 #### Task 4.3: Docs, preview smoke, wrap-up
 

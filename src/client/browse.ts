@@ -24,7 +24,11 @@ import {
 import { applyPreviewFragmentQuery } from "./preview_fragment.js";
 import { isEligibleBrowseLink, NavigationSequencer } from "./navigation.js";
 import { attachFrameNavigation } from "./frame_navigation.js";
-import { handleTagChipClick, syncTagChips } from "./tag_filter.js";
+import {
+  handleTagControlClick,
+  handleTagPickerKeydown,
+  syncTagChips,
+} from "./tag_filter.js";
 
 interface ScrollState {
   scrolls?: Record<string, number>;
@@ -173,6 +177,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   doc.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : undefined;
     if (!target) return;
+    if (handleTagControlClick(doc, target)) return;
     const summary = target.closest("summary");
     const details = summary?.parentElement;
     if (
@@ -190,7 +195,6 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       }
       return;
     }
-    if (handleTagChipClick(doc, target)) return;
     if (target.closest("[data-mokabook-menu]")) {
       setDrawer(shell, shell.dataset["drawer"] !== "open");
       return;
@@ -256,6 +260,11 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   });
 
   doc.addEventListener("keydown", (event) => {
+    const target = event.target instanceof Element ? event.target : undefined;
+    if (handleTagPickerKeydown(doc, event.key, target)) {
+      event.preventDefault();
+      return;
+    }
     if (event.key === "Escape") collapseFrame(doc, expandedFrame(doc));
   });
 
