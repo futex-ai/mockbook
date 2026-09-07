@@ -420,7 +420,7 @@
         "Browse shell",
         "Shell states"
       ],
-      "rationale": "Tag filtering reuses the search field rather than adding a second top-level control: selecting a tag chip in the details inspector enters that tag as a search term, so the active filter stays visible and clearable where a reader already looks for one, and it still composes with the All/Changed filter. Rows without the tag and the groups they leave empty drop out of the tree, and the chip for the entered term reads in the accent, so the chip, the query, and the filtered tree describe a single state.",
+      "rationale": "Tag filtering reuses the search field rather than adding a second top-level control: the tag rail under the navigation filter lists the tags the catalogue declares, and selecting a chip there or in the details inspector enters that tag as a search term, so the available tags stay discoverable while the active filter stays visible and clearable where a reader already looks for one, and it still composes with the All/Changed filter. Selecting the chip for the entered term clears it again. Rows without the tag and the groups they leave empty drop out of the tree, and every chip for the entered term reads in the accent, so the chips, the query, and the filtered tree describe a single state.",
       "relatedDocs": [
         "docs/protocol/mokabook-shell-design.md",
         "examples/basic/notes.md"

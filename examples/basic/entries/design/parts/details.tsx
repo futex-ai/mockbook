@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ChevronIcon, FlowIcon, TagIcon } from "./icons.js";
-
-/** Tags declared by the fixture screen the inspector describes. */
-const SCREEN_TAGS = ["forms", "onboarding"];
+import { CATALOGUE_TAGS } from "./tags.js";
 
 function MetaRow({ children, label }: { children: ReactNode; label: string }) {
   return (
@@ -17,7 +15,7 @@ function MetaRow({ children, label }: { children: ReactNode; label: string }) {
 function TagChips({ activeTag }: { activeTag?: string | undefined }) {
   return (
     <span className="mbk-chips">
-      {SCREEN_TAGS.map((tag) => (
+      {CATALOGUE_TAGS.map((tag) => (
         <span
           key={tag}
           className={tag === activeTag ? "mbk-chip tag active" : "mbk-chip tag"}

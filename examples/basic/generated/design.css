@@ -72,6 +72,9 @@ body {
 
 /* ---- Top bar ---------------------------------------------------------- */
 
+/* The drawer scrim covers the whole shell, so the bar the drawer was opened
+   from is raised above it: the menu button, brand, query, and mode switch keep
+   their full-strength surface while everything below the bar dims. */
 .mbk-topbar {
   align-items: center;
   background: var(--chrome-surface);
@@ -81,6 +84,8 @@ body {
   gap: 16px;
   height: 48px;
   padding: 0 16px;
+  position: relative;
+  z-index: 6;
 }
 
 .mbk-brand {
@@ -254,6 +259,14 @@ body {
   margin-left: 5px;
 }
 
+/* The tag rail sits under the filter and lists the tags the catalogue
+   declares, so a reader can see and select one instead of typing the term. It
+   reuses the .mbk-chips group and .mbk-chip.tag pill of the details inspector
+   and only adds the navigation inset, keeping both surfaces identical. */
+.mbk-nav-tags {
+  margin: 0 8px 8px;
+}
+
 .mbk-nav-scroll {
   flex: 1;
   overflow-y: auto;
@@ -342,7 +355,7 @@ body {
 }
 
 /* Narrow-shell navigation drawer, shown open under the top bar it is opened
-   from, over a dimmed shell. */
+   from. Its scrim dims the shell below that bar, which stacks above it. */
 .mbk-drawer {
   border-right: 1px solid var(--chrome-border);
   bottom: 0;

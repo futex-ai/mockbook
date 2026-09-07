@@ -15,8 +15,12 @@ implementation and tests must preserve. Runtime behavior stays in
 
 This document describes the implemented shell design, including active-row
 ancestor disclosure, conditional filter clearing, and nearest-row scrolling.
-The details inspector's tag chips and the `tag:` search term are recorded
-design pending implementation; every other state here is implemented.
+The navigation tag rail, the details inspector's tag chips, the `tag:` search
+term, and the top bar's stacking above the navigation drawer scrim are recorded
+design pending implementation; every other state here is implemented. The
+shipped shell currently paints that scrim over the top bar, so the stacking
+recorded below is a correction for the implementation to pick up rather than a
+mockup that drifted from the shell.
 
 ## Design Mockups
 
@@ -108,7 +112,16 @@ scrollable region scrolls internally:
 - **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
   Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
   an All/Changed segmented filter (with a monospace changed count) when Git
-  change detection is available; then the scrollable tree.
+  change detection is available; the tag rail; then the scrollable tree. The
+  drawer below the breakpoint shows the same body.
+  - The tag rail is a wrapping row of pill chips under the filter, one per tag
+    the catalogue declares, each drawn as the details inspector's tag chip: the
+    tag icon at 11px and the tag name. Selecting a chip enters `tag:<tag>` in
+    the search field, replacing any tag term already entered; selecting the
+    chip whose tag is the entered term clears that term. The chip for the
+    entered term carries the accent active state with contrast text and glyph.
+    The rail composes with the All/Changed filter and any free text in the
+    query, and a catalogue that declares no tags renders no rail.
   - Groups are native `<details>` whose summary row shows a closed/open folder
     SVG pair (swapped via the `[open]` state), a bold label, and a monospace
     child count. Leaves show a screen, page, or flow SVG; flow icons read in
@@ -224,7 +237,10 @@ The shell has one breakpoint at **56.25rem (900px)**:
 - At or above it, the navigation column is persistent and the layout is the
   fixed two-column split above.
 - Below it, the navigation becomes a scrimmed overlay drawer (82% width, max
-  20rem) opened by the top-bar menu button in both Browse and Review; the
+  20rem) opened by the top-bar menu button in both Browse and Review. The
+  drawer opens under the 48px bar and the bar stacks above the scrim, so the
+  menu button that opened it, the brand, the query, and the mode switch stay
+  at full strength while only the shell below the bar dims. The
   phone frame scales via `aspect-ratio: 390 / 844` within available width, the
   browser frame drops to 560px height, flow connector lines hide, the details
   body stacks to one column, and the color-scheme control moves from the top

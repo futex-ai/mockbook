@@ -1,6 +1,13 @@
 import type { CSSProperties } from "react";
 
-import { FlowIcon, FolderIcon, FolderOpenIcon, ScreenIcon } from "./icons.js";
+import {
+  FlowIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  ScreenIcon,
+  TagIcon,
+} from "./icons.js";
+import { CATALOGUE_TAGS } from "./tags.js";
 
 /** One entry in the catalogue navigation tree. */
 export interface NavNode {
@@ -98,13 +105,42 @@ function NavRow({
   );
 }
 
+/**
+ * The tags the catalogue declares, offered as selectable chips. A catalogue
+ * without tags draws no rail.
+ */
+function TagRail({ activeTag }: { activeTag?: string | undefined }) {
+  if (CATALOGUE_TAGS.length === 0) {
+    return null;
+  }
+  return (
+    <div
+      className="mbk-chips mbk-nav-tags"
+      role="group"
+      aria-label="Tag filter"
+    >
+      {CATALOGUE_TAGS.map((tag) => (
+        <span
+          key={tag}
+          className={tag === activeTag ? "mbk-chip tag active" : "mbk-chip tag"}
+        >
+          <TagIcon size={11} />
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 interface NavTreeProps {
   activeLabel?: string | undefined;
+  /** Tag drawn as the selected rail chip because it is the search term. */
+  activeTag?: string | undefined;
   /** Rows to draw instead of the whole catalogue, as a filter leaves them. */
   nodes?: readonly NavNode[] | undefined;
 }
 
-function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
+function CatalogueBody({ activeLabel, activeTag, nodes }: NavTreeProps) {
   return (
     <>
       <div className="mbk-nav-head">
@@ -120,6 +156,7 @@ function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
           Changed<span className="mbk-nav-filter-count">3</span>
         </span>
       </div>
+      <TagRail activeTag={activeTag} />
       <div className="mbk-nav-scroll">
         {(nodes ?? NAV_TREE).map((node, index) => (
           <NavRow
@@ -134,19 +171,27 @@ function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
 }
 
 /** Persistent desktop catalogue navigation. */
-export function NavTree({ activeLabel, nodes }: NavTreeProps) {
+export function NavTree({ activeLabel, activeTag, nodes }: NavTreeProps) {
   return (
     <nav className="mbk-nav" aria-label="Catalogue">
-      <CatalogueBody activeLabel={activeLabel} nodes={nodes} />
+      <CatalogueBody
+        activeLabel={activeLabel}
+        activeTag={activeTag}
+        nodes={nodes}
+      />
     </nav>
   );
 }
 
 /** Mobile catalogue navigation drawer, shown open. */
-export function NavDrawer({ activeLabel, nodes }: NavTreeProps) {
+export function NavDrawer({ activeLabel, activeTag, nodes }: NavTreeProps) {
   return (
     <nav className="mbk-nav mbk-drawer" aria-label="Catalogue">
-      <CatalogueBody activeLabel={activeLabel} nodes={nodes} />
+      <CatalogueBody
+        activeLabel={activeLabel}
+        activeTag={activeTag}
+        nodes={nodes}
+      />
     </nav>
   );
 }

@@ -33,15 +33,23 @@ in each entry's description and rationale, never inside the rendered screens:
 - Tag chips are drawn as styled text like every other link inside a design
   screen. The chip in the accent state depicts the tag named by the search
   query; selecting a chip to enter that query is runtime behavior.
+- The navigation tag rail under the All/Changed filter draws the same `forms`
+  and `onboarding` fixture labels, because they are the whole set of tags this
+  catalogue declares. It appears on every Browse artboard that draws the
+  navigation, since a catalogue that declares tags always offers them; only the
+  tag-filter artboards draw a chip in the accent state, because only they
+  depict an entered query.
 - The tag-filter artboards draw the top-bar search field because the entered
   query is the depicted state. The narrow one draws it too: the shell keeps the
   search field in the top bar below the breakpoint, where the brand keeps its
   mark without the product name so the field has room. The other narrow
   artboards omit the field, and so keep the product name, because their
   depicted state has no query.
-- The narrow navigation drawer opens under the top bar over a dimmed shell, so
-  the menu button that opened it and the query beside it stay visible, matching
-  the served shell.
+- The narrow navigation drawer opens under the top bar, and the bar stays above
+  the drawer's scrim: the menu button that opened it, the brand, and the query
+  beside them keep their full-strength surface while only the shell below the
+  bar dims. The served shell still dims its top bar with the scrim, so this is
+  a recorded design correction for the shell to pick up.
 - The `Light | Dark` control sits in the top bar on the wide artboards and in
   the screen head band, under the viewport control, on the narrow ones: a 390px
   top bar has no room for a third control.

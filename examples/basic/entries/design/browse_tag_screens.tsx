@@ -6,8 +6,11 @@ import { NavDrawer, NavTree, type NavNode } from "./parts/nav.js";
 import { Shell } from "./parts/shell.js";
 import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
 
-/** The query the depicted tag chip entered in the search field. */
-const TAG_QUERY = "tag:forms";
+/** The tag the depicted selection entered as a search term. */
+const ACTIVE_TAG = "forms";
+
+/** The query that selection left in the search field. */
+const TAG_QUERY = `tag:${ACTIVE_TAG}`;
 
 /**
  * Rows the query keeps: entries without the tag and the groups they empty drop
@@ -25,7 +28,13 @@ function TagFilterDesktop() {
     <Shell
       mode="browse"
       viewport="desktop"
-      nav={<NavTree activeLabel="Welcome" nodes={TAGGED_TREE} />}
+      nav={
+        <NavTree
+          activeLabel="Welcome"
+          activeTag={ACTIVE_TAG}
+          nodes={TAGGED_TREE}
+        />
+      }
       searchValue={TAG_QUERY}
     >
       <WelcomeHead active="desktop" />
@@ -34,7 +43,7 @@ function TagFilterDesktop() {
           <MiniWelcome />
         </BrowserFrame>
       </Stage>
-      <DetailsPanel activeTag="forms" open />
+      <DetailsPanel activeTag={ACTIVE_TAG} open />
     </Shell>
   );
 }
@@ -45,7 +54,13 @@ function TagFilterMobile() {
       mode="browse"
       viewport="mobile"
       nav={null}
-      aside={<NavDrawer activeLabel="Welcome" nodes={TAGGED_TREE} />}
+      aside={
+        <NavDrawer
+          activeLabel="Welcome"
+          activeTag={ACTIVE_TAG}
+          nodes={TAGGED_TREE}
+        />
+      }
       searchValue={TAG_QUERY}
     >
       <WelcomeHead active="mobile" />
@@ -68,7 +83,7 @@ export const browseTagScreens = [
     id: "design-browse-tag-filter",
     mobile: <TagFilterMobile />,
     rationale:
-      "Tag filtering reuses the search field rather than adding a second top-level control: selecting a tag chip in the details inspector enters that tag as a search term, so the active filter stays visible and clearable where a reader already looks for one, and it still composes with the All/Changed filter. Rows without the tag and the groups they leave empty drop out of the tree, and the chip for the entered term reads in the accent, so the chip, the query, and the filtered tree describe a single state.",
+      "Tag filtering reuses the search field rather than adding a second top-level control: the tag rail under the navigation filter lists the tags the catalogue declares, and selecting a chip there or in the details inspector enters that tag as a search term, so the available tags stay discoverable while the active filter stays visible and clearable where a reader already looks for one, and it still composes with the All/Changed filter. Selecting the chip for the entered term clears it again. Rows without the tag and the groups they leave empty drop out of the tree, and every chip for the entered term reads in the accent, so the chips, the query, and the filtered tree describe a single state.",
     slug: "tag-filter",
     title: "Tag filter",
   }),
