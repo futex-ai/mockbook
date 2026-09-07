@@ -129,21 +129,21 @@ tags?: readonly string[];
 
 **Steps:**
 
-- [ ] Write failing tests: `defineScreen` keeps `tags` on the definition; a
+- [x] Write failing tests: `defineScreen` keeps `tags` on the definition; a
       screen with `tags: ["forms", "Forms!"]` yields an `invalid-tags`
       violation; duplicates (`["forms", "forms"]`) yield `invalid-tags`; an
       empty array is valid and equivalent to absent; a collection entry
       carrying a `tags` field yields `invalid-tags`
       ("tags are not supported on collections"). Run; expect failures.
-- [ ] Add the optional `tags` fields to `ScreenInput`, `UseCaseInput`, and
+- [x] Add the optional `tags` fields to `ScreenInput`, `UseCaseInput`, and
       `NestedScreenInput`; pass them through `src/authoring/definitions.ts`
       and the nested flattener unchanged (no inheritance).
-- [ ] In `validateEntry`, add `validateTags(entry, violations)`: when
+- [x] In `validateEntry`, add `validateTags(entry, violations)`: when
       `entry.tags !== undefined`, require an array of strings each matching
       the `isCatalogueId` grammar and free of duplicates, reporting
       `problem(entry, "invalid-tags", …)`; report `invalid-tags` when a
       collection declares the field at all.
-- [ ] `npm test` — new tests pass, all existing pass.
+- [x] `npm test` — new tests pass, all existing pass.
 
 #### Task 2.2: Manifest schema, serialization, validation, Changed projection
 
