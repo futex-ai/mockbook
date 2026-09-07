@@ -23,7 +23,9 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "tests/**/*.ts",
+    "tests/**/*.tsx",
     "examples/**/*.ts",
     "examples/**/*.tsx"
-  ]
+  ],
+  "exclude": ["tests/fixtures/consumers/**/*.tsx"]
 }
