@@ -30,21 +30,26 @@ in each entry's description and rationale, never inside the rendered screens:
 - The `forms` and `onboarding` tags drawn on the Welcome entry are synthetic
   fixture labels chosen to show a tagged entry; they carry no product meaning
   and no example entry declares tags in its authored metadata yet.
-- Tag chips are drawn as styled text like every other link inside a design
-  screen. The chip in the accent state depicts the tag named by the search
-  query; selecting a chip to enter that query is runtime behavior.
-- The navigation tag rail under the All/Changed filter draws the same `forms`
-  and `onboarding` fixture labels, because they are the whole set of tags this
-  catalogue declares. It appears on every Browse artboard that draws the
-  navigation, since a catalogue that declares tags always offers them; only the
-  tag-filter artboards draw a chip in the accent state, because only they
-  depict an entered query.
+- Tag chips and the search field's tag control are drawn as styled text like
+  every other link inside a design screen. The chip in the accent state depicts
+  the tag named by the search query; opening the picker and selecting a chip to
+  enter that query are runtime behavior.
+- The tag control is drawn in every search field the artboards show, because it
+  belongs to the field whenever the catalogue declares tags and this fixture
+  always does. Only the tag-filter artboards draw its panel open, because only
+  they depict a reader choosing a tag; the panel lists the same `forms` and
+  `onboarding` fixture labels, which are the whole set of tags this catalogue
+  declares.
 - The tag-filter artboards draw the top-bar search field because the entered
   query is the depicted state. The narrow one draws it too: the shell keeps the
   search field in the top bar below the breakpoint, where the brand keeps its
   mark without the product name so the field has room. The other narrow
   artboards omit the field, and so keep the product name, because their
   depicted state has no query.
+- The narrow tag-filter artboard draws no navigation drawer: one overlay at a
+  time keeps the depicted state readable, and the open picker is the state this
+  screen records. The tree the query filters is left to the wide artboard,
+  which has the room to show it beside the panel.
 - The narrow navigation drawer opens under the top bar, and the bar stays above
   the drawer's scrim: the menu button that opened it, the brand, and the query
   beside them keep their full-strength surface while only the shell below the

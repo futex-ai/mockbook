@@ -2,7 +2,7 @@ import { screen } from "mokabook";
 
 import { WelcomeHead } from "./browse_screens.js";
 import { DetailsPanel } from "./parts/details.js";
-import { NavDrawer, NavTree, type NavNode } from "./parts/nav.js";
+import { NavTree, type NavNode } from "./parts/nav.js";
 import { Shell } from "./parts/shell.js";
 import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
 
@@ -26,16 +26,12 @@ const TAGGED_TREE: readonly NavNode[] = [
 function TagFilterDesktop() {
   return (
     <Shell
+      activeTag={ACTIVE_TAG}
       mode="browse"
       viewport="desktop"
-      nav={
-        <NavTree
-          activeLabel="Welcome"
-          activeTag={ACTIVE_TAG}
-          nodes={TAGGED_TREE}
-        />
-      }
+      nav={<NavTree activeLabel="Welcome" nodes={TAGGED_TREE} />}
       searchValue={TAG_QUERY}
+      tagPickerOpen
     >
       <WelcomeHead active="desktop" />
       <Stage>
@@ -51,17 +47,12 @@ function TagFilterDesktop() {
 function TagFilterMobile() {
   return (
     <Shell
+      activeTag={ACTIVE_TAG}
       mode="browse"
       viewport="mobile"
       nav={null}
-      aside={
-        <NavDrawer
-          activeLabel="Welcome"
-          activeTag={ACTIVE_TAG}
-          nodes={TAGGED_TREE}
-        />
-      }
       searchValue={TAG_QUERY}
+      tagPickerOpen
     >
       <WelcomeHead active="mobile" />
       <Stage>
@@ -78,12 +69,12 @@ export const browseTagScreens = [
   screen({
     colorSchemes: ["light"],
     description:
-      "A selected tag chip filtering the catalogue tree through the search field.",
+      "The search field's tag picker open over the catalogue it has filtered.",
     desktop: <TagFilterDesktop />,
     id: "design-browse-tag-filter",
     mobile: <TagFilterMobile />,
     rationale:
-      "Tag filtering reuses the search field rather than adding a second top-level control: the tag rail under the navigation filter lists the tags the catalogue declares, and selecting a chip there or in the details inspector enters that tag as a search term, so the available tags stay discoverable while the active filter stays visible and clearable where a reader already looks for one, and it still composes with the All/Changed filter. Selecting the chip for the entered term clears it again. Rows without the tag and the groups they leave empty drop out of the tree, and every chip for the entered term reads in the accent, so the chips, the query, and the filtered tree describe a single state.",
+      "Tags are a secondary way to narrow a catalogue, so they get no permanent room in the navigation: the picker hangs off the search field, opened by the tag control at the field's trailing edge, and its panel scrolls, which keeps a catalogue with many tags as workable as one with two. Selecting a chip writes that tag into the field as a search term, so the active filter stays visible and clearable where a reader already looks for one, and it still composes with free text and the All/Changed filter; selecting the chip for the entered term clears it again. Rows without the tag and the groups they leave empty drop out of the tree, and every chip for the entered term reads in the accent, so the picker, the inspector chips, the query, and the filtered tree describe a single state.",
     slug: "tag-filter",
     title: "Tag filter",
   }),

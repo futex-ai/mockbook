@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { ChevronIcon, FlowIcon, TagIcon } from "./icons.js";
-import { CATALOGUE_TAGS } from "./tags.js";
+import { ChevronIcon, FlowIcon } from "./icons.js";
+import { TagChips } from "./tag_filter.js";
 
 function MetaRow({ children, label }: { children: ReactNode; label: string }) {
   return (
@@ -9,22 +9,6 @@ function MetaRow({ children, label }: { children: ReactNode; label: string }) {
       <span className="mbk-meta-k">{label}</span>
       <span className="mbk-meta-v">{children}</span>
     </div>
-  );
-}
-
-function TagChips({ activeTag }: { activeTag?: string | undefined }) {
-  return (
-    <span className="mbk-chips">
-      {CATALOGUE_TAGS.map((tag) => (
-        <span
-          key={tag}
-          className={tag === activeTag ? "mbk-chip tag active" : "mbk-chip tag"}
-        >
-          <TagIcon size={11} />
-          {tag}
-        </span>
-      ))}
-    </span>
   );
 }
 

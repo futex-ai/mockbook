@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { SearchTagButton, TagPicker } from "./tag_filter.js";
+
 /** Rendering target for a design mockup artboard. */
 export type ArtboardViewport = "desktop" | "mobile";
 
@@ -10,6 +12,8 @@ export type ShellMode = "browse" | "review";
 export type ShellColorScheme = "dark" | "light";
 
 interface TopBarProps {
+  /** Tag the entered query names, drawn as the accent chip in the picker. */
+  activeTag?: string | undefined;
   /**
    * Selected color scheme. Wide artboards show it as a top-bar switch; narrow
    * artboards leave the switch to the screen head band, which has the room.
@@ -21,6 +25,8 @@ interface TopBarProps {
    * when a query is part of the depicted state; otherwise they keep the room.
    */
   searchValue?: string | undefined;
+  /** Whether the tag picker is drawn open under the search field. */
+  tagPickerOpen?: boolean | undefined;
   viewport: ArtboardViewport;
 }
 
@@ -44,7 +50,13 @@ function Brand({ markOnly }: { markOnly: boolean }) {
   );
 }
 
-function SearchField({ value }: { value?: string | undefined }) {
+interface SearchFieldProps {
+  activeTag?: string | undefined;
+  pickerOpen?: boolean | undefined;
+  value?: string | undefined;
+}
+
+function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
   return (
     <span className="mbk-search">
       <span aria-hidden="true">⌕</span>
@@ -53,6 +65,8 @@ function SearchField({ value }: { value?: string | undefined }) {
       ) : (
         <span className="mbk-search-value">{value}</span>
       )}
+      <SearchTagButton />
+      {pickerOpen === true ? <TagPicker activeTag={activeTag} /> : null}
     </span>
   );
 }
@@ -79,9 +93,11 @@ export function SchemeSwitch({ active }: { active: ShellColorScheme }) {
 
 /** The 48px shell header: brand mark, search or base ref, mode switch. */
 export function TopBar({
+  activeTag,
   colorScheme,
   mode,
   searchValue,
+  tagPickerOpen,
   viewport,
 }: TopBarProps) {
   return (
@@ -104,10 +120,18 @@ export function TopBar({
         mode === "review" ? (
           <BaseWatch />
         ) : (
-          <SearchField value={searchValue} />
+          <SearchField
+            activeTag={activeTag}
+            pickerOpen={tagPickerOpen}
+            value={searchValue}
+          />
         )
       ) : searchValue !== undefined ? (
-        <SearchField value={searchValue} />
+        <SearchField
+          activeTag={activeTag}
+          pickerOpen={tagPickerOpen}
+          value={searchValue}
+        />
       ) : null}
       {colorScheme !== undefined && viewport === "desktop" ? (
         <SchemeSwitch active={colorScheme} />
@@ -125,32 +149,38 @@ export function TopBar({
 }
 
 interface ShellProps {
+  activeTag?: string | undefined;
   aside?: ReactNode;
   children: ReactNode;
   colorScheme?: ShellColorScheme | undefined;
   mode: ShellMode;
   nav: ReactNode;
   searchValue?: string | undefined;
+  tagPickerOpen?: boolean | undefined;
   viewport: ArtboardViewport;
 }
 
 /** The Mokabook shell scaffold for one design mockup. */
 export function Shell({
+  activeTag,
   aside,
   children,
   colorScheme,
   mode,
   nav,
   searchValue,
+  tagPickerOpen,
   viewport,
 }: ShellProps) {
   if (viewport === "desktop") {
     return (
       <div className="mbk-shell mbk-shell--desktop">
         <TopBar
+          activeTag={activeTag}
           colorScheme={colorScheme}
           mode={mode}
           searchValue={searchValue}
+          tagPickerOpen={tagPickerOpen}
           viewport={viewport}
         />
         <div className="mbk-body">
@@ -163,9 +193,11 @@ export function Shell({
   return (
     <div className="mbk-shell mbk-shell--mobile">
       <TopBar
+        activeTag={activeTag}
         colorScheme={colorScheme}
         mode={mode}
         searchValue={searchValue}
+        tagPickerOpen={tagPickerOpen}
         viewport={viewport}
       />
       <main className="mbk-main">{children}</main>

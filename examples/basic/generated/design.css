@@ -10,6 +10,7 @@
   --chrome-border: #e3e5e0;
   --chrome-border-strong: #c8ccc4;
   --chrome-accent: #2a4733;
+  --chrome-shadow: 0 30px 90px rgba(20, 28, 22, 0.14);
   --mbk-sage: #4f7864;
   --mbk-sage-deep: #2f5945;
   --sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -119,6 +120,8 @@ body {
   padding: 0 9px;
 }
 
+/* The field anchors the tag picker it drops, so the panel aligns to the field
+   and takes its width without knowing where the bar placed it. */
 .mbk-search {
   align-items: center;
   background: var(--chrome-bg);
@@ -131,6 +134,7 @@ body {
   height: 30px;
   max-width: 440px;
   padding: 0 12px;
+  position: relative;
 }
 
 /* An entered query reads in the ink color; only the empty-field placeholder
@@ -141,6 +145,78 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ---- Search tag picker ------------------------------------------------- */
+
+/* The tag control sits at the trailing edge of the field, muted like the
+   leading search glyph so it reads as part of the field rather than a second
+   top-bar control. It pulls into the field's right pad to stay compact. */
+.mbk-search-tag {
+  border-radius: 6px;
+  color: var(--chrome-muted);
+  cursor: pointer;
+  display: inline-grid;
+  flex-shrink: 0;
+  height: 20px;
+  margin-left: auto;
+  margin-right: -5px;
+  place-items: center;
+  width: 20px;
+}
+
+.mbk-search-tag:hover {
+  background: var(--chrome-border);
+  color: var(--chrome-ink-2);
+}
+
+/* The picker drops from the field it belongs to, matching its width so the
+   two read as one control; the 1px pull-back covers the field's border, which
+   sits outside the box the panel is positioned against. The panel floats over
+   the shell rather than reserving navigation room, which is what lets a long
+   tag set scroll instead of pushing the tree down. */
+.mbk-tag-picker {
+  background: var(--chrome-surface);
+  border: 1px solid var(--chrome-border);
+  border-radius: 10px;
+  box-shadow: var(--chrome-shadow);
+  left: -1px;
+  padding: 9px 11px 11px;
+  position: absolute;
+  right: -1px;
+  top: calc(100% + 7px);
+}
+
+.mbk-tag-picker-head {
+  color: var(--chrome-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* Every declared tag is listed, so the chip list scrolls once a catalogue
+   declares more than the panel can show. */
+.mbk-tag-picker .mbk-chips {
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+/* Below the breakpoint the field is too narrow to anchor a readable panel, so
+   the picker drops as a sheet spanning the shell under the 48px bar. Making
+   the field static hands the anchor to the bar, whose own edges the sheet
+   then takes; the bar's bottom border becomes the sheet's top edge. */
+.mbk-shell--mobile .mbk-search {
+  position: static;
+}
+
+.mbk-shell--mobile .mbk-tag-picker {
+  border-radius: 0 0 12px 12px;
+  border-top: 0;
+  left: 0;
+  right: 0;
+  top: calc(100% + 1px);
 }
 
 /* The color-scheme switch sits right of the search field. It never
@@ -257,14 +333,6 @@ body {
   font-family: var(--mono);
   font-size: 10px;
   margin-left: 5px;
-}
-
-/* The tag rail sits under the filter and lists the tags the catalogue
-   declares, so a reader can see and select one instead of typing the term. It
-   reuses the .mbk-chips group and .mbk-chip.tag pill of the details inspector
-   and only adds the navigation inset, keeping both surfaces identical. */
-.mbk-nav-tags {
-  margin: 0 8px 8px;
 }
 
 .mbk-nav-scroll {

@@ -15,12 +15,12 @@ implementation and tests must preserve. Runtime behavior stays in
 
 This document describes the implemented shell design, including active-row
 ancestor disclosure, conditional filter clearing, and nearest-row scrolling.
-The navigation tag rail, the details inspector's tag chips, the `tag:` search
-term, and the top bar's stacking above the navigation drawer scrim are recorded
-design pending implementation; every other state here is implemented. The
-shipped shell currently paints that scrim over the top bar, so the stacking
-recorded below is a correction for the implementation to pick up rather than a
-mockup that drifted from the shell.
+The search field's tag control and picker, the details inspector's tag chips,
+the `tag:` search term, and the top bar's stacking above the navigation drawer
+scrim are recorded design pending implementation; every other state here is
+implemented. The shipped shell currently paints that scrim over the top bar, so
+the stacking recorded below is a correction for the implementation to pick up
+rather than a mockup that drifted from the shell.
 
 ## Design Mockups
 
@@ -35,7 +35,7 @@ generated under `examples/basic/generated/design/`:
 | `design/browse/states/details.html`       | Expanded details inspector            |
 | `design/browse/states/missing-route.html` | Not-found view with navigation        |
 | `design/browse/states/navigation.html`    | Collapsed navigation drawer           |
-| `design/browse/states/tag-filter.html`    | Tag search filtering the tree         |
+| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree       |
 | `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens    |
 | `design/browse/states/light-only.html`    | Light-only screen under dark          |
 | `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare  |
@@ -109,19 +109,24 @@ scrollable region scrolls internally:
   remaining free text matches row titles and routes as before. Every term must
   match for a row to stay visible, tag terms hide the groups they empty and
   open the groups they keep, and they compose with the All/Changed filter.
+- **Tag picker** — a tag-icon control at the trailing edge of the search
+  field, muted like the leading `⌕` glyph and filling to a soft rounded square
+  on hover. It opens a panel anchored under the field and aligned to its width
+  (max-width 440px): a `--chrome-surface` card with a hairline border, 10px
+  radius, and `--chrome-shadow` elevation, holding an uppercase 11px muted
+  `Tags` head above a wrapping row of the details inspector's tag chips. The
+  panel lists every tag the catalogue declares and scrolls internally once
+  that set outgrows it. Selecting a chip enters `tag:<tag>` in the search
+  field, replacing any tag term already entered, and closes the panel;
+  selecting the chip whose tag is the entered term clears that term. The chip
+  matching the entered query carries the accent active state with contrast
+  text and glyph. Escape or a click outside closes the panel. A catalogue that
+  declares no tags renders neither the control nor the panel.
 - **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
   Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
   an All/Changed segmented filter (with a monospace changed count) when Git
-  change detection is available; the tag rail; then the scrollable tree. The
-  drawer below the breakpoint shows the same body.
-  - The tag rail is a wrapping row of pill chips under the filter, one per tag
-    the catalogue declares, each drawn as the details inspector's tag chip: the
-    tag icon at 11px and the tag name. Selecting a chip enters `tag:<tag>` in
-    the search field, replacing any tag term already entered; selecting the
-    chip whose tag is the entered term clears that term. The chip for the
-    entered term carries the accent active state with contrast text and glyph.
-    The rail composes with the All/Changed filter and any free text in the
-    query, and a catalogue that declares no tags renders no rail.
+  change detection is available; then the scrollable tree. The drawer below
+  the breakpoint shows the same body.
   - Groups are native `<details>` whose summary row shows a closed/open folder
     SVG pair (swapped via the `[open]` state), a bold label, and a monospace
     child count. Leaves show a screen, page, or flow SVG; flow icons read in
@@ -240,7 +245,9 @@ The shell has one breakpoint at **56.25rem (900px)**:
   20rem) opened by the top-bar menu button in both Browse and Review. The
   drawer opens under the 48px bar and the bar stacks above the scrim, so the
   menu button that opened it, the brand, the query, and the mode switch stay
-  at full strength while only the shell below the bar dims. The
+  at full strength while only the shell below the bar dims. The tag picker
+  stops anchoring to the narrow field and drops as a sheet spanning the shell,
+  flush under the bar's bottom border with only its lower corners rounded. The
   phone frame scales via `aspect-ratio: 390 / 844` within available width, the
   browser frame drops to 560px height, flow connector lines hide, the details
   body stacks to one column, and the color-scheme control moves from the top
