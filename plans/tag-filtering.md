@@ -427,3 +427,38 @@ picker; the plan moves to completed.
       composition in one session.
 - [ ] Milestone close-out per Global Constraints (gate, commit
       `feat(browse): add search tag picker`, push, review).
+
+---
+
+### Milestone 5: Narrow mark-only brand (final-review disposition)
+
+Tags: ui
+
+Added at final review (orchestrator ruling, option b): the contract and the
+approved narrow artboards record a mark-only brand wherever the narrow top
+bar keeps the search field, but the served shell never implemented it, and
+this branch would otherwise merge a Delivery Status paragraph admitting the
+gap. At completion the narrow Browse bar fits 390px with the mode switch on
+screen and the Delivery Status paragraph is gone.
+
+#### Task 5.1: Hide the product name on the narrow search bar
+
+**Files:**
+
+- Modify: `src/server/shell/document.tsx` (wrap the product name in a
+  `span.mbk-name` inside `.mbk-brand`), `src/server/shell/css_nav.ts`
+  (narrow media block hides `.mbk-name` when the bar carries the search
+  field — Browse only), `docs/protocol/mokabook-shell-design.md` (remove
+  the Delivery Status gap paragraph), `examples/basic/notes.md` (drop the
+  gap note)
+- Test: `tests/shell.test.ts` (brand span markup), narrow browser assertion
+  (bar fits 390px, mode switch on screen, mark visible, name hidden)
+
+**Steps:**
+
+- [ ] Write failing tests (markup + narrow geometry). Run; expect failures.
+- [ ] Implement the span + narrow CSS; verify Review-mode narrow bars keep
+      the full brand (they carry no search field).
+- [ ] Docs: delete the Delivery Status gap paragraph and the notes.md gap
+      bullet; re-read both for coherence.
+- [ ] `npm test && PLAYWRIGHT_CHANNEL=chromium npm run test:browser` green.
