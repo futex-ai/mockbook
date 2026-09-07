@@ -15,10 +15,12 @@ implementation and tests must preserve. Runtime behavior stays in
 
 This document describes the implemented shell design, including active-row
 ancestor disclosure, conditional filter clearing, nearest-row scrolling, the
-`tag:` search term, the details inspector's tag chips, and the top bar's
-stacking above the navigation drawer scrim. The search field's tag control and
-its picker panel are recorded design pending implementation; every other state
-here is implemented.
+`tag:` search term, the details inspector's tag chips, the search field's tag
+control with its picker panel, and the top bar's stacking above the navigation
+drawer scrim. One recorded state is still outstanding: below the breakpoint the
+served brand keeps the product name beside its mark, so that bar overflows a
+390px viewport and carries the mode switch off screen instead of narrowing to
+the mark. Every other state recorded here is implemented.
 
 ## Design Mockups
 
@@ -101,25 +103,34 @@ scrollable region scrolls internally:
   a centred search field (max-width 440px, `⌕` glyph), the color-scheme
   control when the catalogue has one, and a right-aligned Browse/Review
   segmented mode switch. Below the breakpoint a menu button precedes the brand
-  and opens the navigation drawer, and the brand keeps its mark without the
-  product name so the search field keeps its room. A query splits into terms:
-  a `tag:<tag>` term matches only rows whose entry declares that tag, and the
-  remaining free text matches row titles and routes as before. Every term must
-  match for a row to stay visible, tag terms hide the groups they empty and
-  open the groups they keep, and they compose with the All/Changed filter.
+  and opens the navigation drawer, and wherever the bar keeps the search field
+  the brand drops to its mark alone so the field keeps its room. A query splits
+  into terms: every `tag:<tag>` term matches only rows whose entry declares that
+  tag, and the remaining words rejoin into one phrase that matches row titles
+  and routes as a single substring. A row stays visible only when it matches
+  every tag term and that phrase; tag terms hide the groups they empty and open
+  the groups they keep, and they compose with the All/Changed filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
   field, muted like the leading `⌕` glyph and filling to a soft rounded square
   on hover. It opens a panel anchored under the field and aligned to its width
   (max-width 440px): a `--chrome-surface` card with a hairline border, 10px
   radius, and `--chrome-shadow` elevation, holding an uppercase 11px muted
   `Tags` head above a wrapping row of the details inspector's tag chips. The
-  panel lists every tag the catalogue declares and scrolls internally once
-  that set outgrows it. Selecting a chip enters `tag:<tag>` in the search
-  field, replacing any tag term already entered, and closes the panel;
-  selecting the chip whose tag is the entered term clears that term. The chip
-  matching the entered query carries the accent active state with contrast
-  text and glyph. Escape or a click outside closes the panel. A catalogue that
-  declares no tags renders neither the control nor the panel.
+  panel lists every tag the catalogue declares, in alphabetical order, and
+  scrolls internally once that set outgrows it. Selecting a chip enters
+  `tag:<tag>` in the search field, replacing any tag term already entered, and
+  closes the panel; selecting the chip whose tag is the entered term clears that
+  term. The chip matching the entered query carries the accent active state with
+  contrast text and glyph. A tag chip is a button on both surfaces: it reports
+  whether its tag is entered through `aria-pressed`, fills with the soft accent
+  on hover, and moves down 1px with an inset shadow while pressed. Opening the
+  panel moves focus to the chip for the entered tag, or to the first chip when
+  no tag is entered; the chip row then keeps a single tab stop that ArrowLeft
+  and ArrowRight rove and wrap at both ends, Home and End send to its ends, and
+  Enter or Space activates. Escape closes the panel and returns focus to the
+  control without changing the query, and a click outside closes it without
+  moving focus. A catalogue that declares no tags renders neither the control
+  nor the panel.
 - **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
   Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
   an All/Changed segmented filter (with a monospace changed count) when Git

@@ -401,29 +401,29 @@ picker; the plan moves to completed.
 
 **Steps:**
 
-- [ ] Update the docs above; re-read the shell-design doc end-to-end for
+- [x] Update the docs above; re-read the shell-design doc end-to-end for
       internal consistency (no remaining "pending implementation" text that
       is now shipped).
-- [ ] Fix the `examples/basic/notes.md` sentence falsified by the Task 3.3
+- [x] Fix the `examples/basic/notes.md` sentence falsified by the Task 3.3
       stacking fix ("The served shell still dims its top bar with the
       scrim…") — the served shell now stacks the bar above the scrim;
       regenerate the example output this touches.
-- [ ] Correct free-text wording in `mokabook-runtime.md` and the
+- [x] Correct free-text wording in `mokabook-runtime.md` and the
       shell-design Top bar bullet: remaining words match titles/routes as
       ONE contiguous phrase (single substring), while every `tag:` term must
       match — not per-word AND.
-- [ ] Reconcile mockup drift from the served chips: the implementation adds
+- [x] Reconcile mockup drift from the served chips: the implementation adds
       a `:hover` accent-soft affordance and uses `--mokabook-accent-contrast`
       for the active glyph where the mockup CSS has no hover rule and a
       literal white; note it in the mockup notes or align the mockup CSS.
-- [ ] Also reconcile the Task 4.1 additions: the served `.mbk-chip.tag:active`
+- [x] Also reconcile the Task 4.1 additions: the served `.mbk-chip.tag:active`
       press feedback has no mockup rule, and the shell-design Tag picker
       bullet mentions neither the press state nor `aria-pressed` on tag
       chips — add the mockup rule (or note) and one contract sentence.
-- [ ] `npm run preview:build`; open the static preview's tag-filter and home
+- [x] `npm run preview:build`; open the static preview's tag-filter and home
       routes from the artifact and confirm the picker markup renders and the
       shell scripts load (static preview keeps Browse client behavior).
-- [ ] Full serve smoke: picker + chips + `tag:` typing + Changed filter
+- [x] Full serve smoke: picker + chips + `tag:` typing + Changed filter
       composition in one session.
 - [ ] Milestone close-out per Global Constraints (gate, commit
       `feat(browse): add search tag picker`, push, review).
