@@ -136,7 +136,8 @@ whole generated document. Breadcrumb ancestors that resolve to a viewable
 route (a legacy directory's Overview page) are links; structural collection
 crumbs stay text. The details inspector may show description, rationale,
 source and fragment paths including dark renders, the schemes a screen renders
-in, related docs, dependencies, use cases, and comparison context.
+in, the tags the entry declares, related docs, dependencies, use cases, and
+comparison context.
 Consumer fragments and legacy documents are sandboxed without script permission
 so they cannot alter the same-origin Browse shell. Package-owned same-origin
 inspection permits parent-owned outer navigation after explicit user
@@ -193,9 +194,18 @@ that would hide it, and scrolls it into view. The complete target,
 portable-link, safe-degradation,
 sandbox, fragment, and active-tree behavior is defined by the
 [catalogue navigation contract](./mokabook-navigation.md).
-Search, disclosure, filters, and catalogue scroll remain mounted. Each user
-edit to search or the All/Changed filter opens groups to reveal its current
-matches. Route changes and watched-reload restoration during active filtering
+Search, disclosure, filters, and catalogue scroll remain mounted. A search
+value splits into whitespace-separated terms: a `tag:<tag>` term
+(case-insensitive) keeps only rows whose entry declares that tag, and the
+remaining words match row titles and routes. Every term must match, so tag
+terms compose with free text and with the All/Changed filter, and a term
+nothing matches hides those rows and the groups they empty. Selecting a tag
+chip in the details inspector enters `tag:<tag>` in the search field, replacing
+any tag term already entered; selecting the chip whose tag is entered clears
+that term. Chips mark the entered tag through in-shell navigation and watched
+reloads. Each user edit to search or the All/Changed filter opens groups to
+reveal its current matches. Route changes and watched-reload restoration during
+active filtering
 preserve groups the user subsequently collapsed, except for the destination's
 ancestor path. Clearing all filtering restores the earlier disclosure state,
 but a destination path opened by navigation stays open. Navigation groups and

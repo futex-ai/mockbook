@@ -14,13 +14,11 @@ implementation and tests must preserve. Runtime behavior stays in
 ## Delivery Status
 
 This document describes the implemented shell design, including active-row
-ancestor disclosure, conditional filter clearing, and nearest-row scrolling.
-The search field's tag control and picker, the details inspector's tag chips,
-the `tag:` search term, and the top bar's stacking above the navigation drawer
-scrim are recorded design pending implementation; every other state here is
-implemented. The shipped shell currently paints that scrim over the top bar, so
-the stacking recorded below is a correction for the implementation to pick up
-rather than a mockup that drifted from the shell.
+ancestor disclosure, conditional filter clearing, nearest-row scrolling, the
+`tag:` search term, the details inspector's tag chips, and the top bar's
+stacking above the navigation drawer scrim. The search field's tag control and
+its picker panel are recorded design pending implementation; every other state
+here is implemented.
 
 ## Design Mockups
 

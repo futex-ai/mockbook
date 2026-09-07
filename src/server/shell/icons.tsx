@@ -73,6 +73,16 @@ export function PageIcon(props: { size?: number }) {
   );
 }
 
+/** A declared classification tag, drawn on the details inspector's tag chips. */
+export function TagIcon(props: { size?: number }) {
+  return (
+    <IconSvg size={props.size ?? 13}>
+      <path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0l-7.4-7.4A2 2 0 0 1 2.6 12V5a2 2 0 0 1 2-2h7a2 2 0 0 1 1.4.6l7.6 7.6a2 2 0 0 1 0 2.8z" />
+      <path d="M7.6 7.6h.01" />
+    </IconSvg>
+  );
+}
+
 /** A use case: connected steps through canonical screens. */
 export function FlowIcon(props: { size?: number }) {
   return (

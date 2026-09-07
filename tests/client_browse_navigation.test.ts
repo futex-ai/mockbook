@@ -10,6 +10,7 @@ import {
   applyNavVisibility,
   selectAndRevealRoute,
 } from "../dist/client/browse_navigation_state.js";
+import { asAnchor, asDocument, FakeNode } from "./helpers/fake_dom.js";
 
 const BASE = "http://127.0.0.1:4173/view/screens/welcome.html";
 
@@ -159,93 +160,6 @@ function filterOption(name: string, pressed: string): FakeNode {
     "aria-pressed": pressed,
     "data-filter": name,
   });
-}
-
-function asDocument(node: FakeNode): Document {
-  return node as unknown as Document;
-}
-
-function asAnchor(node: FakeNode): HTMLAnchorElement {
-  return node as unknown as HTMLAnchorElement;
-}
-
-const SELECTOR = /^(?<tag>[a-z]*)\[(?<name>[a-z-]+)(?:="(?<value>[^"]*)")?\]$/;
-
-/** A nested stand-in for the served navigation column the client filters. */
-class FakeNode {
-  readonly dataset: Record<string, string> = {};
-  hidden = false;
-  open = true;
-  parentElement: FakeNode | null = null;
-  scrolled = false;
-  value = "";
-  readonly #attributes: Map<string, string>;
-  readonly #children: FakeNode[] = [];
-
-  constructor(
-    private readonly tagName: string,
-    attributes: Readonly<Record<string, string>> = {},
-    private readonly label = "",
-  ) {
-    this.#attributes = new Map(Object.entries(attributes));
-  }
-
-  get textContent(): string {
-    return this.#children.reduce(
-      (text, child) => text + child.textContent,
-      this.label,
-    );
-  }
-
-  append(...children: readonly FakeNode[]): this {
-    for (const child of children) {
-      child.parentElement = this;
-      this.#children.push(child);
-    }
-    return this;
-  }
-
-  closest(selector: string): FakeNode | null {
-    if (this.matches(selector)) return this;
-    return this.parentElement?.closest(selector) ?? null;
-  }
-
-  getAttribute(name: string): string | null {
-    return this.#attributes.get(name) ?? null;
-  }
-
-  matches(selector: string): boolean {
-    const parts = SELECTOR.exec(selector)?.groups;
-    if (!parts) throw new Error(`unmodelled selector: ${selector}`);
-    const tag = parts["tag"] ?? "";
-    const value = this.#attributes.get(parts["name"] ?? "");
-    if (tag !== "" && tag !== this.tagName) return false;
-    if (value === undefined) return false;
-    return parts["value"] === undefined || parts["value"] === value;
-  }
-
-  querySelector(selector: string): FakeNode | null {
-    return this.querySelectorAll(selector)[0] ?? null;
-  }
-
-  querySelectorAll(selector: string): FakeNode[] {
-    return this.#children.flatMap((child) => [
-      ...(child.matches(selector) ? [child] : []),
-      ...child.querySelectorAll(selector),
-    ]);
-  }
-
-  removeAttribute(name: string): void {
-    this.#attributes.delete(name);
-  }
-
-  scrollIntoView(): void {
-    this.scrolled = true;
-  }
-
-  setAttribute(name: string, value: string): void {
-    this.#attributes.set(name, value);
-  }
 }
 
 function group(key: string, open: boolean): HTMLDetailsElement {

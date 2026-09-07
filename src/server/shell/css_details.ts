@@ -148,6 +148,31 @@ details.mbk-details[open] > summary.mbk-details-bar .chev svg {
   color: var(--mokabook-accent);
 }
 
+.mbk-chip.tag {
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.mbk-chip.tag svg {
+  flex-shrink: 0;
+  color: var(--chrome-muted);
+}
+
+.mbk-chip.tag:hover {
+  background: var(--mokabook-accent-soft);
+}
+
+.mbk-chip.tag.active {
+  background: var(--mokabook-accent);
+  border-color: var(--mokabook-accent);
+  color: var(--mokabook-accent-contrast);
+}
+
+.mbk-chip.tag.active svg {
+  color: var(--mokabook-accent-contrast);
+}
+
 @media (max-width: 56.25rem) {
   .mbk-details-body {
     grid-template-columns: 1fr;

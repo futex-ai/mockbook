@@ -38,6 +38,8 @@ export const SHELL_NAV_CSS = `
 }
 
 .mbk-topbar {
+  position: relative;
+  z-index: 11;
   display: flex;
   align-items: center;
   gap: 16px;

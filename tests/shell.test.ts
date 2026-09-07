@@ -110,11 +110,43 @@ const darkManifest: ManifestV3 = {
   ),
 };
 
+const taggedFlowManifest: ManifestV3 = {
+  ...manifest,
+  entries: manifest.entries.map((entry) =>
+    entry.kind === "use-case" ? { ...entry, tags: ["onboarding"] } : entry,
+  ),
+};
+
 const context = {
   base: "origin/main",
   mode: "browse" as const,
   updateVersion: 1,
 };
+
+const TAG_ICON =
+  '<svg aria-hidden="true" fill="none" height="11" stroke="currentColor" ' +
+  'stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+  'viewBox="0 0 24 24" width="11">' +
+  '<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0l-7.4-7.4A2 2 0 0 1 2.6 12V5a2 2 0 0 1 2-2h7a2 2 0 0 1 1.4.6l7.6 7.6a2 2 0 0 1 0 2.8z"></path>' +
+  '<path d="M7.6 7.6h.01"></path></svg>';
+
+/** One details tag chip exactly as the approved mockup draws it. */
+function tagChip(tag: string): string {
+  return (
+    `<button class="mbk-chip tag" data-mokabook-tag="${tag}" type="button">` +
+    `${TAG_ICON}${tag}</button>`
+  );
+}
+
+/** The metadata row wrapping one entry's tag chips. */
+function tagsRow(...tags: readonly string[]): string {
+  return (
+    '<div class="mbk-meta-row"><span class="mbk-meta-k">Tags</span>' +
+    '<span class="mbk-meta-v"><span class="mbk-chips">' +
+    tags.map(tagChip).join("") +
+    "</span></span></div>"
+  );
+}
 
 const SCHEME_SWITCH =
   '<span aria-label="Color scheme" class="mbk-seg" data-mokabook-schemeswitch="" role="group">' +
@@ -418,7 +450,7 @@ test("details inspector lists dark fragments and the schemes row", () => {
         "</span></span></div>" +
         '<div class="mbk-meta-row"><span class="mbk-meta-k">Schemes</span>' +
         '<span class="mbk-meta-v">light, dark</span></div>' +
-        '<div class="mbk-meta-row"><span class="mbk-meta-k">Related docs</span>',
+        '<div class="mbk-meta-row"><span class="mbk-meta-k">Tags</span>',
     ),
   );
 
@@ -448,9 +480,39 @@ test("details inspector lists dark fragments and the schemes row", () => {
         '<code class="mbk-code">screens/welcome.mobile.html</code>' +
         '<code class="mbk-code">screens/welcome.desktop.html</code>' +
         "</span></span></div>" +
+        '<div class="mbk-meta-row"><span class="mbk-meta-k">Tags</span>',
+    ),
+  );
+});
+
+test("details inspector chips the tags an entry declares", () => {
+  const dark = createCatalogue(darkManifest);
+  const welcome = routePage(dark, "screens/welcome.html");
+  assert.ok(
+    welcome.includes(
+      '<span class="mbk-meta-v">light, dark</span></div>' +
+        tagsRow("forms", "onboarding") +
         '<div class="mbk-meta-row"><span class="mbk-meta-k">Related docs</span>',
     ),
   );
+
+  const untagged = routePage(dark, "screens/details.html");
+  assert.equal(untagged.includes('mbk-meta-k">Tags'), false);
+  assert.equal(untagged.includes("data-mokabook-tag"), false);
+});
+
+test("a use case chips its tags in the same details row", () => {
+  const flow = routePage(
+    createCatalogue(taggedFlowManifest),
+    "user-flows/tour.html",
+  );
+  assert.ok(
+    flow.includes(
+      '<code class="mbk-code">entries/fixture.mockup.tsx</code></span></div>' +
+        tagsRow("onboarding"),
+    ),
+  );
+  assert.equal(flow.includes('mbk-meta-k">Generated'), false);
 });
 
 test("missing routes and review keep the catalogue shell", () => {
@@ -518,6 +580,42 @@ test("shell stylesheet stays aligned with the design contract", () => {
     /\.mbk-idchip:active \{[\s\S]*transform: translateY\(1px\);/,
   );
   assert.equal(SHELL_CSS.includes("bookfolio"), false);
+});
+
+test("tag chips select in the accent and the bar clears the scrim", () => {
+  const css = flatCss(SHELL_CSS);
+  assert.match(
+    SHELL_CSS,
+    /\.mbk-chip\.tag \{[^}]*font: inherit;[^}]*cursor: pointer;/,
+  );
+  assert.ok(
+    css.includes(
+      ".mbk-chip.tag svg { flex-shrink: 0; color: var(--chrome-muted); }",
+    ),
+  );
+  assert.ok(
+    css.includes(
+      ".mbk-chip.tag:hover { background: var(--mokabook-accent-soft); }",
+    ),
+  );
+  assert.ok(
+    css.includes(
+      ".mbk-chip.tag.active { background: var(--mokabook-accent); " +
+        "border-color: var(--mokabook-accent); " +
+        "color: var(--mokabook-accent-contrast); }",
+    ),
+  );
+  assert.ok(
+    css.includes(
+      ".mbk-chip.tag.active svg { color: var(--mokabook-accent-contrast); }",
+    ),
+  );
+  assert.match(
+    SHELL_CSS,
+    /\.mbk-topbar \{[^}]*position: relative;[^}]*z-index: 11;/,
+  );
+  assert.match(SHELL_CSS, /\.mbk-skip-link \{[^}]*z-index: 20;/);
+  assert.match(SHELL_CSS, /\.mbk-nav \{[^}]*z-index: 10;/);
 });
 
 test("dark scheme paints device screens and leaves the chrome light", () => {

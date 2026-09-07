@@ -24,6 +24,7 @@ import {
 import { applyPreviewFragmentQuery } from "./preview_fragment.js";
 import { isEligibleBrowseLink, NavigationSequencer } from "./navigation.js";
 import { attachFrameNavigation } from "./frame_navigation.js";
+import { handleTagChipClick, syncTagChips } from "./tag_filter.js";
 
 interface ScrollState {
   scrolls?: Record<string, number>;
@@ -146,6 +147,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       win.location.href,
       "navigation",
     );
+    syncTagChips(doc);
     setDrawer(shell, false);
     restoreRegionScrolls(doc, restoreScrolls ?? {});
     if (!push) {
@@ -188,6 +190,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       }
       return;
     }
+    if (handleTagChipClick(doc, target)) return;
     if (target.closest("[data-mokabook-menu]")) {
       setDrawer(shell, shell.dataset["drawer"] !== "open");
       return;
@@ -258,8 +261,9 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
 
   doc.addEventListener("input", (event) => {
     const target = event.target instanceof Element ? event.target : undefined;
-    if (target?.matches("[data-mokabook-search]"))
-      applyNavVisibility(doc, "reveal-matches");
+    if (!target?.matches("[data-mokabook-search]")) return;
+    applyNavVisibility(doc, "reveal-matches");
+    syncTagChips(doc);
   });
 
   doc.addEventListener(
@@ -292,6 +296,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
     win.location.href,
     "navigation",
   );
+  syncTagChips(doc);
 }
 
 if (typeof document !== "undefined" && typeof window !== "undefined") {

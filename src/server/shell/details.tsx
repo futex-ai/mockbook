@@ -1,8 +1,10 @@
 // The served collapsible details inspector: a native <details> bar above a
 // two-column body with prose on the left and metadata rows on the right —
 // populated from the manifest entry for the selected route: description,
-// rationale, source and generated paths, related docs, dependencies, and the
-// use cases a screen belongs to.
+// rationale, source and generated paths, declared tags, related docs,
+// dependencies, and the use cases a screen belongs to. The tag chips are the
+// one interactive metadata row: the Browse client turns a chip into the
+// matching `tag:` search term.
 
 import type { ReactNode } from "react";
 
@@ -10,7 +12,7 @@ import type { ColorScheme } from "../../authoring/types.js";
 import { encodeUrlPath } from "../../config/paths.js";
 import type { ManifestScreen, ManifestUseCase } from "../../registry/types.js";
 import type { Catalogue } from "../catalogue.js";
-import { ChevronIcon, FlowIcon } from "./icons.js";
+import { ChevronIcon, FlowIcon, TagIcon } from "./icons.js";
 import type { RoutedEntry, RouteTarget } from "./target.js";
 
 function MetaRow(props: { children: ReactNode; label: string }) {
@@ -49,6 +51,34 @@ function schemeNames(screen: ManifestScreen): string {
     ? ["light", "dark"]
     : ["light"];
   return schemes.join(", ");
+}
+
+/**
+ * The tags an entry declares. Each chip is a control: the Browse client enters
+ * `tag:<tag>` in the search field for it, so an unenhanced page still reads the
+ * tags as text.
+ */
+function TagChips(props: { values: readonly string[] }) {
+  if (props.values.length === 0) {
+    return null;
+  }
+  return (
+    <MetaRow label="Tags">
+      <span className="mbk-chips">
+        {props.values.map((tag) => (
+          <button
+            className="mbk-chip tag"
+            data-mokabook-tag={tag}
+            key={tag}
+            type="button"
+          >
+            <TagIcon size={11} />
+            {tag}
+          </button>
+        ))}
+      </span>
+    </MetaRow>
+  );
 }
 
 function UsedByChips(props: {
@@ -109,6 +139,7 @@ function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
         {entry.kind === "screen" && props.catalogue.hasDarkFragments ? (
           <MetaRow label="Schemes">{schemeNames(entry)}</MetaRow>
         ) : null}
+        <TagChips values={entry.tags ?? []} />
         {entry.relatedDocs.length > 0 ? (
           <MetaRow label="Related docs">
             <PathChips values={entry.relatedDocs} />

@@ -306,7 +306,7 @@ export function clearTagTerm(raw: string, tag: string): string;
 
 **Steps:**
 
-- [ ] Write failing tests: shell HTML for a tagged screen contains the Tags
+- [x] Write failing tests: shell HTML for a tagged screen contains the Tags
       row and `data-mokabook-tag` buttons and omits the row for untagged
       entries; clicking a chip sets the input to `tag:forms` and hides
       untagged rows; clicking the active chip clears the term; browser test:
@@ -315,13 +315,13 @@ export function clearTagTerm(raw: string, tag: string): string;
       with the drawer open the top bar is not covered by the scrim
       (computed `z-index === "11"` and `position === "relative"`). Run;
       expect failures.
-- [ ] Implement server markup, CSS, and the client module.
-- [ ] Update `docs/protocol/mokabook-runtime.md` (search term semantics,
+- [x] Implement server markup, CSS, and the client module.
+- [x] Update `docs/protocol/mokabook-runtime.md` (search term semantics,
       chip behavior) and move the details-chips and `tag:` term items from
       the shell-design Delivery Status pending list to implemented; the
       stacking fix item too.
-- [ ] `npm test && npm run test:browser` — green.
-- [ ] Smoke test: `node dist/cli/bin.js serve --config examples/basic/mokabook.config.ts`,
+- [x] `npm test && npm run test:browser` — green.
+- [x] Smoke test: `node dist/cli/bin.js serve --config examples/basic/mokabook.config.ts`,
       type `tag:forms`, click chips on the Welcome details, verify tree and
       active states by hand.
 - [ ] Milestone close-out per Global Constraints (gate, commit
