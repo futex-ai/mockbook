@@ -242,14 +242,14 @@ export function clearTagTerm(raw: string, tag: string): string;
 
 **Steps:**
 
-- [ ] Write failing tests covering: plain text parses to freeText only;
+- [x] Write failing tests covering: plain text parses to freeText only;
       `tag:forms welcome` → tags `["forms"]`, freeText `welcome`;
       `TAG:Forms` lowercases; two tag terms AND-match; unmatched tag hides a
       row that free text alone would match; `setTagTerm("tag:onboarding welcome", "forms")`
       → `"welcome tag:forms"`-equivalent (free text kept, single tag term);
       `clearTagTerm` removes only the tag term. Run; expect failures.
-- [ ] Implement the module; keep it dependency-free and pure.
-- [ ] `npm test` — green.
+- [x] Implement the module; keep it dependency-free and pure.
+- [x] `npm test` — green.
 
 #### Task 3.2: Row attributes and client filtering
 
