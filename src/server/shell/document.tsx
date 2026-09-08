@@ -13,16 +13,10 @@ import { SearchTagPicker } from "./tags.js";
 import { ShellMain, viewTitle } from "./views.js";
 import type { ShellView } from "./views.js";
 
-/**
- * The 48px shell header. Only Browse carries the search field, and a bar that
- * carries it says so with `data-search` so the narrow stylesheet can drop the
- * product name from the brand and leave the field its room. The mark alone
- * cannot name the home link, so the link carries that name itself.
- */
-function TopBar(props: { catalogue: Catalogue; context: ShellContext }) {
-  const browse = props.context.mode === "browse";
+/** The shared 48px catalogue header keeps search available at every width. */
+function TopBar(props: { catalogue: Catalogue }) {
   return (
-    <header className="mbk-topbar" data-search={browse ? "" : undefined}>
+    <header className="mbk-topbar" data-search="">
       <button
         aria-controls="mb-nav"
         aria-expanded="false"
@@ -39,37 +33,17 @@ function TopBar(props: { catalogue: Catalogue; context: ShellContext }) {
         </span>
         <span className="mbk-name">Mokabook</span>
       </a>
-      {browse ? (
-        <div className="mbk-search">
-          <span aria-hidden="true">⌕</span>
-          <input
-            aria-label="Search screens"
-            data-mokabook-search=""
-            placeholder="Search screens…"
-            type="search"
-          />
-          <SearchTagPicker tags={props.catalogue.tags} />
-        </div>
-      ) : null}
+      <div className="mbk-search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          aria-label="Search screens"
+          data-mokabook-search=""
+          placeholder="Search screens…"
+          type="search"
+        />
+        <SearchTagPicker tags={props.catalogue.tags} />
+      </div>
       {props.catalogue.hasDarkFragments ? <SchemeSwitch /> : null}
-      <nav aria-label="Mokabook modes" className="mbk-modes">
-        <a
-          aria-current={browse ? "page" : undefined}
-          className={browse ? "mbk-mode active" : "mbk-mode"}
-          data-mokabook-mode=""
-          href="/"
-        >
-          Browse
-        </a>
-        <a
-          aria-current={browse ? undefined : "page"}
-          className={browse ? "mbk-mode" : "mbk-mode active"}
-          data-mokabook-mode=""
-          href="/review"
-        >
-          Review
-        </a>
-      </nav>
     </header>
   );
 }
@@ -81,7 +55,11 @@ export function renderShellPage(
   context: ShellContext,
 ): string {
   const markup = renderToStaticMarkup(
-    <html data-mokabook-update-version={context.updateVersion} lang="en">
+    <html
+      data-mokabook-base={context.base}
+      data-mokabook-update-version={context.updateVersion}
+      lang="en"
+    >
       <head>
         <meta charSet="utf-8" />
         <meta content="width=device-width, initial-scale=1" name="viewport" />
@@ -93,7 +71,7 @@ export function renderShellPage(
           <a className="mbk-skip-link" href="#mb-main">
             Skip to content
           </a>
-          <TopBar catalogue={catalogue} context={context} />
+          <TopBar catalogue={catalogue} />
           <div className="mbk-body">
             <CatalogueNav catalogue={catalogue} context={context} />
             <ShellMain catalogue={catalogue} context={context} view={view} />

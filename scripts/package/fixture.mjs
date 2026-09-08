@@ -38,7 +38,7 @@ export async function runBin(root, args, options = {}) {
   return await runCommand(bin, args, { cwd: options.cwd ?? root });
 }
 
-export async function smokeServer(root, args = []) {
+export async function smokeServer(root, args = [], inspect) {
   const bin = path.join(root, "node_modules/.bin/mokabook");
   const running = startCommand(
     bin,
@@ -55,6 +55,7 @@ export async function smokeServer(root, args = []) {
     const response = await fetch(match[1]);
     if (!response.ok) throw new Error(`server returned ${response.status}`);
     const html = await response.text();
+    if (inspect) await inspect(match[1]);
     if (!html.includes("data-mokabook-shell")) {
       throw new Error("server response did not contain the Browse shell");
     }

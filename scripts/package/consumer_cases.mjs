@@ -55,10 +55,12 @@ export async function smokeEsmConsumer(context) {
     entry.replaceAll("Packed home", "Updated packed home"),
   );
   await runBin(root, ["build"]);
-  await runBin(root, ["review", "--base", "HEAD"]);
-  const review = JSON.parse(
-    await fs.promises.readFile(path.join(root, ".review/review.json"), "utf8"),
-  );
+  let review;
+  await smokeServer(root, ["--base", "HEAD"], async (url) => {
+    const response = await fetch(`${url}/__mokabook/diffs/review.json`);
+    assert.equal(response.status, 200);
+    review = await response.json();
+  });
   assert.equal(
     review.screens.find((screen) => screen.id === "packed-home")?.state,
     "changed",
@@ -163,13 +165,12 @@ export async function smokeAccountingFixture(context) {
     'export const accent = "#6b4eff";\n',
   );
   await runBin(root, ["build"]);
-  await runBin(root, ["review", "--base", "HEAD"]);
-  const review = JSON.parse(
-    await fs.promises.readFile(
-      path.join(root, ".context/mokabook-review/review.json"),
-      "utf8",
-    ),
-  );
+  let review;
+  await smokeServer(root, ["--base", "HEAD"], async (url) => {
+    const response = await fetch(`${url}/__mokabook/diffs/review.json`);
+    assert.equal(response.status, 200);
+    review = await response.json();
+  });
   assert.deepEqual(review.sharedImpact, ["shared/tokens.ts"]);
   assert.ok(review.screens.every((screen) => screen.sharedImpact.length === 1));
 }

@@ -6,12 +6,12 @@ application product designs.
 ## Design Catalogue Notes
 
 The `Design` navigation group holds the approved mockups for Mokabook's own
-Browse and Review shell. Implementation notes for those mockups live here and
+catalogue shell and Changes controls. Implementation notes for those mockups live here and
 in each entry's description and rationale, never inside the rendered screens:
 
 - The depicted catalogue content is this example's own Welcome, Details, and
   Example tour entries, so no product data appears in any shell design.
-- The `Farewell` screen shown in Review mockups is sample comparison data that
+- The `Farewell` screen shown in comparison mockups is sample comparison data that
   deliberately has no standalone entry: it depicts a screen that was removed
   on a branch.
 - Links inside the design screens are drawn as styled text because the mockups
@@ -25,8 +25,8 @@ in each entry's description and rationale, never inside the rendered screens:
   generation like every other design screen. Only the depicted device screens
   change; the shell chrome around them stays light in both schemes.
 - The dark view compare screen shows the same `Welcome` comparison as the
-  changed screen, in its dark view. Review compares one view at a time, so the
-  two are separate pages reached from the comparison band's scheme segment.
+  changed screen, in its dark view. The normal scheme control changes the
+  comparison in place, while the catalogue shell remains light.
 - The `forms` and `onboarding` tags are synthetic fixture labels that carry no
   product meaning: the Welcome entry declares both and the Details entry
   declares `forms` in their authored metadata, which is why the `tag:forms`
@@ -47,9 +47,7 @@ in each entry's description and rationale, never inside the rendered screens:
   query is the depicted state. The narrow one draws it too: the shell keeps the
   search field in the top bar below the breakpoint, and the artboard reduces the
   brand to its mark so the field has room, which is how the served narrow Browse
-  bar renders. The other narrow artboards omit the field, and so keep the
-  product name, because their depicted state has no query rather than because
-  the shell drops the field.
+  bar renders. All narrow artboards now retain the same search field.
 - The narrow tag-filter artboard draws no navigation drawer: one overlay at a
   time keeps the depicted state readable, and the open picker is the state this
   screen records. The tree the query filters is left to the wide artboard,
@@ -62,9 +60,9 @@ in each entry's description and rationale, never inside the rendered screens:
 - The `Light | Dark` control sits in the top bar on the wide artboards and in
   the screen head band, under the viewport control, on the narrow ones: a 390px
   top bar has no room for a third control.
-- The comparison band keeps its comparison-mode segment when the scheme segment
-  joins it, so a dark view compare draws three segments rather than trading one
-  control for another.
+- The comparison band contains Current, Side by side, Overlay, and Difference.
+  Viewport and scheme selections remain in the normal screen header and top bar.
+  Every screen starts in Current, and diff snapshots load only after a click.
 - The approved tokens, consumer-tunable accent properties, and responsive
   breakpoints are recorded in `docs/protocol/mokabook-shell-design.md`.
 
@@ -88,9 +86,9 @@ following presentation differences are intentional:
   and the panel is hidden until it is opened. A screen is a picture, so the
   artboards draw the chosen chip and the open panel directly and leave those
   semantics to the runtime protocol.
-- Static Review artifact pages omit the Browse/Review mode pills because the
-  artifact stands alone without a running Browse server; the served `/review`
-  route keeps them. Compare pages navigate between the mobile and desktop
-  variants as separate pages through the viewport segment rather than the
-  in-place toggle the mockups depict, and the difference mode is a real pixel
-  blend of both renders rather than the mockups' tinted-region illustration.
+- There is no separate Review section or standalone comparison command. Stable
+  design routes retain their old identifiers to preserve catalogue links.
+- Difference mockups use CSS blending, as does the served comparison; no pixel
+  percentages or invented diff metrics appear. Classification and impact facts
+  come from the comparison engine in the runtime and from synthetic fixture data
+  in these design references.

@@ -45,7 +45,6 @@ function DarkSchemeDesktop() {
   return (
     <Shell
       colorScheme="dark"
-      mode="browse"
       viewport="desktop"
       nav={<NavTree activeLabel="Welcome" />}
     >
@@ -65,7 +64,7 @@ function DarkSchemeDesktop() {
 
 function DarkSchemeMobile() {
   return (
-    <Shell colorScheme="dark" mode="browse" viewport="mobile" nav={null}>
+    <Shell colorScheme="dark" viewport="mobile" nav={null}>
       <SchemeHead idChip="example-welcome" title="Welcome" viewport="mobile" />
       <Stage>
         <PhoneFrame dark label="Mobile" small>
@@ -81,7 +80,6 @@ function LightOnlyDesktop() {
   return (
     <Shell
       colorScheme="dark"
-      mode="browse"
       viewport="desktop"
       nav={<NavTree activeLabel="Details" />}
     >
@@ -101,7 +99,7 @@ function LightOnlyDesktop() {
 
 function LightOnlyMobile() {
   return (
-    <Shell colorScheme="dark" mode="browse" viewport="mobile" nav={null}>
+    <Shell colorScheme="dark" viewport="mobile" nav={null}>
       <SchemeHead idChip="example-details" title="Details" viewport="mobile" />
       <Stage>
         <PhoneFrame label="Mobile" lightOnly small>

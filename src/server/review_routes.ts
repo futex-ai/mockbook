@@ -1,10 +1,4 @@
-/** Served Review under `/review`: lazy artifact generation plus file serving.
- *
- * Browse links its Review mode here. The artifact is generated into the
- * configured Review output directory on the first request, after a published
- * watch update, and when a request carries `?refresh=1`, so the comparison
- * reflects the workspace when viewed. Generated pages link back to Browse.
- */
+/** Lazy comparison snapshots used by the catalogue diff controls. */
 
 import type { ServerResponse } from "node:http";
 
@@ -24,9 +18,10 @@ import {
 } from "./review_responses.js";
 import { safeDecodePath, send } from "./respond.js";
 
-const GENERATION_ROUTE = "/review/__generations/";
+const DIFF_ROUTE = "/__mokabook/diffs/";
+const GENERATION_ROUTE = `${DIFF_ROUTE}__generations/`;
 
-/** How Browse obtains the Review artifact it serves under `/review`. */
+/** How Browse obtains the Review artifact it serves under `/__mokabook/diffs/`. */
 export interface ServedReview extends ReviewArtifactProvider {
   /** Comparison base ref, shown when the comparison cannot be generated. */
   base: string;
@@ -46,7 +41,6 @@ export function configuredServedReview(
         config.review.outDir,
         undefined,
         undefined,
-        { browseHref: "/" },
         options.changedPathExclusions,
       );
     },
@@ -79,33 +73,25 @@ export class ReviewRoutes {
     return this.closePromise;
   }
 
-  /** Respond to one `/review` or `/review/<path>` request. */
+  /** Respond to one `/__mokabook/diffs/` or `/__mokabook/diffs/<path>` request. */
   async handle(
     url: URL,
     response: ServerResponse,
     method: string,
-    updateVersion: number,
   ): Promise<void> {
-    if (url.pathname === "/review" || url.pathname === "/review/") {
-      const refresh =
-        url.searchParams.get("refresh") === "1" ? "?refresh=1" : "";
-      return redirectReview(response, `/review/index.html${refresh}`);
-    }
     if (url.pathname.startsWith(GENERATION_ROUTE)) {
       const requested = generationPath(url.pathname);
-      if (!requested)
+      if (
+        !requested ||
+        (!isSnapshot(requested.relative) &&
+          !isReviewDocument(requested.relative))
+      )
         return send(response, 404, "text/plain", "Not found", method);
-      await this.handleGeneration(
-        requested,
-        url,
-        response,
-        method,
-        updateVersion,
-      );
+      await this.handleGeneration(requested, url, response, method);
       return;
     }
-    const relative = safeDecodePath(url.pathname.slice("/review/".length));
-    if (!relative)
+    const relative = safeDecodePath(url.pathname.slice(DIFF_ROUTE.length));
+    if (relative !== "review.json")
       return send(response, 404, "text/plain", "Not found", method);
     try {
       const generation = await this.ensureGenerated(
@@ -113,13 +99,7 @@ export class ReviewRoutes {
       );
       redirectReview(response, generationUrl(generation, relative));
     } catch (error) {
-      return sendReviewFailure(
-        response,
-        error,
-        this.review.base,
-        method,
-        updateVersion,
-      );
+      return sendReviewFailure(response, error, this.review.base, method);
     }
   }
 
@@ -196,11 +176,12 @@ export class ReviewRoutes {
     url: URL,
     response: ServerResponse,
     method: string,
-    updateVersion: number,
   ): Promise<void> {
     const generation = this.generations.get(requested.version);
     const current = this.generations.current();
-    const refresh = url.searchParams.get("refresh") === "1";
+    const refresh =
+      isReviewDocument(requested.relative) &&
+      url.searchParams.get("refresh") === "1";
     const pending = this.queuedGeneration ?? this.generation;
     const advance =
       refresh ||
@@ -220,23 +201,20 @@ export class ReviewRoutes {
             generationUrl(latest, requested.relative),
           );
       } catch (error) {
-        return sendReviewFailure(
-          response,
-          error,
-          this.review.base,
-          method,
-          updateVersion,
-        );
+        return sendReviewFailure(response, error, this.review.base, method);
       }
     }
+    if (
+      !isSnapshot(requested.relative) &&
+      !isReviewDocument(requested.relative)
+    )
+      return send(response, 404, "text/plain", "Not found", method);
     if (generation) {
       return serveReviewArtifactFile(
         generation.directory,
         requested.relative,
         response,
         method,
-        updateVersion,
-        isReviewDocument(requested.relative),
       );
     }
     if (!isReviewDocument(requested.relative))
@@ -248,13 +226,7 @@ export class ReviewRoutes {
         generationUrl(latest, requested.relative),
       );
     } catch (error) {
-      return sendReviewFailure(
-        response,
-        error,
-        this.review.base,
-        method,
-        updateVersion,
-      );
+      return sendReviewFailure(response, error, this.review.base, method);
     }
   }
 }
@@ -273,10 +245,11 @@ function generationPath(
 }
 
 function isReviewDocument(relative: string): boolean {
-  return (
-    relative === "index.html" ||
-    (relative.startsWith("comparisons/") && relative.endsWith(".html"))
-  );
+  return relative === "review.json";
+}
+
+function isSnapshot(relative: string): boolean {
+  return relative.startsWith("snapshots/");
 }
 
 function generationUrl(generation: ReviewGeneration, relative: string): string {
@@ -284,5 +257,5 @@ function generationUrl(generation: ReviewGeneration, relative: string): string {
 }
 
 function reviewServerClosing(): MokabookError {
-  return new MokabookError("server-failed", "Review server is closing");
+  return new MokabookError("server-failed", "Comparison server is closing");
 }

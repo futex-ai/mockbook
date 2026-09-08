@@ -3,7 +3,7 @@
 ## Scope
 
 This document records the approved design for the package-owned Browse shell
-and the legacy styling contract the static Review artifact keeps. The design is
+and the optional in-place screen comparisons. The design is
 the refined Mockbook shell originally shipped inside the Accounting repository,
 ported here without any Accounting or Bookfolio content. The visual source of
 truth is the design catalogue in the basic example under the `design/` routes;
@@ -25,25 +25,25 @@ implemented.
 The approved screens are authored in `examples/basic/entries/design/` and
 generated under `examples/basic/generated/design/`:
 
-| Route                                     | State                                 |
-| ----------------------------------------- | ------------------------------------- |
-| `design/browse/views/home.html`           | Catalogue home with navigation tree   |
-| `design/browse/views/screen.html`         | Selected screen with framed fragments |
-| `design/browse/views/use-case.html`       | Selected use case with ordered steps  |
-| `design/browse/states/details.html`       | Expanded details inspector            |
-| `design/browse/states/missing-route.html` | Not-found view with navigation        |
-| `design/browse/states/navigation.html`    | Collapsed navigation drawer           |
-| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree       |
-| `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens    |
-| `design/browse/states/light-only.html`    | Light-only screen under dark          |
-| `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare  |
-| `design/review/outcomes/added.html`       | Added screen with missing base pane   |
-| `design/review/outcomes/removed.html`     | Removed screen with missing head pane |
-| `design/review/outcomes/difference.html`  | Tinted in-place difference mode       |
-| `design/review/outcomes/dark-scheme.html` | Dark view compared side by side       |
-| `design/review/impact/shared-impact.html` | Summary with shared-impact card       |
-| `design/review/impact/ignored-only.html`  | Ignored-region-only classification    |
-| `design/review/impact/empty.html`         | Empty comparison result               |
+| Route                                     | State                                  |
+| ----------------------------------------- | -------------------------------------- |
+| `design/browse/views/home.html`           | Catalogue home with navigation tree    |
+| `design/browse/views/screen.html`         | Selected screen with framed fragments  |
+| `design/browse/views/use-case.html`       | Selected use case with ordered steps   |
+| `design/browse/states/details.html`       | Expanded details inspector             |
+| `design/browse/states/missing-route.html` | Not-found view with navigation         |
+| `design/browse/states/navigation.html`    | Collapsed navigation drawer            |
+| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree        |
+| `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens     |
+| `design/browse/states/light-only.html`    | Light-only screen under dark           |
+| `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare   |
+| `design/review/outcomes/added.html`       | Added screen with missing base pane    |
+| `design/review/outcomes/removed.html`     | Removed screen with missing head pane  |
+| `design/review/outcomes/difference.html`  | Blend-mode difference comparison       |
+| `design/review/outcomes/dark-scheme.html` | Dark view compared side by side        |
+| `design/review/impact/shared-impact.html` | Summary with shared-impact card        |
+| `design/review/impact/ignored-only.html`  | Ignored-region-only classification     |
+| `design/review/impact/empty.html`         | Empty Changes filter retaining Current |
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
@@ -100,20 +100,15 @@ scrollable region scrolls internally:
   (24px rounded square in the accent with the `◫` glyph), the product name in
   its own `mbk-name` span, a centred search field (max-width 440px, `⌕` glyph)
   that flexes down to whatever room the bar leaves it, the color-scheme control
-  when the catalogue has one, and a right-aligned Browse/Review segmented mode
-  switch. Below the breakpoint a menu button precedes the brand and opens the
-  navigation drawer, and wherever that narrow bar keeps the search field the
-  brand drops to its mark alone so the field keeps its room: a bar carrying the
-  field marks itself `data-search`, the narrow rule hides the name against that
-  marker rather than against the mode, and the brand link names itself so the
-  mark alone still announces where it leads. Browse always keeps the field, so
-  its narrow bar always shows the mark alone, while a Review bar carries no
-  field and keeps the whole brand. A query splits into terms: every `tag:<tag>`
+  when the catalogue has one. Below the breakpoint a menu button opens the
+  catalogue drawer. The product name hides in the narrow header so the search
+  retains space; the brand link keeps its accessible name. There is no mode
+  switch. A query splits into terms: every `tag:<tag>`
   term matches only rows whose entry declares that tag, and the remaining words
   rejoin into one phrase that must appear in a row's title or route. A row stays
   visible only when it matches every tag term and that phrase; tag terms hide
   the groups they empty and open the groups they keep, and they compose with the
-  All/Changed filter.
+  All/Changes filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
   field, muted like the leading `⌕` glyph and filling to a soft rounded square
   on hover. It opens a panel anchored under the field and aligned to its width
@@ -139,7 +134,7 @@ scrollable region scrolls internally:
   no tags renders neither the control nor the panel.
 - **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
   Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
-  an All/Changed segmented filter (with a monospace changed count) when Git
+  an All/Changes segmented filter (with a monospace changed count) when Git
   change detection is available; then the scrollable tree. The drawer below
   the breakpoint shows the same body.
   - Groups are native `<details>` whose summary row shows a closed/open folder
@@ -151,7 +146,7 @@ scrollable region scrolls internally:
     inset pill starting at the row's indent (`--mbk-indent`), so guides stay
     visible; the active row uses the accent with contrast text.
   - Catalogue-link navigation opens every collection on the active
-    row's path and scrolls that row into view. Search and Changed filtering may
+    row's path and scrolls that row into view. Search and Changes filtering may
     stay selected only while the active row remains visible. Reapplying an
     active filter during navigation preserves collapsed groups outside the
     destination path, while editing the search or filter opens groups to reveal
@@ -238,7 +233,7 @@ of those two.
   The browser viewport needs none; its light bar already draws that edge.
 - **Control** — a `Light | Dark` `mbk-seg`, shown only when the catalogue has
   dark fragments. At or above the breakpoint it sits in the top bar between the
-  search field and the mode switch; below it the top bar has no room, so it
+  search field and the end of the bar; below it the top bar has no room, so it
   renders in the screen head band under the viewport control at full width.
 - **Light-only screens** — a screen with no dark render keeps its light frames
   under a dark selection and states the fallback in its frame label, which
@@ -247,12 +242,10 @@ of those two.
   lighter-weight tail of the same uppercase label, not a separate badge.
   A use-case step frame carries the same fallback state but has no label, so it
   shows no scheme caption.
-- **Compare pages** — the comparison band carries the same control as a third
-  segment after the comparison-mode and viewport segments, with the viewport
-  and scheme pair kept together at the trailing edge. A screen with only light
-  views shows no scheme segment, and dark reaches the compared device screens
-  only: the changed-screens navigation, head band, classification badge, and
-  the segments themselves stay light.
+- **Diff views** — keep the normal viewport and color-scheme controls in the
+  screen heading and top bar. The compact diff band changes only how the
+  selected screen is displayed. Light-only comparisons name their fallback;
+  dark styling remains contained within device screens.
 
 ## Responsive Behavior
 
@@ -261,9 +254,9 @@ The shell has one breakpoint at **56.25rem (900px)**:
 - At or above it, the navigation column is persistent and the layout is the
   fixed two-column split above.
 - Below it, the navigation becomes a scrimmed overlay drawer (82% width, max
-  20rem) opened by the top-bar menu button in both Browse and Review. The
+  20rem) opened by the top-bar menu button throughout the catalogue. The
   drawer opens under the 48px bar and the bar stacks above the scrim, so the
-  menu button that opened it, the brand, the query, and the mode switch stay
+  menu button that opened it, the brand and the query stay
   at full strength while only the shell below the bar dims. The tag picker
   stops anchoring to the narrow field and drops as a sheet spanning the shell,
   flush under the bar's bottom border with only its lower corners rounded. The
@@ -276,35 +269,29 @@ The shell has one breakpoint at **56.25rem (900px)**:
 
 `prefers-reduced-motion: reduce` disables shell transitions.
 
-## Review Pages
+## In-place Comparisons
 
-Review pages render in the same shell scaffold as Browse and inline the shell
-stylesheet so the static artifact stays viewable from disk. Each page has the
-top bar with the drawer button, brand mark, base-comparison indicator, and a
-Review pill that returns compare pages to the artifact index. Served pages
-also show the Browse pill. Each page has a changed-screens navigation column
-using the `mbk-chg-*` classes: group heads with classification dots and
-counts, title-and-route rows with the accent active state, and shared-impact
-and ignored-region cards. Compare pages reuse the screen head, `mbk-seg`
-segments for the comparison-mode, viewport, and color-scheme controls,
-`mbk-status` classification badges, and a summary band. The drawer control and
-script remain inline so static artifacts retain narrow-viewport navigation
-without a running server. The index renders the complete navigation inline. Compare
-pages hydrate the same markup from the artifact-root `review-navigation.js`
-payload and retain an `Open Review index` fallback in the navigation column
-when JavaScript is unavailable, avoiding one full catalogue copy per viewport
-page without changing the rendered design.
+The catalogue remains the only shell. A screen has a compact Current / Side by
+side / Overlay / Difference band below its heading. Current is the initial
+state in both All and Changes. Diff selections load snapshots on demand in the
+same main region; controls, navigation, and details stay in place. Refresh and
+retry controls are available after an explicit comparison request. Static
+catalogues without a comparison server omit the band.
 
-The compare stage keeps its `mb-*` classes and the `--mb-*` token set
-(`--mb-bg`, `--mb-surface`, `--mb-border`, `--mb-text`, `--mb-muted`,
-`--mb-radius`, `--mb-shadow`) mapped onto the chrome palette, plus the review
-classification pairs: added `#1d7a3d`/`#e3f0e7`, changed `#9a6b00`/`#f6ecd4`,
-removed `#b3261e`/`#f7e2e0`, ignored `#6c6862`/`#edebe8`. The pane grid
-(`mb-panes`, `mb-pane`, `mb-pane-doc`, `mb-pane-missing`, `mb-frag`) drives
-the side-by-side, opacity-overlay, and blend-mode difference modes through
-its `data-compare-mode` attribute.
+Both viewports reuse the existing device-frame components. Before and current
+snapshots remain in script-disabled iframes. Overlay composites the current
+pane at 50% opacity; Difference uses CSS difference blending. Missing panes
+remain side by side for readability in every mode. No pixel percentages are
+shown. Baseline, affected files, and excluded content belong in secondary
+comparison details. Loading and failure states keep the catalogue available.
+
+The canonical Current and Overlay designs live at
+`design/review/controls/current.html` and `design/review/controls/overlay.html`;
+their mobile and desktop components share the catalogue shell. Existing design
+routes keep their identifiers, while outcome and impact screens depict Changes.
+See [the complete behavior](./mokabook-changes.md).
 
 ## Related Docs
 
-- [Build, Browse, and Review runtime](./mokabook-runtime.md)
+- [Build and Browse runtime](./mokabook-runtime.md)
 - [Package and authoring contract](./mokabook-package.md)

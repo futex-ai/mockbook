@@ -27,7 +27,6 @@ function TagFilterDesktop() {
   return (
     <Shell
       activeTag={ACTIVE_TAG}
-      mode="browse"
       viewport="desktop"
       nav={<NavTree activeLabel="Welcome" nodes={TAGGED_TREE} />}
       searchValue={TAG_QUERY}
@@ -48,7 +47,6 @@ function TagFilterMobile() {
   return (
     <Shell
       activeTag={ACTIVE_TAG}
-      mode="browse"
       viewport="mobile"
       nav={null}
       searchValue={TAG_QUERY}

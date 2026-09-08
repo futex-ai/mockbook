@@ -137,7 +137,7 @@ function NavRows(props: {
 
 function NavFilter(props: { context: ShellContext }) {
   const changed = props.context.changedRoutes;
-  if (!changed || props.context.mode !== "browse") {
+  if (!changed) {
     return null;
   }
   return (
@@ -161,7 +161,7 @@ function NavFilter(props: { context: ShellContext }) {
         data-filter="changed"
         type="button"
       >
-        Changed
+        Changes
         <span className="mbk-nav-filter-count">{changed.length}</span>
       </button>
     </div>
@@ -173,10 +173,20 @@ export function CatalogueNav(props: {
   catalogue: Catalogue;
   context: ShellContext;
 }) {
-  const nodes = buildNavTree(
-    props.catalogue.hierarchy,
-    props.catalogue.manifest.legacyPages,
-  );
+  const nodes = [
+    ...buildNavTree(
+      props.catalogue.hierarchy,
+      props.catalogue.manifest.legacyPages,
+    ),
+    ...props.catalogue.removedScreens.map((screen): NavLeafNode => ({
+      kind: "leaf",
+      key: `removed:${screen.route}`,
+      entryKind: "screen",
+      label: `${screen.title} · Removed`,
+      route: screen.route,
+      tags: screen.tags ?? [],
+    })),
+  ];
   return (
     <nav
       aria-label="Catalogue"

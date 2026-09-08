@@ -2,16 +2,21 @@ import type { ReactNode } from "react";
 
 import { screen } from "mokabook";
 
+import { DetailsPanel } from "./parts/details.js";
 import {
   CompareGrid,
-  CompareToolbar,
-  DiffLegend,
   MissingPane,
   Pane,
-  ReviewSummary,
+  ComparisonStage,
 } from "./parts/compare.js";
-import { ReviewNav, StatusBadge, type ReviewState } from "./parts/review.js";
-import { ScreenHead, Shell, type ShellColorScheme } from "./parts/shell.js";
+import { ReviewNav, type ReviewState } from "./parts/review.js";
+import {
+  ScreenHead,
+  SchemeSwitch,
+  Shell,
+  ViewSwitch,
+  type ShellColorScheme,
+} from "./parts/shell.js";
 import {
   BrowserFrame,
   MiniDetails,
@@ -26,10 +31,8 @@ interface ComparePageProps {
   activeTitle: string;
   children: ReactNode;
   colorScheme?: ShellColorScheme | undefined;
-  facts: string;
   idChip: string;
   mode?: "difference" | "overlay" | "side-by-side";
-  pct?: string | undefined;
   state: ReviewState;
   title: string;
   viewport: CompareViewport;
@@ -39,36 +42,38 @@ function ComparePage({
   activeTitle,
   children,
   colorScheme,
-  facts,
   idChip,
   mode,
-  pct,
   state,
   title,
   viewport,
 }: ComparePageProps) {
   return (
     <Shell
-      mode="review"
       viewport={viewport}
+      colorScheme={colorScheme}
       nav={
         viewport === "desktop" ? <ReviewNav activeTitle={activeTitle} /> : null
       }
     >
       <ScreenHead
-        action={<span className="mbk-open-browse">Open in Browse ↗</span>}
+        action={
+          <>
+            <ViewSwitch active={viewport} />
+            {colorScheme && viewport === "mobile" ? (
+              <SchemeSwitch active={colorScheme} />
+            ) : null}
+          </>
+        }
+        comparisonMode={mode ?? "side-by-side"}
         crumbs={["Example", "Screens"]}
         idChip={idChip}
-        status={<StatusBadge state={state} />}
         title={title}
       />
-      <CompareToolbar
-        colorScheme={colorScheme}
-        mode={mode ?? "side-by-side"}
-        viewport={viewport}
-      />
-      {children}
-      <ReviewSummary facts={facts} pct={pct} state={state} />
+      <ComparisonStage state={state} viewport={viewport}>
+        {children}
+      </ComparisonStage>
+      <DetailsPanel />
     </Shell>
   );
 }
@@ -86,7 +91,7 @@ function FramedShot({
 }) {
   if (viewport === "desktop") {
     return (
-      <BrowserFrame address={address} dark={dark}>
+      <BrowserFrame address={address} dark={dark} expandable={false}>
         {children}
       </BrowserFrame>
     );
@@ -103,20 +108,18 @@ function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   return (
     <ComparePage
       activeTitle="Welcome"
-      facts="Mobile and desktop both changed on this branch."
       idChip="example-welcome"
-      pct="~4.8% of pixels differ"
       state="changed"
       title="Welcome"
       viewport={viewport}
     >
       <CompareGrid>
-        <Pane label="Before · origin/main" side="before">
+        <Pane label="Before" side="before">
           <FramedShot address="example.test/welcome" viewport={viewport}>
             <MiniWelcome compact={compact} />
           </FramedShot>
         </Pane>
-        <Pane label="After · this branch" side="after">
+        <Pane label="Current" side="after">
           <FramedShot address="example.test/welcome" viewport={viewport}>
             <MiniWelcome compact={compact} revised />
           </FramedShot>
@@ -131,7 +134,6 @@ function AddedCompare({ viewport }: { viewport: CompareViewport }) {
   return (
     <ComparePage
       activeTitle="Details"
-      facts="This screen is new on this branch."
       idChip="example-details"
       state="added"
       title="Details"
@@ -139,11 +141,11 @@ function AddedCompare({ viewport }: { viewport: CompareViewport }) {
     >
       <CompareGrid>
         <MissingPane
-          label="Before · origin/main"
-          message="This screen does not exist on origin/main."
+          label="Before"
+          message="This screen was added on this branch."
           side="before"
         />
-        <Pane label="After · this branch" side="after" tone="added">
+        <Pane label="Current" side="after">
           <FramedShot address="example.test/details" viewport={viewport}>
             <MiniDetails compact={compact} />
           </FramedShot>
@@ -158,21 +160,20 @@ function RemovedCompare({ viewport }: { viewport: CompareViewport }) {
   return (
     <ComparePage
       activeTitle="Farewell"
-      facts="This screen was removed on this branch."
       idChip="example-farewell"
       state="removed"
       title="Farewell"
       viewport={viewport}
     >
       <CompareGrid>
-        <Pane label="Before · origin/main" side="before" tone="removed">
+        <Pane label="Before" side="before">
           <FramedShot address="example.test/farewell" viewport={viewport}>
             <MiniFarewell compact={compact} />
           </FramedShot>
         </Pane>
         <MissingPane
-          label="After · this branch"
-          message="This screen does not exist on this branch."
+          label="Current"
+          message="This screen was removed on this branch."
           side="after"
         />
       </CompareGrid>
@@ -185,20 +186,24 @@ function DifferenceCompare({ viewport }: { viewport: CompareViewport }) {
   return (
     <ComparePage
       activeTitle="Welcome"
-      facts="Tinted regions mark the lines that differ from origin/main."
       idChip="example-welcome"
       mode="difference"
-      pct="~4.8% of pixels differ"
       state="changed"
       title="Welcome"
       viewport={viewport}
     >
-      <div className="mbk-diff-view">
-        <DiffLegend />
-        <FramedShot address="example.test/welcome" viewport={viewport}>
-          <MiniWelcome compact={compact} revised tinted />
-        </FramedShot>
-      </div>
+      <CompareGrid difference>
+        <Pane label="Before" side="before">
+          <FramedShot address="example.test/welcome" viewport={viewport}>
+            <MiniWelcome compact={compact} />
+          </FramedShot>
+        </Pane>
+        <Pane label="Current" side="after">
+          <FramedShot address="example.test/welcome" viewport={viewport}>
+            <MiniWelcome compact={compact} revised />
+          </FramedShot>
+        </Pane>
+      </CompareGrid>
     </ComparePage>
   );
 }
@@ -209,20 +214,18 @@ function DarkViewCompare({ viewport }: { viewport: CompareViewport }) {
     <ComparePage
       activeTitle="Welcome"
       colorScheme="dark"
-      facts="The dark view of this screen changed on this branch."
       idChip="example-welcome"
-      pct="~5.1% of pixels differ"
       state="changed"
       title="Welcome"
       viewport={viewport}
     >
       <CompareGrid>
-        <Pane label="Before · origin/main" side="before">
+        <Pane label="Before" side="before">
           <FramedShot address="example.test/welcome" dark viewport={viewport}>
             <MiniWelcome compact={compact} />
           </FramedShot>
         </Pane>
-        <Pane label="After · this branch" side="after">
+        <Pane label="Current" side="after">
           <FramedShot address="example.test/welcome" dark viewport={viewport}>
             <MiniWelcome compact={compact} revised />
           </FramedShot>
@@ -263,8 +266,7 @@ export const reviewOutcomeScreens = [
   }),
   screen({
     colorSchemes: ["light"],
-    description:
-      "Difference mode highlighting changed and added regions in place.",
+    description: "Difference mode blends the two screen versions in place.",
     desktop: <DifferenceCompare viewport="desktop" />,
     id: "design-review-difference",
     mobile: <DifferenceCompare viewport="mobile" />,
@@ -279,7 +281,7 @@ export const reviewOutcomeScreens = [
     id: "design-review-dark-scheme",
     mobile: <DarkViewCompare viewport="mobile" />,
     rationale:
-      "A screen with a dark render is compared one view at a time, so the comparison band carries a Light | Dark segment beside the viewport segment and both artboards keep it there. Dark reaches only inside the compared device screens (--mbk-dark-screen-bg #121514, --mbk-dark-screen-ink #eef1ef); the changed-screens navigation, head band, classification badge, and the segments themselves stay light. A screen that renders in light only shows no scheme segment, and the head band never repeats the selected scheme in its title.",
+      "A screen with a dark render uses the normal Light | Dark and viewport controls while the compact diff band selects its display mode. Dark reaches only inside the compared device screens (--mbk-dark-screen-bg #121514, --mbk-dark-screen-ink #eef1ef); the changed-screens navigation, head band, and the segments themselves stay light. A screen that renders in light only shows no scheme segment, and the head band never repeats the selected scheme in its title.",
     slug: "dark-scheme",
     title: "Dark view compare",
   }),

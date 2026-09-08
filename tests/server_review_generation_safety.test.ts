@@ -33,11 +33,11 @@ test("an in-flight explicit refresh queues one fresh generation", async (context
   const server = await startFixtureServer(fixture.root, review);
   context.after(() => server.close());
 
-  const initial = fetch(`${server.url}/review/index.html`);
+  const initial = fetch(`${server.url}/__mokabook/diffs/review.json`);
   await firstStarted.promise;
   const refreshed = [
-    fetch(`${server.url}/review/index.html?refresh=1`),
-    fetch(`${server.url}/review/index.html?refresh=1`),
+    fetch(`${server.url}/__mokabook/diffs/review.json?refresh=1`),
+    fetch(`${server.url}/__mokabook/diffs/review.json?refresh=1`),
   ];
   releaseFirst.resolve();
 
@@ -71,10 +71,10 @@ test("an in-flight invalidation queues one fresh generation", async (context) =>
   const server = await startFixtureServer(fixture.root, review);
   context.after(() => server.close());
 
-  const initial = fetch(`${server.url}/review/index.html`);
+  const initial = fetch(`${server.url}/__mokabook/diffs/review.json`);
   await firstStarted.promise;
   server.publishUpdate();
-  const updated = fetch(`${server.url}/review/index.html`);
+  const updated = fetch(`${server.url}/__mokabook/diffs/review.json`);
   releaseFirst.resolve();
 
   assert.match(await (await updated).text(), /Generation 2/);
@@ -102,7 +102,7 @@ test("refresh refuses to archive an unowned output replacement", async (context)
   });
 
   assert.match(
-    await (await fetch(`${server.url}/review/index.html`)).text(),
+    await (await fetch(`${server.url}/__mokabook/diffs/review.json`)).text(),
     /Generation 1/,
   );
   await fs.promises.rm(outDir, { recursive: true });
@@ -110,12 +110,11 @@ test("refresh refuses to archive an unowned output replacement", async (context)
   const userFile = path.join(outDir, "keep.txt");
   await fs.promises.writeFile(userFile, "user-authored\n");
 
-  const failed = await fetch(`${server.url}/review/index.html?refresh=1`);
-  assert.equal(failed.status, 500);
-  assert.match(
-    await failed.text(),
-    /refusing to replace unowned Review directory/,
+  const failed = await fetch(
+    `${server.url}/__mokabook/diffs/review.json?refresh=1`,
   );
+  assert.equal(failed.status, 500);
+  assert.match(await failed.text(), /comparison could not be loaded/);
   assert.equal(await fs.promises.readFile(userFile, "utf8"), "user-authored\n");
   assert.equal(attempts, 1);
 
@@ -152,10 +151,10 @@ test("failed refresh preserves an unowned concurrent replacement", async (contex
   });
 
   assert.match(
-    await (await fetch(`${server.url}/review/index.html`)).text(),
+    await (await fetch(`${server.url}/__mokabook/diffs/review.json`)).text(),
     /Generation 1/,
   );
-  const refresh = fetch(`${server.url}/review/index.html?refresh=1`);
+  const refresh = fetch(`${server.url}/__mokabook/diffs/review.json?refresh=1`);
   await refreshStarted.promise;
   await fs.promises.mkdir(outDir);
   const userFile = path.join(outDir, "keep.txt");
@@ -164,7 +163,7 @@ test("failed refresh preserves an unowned concurrent replacement", async (contex
 
   const failed = await refresh;
   assert.equal(failed.status, 500);
-  assert.match(await failed.text(), /could not be restored/);
+  assert.match(await failed.text(), /comparison could not be loaded/);
   assert.equal(await fs.promises.readFile(userFile, "utf8"), "user-authored\n");
   assert.equal(attempts, 2);
 
@@ -201,13 +200,16 @@ test("shutdown waits for an in-flight refresh to restore output", async (context
   });
 
   assert.match(
-    await (await fetch(`${server.url}/review/index.html`)).text(),
+    await (await fetch(`${server.url}/__mokabook/diffs/review.json`)).text(),
     /Generation 1/,
   );
   const controller = new AbortController();
-  const refresh = fetch(`${server.url}/review/index.html?refresh=1`, {
-    signal: controller.signal,
-  });
+  const refresh = fetch(
+    `${server.url}/__mokabook/diffs/review.json?refresh=1`,
+    {
+      signal: controller.signal,
+    },
+  );
   await refreshStarted.promise;
   controller.abort();
   await assert.rejects(refresh, { name: "AbortError" });
@@ -225,7 +227,7 @@ test("shutdown waits for an in-flight refresh to restore output", async (context
 
   assert.equal(closedBeforeRelease, false);
   assert.match(
-    await fs.promises.readFile(path.join(outDir, "index.html"), "utf8"),
+    await fs.promises.readFile(path.join(outDir, "review.json"), "utf8"),
     /Generation 1/,
   );
   assert.equal(
@@ -252,7 +254,7 @@ async function writeOwnedGeneration(
 ): Promise<void> {
   await fs.promises.mkdir(outDir, { recursive: true });
   await fs.promises.writeFile(
-    path.join(outDir, "index.html"),
+    path.join(outDir, "review.json"),
     `<h1>Generation ${generation}</h1>`,
   );
   await fs.promises.writeFile(

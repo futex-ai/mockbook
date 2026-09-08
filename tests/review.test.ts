@@ -375,7 +375,7 @@ test("Review compares Git base without checkout and writes deterministic artifac
   assert.match(reviewJson.baseCommit, /^[a-f0-9]{40}$/);
   assert.equal(
     fs.existsSync(path.join(config.review.outDir, "index.html")),
-    true,
+    false,
   );
   assert.equal(
     fs.existsSync(path.join(config.review.outDir, "summary.md")),

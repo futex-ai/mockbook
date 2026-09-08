@@ -1,6 +1,7 @@
 import type {
   ManifestEntry,
   ManifestLegacyPage,
+  ManifestScreen,
   ManifestV3,
 } from "../registry/types.js";
 import {
@@ -18,6 +19,8 @@ export interface Catalogue {
   manifest: ManifestV3;
   /** Every classification tag the entries declare, deduplicated and sorted. */
   tags: readonly string[];
+  /** Baseline screens retained only for on-demand comparisons. */
+  removedScreens: readonly ManifestScreen[];
 }
 
 /** The union of the tags declared across every entry that can carry them. */
@@ -30,17 +33,28 @@ function collectTags(entries: readonly ManifestEntry[]): readonly string[] {
 }
 
 /** Build deterministic id and route indexes from a validated manifest. */
-export function createCatalogue(manifest: ManifestV3): Catalogue {
+export function createCatalogue(
+  manifest: ManifestV3,
+  removedScreens: readonly ManifestScreen[] = [],
+): Catalogue {
   const byId = new Map(manifest.entries.map((entry) => [entry.id, entry]));
   const byRoute = new Map<string, ManifestEntry | ManifestLegacyPage>();
   for (const entry of manifest.entries) {
     if (entry.kind !== "collection") byRoute.set(entry.route, entry);
   }
   for (const page of manifest.legacyPages) byRoute.set(page.route, page);
-  const hasDarkFragments = manifest.entries.some(
+  const hasDarkFragments = [...manifest.entries, ...removedScreens].some(
     (entry) => entry.kind === "screen" && entry.darkFragments !== undefined,
   );
   const hierarchy = analyzeHierarchy(manifest.entries).hierarchy;
   const tags = collectTags(manifest.entries);
-  return { byId, byRoute, hasDarkFragments, hierarchy, manifest, tags };
+  return {
+    byId,
+    byRoute,
+    hasDarkFragments,
+    hierarchy,
+    manifest,
+    tags,
+    removedScreens,
+  };
 }

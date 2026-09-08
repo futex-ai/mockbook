@@ -1,5 +1,6 @@
 import { collection, defineCollection, defineRoot } from "mokabook";
 
+import { changesScreens } from "./changes_screens.js";
 import { browseSchemeScreens } from "./browse_scheme_screens.js";
 import { browseStateScreens, browseViewScreens } from "./browse_screens.js";
 import { browseTagScreens } from "./browse_tag_screens.js";
@@ -45,6 +46,13 @@ const designMockups = defineRoot({
     collection({
       children: [
         collection({
+          children: changesScreens,
+          description: "Current and on-demand Overlay within the catalogue.",
+          id: "design-changes-controls",
+          segment: "controls",
+          title: "Diff controls",
+        }),
+        collection({
           children: reviewOutcomeScreens,
           description:
             "Per-screen comparison pages for each classification outcome, mode, and color scheme.",
@@ -66,10 +74,10 @@ const designMockups = defineRoot({
         "examples/basic/generated/design-review.css",
       ],
       description:
-        "The static Git comparison experience produced by mokabook review.",
+        "Optional screen comparisons within the catalogue Changes filter.",
       id: "design-review",
       segment: "review",
-      title: "Review",
+      title: "Changes",
     }),
   ],
   collection: {
@@ -78,7 +86,7 @@ const designMockups = defineRoot({
       "Neutral design mockups for the Mokabook shell implemented in the UI milestone.",
     id: "design",
     rationale:
-      "Reviewers approve the complete Browse and Review design from synthetic data before any shell UI is implemented.",
+      "Reviewers approve the complete catalogue and Changes design from synthetic data before any shell UI is implemented.",
     relatedDocs: [
       "docs/protocol/mokabook-shell-design.md",
       "examples/basic/notes.md",
@@ -88,7 +96,7 @@ const designMockups = defineRoot({
   path: "design",
 });
 
-/** The neutral Mokabook Browse and Review design catalogue. */
+/** The neutral Mokabook catalogue and Changes design catalogue. */
 export const mockups = [
   defineCollection({
     childIds: ["design"],

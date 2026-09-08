@@ -1,125 +1,126 @@
 import { screen } from "mokabook";
 
-import {
-  CompareGrid,
-  CompareToolbar,
-  Pane,
-  ReviewSummary,
-} from "./parts/compare.js";
+import { CompareGrid, ComparisonStage, Pane } from "./parts/compare.js";
+import { DetailsPanel } from "./parts/details.js";
+import { NavDrawer } from "./parts/nav.js";
 import {
   EmptyReviewNav,
   IgnoredImpactCard,
-  ImpactedScreens,
   ReviewNav,
   SharedImpactCard,
-  StatusBadge,
 } from "./parts/review.js";
-import { ScreenHead, Shell } from "./parts/shell.js";
-import {
-  BrowserFrame,
-  EmptyState,
-  MiniWelcome,
-  PhoneFrame,
-} from "./parts/stage.js";
+import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
+import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
 
 type ReviewViewport = "desktop" | "mobile";
 
+function WelcomeShot({
+  viewport,
+  comparison = true,
+}: {
+  viewport: ReviewViewport;
+  comparison?: boolean;
+}) {
+  return viewport === "desktop" ? (
+    <BrowserFrame address="example.test/welcome" expandable={!comparison}>
+      <MiniWelcome />
+    </BrowserFrame>
+  ) : (
+    <PhoneFrame small>
+      <MiniWelcome compact />
+    </PhoneFrame>
+  );
+}
+
 function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
   return (
-    <Shell
-      mode="review"
-      viewport={viewport}
-      nav={viewport === "desktop" ? <ReviewNav withSharedImpact /> : null}
-    >
-      <ScreenHead crumbs={["Review"]} title="Mokabook review" />
-      <div className="mbk-review-overview">
-        <p className="mbk-review-lede">
-          1 changed · 1 added · 1 removed · 2 impacted against origin/main.
-          Choose a screen to compare.
-        </p>
-        <ImpactedScreens />
-        <SharedImpactCard />
-        <span className="mbk-empty-link">Open the first impacted screen</span>
-      </div>
+    <Shell viewport={viewport} nav={<ReviewNav activeTitle="Welcome" />}>
+      <ScreenHead
+        crumbs={["Example", "Screens"]}
+        idChip="example-welcome"
+        title="Welcome"
+        comparisonMode="side-by-side"
+        action={<ViewSwitch active={viewport} />}
+      />
+      <ComparisonStage
+        state="unchanged"
+        viewport={viewport}
+        evidence={<SharedImpactCard />}
+      >
+        <CompareGrid>
+          <Pane label="Before" side="before">
+            <WelcomeShot viewport={viewport} />
+          </Pane>
+          <Pane label="Current" side="after">
+            <WelcomeShot viewport={viewport} />
+          </Pane>
+        </CompareGrid>
+      </ComparisonStage>
+      <DetailsPanel />
     </Shell>
   );
 }
 
 function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
-  const compact = viewport === "mobile";
+  return (
+    <Shell viewport={viewport} nav={<ReviewNav activeTitle="Welcome" />}>
+      <ScreenHead
+        action={<ViewSwitch active={viewport} />}
+        comparisonMode="side-by-side"
+        crumbs={["Example", "Screens"]}
+        idChip="example-welcome"
+        title="Welcome"
+      />
+      <ComparisonStage
+        state="ignored-only"
+        viewport={viewport}
+        evidence={<IgnoredImpactCard />}
+      >
+        <CompareGrid>
+          <Pane label="Before" side="before">
+            <WelcomeShot viewport={viewport} />
+          </Pane>
+          <Pane label="Current" side="after">
+            <WelcomeShot viewport={viewport} />
+          </Pane>
+        </CompareGrid>
+      </ComparisonStage>
+      <DetailsPanel />
+    </Shell>
+  );
+}
+
+function EmptyChanges({ viewport }: { viewport: ReviewViewport }) {
   return (
     <Shell
-      mode="review"
       viewport={viewport}
-      nav={
-        viewport === "desktop" ? (
-          <ReviewNav activeTitle="Welcome" withIgnored />
+      nav={<EmptyReviewNav />}
+      aside={
+        viewport === "mobile" ? (
+          <NavDrawer changedOnly changedCount={0} nodes={[]} />
         ) : null
       }
     >
       <ScreenHead
-        action={<span className="mbk-open-browse">Open in Browse ↗</span>}
+        action={<ViewSwitch active={viewport} />}
         crumbs={["Example", "Screens"]}
         idChip="example-welcome"
-        status={<StatusBadge state="ignored-only" />}
         title="Welcome"
       />
-      <CompareToolbar mode="side-by-side" viewport={viewport} />
-      <CompareGrid>
-        <Pane label="Before · origin/main" side="before">
-          {viewport === "desktop" ? (
-            <BrowserFrame address="example.test/welcome">
-              <MiniWelcome compact={compact} />
-            </BrowserFrame>
-          ) : (
-            <PhoneFrame small>
-              <MiniWelcome compact={compact} />
-            </PhoneFrame>
-          )}
-        </Pane>
-        <Pane label="After · this branch" side="after">
-          {viewport === "desktop" ? (
-            <BrowserFrame address="example.test/welcome">
-              <MiniWelcome compact={compact} />
-            </BrowserFrame>
-          ) : (
-            <PhoneFrame small>
-              <MiniWelcome compact={compact} />
-            </PhoneFrame>
-          )}
-        </Pane>
-      </CompareGrid>
-      {viewport === "mobile" ? <IgnoredImpactCard /> : null}
-      <ReviewSummary
-        facts="Every difference falls inside an ignored region, so this screen is not counted as changed."
-        state="ignored-only"
-      />
+      <Stage>
+        <WelcomeShot viewport={viewport} comparison={false} />
+      </Stage>
+      <DetailsPanel />
     </Shell>
   );
 }
 
-function EmptyReview({ viewport }: { viewport: ReviewViewport }) {
-  return (
-    <Shell
-      mode="review"
-      viewport={viewport}
-      nav={viewport === "desktop" ? <EmptyReviewNav /> : null}
-    >
-      <EmptyState
-        title="No visual changes"
-        body="This branch matches origin/main for every screen in the catalogue."
-        linkLabel="Browse the catalogue"
-      />
-    </Shell>
-  );
-}
-
-/** Review design screens for aggregate and empty comparison states. */
+/** Design screens for secondary comparison evidence and an empty Changes filter. */
 export const reviewImpactScreens = [
   screen({
     colorSchemes: ["light"],
     description:
-      "The review summary when shared files can affect unchanged screens.",
+      "A screen comparison with secondary evidence from changed shared inputs.",
     desktop: <SharedImpactSummary viewport="desktop" />,
     id: "design-review-shared-impact",
     mobile: <SharedImpactSummary viewport="mobile" />,
@@ -137,11 +138,12 @@ export const reviewImpactScreens = [
   }),
   screen({
     colorSchemes: ["light"],
-    description: "The empty comparison when no screen differs from the base.",
-    desktop: <EmptyReview viewport="desktop" />,
+    description:
+      "Changes has no matching screens; the selected Current view remains available.",
+    desktop: <EmptyChanges viewport="desktop" />,
     id: "design-review-empty",
-    mobile: <EmptyReview viewport="mobile" />,
+    mobile: <EmptyChanges viewport="mobile" />,
     slug: "empty",
-    title: "Empty review",
+    title: "No changes",
   }),
 ];

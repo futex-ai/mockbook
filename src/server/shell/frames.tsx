@@ -22,7 +22,11 @@ export function PhoneFrame(props: { children?: ReactNode }) {
 }
 
 /** A desktop browser window whose viewport hosts the desktop fragment. */
-export function BrowserFrame(props: { address: string; children?: ReactNode }) {
+export function BrowserFrame(props: {
+  address: string;
+  children?: ReactNode;
+  expandable?: boolean;
+}) {
   return (
     <div className="browser-frame">
       <div className="browser-bar">
@@ -32,20 +36,22 @@ export function BrowserFrame(props: { address: string; children?: ReactNode }) {
           <i />
         </span>
         <span className="address">{props.address}</span>
-        <button
-          aria-expanded="false"
-          aria-label="Expand to a wider viewport"
-          className="browser-expand"
-          title="Expand to a wider viewport"
-          type="button"
-        >
-          <span aria-hidden="true" className="i-expand">
-            ⤢
-          </span>
-          <span aria-hidden="true" className="i-collapse">
-            ⤡
-          </span>
-        </button>
+        {props.expandable !== false ? (
+          <button
+            aria-expanded="false"
+            aria-label="Expand to a wider viewport"
+            className="browser-expand"
+            title="Expand to a wider viewport"
+            type="button"
+          >
+            <span aria-hidden="true" className="i-expand">
+              ⤢
+            </span>
+            <span aria-hidden="true" className="i-collapse">
+              ⤡
+            </span>
+          </button>
+        ) : null}
       </div>
       <div className="browser-viewport">{props.children}</div>
     </div>

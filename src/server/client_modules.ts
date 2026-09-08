@@ -11,6 +11,8 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
   const modules = new Map<string, Buffer>();
   for (const filename of [
     "browse.js",
+    "diffs.js",
+    "diff_views.js",
     "browse_details.js",
     "browse_frames.js",
     "browse_navigation.js",

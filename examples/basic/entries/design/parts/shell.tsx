@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 
+import { CompareToolbar } from "./compare.js";
 import { SearchTagButton, TagPicker } from "./tag_filter.js";
 
 /** Rendering target for a design mockup artboard. */
 export type ArtboardViewport = "desktop" | "mobile";
-
-/** Top-level Browse/Review mode depicted by a shell mockup. */
-export type ShellMode = "browse" | "review";
 
 /** Color scheme depicted as selected for the fragments on the stage. */
 export type ShellColorScheme = "dark" | "light";
@@ -19,24 +17,11 @@ interface TopBarProps {
    * artboards leave the switch to the screen head band, which has the room.
    */
   colorScheme?: ShellColorScheme | undefined;
-  mode: ShellMode;
-  /**
-   * Text entered in the search field. Narrow artboards draw the field only
-   * when a query is part of the depicted state; otherwise they keep the room.
-   */
+  /** Text entered in the search field, visible in both artboard sizes. */
   searchValue?: string | undefined;
   /** Whether the tag picker is drawn open under the search field. */
   tagPickerOpen?: boolean | undefined;
   viewport: ArtboardViewport;
-}
-
-function BaseWatch() {
-  return (
-    <span className="mbk-basewatch">
-      <span className="mbk-basewatch-dot" aria-hidden="true" />
-      Comparing this branch with <strong>origin/main</strong>
-    </span>
-  );
 }
 
 function Brand({ markOnly }: { markOnly: boolean }) {
@@ -91,11 +76,10 @@ export function SchemeSwitch({ active }: { active: ShellColorScheme }) {
   );
 }
 
-/** The 48px shell header: brand mark, search or base ref, mode switch. */
+/** The 48px shell header: brand mark, search, and color scheme. */
 export function TopBar({
   activeTag,
   colorScheme,
-  mode,
   searchValue,
   tagPickerOpen,
   viewport,
@@ -106,44 +90,20 @@ export function TopBar({
         <button
           className="mbk-menu-btn"
           type="button"
-          aria-label={
-            mode === "review"
-              ? "Open changed screens navigation"
-              : "Open catalogue navigation"
-          }
+          aria-label="Open catalogue navigation"
         >
           ☰
         </button>
       ) : null}
-      <Brand markOnly={viewport === "mobile" && searchValue !== undefined} />
-      {viewport === "desktop" ? (
-        mode === "review" ? (
-          <BaseWatch />
-        ) : (
-          <SearchField
-            activeTag={activeTag}
-            pickerOpen={tagPickerOpen}
-            value={searchValue}
-          />
-        )
-      ) : searchValue !== undefined ? (
-        <SearchField
-          activeTag={activeTag}
-          pickerOpen={tagPickerOpen}
-          value={searchValue}
-        />
-      ) : null}
+      <Brand markOnly={viewport === "mobile"} />
+      <SearchField
+        activeTag={activeTag}
+        pickerOpen={tagPickerOpen}
+        value={searchValue}
+      />
       {colorScheme !== undefined && viewport === "desktop" ? (
         <SchemeSwitch active={colorScheme} />
       ) : null}
-      <nav className="mbk-modes" aria-label="Mokabook modes">
-        <span className={mode === "browse" ? "mbk-mode active" : "mbk-mode"}>
-          Browse
-        </span>
-        <span className={mode === "review" ? "mbk-mode active" : "mbk-mode"}>
-          Review
-        </span>
-      </nav>
     </header>
   );
 }
@@ -153,7 +113,6 @@ interface ShellProps {
   aside?: ReactNode;
   children: ReactNode;
   colorScheme?: ShellColorScheme | undefined;
-  mode: ShellMode;
   nav: ReactNode;
   searchValue?: string | undefined;
   tagPickerOpen?: boolean | undefined;
@@ -166,7 +125,6 @@ export function Shell({
   aside,
   children,
   colorScheme,
-  mode,
   nav,
   searchValue,
   tagPickerOpen,
@@ -178,7 +136,6 @@ export function Shell({
         <TopBar
           activeTag={activeTag}
           colorScheme={colorScheme}
-          mode={mode}
           searchValue={searchValue}
           tagPickerOpen={tagPickerOpen}
           viewport={viewport}
@@ -195,7 +152,6 @@ export function Shell({
       <TopBar
         activeTag={activeTag}
         colorScheme={colorScheme}
-        mode={mode}
         searchValue={searchValue}
         tagPickerOpen={tagPickerOpen}
         viewport={viewport}
@@ -228,6 +184,8 @@ interface ScreenHeadProps {
   action?: ReactNode;
   crumbs: readonly string[];
   idChip?: string;
+  comparisonMode?: "current" | "difference" | "overlay" | "side-by-side";
+  comparisons?: boolean;
   status?: ReactNode;
   title: string;
 }
@@ -237,29 +195,36 @@ export function ScreenHead({
   action,
   crumbs,
   idChip,
+  comparisonMode,
+  comparisons = true,
   status,
   title,
 }: ScreenHeadProps) {
   return (
-    <div className="mbk-screen-head">
-      <div>
-        <Crumbs items={crumbs} />
-        <div className="mbk-title-row">
-          <h2>{title}</h2>
-          {idChip ? (
-            <button
-              aria-label={`Copy ID ${idChip}`}
-              className="mbk-idchip"
-              type="button"
-            >
-              #{idChip}
-            </button>
-          ) : null}
-          {status}
+    <>
+      <div className="mbk-screen-head">
+        <div>
+          <Crumbs items={crumbs} />
+          <div className="mbk-title-row">
+            <h2>{title}</h2>
+            {idChip ? (
+              <button
+                aria-label={`Copy ID ${idChip}`}
+                className="mbk-idchip"
+                type="button"
+              >
+                #{idChip}
+              </button>
+            ) : null}
+            {status}
+          </div>
         </div>
+        {action}
       </div>
-      {action}
-    </div>
+      {idChip && comparisons ? (
+        <CompareToolbar mode={comparisonMode ?? "current"} />
+      ) : null}
+    </>
   );
 }
 

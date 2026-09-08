@@ -39,11 +39,11 @@ render plain React DOM need none of this and can keep a plain
 `renderToStaticMarkup` adapter.
 
 The `Design` navigation group is the approved design catalogue for Mokabook's
-own Browse and Review shell: seventeen screens covering the Browse home,
+own catalogue and Changes views: nineteen screens covering the Browse home,
 selected screen and use case, details panel, missing route, narrow navigation,
 tag filtering, the dark-scheme and light-only stage states, and the changed,
 added, removed, difference, dark-view, shared-impact, ignored-only, and empty
-Review states, each with distinct mobile and desktop variants. The seventeen
+comparison states plus Current and Overlay controls, plus Current and Overlay controls, each with distinct mobile and desktop variants. The nineteen
 design screens explicitly opt out with `colorSchemes: ["light"]` because they
 are light documents that draw the Mokabook shell, including the three that
 depict the shell with dark selected; the two product screens inherit the
@@ -68,7 +68,9 @@ public static root. `preview:build` snapshots this catalogue through the real
 server into `.context/mokabook-preview` for Cloudflare Pages; it is the same
 artifact used by the main and pull-request preview workflow. The snapshot
 compares the catalogue with its branch point on `origin/main` and preserves
-Browse's All/Changed filter, Light/Dark switch, client assets, and light/dark
+the catalogue's All/Changes filter, Light/Dark switch, client assets, and light/dark
 fragment files, including when no routes changed. Public HTML copies pass
 through the same ownership-aware link adapter as served Browse; direct preview
 URLs apply one validated `fragment` query progressively in the parent shell.
+The static deployment omits diff controls; served screens offer comparisons on
+request without a separate Review section or CLI command.

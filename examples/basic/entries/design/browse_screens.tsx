@@ -25,7 +25,7 @@ function HomeBody() {
 
 function HomeDesktop() {
   return (
-    <Shell mode="browse" viewport="desktop" nav={<NavTree />}>
+    <Shell viewport="desktop" nav={<NavTree />}>
       <HomeBody />
     </Shell>
   );
@@ -33,7 +33,7 @@ function HomeDesktop() {
 
 function HomeMobile() {
   return (
-    <Shell mode="browse" viewport="mobile" nav={null}>
+    <Shell viewport="mobile" nav={null}>
       <HomeBody />
     </Shell>
   );
@@ -57,11 +57,7 @@ export function WelcomeHead({
 
 function SelectedScreenDesktop() {
   return (
-    <Shell
-      mode="browse"
-      viewport="desktop"
-      nav={<NavTree activeLabel="Welcome" />}
-    >
+    <Shell viewport="desktop" nav={<NavTree activeLabel="Welcome" />}>
       <WelcomeHead active="both" />
       <Stage>
         <PhoneFrame label="Mobile">
@@ -78,7 +74,7 @@ function SelectedScreenDesktop() {
 
 function SelectedScreenMobile() {
   return (
-    <Shell mode="browse" viewport="mobile" nav={null}>
+    <Shell viewport="mobile" nav={null}>
       <WelcomeHead active="mobile" />
       <Stage>
         <PhoneFrame label="Mobile" small>
@@ -134,6 +130,7 @@ function UseCaseSteps({ viewport }: { viewport: "desktop" | "mobile" }) {
 function UseCaseHead() {
   return (
     <ScreenHead
+      comparisons={false}
       crumbs={["Example"]}
       idChip="example-tour"
       title="Example tour"
@@ -143,11 +140,7 @@ function UseCaseHead() {
 
 function UseCaseDesktop() {
   return (
-    <Shell
-      mode="browse"
-      viewport="desktop"
-      nav={<NavTree activeLabel="Example tour" />}
-    >
+    <Shell viewport="desktop" nav={<NavTree activeLabel="Example tour" />}>
       <UseCaseHead />
       <UseCaseSteps viewport="desktop" />
     </Shell>
@@ -156,7 +149,7 @@ function UseCaseDesktop() {
 
 function UseCaseMobile() {
   return (
-    <Shell mode="browse" viewport="mobile" nav={null}>
+    <Shell viewport="mobile" nav={null}>
       <UseCaseHead />
       <UseCaseSteps viewport="mobile" />
     </Shell>
@@ -165,11 +158,7 @@ function UseCaseMobile() {
 
 function DetailsOpenDesktop() {
   return (
-    <Shell
-      mode="browse"
-      viewport="desktop"
-      nav={<NavTree activeLabel="Welcome" />}
-    >
+    <Shell viewport="desktop" nav={<NavTree activeLabel="Welcome" />}>
       <WelcomeHead active="desktop" />
       <Stage>
         <BrowserFrame address="example.test/welcome" label="Desktop">
@@ -183,7 +172,7 @@ function DetailsOpenDesktop() {
 
 function DetailsOpenMobile() {
   return (
-    <Shell mode="browse" viewport="mobile" nav={null}>
+    <Shell viewport="mobile" nav={null}>
       <WelcomeHead active="mobile" />
       <DetailsPanel open />
     </Shell>
@@ -203,7 +192,7 @@ function MissingRouteBody() {
 
 function MissingRouteDesktop() {
   return (
-    <Shell mode="browse" viewport="desktop" nav={<NavTree />}>
+    <Shell viewport="desktop" nav={<NavTree />}>
       <MissingRouteBody />
     </Shell>
   );
@@ -211,7 +200,7 @@ function MissingRouteDesktop() {
 
 function MissingRouteMobile() {
   return (
-    <Shell mode="browse" viewport="mobile" nav={null}>
+    <Shell viewport="mobile" nav={null}>
       <MissingRouteBody />
     </Shell>
   );
@@ -220,7 +209,7 @@ function MissingRouteMobile() {
 function NarrowNavigationDesktop() {
   return (
     <div className="mbk-shell mbk-shell--collapsed">
-      <TopBar mode="browse" viewport="mobile" />
+      <TopBar viewport="mobile" />
       <main className="mbk-main">
         <HomeBody />
       </main>
@@ -232,7 +221,6 @@ function NarrowNavigationDesktop() {
 function NarrowNavigationMobile() {
   return (
     <Shell
-      mode="browse"
       viewport="mobile"
       nav={null}
       aside={<NavDrawer activeLabel="Welcome" />}

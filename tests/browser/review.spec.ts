@@ -1,447 +1,245 @@
-import { execFile, spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { promisify } from "node:util";
 
 import { expect, test } from "@playwright/test";
 
-import {
-  createFixture,
-  removeFixture,
-  repositoryRoot,
-  validEntrySource,
-  type TestFixture,
-} from "../helpers/fixture.js";
+import { repositoryRoot } from "../helpers/fixture.js";
+import { comparisonFixture } from "./diffs_fixture.js";
 
-const run = promisify(execFile);
-const cli = path.join(repositoryRoot, "dist/cli/bin.js");
-const reviewLink =
-  '<a href="mock:details" id="review-link" target="_top">Details</a>';
-
-let fixture: TestFixture;
-let outDir: string;
-
-async function git(cwd: string, ...args: string[]): Promise<void> {
-  await run("git", args, { cwd });
-}
-
-/**
- * Two-screen catalogue where the first screen renders in both schemes and the
- * second opts out, so one comparison carries a scheme choice and one cannot.
- */
-function darkEntrySource(
-  options: { firstTitle?: string; secondTitle?: string } = {},
-): string {
-  const firstTitle = JSON.stringify(options.firstTitle ?? "Home");
-  const secondTitle = JSON.stringify(options.secondTitle ?? "Details");
-  return `import { defineCollection, defineScreen, defineUseCase } from "mokabook";
-import React from "react";
-const metadata = { dependencies: ["notes.md"], relatedDocs: ["notes.md"] };
-export const mockups = [
-  defineCollection({ ...metadata, childIds: ["home", "details", "tour"], description: "Fixture collection", id: "fixture", title: "Fixture" }),
-  defineScreen({ ...metadata, description: "Home screen", desktop: <main id="home">Home<a href="mock:details" id="review-link" target="_top">Details</a></main>, id: "home", mobile: <main id="home-mobile">Home<a href="mock:details" id="review-link" target="_top">Details</a></main>, route: "screens/home.html", title: ${firstTitle}, useCaseIds: ["tour"] }),
-  defineScreen({ ...metadata, colorSchemes: ["light"], description: "Detail screen", desktop: <main id="details">Detail</main>, id: "details", mobile: <main id="details-mobile">Detail</main>, route: "screens/details.html", title: ${secondTitle}, useCaseIds: ["tour"] }),
-  defineUseCase({ ...metadata, description: "Fixture journey", id: "tour", route: "user-flows/tour.html", steps: [{ screenId: "home" }, { screenId: "details" }], title: "Tour" })
-];
-`;
-}
-
-/**
- * Resolve the served URL a spawned Mokabook server announces on startup. Both
- * pipes are drained for the process's whole life so a full pipe can never
- * block the child, and the startup timer and exit listener are released once
- * the URL arrives.
- */
-function listeningUrl(child: ChildProcess): Promise<string> {
-  child.stderr?.resume();
-  return new Promise<string>((resolve, reject) => {
-    let buffered = "";
-    const finish = (settle: () => void): void => {
-      clearTimeout(timer);
-      child.off("exit", onExit);
-      settle();
-    };
-    const onExit = (code: number | null): void => {
-      finish(() =>
-        reject(new Error(`serve exited early with ${code}: ${buffered}`)),
-      );
-    };
-    const timer = setTimeout(
-      () => finish(() => reject(new Error(`serve did not start: ${buffered}`))),
-      30_000,
-    );
-    child.stdout?.on("data", (chunk: Buffer) => {
-      buffered += chunk.toString();
-      const url = buffered.match(
-        /Mokabook listening at (http:\/\/[^\s]+)/,
-      )?.[1];
-      if (url) finish(() => resolve(url));
-    });
-    child.on("exit", onExit);
-  });
-}
-
-/**
- * Stop a spawned server and resolve only after the process has exited. Serve
- * closes its HTTP server and Review artifacts asynchronously, so a teardown
- * that merely signals the child can leave it running with the worker holding
- * its stdio pipes; SIGKILL bounds a shutdown that stalls.
- */
-async function stopServe(child: ChildProcess): Promise<void> {
-  const exited = new Promise<void>((resolve) => {
-    if (child.exitCode !== null || child.signalCode !== null) resolve();
-    else child.once("exit", () => resolve());
-  });
-  child.kill("SIGTERM");
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const expired = new Promise<"expired">((resolve) => {
-    timer = setTimeout(() => resolve("expired"), 5_000);
-  });
-  const outcome = await Promise.race([
-    exited.then(() => "exited" as const),
-    expired,
-  ]);
-  clearTimeout(timer);
-  if (outcome === "expired") {
-    child.kill("SIGKILL");
-    await exited;
-  }
-  child.stdout?.destroy();
-  child.stderr?.destroy();
-}
-
+let fixture: Awaited<ReturnType<typeof comparisonFixture>>;
 test.beforeAll(async () => {
-  fixture = await createFixture(validEntrySource({ body: reviewLink }));
-  await run("node", [cli, "build", "--config", fixture.configPath]);
-  await git(fixture.root, "init", "--initial-branch=main");
-  await git(fixture.root, "config", "user.email", "fixture@example.test");
-  await git(fixture.root, "config", "user.name", "Fixture");
-  await git(fixture.root, "add", "-A");
-  await git(fixture.root, "commit", "-m", "base");
-  await fs.promises.writeFile(
-    fixture.entryPath,
-    validEntrySource({ body: reviewLink, firstTitle: "Home Revised" }),
-  );
-  await run("node", [cli, "build", "--config", fixture.configPath]);
-  await run("node", [
-    cli,
-    "review",
-    "--config",
-    fixture.configPath,
-    "--base",
-    "main",
-  ]);
-  outDir = path.join(fixture.root, ".review");
+  fixture = await comparisonFixture();
 });
-
 test.afterAll(async () => {
-  if (fixture) await removeFixture(fixture);
+  await fixture.close();
 });
 
-test("the review index groups changed screens", async ({ page }) => {
-  await page.goto(pathToFileURL(path.join(outDir, "index.html")).href);
-  await expect(page.locator(".mbk-empty h2")).toHaveText("Mokabook review");
-  await expect(page.locator(".mbk-basewatch")).toContainText("main");
-  await expect(
-    page.locator(".mbk-chg-grouphead", { hasText: "Changed" }).first(),
-  ).toBeVisible();
-  await expect(page.locator(".mbk-chg-dot.changed").first()).toBeVisible();
-});
+const endpoint = "**/__mokabook/diffs/review.json*";
 
-test("impact-only screens stay linked from the review index", async ({
+test("Changes and screen browsing stay lazy until a diff is selected", async ({
   page,
 }) => {
-  const impacted = await createFixture();
-  try {
-    await run("node", [cli, "build", "--config", impacted.configPath]);
-    await git(impacted.root, "init", "--initial-branch=main");
-    await git(impacted.root, "config", "user.email", "fixture@example.test");
-    await git(impacted.root, "config", "user.name", "Fixture");
-    await git(impacted.root, "add", "-A");
-    await git(impacted.root, "commit", "-m", "base");
-    await fs.promises.writeFile(
-      path.join(impacted.root, "notes.md"),
-      "# Updated fixture notes\n",
-    );
-    await run("node", [
-      cli,
-      "review",
-      "--config",
-      impacted.configPath,
-      "--base",
-      "main",
-    ]);
-    const impactedOut = path.join(impacted.root, ".review");
-
-    await page.goto(pathToFileURL(path.join(impactedOut, "index.html")).href);
-    await expect(
-      page.locator(".mbk-chg-grouphead", { hasText: "Impacted" }).first(),
-    ).toBeVisible();
-    await expect(page.getByText("No visual changes")).toHaveCount(0);
-    await expect(page.locator(".mbk-chg-dot.impacted").first()).toBeVisible();
-    await page.locator(".mbk-chg-row").first().click();
-    await expect(
-      page.getByRole("heading", { name: "Impact evidence" }),
-    ).toBeVisible();
-    await expect(
-      page.getByText("notes.md", { exact: true }).first(),
-    ).toBeVisible();
-  } finally {
-    await removeFixture(impacted);
-  }
-});
-
-test("approved impact mockups show the impacted group", async ({ page }) => {
-  for (const viewport of ["mobile", "desktop"]) {
-    const mockup = path.join(
-      repositoryRoot,
-      "examples/basic/generated/design/review/impact",
-      `shared-impact.${viewport}.html`,
-    );
-    await page.goto(pathToFileURL(mockup).href);
-    await expect(
-      page.locator(".mbk-chg-grouphead", { hasText: "Impacted" }).first(),
-    ).toBeVisible();
-    expect(await page.locator(".mbk-chg-dot.impacted").count()).toBeGreaterThan(
-      0,
-    );
-    await expect(
-      page.getByText(/2 impacted against origin\/main/),
-    ).toBeVisible();
-  }
-});
-
-test("compare pages switch modes and viewports", async ({ page }) => {
-  await page.goto(pathToFileURL(path.join(outDir, "index.html")).href);
-  await page.locator(".mbk-chg-row").first().click();
-  await expect(page.locator('.mbk-chg-row[aria-current="page"]')).toHaveCount(
-    1,
+  const requests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/__mokabook/diffs/"))
+      requests.push(request.url());
+  });
+  await page.goto(`${fixture.url}/view/screens/home.html`);
+  await expect(
+    page.getByRole("navigation", { name: "Mokabook modes" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Review", exact: true }),
+  ).toHaveCount(0);
+  await page.locator('[data-filter="changed"]').click();
+  await expect(page.locator('[data-filter="changed"]')).toHaveAttribute(
+    "aria-pressed",
+    "true",
   );
-  await expect(page.locator(".mb-panes")).toHaveAttribute(
-    "data-compare-mode",
-    "side",
-  );
-  await expect(page.locator(".mb-pane--before iframe")).toHaveAttribute(
-    "sandbox",
-    "",
-  );
-  await page.click('[data-mode="overlay"]');
-  await expect(page.locator(".mb-panes")).toHaveAttribute(
+  await page.getByRole("button", { name: "Mobile", exact: true }).click();
+  await page.getByRole("button", { name: "Dark", exact: true }).first().click();
+  expect(requests).toEqual([]);
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
     "data-compare-mode",
     "overlay",
   );
-  await page.click('[data-mode="difference"]');
-  await expect(page.locator(".mb-panes")).toHaveAttribute(
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
+  await expect(
+    page.locator("[data-diff-stage] iframe").first(),
+  ).toHaveAttribute("title", "Before — mobile — dark");
+  await expect(page.locator('[data-filter="changed"]')).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(requests.length).toBeGreaterThan(0);
+  await page.getByRole("button", { name: "Current", exact: true }).click();
+  await expect(page.locator("[data-current-screen]")).toBeVisible();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
+});
+
+test("any screen supports modes, viewport selection, and light-only fallback", async ({
+  page,
+}) => {
+  await page.goto(`${fixture.url}/view/screens/details.html`);
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(page.locator("[data-diff-stage]")).toContainText(
+    "No changes to this screen",
+  );
+  await page.getByRole("button", { name: "Dark", exact: true }).first().click();
+  await expect(page.locator("[data-diff-stage]")).toContainText("Light only");
+  await page.getByRole("button", { name: "Desktop", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
+  await page.getByRole("button", { name: "Difference", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
     "data-compare-mode",
     "difference",
   );
-  await page.click('.mbk-seg a:has-text("Desktop")');
-  await expect(page.locator('.mbk-seg span[aria-current="page"]')).toHaveText(
-    "Desktop",
-  );
-});
-
-test("static Review panes keep marked links frame-owned", async ({ page }) => {
-  await page.goto(pathToFileURL(path.join(outDir, "index.html")).href);
-  await page.locator(".mbk-chg-row").first().click();
-  const outerUrl = page.url();
-  const pageCount = page.context().pages().length;
-  const pane = page.frameLocator(".mb-pane--after iframe");
-  const link = pane.locator("#review-link");
-  await expect(link).toHaveAttribute("data-mokabook-link", "details");
-  await expect(link).not.toHaveAttribute("data-mokabook-target", /.+/);
-  await link.click();
-  await page.waitForTimeout(100);
-  expect(page.url()).toBe(outerUrl);
-  expect(page.context().pages()).toHaveLength(pageCount);
-  await expect(page.locator(".mb-panes")).toHaveAttribute(
+  await page.getByRole("button", { name: "Side by side", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
     "data-compare-mode",
     "side",
   );
-  await expect(page.locator('.mbk-chg-row[aria-current="page"]')).toHaveCount(
-    1,
-  );
+  await page.getByRole("button", { name: "Both", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(4);
+  await page.locator('[data-route="screens/home.html"]').click();
+  await expect(
+    page.getByRole("button", { name: "Current", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
-test("narrow static review pages expose navigation and the index", async ({
+test("added and removed screens retain legible missing panes in every mode", async ({
   page,
 }) => {
-  await page.setViewportSize({ height: 900, width: 420 });
-  await page.goto(pathToFileURL(path.join(outDir, "index.html")).href);
-
-  const menu = page.getByRole("button", {
-    name: "Open changed screens navigation",
-  });
-  await expect(page.locator(".mbk-nav")).toBeHidden();
-  await menu.click();
-  await expect(page.locator(".mbk-nav")).toBeVisible();
-  await expect(menu).toHaveAttribute("aria-expanded", "true");
-
-  await page.locator(".mbk-chg-row").first().click();
-  await expect(page.locator(".mbk-screen-head h2")).toHaveText("Home Revised");
-  await expect(page.locator(".mbk-nav")).toBeHidden();
-  await page
-    .getByRole("button", {
-      name: "Open changed screens navigation",
-    })
-    .click();
-  await expect(page.locator(".mbk-nav")).toBeVisible();
-
-  await page.getByRole("link", { exact: true, name: "Review" }).click();
-  await expect(page.locator(".mbk-empty h2")).toHaveText("Mokabook review");
+  for (const name of ["added", "removed"]) {
+    await page.goto(`${fixture.url}/view/screens/${name}.html`);
+    await page.locator('[data-filter="changed"]').click();
+    await expect(
+      page.locator(`[data-route="screens/${name}.html"]`),
+    ).toBeVisible();
+    if (name === "removed")
+      await expect(page.locator("[data-current-screen]")).toContainText(
+        "This screen was removed",
+      );
+    for (const mode of ["Overlay", "Difference", "Side by side"]) {
+      await page.getByRole("button", { name: mode, exact: true }).click();
+      await expect(page.locator(".mb-pane-missing").first()).toContainText(
+        `This screen was ${name}`,
+      );
+      await expect(page.locator(".mb-pane-missing").first()).toBeVisible();
+    }
+  }
 });
 
-test.describe("served review of a dark-capable catalogue", () => {
-  const homeRow = '[data-mokabook-review-route="screens/home.html"]';
-  const detailsRow = '[data-mokabook-review-route="screens/details.html"]';
-  const schemeSegment = '.mbk-cmp-toolbar [aria-label="Color scheme"]';
-  const viewportSegment = '.mbk-cmp-toolbar [aria-label="Viewport"]';
-  let served: TestFixture;
-  let child: ChildProcess;
-  let url: string;
+test("pending requests cannot replace Current or a newly navigated screen", async ({
+  page,
+}) => {
+  let release = (): void => undefined;
+  const waiting = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(endpoint, async (route) => {
+    const response = await route.fetch();
+    await waiting;
+    await route.fulfill({ response }).catch(() => undefined);
+  });
+  await page.goto(`${fixture.url}/view/screens/home.html`);
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(page.locator("[data-diff-stage]")).toContainText(
+    "Loading comparison",
+  );
+  await page.getByRole("button", { name: "Current", exact: true }).click();
+  await expect(page.locator("[data-current-screen]")).toBeVisible();
+  await page.locator('[data-route="screens/details.html"]').click();
+  release();
+  await expect(page.locator("h2")).toHaveText("Details");
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Current", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+});
 
-  test.beforeAll(async () => {
-    served = await createFixture(darkEntrySource(), {
-      extraConfig: `colorSchemes: ["light", "dark"],`,
-    });
-    await run("node", [cli, "build", "--config", served.configPath]);
-    await git(served.root, "init", "--initial-branch=main");
-    await git(served.root, "config", "user.email", "fixture@example.test");
-    await git(served.root, "config", "user.name", "Fixture");
-    await git(served.root, "add", "-A");
-    await git(served.root, "commit", "-m", "base");
-    await fs.promises.writeFile(
-      served.entryPath,
-      darkEntrySource({
-        firstTitle: "Home Revised",
-        secondTitle: "Details Revised",
+test("a failed comparison stays in the screen and retries explicitly", async ({
+  page,
+}) => {
+  await page.route(
+    endpoint,
+    (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: '{"error":"failed"}',
       }),
-    );
-    child = spawn(
-      "node",
-      [
-        cli,
-        "serve",
-        "--config",
-        served.configPath,
-        "--base",
-        "main",
-        "--no-watch",
-        "--port",
-        "0",
-      ],
-      { stdio: ["ignore", "pipe", "pipe"] },
-    );
-    url = await listeningUrl(child);
-  });
+    { times: 1 },
+  );
+  await page.goto(`${fixture.url}/view/screens/home.html`);
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Try again", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("h2")).toHaveText("Home");
+  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(4);
+  const oldSource = await page
+    .locator("[data-diff-stage] iframe")
+    .first()
+    .getAttribute("src");
+  await page
+    .getByRole("button", { name: "Refresh comparison", exact: true })
+    .click();
+  await expect(
+    page.locator("[data-diff-stage] iframe").first(),
+  ).not.toHaveAttribute("src", oldSource ?? "");
+});
 
-  test.afterAll(async () => {
-    if (child) await stopServe(child);
-    if (served) await removeFixture(served);
-  });
+test("snapshot panes keep marked links inside their sandbox", async ({
+  page,
+}) => {
+  await page.goto(`${fixture.url}/view/screens/home.html`);
+  await page.getByRole("button", { name: "Side by side", exact: true }).click();
+  const iframe = page.locator("[data-diff-stage] iframe").first();
+  await expect(iframe).toHaveAttribute("sandbox", "");
+  const beforeUrl = page.url();
+  await iframe.contentFrame().locator("#snapshot-link").click();
+  await expect(page).toHaveURL(beforeUrl);
+  await expect(page.locator("h2")).toHaveText("Home");
+});
 
-  test("a served compare page switches between compared schemes", async ({
-    page,
-  }) => {
-    await page.goto(`${url}/review`);
-    await expect(page.locator(".mbk-empty h2")).toHaveText("Mokabook review");
-    await page.click(homeRow);
-    await expect(page.locator(".mbk-screen-head h2")).toHaveText(
-      "Home Revised",
-    );
+test("narrow diffs fit the shell and retain the catalogue drawer", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${fixture.url}/view/screens/home.html`);
+  await page.getByRole("button", { name: "Mobile", exact: true }).click();
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+  await page.getByRole("button", { name: "Open catalogue navigation" }).click();
+  await expect(
+    page.locator('[data-route="screens/details.html"]'),
+  ).toBeVisible();
+  await page.locator('[data-route="screens/details.html"]').click();
+  await expect(page.locator("h2")).toHaveText("Details");
+});
 
-    await expect(
-      page.locator('.mbk-cmp-toolbar [aria-label="Comparison mode"]'),
-    ).toBeVisible();
-    await expect(page.locator(viewportSegment)).toBeVisible();
-    const scheme = page.locator(schemeSegment);
-    await expect(scheme).toBeVisible();
-    await expect(scheme.locator('[aria-current="page"]')).toHaveText("Light");
+test("approved changes mockups render directly from disk", async ({ page }) => {
+  for (const mode of ["current", "overlay"]) {
+    for (const viewport of ["desktop", "mobile"]) {
+      const file = path.join(
+        repositoryRoot,
+        `examples/basic/generated/design/review/controls/${mode}.${viewport}.html`,
+      );
+      expect(fs.existsSync(file)).toBe(true);
+      await page.goto(pathToFileURL(file).href);
+      await expect(
+        page.getByRole("group", { name: "Comparison mode" }),
+      ).toContainText("Current");
+      await expect(
+        page.getByRole("navigation", { name: "Mokabook modes" }),
+      ).toHaveCount(0);
+    }
+  }
+});
 
-    await scheme.getByRole("link", { name: "Dark" }).click();
-    await expect(page).toHaveURL(/mobile\.dark\/index\.html$/);
-    await expect(
-      page.locator(`${schemeSegment} [aria-current="page"]`),
-    ).toHaveText("Dark");
-    await expect(
-      page.locator(`${viewportSegment} [aria-current="page"]`),
-    ).toHaveText("Mobile");
-    await expect(page.locator(".mb-pane--after iframe")).toHaveAttribute(
-      "src",
-      /home\.mobile\.dark\.html$/,
-    );
-  });
-
-  test("served Review panes keep marked links frame-owned", async ({
-    page,
-  }) => {
-    await page.goto(`${url}/review`);
-    await page.click(homeRow);
-    const outerUrl = page.url();
-    const pageCount = page.context().pages().length;
-    const pane = page.frameLocator(".mb-pane--after iframe");
-    const link = pane.locator("#review-link");
-    await expect(link).toHaveAttribute("data-mokabook-link", "details");
-    await expect(link).not.toHaveAttribute("data-mokabook-target", /.+/);
-    await link.click();
-    await page.waitForTimeout(100);
-    expect(page.url()).toBe(outerUrl);
-    expect(page.context().pages()).toHaveLength(pageCount);
-    await expect(page.locator(".mb-panes")).toHaveAttribute(
-      "data-compare-mode",
-      "side",
-    );
-    await expect(page.locator(homeRow)).toHaveAttribute("aria-current", "page");
-  });
-
-  test("a light-only screen compares without a scheme choice", async ({
-    page,
-  }) => {
-    await page.goto(`${url}/review`);
-    await page.click(detailsRow);
-    await expect(page.locator(".mbk-screen-head h2")).toHaveText(
-      "Details Revised",
-    );
-    await expect(page.locator(viewportSegment)).toBeVisible();
-    await expect(page.locator(schemeSegment)).toHaveCount(0);
-  });
-
-  test("a narrow compare band leads alone and trails as a pair", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ height: 844, width: 390 });
-    await page.goto(`${url}/review`);
-    await page
-      .getByRole("button", { name: "Open changed screens navigation" })
-      .click();
-    await page.click(detailsRow);
-    await expect(page.locator(".mbk-screen-head h2")).toHaveText(
-      "Details Revised",
-    );
-
-    const band = await page.locator(".mbk-cmp-toolbar").boundingBox();
-    const lone = await page.locator(viewportSegment).boundingBox();
-    if (!band || !lone) throw new Error("the compare band has no layout");
-    expect(lone.x - band.x).toBeLessThan(band.width / 2);
-
-    await page.goto(`${url}/review`);
-    await page
-      .getByRole("button", { name: "Open changed screens navigation" })
-      .click();
-    await page.click(homeRow);
-    await expect(page.locator(".mbk-screen-head h2")).toHaveText(
-      "Home Revised",
-    );
-    const pairBand = await page.locator(".mbk-cmp-toolbar").boundingBox();
-    const paired = await page.locator(viewportSegment).boundingBox();
-    const scheme = await page.locator(schemeSegment).boundingBox();
-    if (!pairBand || !paired || !scheme)
-      throw new Error("the compare band has no layout");
-    expect(paired.x - pairBand.x).toBeGreaterThan(lone.x - band.x);
-    expect(scheme.x - (paired.x + paired.width)).toBeLessThan(24);
-    expect(scheme.x + scheme.width).toBeGreaterThan(
-      pairBand.x + pairBand.width - 24,
-    );
-  });
+test("mode switches keep frames and cannot expand one side alone", async ({
+  page,
+}) => {
+  await page.goto(`${fixture.url}/view/screens/home.html`);
+  await page.getByRole("button", { name: "Desktop", exact: true }).click();
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  const frame = await page
+    .locator("[data-diff-stage] iframe")
+    .first()
+    .elementHandle();
+  expect(frame).not.toBeNull();
+  await expect(page.locator("[data-diff-stage] .browser-expand")).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: "Difference", exact: true }).click();
+  expect(await frame?.evaluate((node) => node.isConnected)).toBe(true);
+  await frame?.dispose();
 });

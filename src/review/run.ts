@@ -6,7 +6,6 @@ import {
 import { validateReviewOut } from "../config/path_validation.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { renderReviewArtifact } from "./artifact.js";
-import type { ReviewRenderOptions } from "./artifact_pages.js";
 import { compareReview } from "./compare.js";
 import {
   NodeGitCommandRunner,
@@ -25,7 +24,6 @@ export async function runReview(
     new NodeGitCommandRunner(config.repoRoot),
   ),
   outputStore: GeneratedOutputStore = new FileSystemGeneratedOutputStore(),
-  render: ReviewRenderOptions = {},
   changedPathExclusions: readonly string[] = [],
 ): Promise<ReviewResult> {
   validateReviewOut(outDir, config, "Review output", "review-invalid");
@@ -40,10 +38,6 @@ export async function runReview(
     undefined,
     changedPathExclusions,
   );
-  await writeReviewArtifact(
-    renderReviewArtifact(artifact, render),
-    outDir,
-    config,
-  );
+  await writeReviewArtifact(renderReviewArtifact(artifact), outDir, config);
   return artifact.result;
 }
