@@ -619,6 +619,40 @@ test("narrow viewports collapse navigation into a drawer", async ({ page }) => {
   await expect(page.locator("[data-mokabook-nav]")).toBeHidden();
 });
 
+test("the narrow search bar drops the name and fits its controls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto("/");
+
+  const bar = await page.locator(".mbk-topbar").evaluate((element) => ({
+    client: element.clientWidth,
+    scroll: element.scrollWidth,
+  }));
+  expect(bar.scroll).toBeLessThanOrEqual(bar.client);
+  await expect(page.locator(".mbk-brand .mbk-mark")).toBeVisible();
+  await expect(page.locator(".mbk-brand .mbk-name")).toBeHidden();
+  await expect(page.getByRole("link", { name: "Mokabook" })).toBeVisible();
+  await expect(page.locator("[data-mokabook-menu]")).toBeVisible();
+  await expect(page.locator("[data-mokabook-search]")).toBeVisible();
+
+  const modes = await page.locator(".mbk-modes").boundingBox();
+  if (!modes) throw new Error("the mode switch must be laid out");
+  expect(modes.x).toBeGreaterThanOrEqual(0);
+  expect(modes.x + modes.width).toBeLessThanOrEqual(390);
+
+  await page.setViewportSize({ height: 800, width: 1_280 });
+  await expect(page.locator(".mbk-brand .mbk-name")).toBeVisible();
+});
+
+test("a narrow Review bar keeps the whole brand", async ({ page }) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto("/review");
+
+  await expect(page.locator("[data-mokabook-search]")).toHaveCount(0);
+  await expect(page.locator(".mbk-brand .mbk-name")).toBeVisible();
+});
+
 test("missing routes keep the catalogue available", async ({ page }) => {
   await page.goto("/view/unknown.html");
   await expect(page.locator("#mb-main h2")).toHaveText("Screen not found");

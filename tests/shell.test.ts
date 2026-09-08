@@ -600,6 +600,33 @@ test("the search field carries a tag control over a closed picker", () => {
   assert.equal(review.includes("mb-tag-picker"), false);
 });
 
+test("the brand names itself and the search bar drops that name", () => {
+  const browse = homePage(createCatalogue(manifest), context);
+  assert.ok(browse.includes('<header class="mbk-topbar" data-search="">'));
+  assert.ok(
+    browse.includes(
+      '<a aria-label="Mokabook" class="mbk-brand" href="/">' +
+        '<span aria-hidden="true" class="mbk-mark">◫</span>' +
+        '<span class="mbk-name">Mokabook</span></a>',
+    ),
+  );
+
+  const review = reviewPage("origin/main", createCatalogue(manifest), {
+    ...context,
+    mode: "review",
+  });
+  assert.ok(review.includes('<header class="mbk-topbar">'));
+  assert.ok(review.includes('<span class="mbk-name">Mokabook</span>'));
+
+  assert.ok(
+    flatCss(SHELL_CSS).includes(
+      "@media (max-width: 56.25rem) { .mbk-menu { display: inline-flex; } " +
+        ".mbk-topbar[data-search] .mbk-name { display: none; }",
+    ),
+  );
+  assert.match(SHELL_CSS, /\.mbk-search \{[^}]*flex: 1;[^}]*min-width: 0;/);
+});
+
 test("missing routes and review keep the catalogue shell", () => {
   const catalogue = createCatalogue(manifest);
   const missing = notFoundPage("view/unknown.html", catalogue, context);

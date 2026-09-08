@@ -13,10 +13,16 @@ import { SearchTagPicker } from "./tags.js";
 import { ShellMain, viewTitle } from "./views.js";
 import type { ShellView } from "./views.js";
 
+/**
+ * The 48px shell header. Only Browse carries the search field, and a bar that
+ * carries it says so with `data-search` so the narrow stylesheet can drop the
+ * product name from the brand and leave the field its room. The mark alone
+ * cannot name the home link, so the link carries that name itself.
+ */
 function TopBar(props: { catalogue: Catalogue; context: ShellContext }) {
   const browse = props.context.mode === "browse";
   return (
-    <header className="mbk-topbar">
+    <header className="mbk-topbar" data-search={browse ? "" : undefined}>
       <button
         aria-controls="mb-nav"
         aria-expanded="false"
@@ -27,11 +33,11 @@ function TopBar(props: { catalogue: Catalogue; context: ShellContext }) {
       >
         <span aria-hidden="true">☰</span>
       </button>
-      <a className="mbk-brand" href="/">
+      <a aria-label="Mokabook" className="mbk-brand" href="/">
         <span aria-hidden="true" className="mbk-mark">
           ◫
         </span>
-        Mokabook
+        <span className="mbk-name">Mokabook</span>
       </a>
       {browse ? (
         <div className="mbk-search">

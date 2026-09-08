@@ -456,9 +456,9 @@ screen and the Delivery Status paragraph is gone.
 
 **Steps:**
 
-- [ ] Write failing tests (markup + narrow geometry). Run; expect failures.
-- [ ] Implement the span + narrow CSS; verify Review-mode narrow bars keep
+- [x] Write failing tests (markup + narrow geometry). Run; expect failures.
+- [x] Implement the span + narrow CSS; verify Review-mode narrow bars keep
       the full brand (they carry no search field).
-- [ ] Docs: delete the Delivery Status gap paragraph and the notes.md gap
+- [x] Docs: delete the Delivery Status gap paragraph and the notes.md gap
       bullet; re-read both for coherence.
-- [ ] `npm test && PLAYWRIGHT_CHANNEL=chromium npm run test:browser` green.
+- [x] `npm test && PLAYWRIGHT_CHANNEL=chromium npm run test:browser` green.

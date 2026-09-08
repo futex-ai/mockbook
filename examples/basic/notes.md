@@ -46,10 +46,10 @@ in each entry's description and rationale, never inside the rendered screens:
 - The tag-filter artboards draw the top-bar search field because the entered
   query is the depicted state. The narrow one draws it too: the shell keeps the
   search field in the top bar below the breakpoint, and the artboard reduces the
-  brand to its mark so the field has room. The other narrow artboards omit the
-  field, and so keep the product name, because their depicted state has no
-  query. The served shell has not picked that reduction up yet, as the shell
-  design contract's delivery status records.
+  brand to its mark so the field has room, which is how the served narrow Browse
+  bar renders. The other narrow artboards omit the field, and so keep the
+  product name, because their depicted state has no query rather than because
+  the shell drops the field.
 - The narrow tag-filter artboard draws no navigation drawer: one overlay at a
   time keeps the depicted state readable, and the open picker is the state this
   screen records. The tree the query filters is left to the wide artboard,

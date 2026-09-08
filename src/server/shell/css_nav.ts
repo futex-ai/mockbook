@@ -2,7 +2,10 @@
  * tag control and the picker it drops, and the catalogue navigation column
  * with its filter, tree rows, icons, and drawer states. The picker is
  * anchored to the field, and spans the bar as a sheet below the breakpoint;
- * the top bar's own stacking context lifts it over the drawer and the views. */
+ * the top bar's own stacking context lifts it over the drawer and the views.
+ * A narrow bar that carries the field (`data-search`) drops the brand to its
+ * mark so the field, the menu button, and the mode switch all keep their
+ * room; a bar without the field keeps the whole brand. */
 
 /** Top bar and navigation styles. */
 export const SHELL_NAV_CSS = `
@@ -95,6 +98,7 @@ export const SHELL_NAV_CSS = `
   align-items: center;
   gap: 8px;
   flex: 1;
+  min-width: 0;
   max-width: 440px;
   height: 30px;
   padding: 0 12px;
@@ -432,6 +436,10 @@ details.mbk-nav-group > summary::-webkit-details-marker {
 @media (max-width: 56.25rem) {
   .mbk-menu {
     display: inline-flex;
+  }
+
+  .mbk-topbar[data-search] .mbk-name {
+    display: none;
   }
 
   .mbk-search {

@@ -16,13 +16,9 @@ implementation and tests must preserve. Runtime behavior stays in
 This document describes the implemented shell design, including active-row
 ancestor disclosure, conditional filter clearing, nearest-row scrolling, the
 `tag:` search term, the details inspector's tag chips, the search field's tag
-control with its picker panel, and the top bar's stacking above the navigation
-drawer scrim. One recorded state is still outstanding, and it predates the tag
-work: the mark-only narrow brand was recorded with the earlier shell design and
-the served shell has never implemented it, so below the breakpoint the brand
-still keeps the product name beside its mark, that bar overflows a 390px
-viewport, and the mode switch sits off screen. Every other state recorded here
-is implemented.
+control with its picker panel, the mark-only narrow brand, and the top bar's
+stacking above the navigation drawer scrim. Every state recorded here is
+implemented.
 
 ## Design Mockups
 
@@ -101,17 +97,23 @@ The shell fills the viewport (`100vh`, document scrolling disabled); every
 scrollable region scrolls internally:
 
 - **Top bar** — 48px, surface background, hairline bottom border: brand mark
-  (24px rounded square in the accent with the `◫` glyph), the product name,
-  a centred search field (max-width 440px, `⌕` glyph), the color-scheme
-  control when the catalogue has one, and a right-aligned Browse/Review
-  segmented mode switch. Below the breakpoint a menu button precedes the brand
-  and opens the navigation drawer, and wherever that narrow bar keeps the search
-  field the brand drops to its mark alone so the field keeps its room. A query
-  splits into terms: every `tag:<tag>` term matches only rows whose entry
-  declares that tag, and the remaining words rejoin into one phrase that must
-  appear in a row's title or route. A row stays visible only when it matches
-  every tag term and that phrase; tag terms hide the groups they empty and open
-  the groups they keep, and they compose with the All/Changed filter.
+  (24px rounded square in the accent with the `◫` glyph), the product name in
+  its own `mbk-name` span, a centred search field (max-width 440px, `⌕` glyph)
+  that flexes down to whatever room the bar leaves it, the color-scheme control
+  when the catalogue has one, and a right-aligned Browse/Review segmented mode
+  switch. Below the breakpoint a menu button precedes the brand and opens the
+  navigation drawer, and wherever that narrow bar keeps the search field the
+  brand drops to its mark alone so the field keeps its room: a bar carrying the
+  field marks itself `data-search`, the narrow rule hides the name against that
+  marker rather than against the mode, and the brand link names itself so the
+  mark alone still announces where it leads. Browse always keeps the field, so
+  its narrow bar always shows the mark alone, while a Review bar carries no
+  field and keeps the whole brand. A query splits into terms: every `tag:<tag>`
+  term matches only rows whose entry declares that tag, and the remaining words
+  rejoin into one phrase that must appear in a row's title or route. A row stays
+  visible only when it matches every tag term and that phrase; tag terms hide
+  the groups they empty and open the groups they keep, and they compose with the
+  All/Changed filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
   field, muted like the leading `⌕` glyph and filling to a soft rounded square
   on hover. It opens a panel anchored under the field and aligned to its width
