@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { encodeUrlPath } from "../config/paths.js";
+import { NavigationResizeHandle } from "../server/shell/nav_resize.js";
 import { isImpactOnly, isMaterial } from "./materiality.js";
 import { comparisonPagePath } from "./paths.js";
 import type { ReviewResult, ReviewState, ScreenReview } from "./types.js";
@@ -154,6 +155,7 @@ export function ChangedScreensNav(props: {
         <SharedImpactCard result={props.result} />
         <IgnoredImpactCard result={props.result} />
       </div>
+      <NavigationResizeHandle />
     </nav>
   );
 }
@@ -182,6 +184,7 @@ export function DeferredChangedScreensNav(props: {
           <a href={`${props.rootPrefix}index.html`}>Open Review index</a>
         </p>
       </div>
+      <NavigationResizeHandle />
     </nav>
   );
 }

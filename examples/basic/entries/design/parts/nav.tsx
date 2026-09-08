@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import { FlowIcon, FolderIcon, FolderOpenIcon, ScreenIcon } from "./icons.js";
+import { NavResizeHandle } from "./nav_resize.js";
 
 /** One entry in the catalogue navigation tree. */
 interface NavNode {
@@ -136,6 +137,7 @@ export function NavTree({ activeLabel }: NavTreeProps) {
   return (
     <nav className="mbk-nav" aria-label="Catalogue">
       <CatalogueBody activeLabel={activeLabel} />
+      <NavResizeHandle />
     </nav>
   );
 }

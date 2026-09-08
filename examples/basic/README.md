@@ -47,8 +47,9 @@ each with distinct mobile and desktop variants. The sixteen design screens
 explicitly opt out with `colorSchemes: ["light"]` because they are light
 documents that draw the Mokabook shell, including the three that depict the
 shell with dark selected; the two product screens inherit the catalogue default
-and prove dark generation. The recorded
-tokens and responsive rules live in
+and prove dark generation. Desktop variants depict the shared resize grip on
+the Browse and Review navigation panels; narrow variants keep the drawer fixed.
+The recorded tokens and responsive rules live in
 [`docs/protocol/mokabook-shell-design.md`](../../docs/protocol/mokabook-shell-design.md).
 
 From the repository root:

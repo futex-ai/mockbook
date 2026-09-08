@@ -187,8 +187,30 @@ body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
   width: 248px;
+}
+
+.mbk-nav-resize {
+  bottom: 0;
+  cursor: col-resize;
+  position: absolute;
+  right: -4px;
+  top: 0;
+  width: 8px;
+  z-index: 2;
+}
+
+.mbk-nav-resize::after {
+  background: #c6cbc4;
+  border-radius: 999px;
+  content: "";
+  height: 32px;
+  left: 3px;
+  position: absolute;
+  top: calc(50% - 16px);
+  width: 2px;
 }
 
 .mbk-nav-head {

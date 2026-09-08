@@ -20,6 +20,7 @@ import {
   ScreenIcon,
 } from "./icons.js";
 import { navRowStyle } from "./nav_guides.js";
+import { NavigationResizeHandle } from "./nav_resize.js";
 import { buildNavTree } from "./nav_tree.js";
 import type { NavGroupNode, NavLeafNode, NavNode } from "./nav_tree.js";
 
@@ -196,6 +197,7 @@ export function CatalogueNav(props: {
       <div className="mbk-nav-scroll" data-mokabook-nav-scroll="">
         <NavRows context={props.context} depth={0} nodes={nodes} />
       </div>
+      <NavigationResizeHandle />
     </nav>
   );
 }

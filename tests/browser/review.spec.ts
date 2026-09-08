@@ -149,6 +149,31 @@ test("the review index groups changed screens", async ({ page }) => {
   await expect(page.locator(".mbk-chg-dot.changed").first()).toBeVisible();
 });
 
+test("static Review navigation has the desktop resize control", async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 900, width: 1_280 });
+  await page.goto(pathToFileURL(path.join(outDir, "index.html")).href);
+  const nav = page.locator(".mbk-nav");
+  const handle = page.locator("[data-mokabook-nav-resize]");
+  await expect(handle).toBeVisible();
+  const grip = await handle.boundingBox();
+  expect(grip).not.toBeNull();
+  if (!grip) throw new Error("Review navigation resize bounds unavailable");
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + grip.width / 2 + 64, grip.y + 100);
+  await page.mouse.up();
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(312, 0);
+  await handle.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(296, 0);
+});
+
 test("impact-only screens stay linked from the review index", async ({
   page,
 }) => {
@@ -218,6 +243,7 @@ test("compare pages switch modes and viewports", async ({ page }) => {
   await expect(page.locator('.mbk-chg-row[aria-current="page"]')).toHaveCount(
     1,
   );
+  await expect(page.locator("[data-mokabook-nav-resize]")).toBeVisible();
   await expect(page.locator(".mb-panes")).toHaveAttribute(
     "data-compare-mode",
     "side",

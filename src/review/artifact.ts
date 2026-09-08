@@ -15,6 +15,10 @@ import {
   reviewNavigationScript,
 } from "./artifact_navigation.js";
 import { isImpactOnly, isMaterial } from "./materiality.js";
+import {
+  NAVIGATION_RESIZE_SCRIPT,
+  loadNavigationResizeScript,
+} from "./navigation_resize_asset.js";
 import { addArtifactFile, comparisonPagePath } from "./paths.js";
 
 /** Add self-contained diagnostic pages, JSON, and CI summary to pane artifacts. */
@@ -34,6 +38,11 @@ export function renderReviewArtifact(
     files,
     REVIEW_NAVIGATION_SCRIPT,
     reviewNavigationScript(artifact.result),
+  );
+  addArtifactFile(
+    files,
+    NAVIGATION_RESIZE_SCRIPT,
+    loadNavigationResizeScript(),
   );
   for (const screen of artifact.result.screens) {
     for (const view of screen.views) {
