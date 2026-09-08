@@ -196,7 +196,7 @@ tags?: readonly string[];
       example entry declares tags.
 - [x] `npm run example:build && npm run example:check`; confirm via
       `git diff` that the manifest gained exactly the two `tags` arrays.
-- [ ] Milestone close-out per Global Constraints (gate, commit
+- [x] Milestone close-out per Global Constraints (gate, commit
       `feat(registry): add validated entry tags to manifest`, push, review).
 
 ---
@@ -324,7 +324,7 @@ export function clearTagTerm(raw: string, tag: string): string;
 - [x] Smoke test: `node dist/cli/bin.js serve --config examples/basic/mokabook.config.ts`,
       type `tag:forms`, click chips on the Welcome details, verify tree and
       active states by hand.
-- [ ] Milestone close-out per Global Constraints (gate, commit
+- [x] Milestone close-out per Global Constraints (gate, commit
       `feat(browse): filter catalogue rows by tag terms`, push, review).
 
 ---
@@ -425,7 +425,7 @@ picker; the plan moves to completed.
       shell scripts load (static preview keeps Browse client behavior).
 - [x] Full serve smoke: picker + chips + `tag:` typing + Changed filter
       composition in one session.
-- [ ] Milestone close-out per Global Constraints (gate, commit
+- [x] Milestone close-out per Global Constraints (gate, commit
       `feat(browse): add search tag picker`, push, review).
 
 ---
