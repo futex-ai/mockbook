@@ -127,6 +127,9 @@ test("review index groups outcomes and reports aggregate impact", () => {
   assert.match(index as string, /Shared impact/);
   assert.match(index as string, /example-nav/);
   assert.match(index as string, /--mokabook-accent/);
+  assert.match(index as string, /data-mokabook-nav-resize=""/);
+  assert.match(index as string, /src="navigation-resize\.js"/);
+  assert.match(files.get("navigation-resize.js") as string, /pointerdown/);
 });
 
 test("artifact bars carry no search field, so they keep the name", () => {
@@ -349,6 +352,7 @@ test("served render options add browse, recompute, and live-update hooks", () =>
   ) as string;
   assert.match(compare, /href="\/">Browse<\/a>/);
   assert.match(compare, /\/__mokabook\/client\/browser\.js/);
+  assert.match(compare, /src="\.\.\/\.\.\/\.\.\/navigation-resize\.js"/);
 
   const staticArtifact = renderReviewArtifact({
     files: new Map(),

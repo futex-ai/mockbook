@@ -137,11 +137,16 @@ scrollable region scrolls internally:
   changing the query, and a click outside closes it, returning focus to the
   control only when the closing panel still holds it. A catalogue that declares
   no tags renders neither the control nor the panel.
-- **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
-  Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
-  an All/Changed segmented filter (with a monospace changed count) when Git
-  change detection is available; then the scrollable tree. The drawer below
-  the breakpoint shows the same body.
+- **Navigation** — 248px initial column, `#fbfbfa` background, hairline right
+  border. On desktop, an 8px-wide split separator with a centred 2×32px grip
+  resizes the column from 192px to 480px without exceeding half the viewport.
+  Dragging resizes continuously; Left/Right change it by 16px, Home/End choose
+  its bounds, and double-click restores 248px. Served pages remember the last
+  chosen width. The separator is absent from the mobile drawer and without
+  JavaScript. The head row is `CATALOGUE` (uppercase, 11px) with a text button
+  labelled `Collapse all`; an All/Changed segmented filter (with a monospace
+  changed count) appears when Git change detection is available, followed by
+  the scrollable tree. The drawer below the breakpoint shows the same body.
   - Groups are native `<details>` whose summary row shows a closed/open folder
     SVG pair (swapped via the `[open]` state), a bold label, and a monospace
     child count. Leaves show a screen, page, or flow SVG; flow icons read in

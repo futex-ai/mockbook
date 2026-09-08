@@ -214,13 +214,14 @@ export const SHELL_NAV_CSS = `
 
 .mbk-nav {
   --mbk-guide: #dbded8;
+  position: relative;
   display: flex;
   flex-direction: column;
-  width: 248px;
+  width: var(--mbk-nav-width, 248px);
   flex-shrink: 0;
   background: #fbfbfa;
   border-right: 1px solid var(--chrome-border);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .mbk-nav-head {
@@ -464,6 +465,7 @@ details.mbk-nav-group > summary::-webkit-details-marker {
     width: 82%;
     max-width: 20rem;
     border-right: 1px solid var(--chrome-border);
+    overflow: hidden;
     box-shadow: 0 0 0 100vmax rgba(20, 28, 22, 0.4);
   }
 

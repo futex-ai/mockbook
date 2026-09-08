@@ -106,6 +106,7 @@ export function renderShellPage(
             role="status"
           />
         </div>
+        <script src="/__mokabook/client/navigation-resize.js" />
         <script src="/__mokabook/client/browse.js" type="module" />
         <script src="/__mokabook/client/browser.js" type="module" />
       </body>

@@ -13,6 +13,7 @@ import {
   DeferredChangedScreensNav,
   REVIEW_NAVIGATION_SCRIPT,
 } from "./artifact_navigation.js";
+import { NAVIGATION_RESIZE_SCRIPT } from "./navigation_resize_asset.js";
 import type { ReviewResult, ReviewState } from "./types.js";
 
 const DRAWER_SCRIPT =
@@ -140,6 +141,7 @@ export function reviewDocument(props: {
         {props.navigation === "shared" ? (
           <script src={`${props.rootPrefix}${REVIEW_NAVIGATION_SCRIPT}`} />
         ) : null}
+        <script src={`${props.rootPrefix}${NAVIGATION_RESIZE_SCRIPT}`} />
         <script dangerouslySetInnerHTML={{ __html: DRAWER_SCRIPT }} />
         {props.script ? (
           <script dangerouslySetInnerHTML={{ __html: props.script }} />
