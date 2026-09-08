@@ -494,6 +494,41 @@
   flex-shrink: 0;
 }
 
+/* A tag chip is a control on both surfaces it appears on — the details
+   inspector's Tags row and the search field's picker — so it takes the pointer
+   and the same soft-accent hover the navigation rows use. */
+.mbk-chip.tag {
+  cursor: pointer;
+}
+
+.mbk-chip.tag svg {
+  color: var(--chrome-muted);
+  flex-shrink: 0;
+}
+
+.mbk-chip.tag:hover {
+  background: rgba(79, 120, 100, 0.1);
+}
+
+/* The chip whose tag is the entered search term carries the same accent fill
+   as the selected navigation row, so both read as one selection. */
+.mbk-chip.tag.active {
+  background: var(--mbk-sage);
+  border-color: var(--mbk-sage);
+  color: #fff;
+}
+
+.mbk-chip.tag.active svg {
+  color: #fff;
+}
+
+/* Selecting a tag rewrites the query, so the chip answers the press with the
+   same 1px drop and inset shadow as the copyable ID button. */
+.mbk-chip.tag:active {
+  box-shadow: inset 0 1px 2px rgba(20, 28, 22, 0.14);
+  transform: translateY(1px);
+}
+
 /* ---- Use-case flow track ---------------------------------------------- */
 
 .mbk-flow {

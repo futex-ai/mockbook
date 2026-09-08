@@ -114,6 +114,7 @@ function routeChangeProjection(
     rationale: entry.rationale,
     relatedDocs: entry.relatedDocs,
     sourcePath: entry.sourcePath,
+    tags: entry.kind === "collection" ? undefined : entry.tags,
     title: entry.title,
   };
   if (entry.kind === "collection") {

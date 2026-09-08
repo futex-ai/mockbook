@@ -48,7 +48,7 @@ function TopBar(props: {
       <span aria-hidden="true" className="mbk-mark">
         ◫
       </span>
-      Mokabook
+      <span className="mbk-name">Mokabook</span>
     </>
   );
   return (

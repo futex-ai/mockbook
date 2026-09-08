@@ -106,6 +106,7 @@ function flattenChild(
       ...(node.rationale ? { rationale: node.rationale } : {}),
       relatedDocs: effective.relatedDocs ?? [],
       route: `${directory}/${node.slug}.html`,
+      ...(node.tags ? { tags: node.tags } : {}),
       title: node.title,
       useCaseIds: node.useCaseIds ?? [],
     });

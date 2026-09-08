@@ -150,8 +150,9 @@ stays stable.
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
 without writing and reports missing, stale, or orphan generated files. Browse
 serves the package-owned Mokabook shell — catalogue navigation with
-folder/screen/flow icons and an All/Changed filter, hierarchy-derived
-breadcrumbs with
+folder/screen/flow icons and an All/Changed filter, search that narrows the tree
+by title, route, and `tag:` terms that the field's tag picker and the details
+inspector's chips enter for you, hierarchy-derived breadcrumbs with
 hash-prefixed copyable ID chips, realistic browser chrome with an
 expand-to-overlay toggle, phone chrome whose screen reserves a clock, signal,
 Wi-Fi, and battery status band above the mobile fragment, header viewport

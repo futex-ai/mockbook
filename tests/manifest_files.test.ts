@@ -102,6 +102,20 @@ test("manifest validates darkFragments names and collisions", () => {
   assert.throws(() => parseManifest(invalidShape), /invalid darkFragments/);
 });
 
+test("manifest validation accepts tags and rejects invalid ones", () => {
+  const manifest = manifestWithScreen("a", "a.html");
+  const screen = manifest.entries[0];
+  if (!screen || screen.kind !== "screen") throw new Error("screen missing");
+  screen.tags = ["forms", "onboarding"];
+  assert.doesNotThrow(() => parseManifest(manifest));
+
+  for (const invalidTags of [["forms", 7], [""], "forms"]) {
+    const invalid = structuredClone(manifest);
+    Object.assign(invalid.entries[0]!, { tags: invalidTags });
+    assert.throws(() => parseManifest(invalid), /a has invalid tags/);
+  }
+});
+
 test("light-only manifests stay byte-identical", () => {
   const entry = resolvedScreen();
   const expected = serializeManifest({
@@ -132,6 +146,55 @@ test("light-only manifests stay byte-identical", () => {
   const serialized = serializeManifest(createManifest([entry], [], ["light"]));
   assert.equal(serialized, expected);
   assert.equal(serialized.includes("darkFragments"), false);
+  assert.equal(serialized.includes("tags"), false);
+});
+
+test("manifest serializes declared tags and omits absent ones", () => {
+  const serialized = serializeManifest(
+    createManifest(
+      [
+        resolvedScreen("a", "a.html", {
+          tags: ["onboarding", "forms"],
+          useCaseIds: ["tour", "untagged-tour"],
+        }),
+        resolvedScreen("b", "b.html", { tags: [] }),
+        resolvedScreen("c", "c.html"),
+        resolvedUseCase(["forms"]),
+        resolvedUseCase([], "untagged-tour", "untagged-tour.html"),
+      ],
+      [],
+      ["light"],
+    ),
+  );
+  const entries = parseManifest(JSON.parse(serialized)).entries;
+
+  assert.deepEqual(
+    entries.map((entry) => [entry.id, Object.hasOwn(entry, "tags")]),
+    [
+      ["a", true],
+      ["b", false],
+      ["c", false],
+      ["tour", true],
+      ["untagged-tour", false],
+    ],
+  );
+  assert.deepEqual(Object.keys(entries[0] ?? {}).slice(-4), [
+    "route",
+    "tags",
+    "useCaseIds",
+    "viewports",
+  ]);
+  assert.deepEqual(Object.keys(entries[3] ?? {}).slice(-3), [
+    "route",
+    "steps",
+    "tags",
+  ]);
+  const [screen, , , useCase] = entries;
+  if (screen?.kind !== "screen" || useCase?.kind !== "use-case") {
+    throw new Error("tagged entries missing");
+  }
+  assert.deepEqual(screen.tags, ["onboarding", "forms"]);
+  assert.deepEqual(useCase.tags, ["forms"]);
 });
 
 test("disabling dark orphans committed dark fragments", async (context) => {
@@ -186,7 +249,32 @@ function manifestWithScreen(id: string, route: string) {
   return createManifest([resolvedScreen(id, route)], [], ["light"]);
 }
 
-function resolvedScreen(id = "a", route = "a.html"): ResolvedRegistryEntry {
+function resolvedUseCase(
+  tags?: readonly string[],
+  id = "tour",
+  route = "tour.html",
+): ResolvedRegistryEntry {
+  return {
+    __viaDefine: true,
+    dependencies: [],
+    description: "A journey",
+    id,
+    kind: "use-case",
+    relatedDocs: [],
+    route,
+    sourcePath: `/repo/entries/${id}.mockup.tsx`,
+    sourceRelativePath: `entries/${id}.mockup.tsx`,
+    steps: [{ screenId: "a" }],
+    ...(tags ? { tags } : {}),
+    title: "Tour",
+  };
+}
+
+function resolvedScreen(
+  id = "a",
+  route = "a.html",
+  options: { tags?: readonly string[]; useCaseIds?: readonly string[] } = {},
+): ResolvedRegistryEntry {
   return {
     __viaDefine: true,
     dependencies: [],
@@ -199,7 +287,8 @@ function resolvedScreen(id = "a", route = "a.html"): ResolvedRegistryEntry {
     route,
     sourcePath: `/repo/entries/${id}.mockup.tsx`,
     sourceRelativePath: `entries/${id}.mockup.tsx`,
+    ...(options.tags ? { tags: options.tags } : {}),
     title: id.toUpperCase(),
-    useCaseIds: [],
+    useCaseIds: options.useCaseIds ?? [],
   };
 }

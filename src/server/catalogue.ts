@@ -16,6 +16,17 @@ export interface Catalogue {
   hasDarkFragments: boolean;
   hierarchy: CatalogueHierarchy<ManifestEntry>;
   manifest: ManifestV3;
+  /** Every classification tag the entries declare, deduplicated and sorted. */
+  tags: readonly string[];
+}
+
+/** The union of the tags declared across every entry that can carry them. */
+function collectTags(entries: readonly ManifestEntry[]): readonly string[] {
+  const declared: string[] = [];
+  for (const entry of entries) {
+    if (entry.kind !== "collection") declared.push(...(entry.tags ?? []));
+  }
+  return [...new Set(declared)].sort();
 }
 
 /** Build deterministic id and route indexes from a validated manifest. */
@@ -30,5 +41,6 @@ export function createCatalogue(manifest: ManifestV3): Catalogue {
     (entry) => entry.kind === "screen" && entry.darkFragments !== undefined,
   );
   const hierarchy = analyzeHierarchy(manifest.entries).hierarchy;
-  return { byId, byRoute, hasDarkFragments, hierarchy, manifest };
+  const tags = collectTags(manifest.entries);
+  return { byId, byRoute, hasDarkFragments, hierarchy, manifest, tags };
 }

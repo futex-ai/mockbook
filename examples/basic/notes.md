@@ -27,6 +27,38 @@ in each entry's description and rationale, never inside the rendered screens:
 - The dark view compare screen shows the same `Welcome` comparison as the
   changed screen, in its dark view. Review compares one view at a time, so the
   two are separate pages reached from the comparison band's scheme segment.
+- The `forms` and `onboarding` tags are synthetic fixture labels that carry no
+  product meaning: the Welcome entry declares both and the Details entry
+  declares `forms` in their authored metadata, which is why the `tag:forms`
+  tree keeps both screen rows.
+- Tag chips and the search field's tag control are drawn as styled text like
+  every other link inside a design screen, carrying the same hover and pressed
+  styling as the shell's chips so the affordance stays part of the recorded
+  design. The chip in the accent state depicts the tag named by the search
+  query; opening the picker, moving across its chips with the keyboard, and
+  selecting one to enter that query are runtime behavior.
+- The tag control is drawn in every search field the artboards show, because it
+  belongs to the field whenever the catalogue declares tags and this fixture
+  always does. Only the tag-filter artboards draw its panel open, because only
+  they depict a reader choosing a tag; the panel lists the same `forms` and
+  `onboarding` fixture labels, which are the whole set of tags this catalogue
+  declares.
+- The tag-filter artboards draw the top-bar search field because the entered
+  query is the depicted state. The narrow one draws it too: the shell keeps the
+  search field in the top bar below the breakpoint, and the artboard reduces the
+  brand to its mark so the field has room, which is how the served narrow Browse
+  bar renders. The other narrow artboards omit the field, and so keep the
+  product name, because their depicted state has no query rather than because
+  the shell drops the field.
+- The narrow tag-filter artboard draws no navigation drawer: one overlay at a
+  time keeps the depicted state readable, and the open picker is the state this
+  screen records. The tree the query filters is left to the wide artboard,
+  which has the room to show it beside the panel.
+- The narrow navigation drawer opens under the top bar, and the bar stays above
+  the drawer's scrim: the menu button that opened it, the brand, and the query
+  beside them keep their full-strength surface while only the shell below the
+  bar dims. The served shell stacks its bar above the scrim the same way, so
+  the artboard and the shipped drawer agree.
 - The `Light | Dark` control sits in the top bar on the wide artboards and in
   the screen head band, under the viewport control, on the narrow ones: a 390px
   top bar has no room for a third control.
@@ -51,6 +83,11 @@ following presentation differences are intentional:
 - The mockups draw a small-phone artboard variant so a full 390×844 phone fits
   the depicted narrow shells; the served shell always uses the full-size
   phone frame and scales it below the responsive breakpoint.
+- The served tag chips and tag control are buttons that announce their state —
+  a pressed chip for the entered tag, an expanded control for the open panel —
+  and the panel is hidden until it is opened. A screen is a picture, so the
+  artboards draw the chosen chip and the open panel directly and leave those
+  semantics to the runtime protocol.
 - Static Review artifact pages omit the Browse/Review mode pills because the
   artifact stands alone without a running Browse server; the served `/review`
   route keeps them. Compare pages navigate between the mobile and desktop

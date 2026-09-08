@@ -17,7 +17,7 @@ function HomeBody() {
   return (
     <EmptyState
       title="Mokabook"
-      body="Browse the mockup catalogue. 18 screens and 1 use case are generated from this repository."
+      body="Browse the mockup catalogue generated from this repository."
       linkLabel="Open the first screen"
     />
   );
@@ -39,7 +39,12 @@ function HomeMobile() {
   );
 }
 
-function WelcomeHead({ active }: { active: "both" | "desktop" | "mobile" }) {
+/** The head band of the example Welcome screen with its viewport control. */
+export function WelcomeHead({
+  active,
+}: {
+  active: "both" | "desktop" | "mobile";
+}) {
   return (
     <ScreenHead
       action={<ViewSwitch active={active} />}

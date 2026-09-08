@@ -76,6 +76,38 @@ test("manifest entry changes are attributed to their route", async (context) => 
   );
 });
 
+test("tag-only manifest changes mark their route as changed", async (context) => {
+  const fixture = await createFixture();
+  context.after(() => removeFixture(fixture));
+  const config = await loadConfig(fixture.root);
+  const manifest = (await compileCatalogue(config)).manifest;
+
+  const taggedScreenBase = structuredClone(manifest);
+  const baseDetails = taggedScreenBase.entries.find(
+    (entry) => entry.id === "details",
+  );
+  if (baseDetails?.kind !== "screen") {
+    throw new Error("fixture base details missing");
+  }
+  baseDetails.tags = ["forms"];
+  assert.deepEqual(
+    changedManifestRoutes(manifest, taggedScreenBase, config, []),
+    ["screens/details.html", "user-flows/tour.html"],
+  );
+
+  const taggedUseCaseBase = structuredClone(manifest);
+  const baseTour = taggedUseCaseBase.entries.find(
+    (entry) => entry.id === "tour",
+  );
+  if (baseTour?.kind !== "use-case")
+    throw new Error("fixture base tour missing");
+  baseTour.tags = ["onboarding"];
+  assert.deepEqual(
+    changedManifestRoutes(manifest, taggedUseCaseBase, config, []),
+    ["user-flows/tour.html"],
+  );
+});
+
 test("compatibility nav paths do not mark routes as changed", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
