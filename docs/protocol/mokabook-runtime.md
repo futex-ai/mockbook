@@ -100,15 +100,15 @@ entries.
 ## Browse Shell
 
 The package owns a neutral, responsive Mokabook shell: a top bar with brand,
-search, and Browse/Review modes; a catalogue navigation column with a
-`Collapse all` control, an All/Changed filter, nested disclosure groups with
-folder/screen/page/flow icons and indent guides; an accessible desktop split
-separator that resizes the navigation within the design bounds and remembers
-the served-origin preference; linked breadcrumbs with an id chip; viewport and
-color-scheme switching; realistic phone and browser device chrome; a per-frame
-expand-to-overlay toggle; and a collapsible details inspector. Review artifacts
-ship the same resize behavior as a self-contained script. The mobile drawer
-does not expose the separator.
+search with its tag picker, and Browse/Review modes; a catalogue navigation
+column with a `Collapse all` control, an All/Changed filter, nested disclosure
+groups with folder/screen/page/flow icons and indent guides; an accessible
+desktop split separator that resizes the navigation within the design bounds
+and remembers the served-origin preference; linked breadcrumbs with an id
+chip; viewport and color-scheme switching; realistic phone and browser device
+chrome; a per-frame expand-to-overlay toggle; and a collapsible details
+inspector. Review artifacts ship the same resize behavior as a self-contained
+script. The mobile drawer does not expose the separator.
 Consumer brand chrome does not appear in the shell. A small set of documented
 CSS custom properties may tune the shell accent without replacing its
 structural styles. The shell serves its packaged Inter variable font from
@@ -139,7 +139,8 @@ whole generated document. Breadcrumb ancestors that resolve to a viewable
 route (a legacy directory's Overview page) are links; structural collection
 crumbs stay text. The details inspector may show description, rationale,
 source and fragment paths including dark renders, the schemes a screen renders
-in, related docs, dependencies, use cases, and comparison context.
+in, the tags the entry declares, related docs, dependencies, use cases, and
+comparison context.
 Consumer fragments and legacy documents are sandboxed without script permission
 so they cannot alter the same-origin Browse shell. Package-owned same-origin
 inspection permits parent-owned outer navigation after explicit user
@@ -196,9 +197,29 @@ that would hide it, and scrolls it into view. The complete target,
 portable-link, safe-degradation,
 sandbox, fragment, and active-tree behavior is defined by the
 [catalogue navigation contract](./mokabook-navigation.md).
-Search, disclosure, filters, and catalogue scroll remain mounted. Each user
-edit to search or the All/Changed filter opens groups to reveal its current
-matches. Route changes and watched-reload restoration during active filtering
+Search, disclosure, filters, and catalogue scroll remain mounted. A search
+value splits into whitespace-separated terms: every `tag:<tag>` term
+(case-insensitive) keeps only rows whose entry declares that tag, and the
+remaining words rejoin into one phrase that must appear in a row's title or
+route. A row survives only when every tag term and that one phrase match, so
+tags compose with free text and with the All/Changed filter, and a term nothing
+matches hides those rows and the groups they empty. Selecting a tag chip enters
+`tag:<tag>` in the search field, replacing any tag term already entered;
+selecting the chip whose tag is entered clears that term. Chips are buttons that
+report the entered tag through `aria-pressed`, and they keep that mark through
+in-shell navigation and watched reloads. The search field's tag control opens
+and closes a panel of every tag the catalogue declares: opening moves focus to
+the entered tag's chip, else to the first, and the chip row carries one tab stop
+that ArrowLeft and ArrowRight rove and wrap at both ends, Home and End send to
+its ends, and Enter or Space activates. Choosing a chip there also closes the
+panel and returns focus to the control. An open panel answers Escape before an
+expanded frame does, closing the panel and returning focus to the control
+without changing the query, while a click outside closes it and leaves focus
+where the click put it, returning focus to the control only when the closing
+panel still holds it. The panel is ephemeral: nothing reopens it after a
+watched reload or a restored session. Each user edit to search or the
+All/Changed filter opens groups to reveal its current matches.
+Route changes and watched-reload restoration during active filtering
 preserve groups the user subsequently collapsed, except for the destination's
 ancestor path. Clearing all filtering restores the earlier disclosure state,
 but a destination path opened by navigation stays open. Navigation groups and

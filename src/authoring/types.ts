@@ -27,6 +27,8 @@ export interface ScreenInput extends RoutedEntryInput {
   colorSchemes?: readonly ColorScheme[];
   desktop: ReactNode;
   mobile: ReactNode;
+  /** Lowercase kebab-case classification tags, e.g. ["forms"]. */
+  tags?: readonly string[];
   useCaseIds?: readonly string[];
 }
 
@@ -45,6 +47,8 @@ export interface UseCaseStep {
 /** A journey composed from existing screens. */
 export interface UseCaseInput extends RoutedEntryInput {
   steps: readonly UseCaseStep[];
+  /** Lowercase kebab-case classification tags, e.g. ["forms"]. */
+  tags?: readonly string[];
 }
 
 interface DefinitionBrand {
@@ -88,6 +92,8 @@ export interface NestedScreenInput extends NestedInherited {
   mobile: ReactNode;
   rationale?: string;
   slug: string;
+  /** Lowercase kebab-case classification tags; never inherited from ancestors. */
+  tags?: readonly string[];
   title: string;
   useCaseIds?: readonly string[];
 }

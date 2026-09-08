@@ -34,6 +34,8 @@ export interface ManifestScreen extends ManifestEntryBase {
   fragments: Record<Viewport, string>;
   kind: "screen";
   route: string;
+  /** Declared classification tags, present only when the entry has them. */
+  tags?: readonly string[];
   useCaseIds: readonly string[];
   viewports: readonly Viewport[];
 }
@@ -49,6 +51,8 @@ export interface ManifestUseCase extends ManifestEntryBase {
   kind: "use-case";
   route: string;
   steps: readonly { description?: string; screenId: string; title?: string }[];
+  /** Declared classification tags, present only when the entry has them. */
+  tags?: readonly string[];
 }
 
 /** Any version 3 entry. */

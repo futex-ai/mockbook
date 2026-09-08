@@ -61,6 +61,7 @@ export function validateEntry(
       ),
     );
   }
+  validateTags(entry, violations);
   if (entry.kind === "collection") {
     validateTextList(entry, "childIds", entry.childIds, false, violations);
   } else {
@@ -178,6 +179,37 @@ function validateRoute(
         "invalid-route",
         "use-case routes must live under user-flows/",
       ),
+    );
+  }
+}
+
+function validateTags(
+  entry: ResolvedRegistryEntry,
+  violations: RegistryViolation[],
+): void {
+  if (entry.kind === "collection") {
+    if ("tags" in entry) {
+      violations.push(
+        problem(entry, "invalid-tags", "tags are not supported on collections"),
+      );
+    }
+    return;
+  }
+  const tags = entry.tags;
+  if (tags === undefined) return;
+  if (!Array.isArray(tags) || !tags.every(isCatalogueId)) {
+    violations.push(
+      problem(
+        entry,
+        "invalid-tags",
+        "tags must be an array of lowercase kebab-case strings",
+      ),
+    );
+    return;
+  }
+  if (new Set(tags).size !== tags.length) {
+    violations.push(
+      problem(entry, "invalid-tags", "tags must not contain duplicates"),
     );
   }
 }

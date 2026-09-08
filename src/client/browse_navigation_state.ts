@@ -1,11 +1,18 @@
 /** Catalogue-tree filtering and active-route visibility invariants. */
 
+import {
+  parseSearchQuery,
+  queryConstrains,
+  rowMatchesQuery,
+} from "./search_query.js";
+
 /** Facts needed to decide which active-row constraints must change. */
 export interface NavigationConstraintFacts {
   changed: boolean;
   changedOnly: boolean;
   query: string;
   route: string;
+  tags: readonly string[];
   text: string;
 }
 
@@ -25,11 +32,11 @@ export type NavigationRevealCause = "navigation" | "recovery";
 export function navigationConstraintChanges(
   facts: NavigationConstraintFacts,
 ): NavigationConstraintChanges {
-  const query = facts.query.trim().toLowerCase();
-  const matchesQuery =
-    query === "" ||
-    facts.text.toLowerCase().includes(query) ||
-    facts.route.toLowerCase().includes(query);
+  const matchesQuery = rowMatchesQuery(parseSearchQuery(facts.query), {
+    route: facts.route,
+    tags: facts.tags,
+    text: facts.text,
+  });
   return {
     clearQuery: !matchesQuery,
     showAll: facts.changedOnly && !facts.changed,
@@ -41,25 +48,19 @@ export function applyNavVisibility(
   doc: Document,
   disclosure: NavigationDisclosurePolicy,
 ): void {
-  const query =
-    doc
-      .querySelector<HTMLInputElement>("[data-mokabook-search]")
-      ?.value.trim()
-      .toLowerCase() ?? "";
+  const query = parseSearchQuery(
+    doc.querySelector<HTMLInputElement>("[data-mokabook-search]")?.value ?? "",
+  );
   const changedOnly =
     doc
       .querySelector('[data-filter="changed"]')
       ?.getAttribute("aria-pressed") === "true";
   for (const row of doc.querySelectorAll<HTMLElement>("[data-nav-row]")) {
-    const matchesQuery =
-      query === "" ||
-      (row.textContent ?? "").toLowerCase().includes(query) ||
-      (row.getAttribute("data-route") ?? "").toLowerCase().includes(query);
     const matchesFilter =
       !changedOnly || row.getAttribute("data-changed") === "true";
-    row.hidden = !(matchesQuery && matchesFilter);
+    row.hidden = !(matchesFilter && rowMatchesQuery(query, navRowFacts(row)));
   }
-  applyGroupVisibility(doc, query !== "" || changedOnly, disclosure);
+  applyGroupVisibility(doc, queryConstrains(query) || changedOnly, disclosure);
 }
 
 /** Select one route and disclose, reveal, and scroll its catalogue row. */
@@ -92,8 +93,7 @@ export function selectAndRevealRoute(
     changed: active.getAttribute("data-changed") === "true",
     changedOnly,
     query: search?.value ?? "",
-    route: active.getAttribute("data-route") ?? "",
-    text: active.textContent ?? "",
+    ...navRowFacts(active),
   });
   if (changes.clearQuery && search) search.value = "";
   if (changes.showAll) {
@@ -124,6 +124,20 @@ export function selectAndRevealRoute(
   }
   active.scrollIntoView({ block: "nearest" });
   return active;
+}
+
+function navRowFacts(row: Element): {
+  route: string;
+  tags: readonly string[];
+  text: string;
+} {
+  return {
+    route: row.getAttribute("data-route") ?? "",
+    tags: (row.getAttribute("data-tags") ?? "")
+      .split(/\s+/)
+      .filter((tag) => tag !== ""),
+    text: row.textContent ?? "",
+  };
 }
 
 function applyGroupVisibility(

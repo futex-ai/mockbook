@@ -6,6 +6,7 @@ import type {
   ManifestEntry,
   ManifestLegacyPage,
   ManifestScreen,
+  ManifestUseCase,
   ManifestV3,
 } from "../dist/registry/types.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
@@ -13,6 +14,8 @@ import {
   buildNavTree,
   structuredCrumbTrail,
   type NavGroupNode,
+  type NavLeafNode,
+  type NavNode,
 } from "../dist/server/shell/nav_tree.js";
 
 test("duplicate collection titles retain independent stable identities", () => {
@@ -108,6 +111,38 @@ test("legacy directory keys stay unique when display labels match", () => {
   );
 });
 
+test("declared entry tags reach their navigation leaves", () => {
+  const pages: ManifestLegacyPage[] = [
+    { route: "legacy/notes.html", sourcePath: "legacy/notes.html" },
+  ];
+  const catalogue = createCatalogue(
+    manifest(
+      [
+        collection("screens", "Screens", ["welcome", "details", "tour"]),
+        screen("welcome", "Welcome", ["Screens"], ["forms", "onboarding"]),
+        screen("details", "Details", ["Screens"]),
+        useCase("tour", "Tour", ["onboarding"]),
+      ],
+      pages,
+    ),
+  );
+  const children = group(
+    buildNavTree(catalogue.hierarchy, pages),
+    "collection:screens",
+  ).children;
+
+  assert.deepEqual(leaf(children, "Welcome").tags, ["forms", "onboarding"]);
+  assert.deepEqual(leaf(children, "Tour").tags, ["onboarding"]);
+  assert.equal(leaf(children, "Details").tags, undefined);
+  assert.equal(
+    leaf(
+      group(buildNavTree(catalogue.hierarchy, pages), "legacy:legacy").children,
+      "Notes",
+    ).tags,
+    undefined,
+  );
+});
+
 test("malformed cyclic hierarchy cannot recurse during nav construction", () => {
   const catalogue = createCatalogue(
     manifest([
@@ -124,6 +159,14 @@ function group(
 ): NavGroupNode {
   const match = nodes.find(
     (node): node is NavGroupNode => node.kind === "group" && node.key === key,
+  );
+  assert.ok(match);
+  return match;
+}
+
+function leaf(nodes: readonly NavNode[], label: string): NavLeafNode {
+  const match = nodes.find(
+    (node): node is NavLeafNode => node.kind === "leaf" && node.label === label,
   );
   assert.ok(match);
   return match;
@@ -151,6 +194,7 @@ function screen(
   id: string,
   title: string,
   navPath: readonly string[] = ["Historical"],
+  tags?: readonly string[],
 ): ManifestScreen {
   return {
     dependencies: [],
@@ -168,6 +212,27 @@ function screen(
     title,
     useCaseIds: [],
     viewports: ["mobile", "desktop"],
+    ...(tags ? { tags } : {}),
+  };
+}
+
+function useCase(
+  id: string,
+  title: string,
+  tags?: readonly string[],
+): ManifestUseCase {
+  return {
+    dependencies: [],
+    description: `${title} use case`,
+    id,
+    kind: "use-case",
+    navPath: ["Screens"],
+    relatedDocs: [],
+    route: `${id}.html`,
+    sourcePath: `entries/${id}.tsx`,
+    steps: [],
+    title,
+    ...(tags ? { tags } : {}),
   };
 }
 

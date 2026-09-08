@@ -4,7 +4,7 @@ import { FlowIcon, FolderIcon, FolderOpenIcon, ScreenIcon } from "./icons.js";
 import { NavResizeHandle } from "./nav_resize.js";
 
 /** One entry in the catalogue navigation tree. */
-interface NavNode {
+export interface NavNode {
   /** Optional child count shown for a collection. */
   count?: number;
   /** Nesting depth (0 = top level), used for indentation. */
@@ -101,9 +101,11 @@ function NavRow({
 
 interface NavTreeProps {
   activeLabel?: string | undefined;
+  /** Rows to draw instead of the whole catalogue, as a filter leaves them. */
+  nodes?: readonly NavNode[] | undefined;
 }
 
-function CatalogueBody({ activeLabel }: NavTreeProps) {
+function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
   return (
     <>
       <div className="mbk-nav-head">
@@ -120,7 +122,7 @@ function CatalogueBody({ activeLabel }: NavTreeProps) {
         </span>
       </div>
       <div className="mbk-nav-scroll">
-        {NAV_TREE.map((node, index) => (
+        {(nodes ?? NAV_TREE).map((node, index) => (
           <NavRow
             key={`${node.label}-${index}`}
             activeLabel={activeLabel}
@@ -133,20 +135,20 @@ function CatalogueBody({ activeLabel }: NavTreeProps) {
 }
 
 /** Persistent desktop catalogue navigation. */
-export function NavTree({ activeLabel }: NavTreeProps) {
+export function NavTree({ activeLabel, nodes }: NavTreeProps) {
   return (
     <nav className="mbk-nav" aria-label="Catalogue">
-      <CatalogueBody activeLabel={activeLabel} />
+      <CatalogueBody activeLabel={activeLabel} nodes={nodes} />
       <NavResizeHandle />
     </nav>
   );
 }
 
 /** Mobile catalogue navigation drawer, shown open. */
-export function NavDrawer({ activeLabel }: NavTreeProps) {
+export function NavDrawer({ activeLabel, nodes }: NavTreeProps) {
   return (
     <nav className="mbk-nav mbk-drawer" aria-label="Catalogue">
-      <CatalogueBody activeLabel={activeLabel} />
+      <CatalogueBody activeLabel={activeLabel} nodes={nodes} />
     </nav>
   );
 }

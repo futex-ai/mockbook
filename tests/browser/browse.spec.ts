@@ -10,6 +10,8 @@ const headScheme = ".mbk-screen-head [data-mokabook-schemeswitch]";
 const mobileFrame = ".mbk-frame-mobile iframe";
 const desktopFrame = ".mbk-frame-desktop iframe";
 const darkSurface = "rgb(18, 21, 20)";
+const formsChip = '[data-mokabook-details] [data-mokabook-tag="forms"]';
+const accentFill = "rgb(79, 120, 100)";
 
 async function markPage(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -66,7 +68,13 @@ async function expectSchemeSelected(
 function computedStyle(
   page: Page,
   selector: string,
-  property: "backgroundColor" | "boxShadow" | "display" | "textTransform",
+  property:
+    | "backgroundColor"
+    | "boxShadow"
+    | "display"
+    | "position"
+    | "textTransform"
+    | "zIndex",
 ): Promise<string> {
   return page
     .locator(selector)
@@ -253,6 +261,35 @@ test("searching opens groups and clearing restores their disclosure", async ({
       ),
     )
     .toBe(false);
+});
+
+test("details tag chips enter, keep, and clear their term", async ({
+  page,
+}) => {
+  await page.goto("/view/screens/welcome.html");
+  await expect(page.locator(tourRow)).toBeVisible();
+  await markPage(page);
+
+  await page.click(formsChip);
+  await expect(page.locator("[data-mokabook-search]")).toHaveValue("tag:forms");
+  await expect(page.locator(formsChip)).toHaveClass(/active/);
+  expect(await computedStyle(page, formsChip, "backgroundColor")).toBe(
+    accentFill,
+  );
+  await expect(page.locator(welcomeRow)).toBeVisible();
+  await expect(page.locator(detailsRow)).toBeVisible();
+  await expect(page.locator(tourRow)).toBeHidden();
+
+  await page.click(detailsRow);
+  await expect(page.locator("#mb-main h2")).toHaveText("Details");
+  await expect(page.locator("[data-mokabook-search]")).toHaveValue("tag:forms");
+  await expect(page.locator(formsChip)).toHaveClass(/active/);
+
+  await page.click(formsChip);
+  await expect(page.locator("[data-mokabook-search]")).toHaveValue("");
+  await expect(page.locator(formsChip)).not.toHaveClass(/active/);
+  await expect(page.locator(tourRow)).toBeVisible();
+  expect(await hasMarker(page)).toBe(true);
 });
 
 test("overlapping navigations are latest-wins", async ({ page }) => {
@@ -620,10 +657,46 @@ test("narrow viewports collapse navigation into a drawer", async ({ page }) => {
     "aria-expanded",
     "true",
   );
+  expect(await computedStyle(page, ".mbk-topbar", "position")).toBe("relative");
+  expect(await computedStyle(page, ".mbk-topbar", "zIndex")).toBe("11");
   await openScreensGroup(page);
   await page.click(welcomeRow);
   await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
   await expect(page.locator("[data-mokabook-nav]")).toBeHidden();
+});
+
+test("the narrow search bar drops the name and fits its controls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto("/");
+
+  const bar = await page.locator(".mbk-topbar").evaluate((element) => ({
+    client: element.clientWidth,
+    scroll: element.scrollWidth,
+  }));
+  expect(bar.scroll).toBeLessThanOrEqual(bar.client);
+  await expect(page.locator(".mbk-brand .mbk-mark")).toBeVisible();
+  await expect(page.locator(".mbk-brand .mbk-name")).toBeHidden();
+  await expect(page.getByRole("link", { name: "Mokabook" })).toBeVisible();
+  await expect(page.locator("[data-mokabook-menu]")).toBeVisible();
+  await expect(page.locator("[data-mokabook-search]")).toBeVisible();
+
+  const modes = await page.locator(".mbk-modes").boundingBox();
+  if (!modes) throw new Error("the mode switch must be laid out");
+  expect(modes.x).toBeGreaterThanOrEqual(0);
+  expect(modes.x + modes.width).toBeLessThanOrEqual(390);
+
+  await page.setViewportSize({ height: 800, width: 1_280 });
+  await expect(page.locator(".mbk-brand .mbk-name")).toBeVisible();
+});
+
+test("a narrow Review bar keeps the whole brand", async ({ page }) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto("/review");
+
+  await expect(page.locator("[data-mokabook-search]")).toHaveCount(0);
+  await expect(page.locator(".mbk-brand .mbk-name")).toBeVisible();
 });
 
 test("missing routes keep the catalogue available", async ({ page }) => {

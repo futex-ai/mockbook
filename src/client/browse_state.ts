@@ -5,6 +5,7 @@ import {
   applyNavVisibility,
   selectAndRevealRoute,
 } from "./browse_navigation_state.js";
+import { syncTagChips } from "./tag_filter.js";
 
 /** Color scheme selection applied to fragment frames and device chrome. */
 export type BrowseColorScheme = "dark" | "light";
@@ -148,6 +149,7 @@ export function restoreBrowseState(
     win.location.href,
     "recovery",
   );
+  syncTagChips(doc);
   const nav = doc.querySelector<HTMLElement>("[data-mokabook-nav-scroll]");
   if (nav) nav.scrollTop = state.navScroll;
   restoreRegionScrolls(doc, state.regionScrolls);

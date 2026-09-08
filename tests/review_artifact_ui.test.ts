@@ -132,6 +132,23 @@ test("review index groups outcomes and reports aggregate impact", () => {
   assert.match(files.get("navigation-resize.js") as string, /pointerdown/);
 });
 
+test("artifact bars carry no search field, so they keep the name", () => {
+  const files = renderReviewArtifact({
+    files: new Map(),
+    result: result({ screens: [screenReview({})] }),
+  });
+  let bars = 0;
+  for (const page of files.values()) {
+    if (typeof page !== "string" || !page.includes("<header")) continue;
+    bars += 1;
+    const bar = page.slice(page.indexOf("<header"), page.indexOf("</header>"));
+    assert.ok(bar.startsWith('<header class="mbk-topbar">'), bar);
+    assert.match(bar, /<span class="mbk-name">Mokabook<\/span>/);
+    assert.equal(bar.includes("mbk-search"), false);
+  }
+  assert.ok(bars > 0);
+});
+
 test("empty review renders the no-visual-changes state", () => {
   const files = renderReviewArtifact({
     files: new Map(),

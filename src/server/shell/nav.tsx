@@ -57,6 +57,7 @@ function LeafRow(props: {
   const active = props.node.route === props.context.activeRoute;
   const changed =
     props.context.changedRoutes?.includes(props.node.route) === true;
+  const tags = props.node.tags ?? [];
   return (
     <a
       aria-current={active ? "page" : undefined}
@@ -64,6 +65,7 @@ function LeafRow(props: {
       data-changed={changed ? "true" : undefined}
       data-nav-row=""
       data-route={props.node.route}
+      data-tags={tags.length > 0 ? tags.join(" ") : undefined}
       href={`/view/${encodeUrlPath(props.node.route)}`}
       style={navRowStyle(props.depth)}
     >

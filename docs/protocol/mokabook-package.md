@@ -286,6 +286,15 @@ supported opt-out from a dark-enabled catalogue. A declaration must be
 non-empty, duplicate-free, include `"light"`, and be a subset of the config.
 Nested trees do not inherit this field from their collections or root.
 
+`defineScreen`, `defineUseCase`, and nested `screen` inputs may also declare
+`tags`, a classification list whose values use the same lowercase kebab-case
+grammar as ids. A list must not repeat a tag, and authored order is preserved
+rather than sorted. Collections are structural and reject the field, and nested
+trees never inherit it from a collection or root. A collection is rejected for
+carrying the key at all, so `tags: undefined` is as much a violation as
+`tags: ["forms"]`. Tags are optional catalogue vocabulary, not a second
+hierarchy: an untagged catalogue stays valid.
+
 Imports of `mokabook` from modules beneath `entriesDir` bind the authoring
 helpers to that importing module. Definitions created at module evaluation or
 later through a shared helper factory therefore retain the helper module's
@@ -491,6 +500,7 @@ type ManifestEntry =
       kind: "screen";
       route: string;
       address?: string;
+      tags?: readonly string[];
       darkFragments?: { mobile: string; desktop: string };
       fragments: { mobile: string; desktop: string };
       viewports: readonly ["mobile", "desktop"];
@@ -503,6 +513,7 @@ type ManifestEntry =
   | (CommonEntry & {
       kind: "use-case";
       route: string;
+      tags?: readonly string[];
       steps: readonly {
         screenId: string;
         title?: string;
@@ -521,6 +532,10 @@ dark. Its routes use the `.mobile.dark.html` and `.desktop.dark.html` names and
 participate in the same safe-route and collision validation as light fragments.
 Light-only manifests omit the field and remain byte-identical to pre-axis
 schema-v3 output.
+`tags` carries the authored classification list, in authored order and never
+sorted, and is written only for a screen or use case that declares a non-empty
+one; an absent or empty declaration is omitted, so an untagged catalogue
+serializes exactly as it did before the field existed.
 `sourcePath`, related docs, and dependencies use repo-relative POSIX paths.
 Manifest dependencies retain the file-or-directory-root matching semantics of
 the authoring API.

@@ -13,6 +13,7 @@ import {
   setColorScheme,
   type BrowseRecoveryState,
 } from "../dist/client/browse_state.js";
+import { FakeClassList } from "./helpers/fake_dom.js";
 
 const base = {
   download: false,
@@ -162,6 +163,29 @@ test("restored dark stays light when a rebuild drops dark fragments", () => {
   assert.equal(embed.srcWrites, 0);
 });
 
+test("recovery selects the tag chip the restored query names", () => {
+  const search = new FakeElement("input", { "data-mokabook-search": "" });
+  const forms = new FakeElement("button", { "data-mokabook-tag": "forms" });
+  const onboarding = new FakeElement("button", {
+    "data-mokabook-tag": "onboarding",
+  });
+  const fake = new FakeDocument([
+    new FakeElement("div", { "data-mokabook-shell": "" }),
+    search,
+    forms,
+    onboarding,
+  ]);
+
+  restoreBrowseState(asDocument(fake), fakeWindow(), {
+    ...snapshot(),
+    query: "tag:forms",
+  });
+
+  assert.equal(search.value, "tag:forms");
+  assert.equal(forms.classList.contains("active"), true);
+  assert.equal(onboarding.classList.contains("active"), false);
+});
+
 test("recovery matches stable keys and ignores old label paths", () => {
   const shell = new FakeElement("div", { "data-mokabook-shell": "" });
   const alpha = new FakeElement("details", {
@@ -276,10 +300,12 @@ const SELECTOR = /^(?<tag>[a-z]*)\[(?<name>[a-z-]+)(?:="(?<value>[^"]*)")?\]$/;
 
 /** A flat stand-in for the served shell markup the Browse client mutates. */
 class FakeElement {
+  readonly classList = new FakeClassList();
   readonly dataset: Record<string, string> = {};
   hidden = false;
   open = true;
   srcWrites = 0;
+  value = "";
   readonly #attributes = new Map<string, string>();
 
   constructor(

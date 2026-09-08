@@ -16,6 +16,8 @@ export interface NavLeafNode {
   kind: "leaf";
   label: string;
   route: string;
+  /** Declared classification tags, present only when the entry has them. */
+  tags?: readonly string[];
 }
 
 /** A collapsible navigation group with no destination of its own. */
@@ -112,6 +114,7 @@ function structuredNode(
       kind: "leaf",
       label: entry.title,
       route: entry.route,
+      ...(entry.tags && entry.tags.length > 0 ? { tags: [...entry.tags] } : {}),
     };
   }
   const visited = new Set(ancestors);

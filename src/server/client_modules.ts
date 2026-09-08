@@ -22,6 +22,8 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
     "navigation.js",
     "navigation-resize.js",
     "preview_fragment.js",
+    "search_query.js",
+    "tag_filter.js",
   ]) {
     const candidate = fileURLToPath(
       new URL(`../client/${filename}`, import.meta.url),
