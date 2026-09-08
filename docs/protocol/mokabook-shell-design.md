@@ -110,10 +110,10 @@ scrollable region scrolls internally:
   its narrow bar always shows the mark alone, while a Review bar carries no
   field and keeps the whole brand. A query splits into terms: every `tag:<tag>`
   term matches only rows whose entry declares that tag, and the remaining words
-  rejoin into one phrase that must appear in a row's authored ID, title, or route. A row stays
-  visible only when it matches every tag term and that phrase; tag terms hide
-  the groups they empty and open the groups they keep, and they compose with the
-  All/Changed filter.
+  rejoin into one phrase that must appear in a row's authored ID, title, or
+  route. A row stays visible only when it matches every tag term and that phrase;
+  tag terms hide the groups they empty and open the groups they keep, and they
+  compose with the All/Changed filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
   field, muted like the leading `⌕` glyph and filling to a soft rounded square
   on hover. It opens a panel anchored under the field and aligned to its width
@@ -137,11 +137,16 @@ scrollable region scrolls internally:
   changing the query, and a click outside closes it, returning focus to the
   control only when the closing panel still holds it. A catalogue that declares
   no tags renders neither the control nor the panel.
-- **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
-  Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
-  an All/Changed segmented filter (with a monospace changed count) when Git
-  change detection is available; then the scrollable tree. The drawer below
-  the breakpoint shows the same body.
+- **Navigation** — 248px initial column, `#fbfbfa` background, hairline right
+  border. On desktop, an 8px-wide split separator with a centred 2×32px grip
+  resizes the column from 192px to 480px without exceeding half the viewport.
+  Dragging resizes continuously; Left/Right change it by 16px, Home/End choose
+  its bounds, and double-click restores 248px. Served pages remember the last
+  chosen width. The separator is absent from the mobile drawer and without
+  JavaScript. The head row is `CATALOGUE` (uppercase, 11px) with a text button
+  labelled `Collapse all`; an All/Changed segmented filter (with a monospace
+  changed count) appears when Git change detection is available, followed by
+  the scrollable tree. The drawer below the breakpoint shows the same body.
   - Groups are native `<details>` whose summary row shows a closed/open folder
     SVG pair (swapped via the `[open]` state), a bold label, and a monospace
     child count. Leaves show a screen, page, or flow SVG; flow icons read in

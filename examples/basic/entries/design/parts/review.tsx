@@ -1,3 +1,5 @@
+import { NavResizeHandle } from "./nav_resize.js";
+
 /** Review classification states depicted by the design mockups. */
 export type ReviewState = "added" | "changed" | "ignored-only" | "removed";
 
@@ -108,6 +110,7 @@ export function ReviewNav({
         {withSharedImpact ? <SharedImpactCard /> : null}
         {withIgnored ? <IgnoredImpactCard /> : null}
       </div>
+      <NavResizeHandle />
     </nav>
   );
 }
@@ -122,6 +125,7 @@ export function EmptyReviewNav() {
       <div className="mbk-nav-scroll">
         <p className="mbk-chg-more">No screens differ from origin/main.</p>
       </div>
+      <NavResizeHandle />
     </nav>
   );
 }
