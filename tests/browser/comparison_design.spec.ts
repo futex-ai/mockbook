@@ -42,6 +42,9 @@ test("comparison designs use screen context instead of report chrome", async ({
       await expect(
         page.getByText("Comparison details", { exact: true }),
       ).toBeVisible();
+      await expect(page.locator(".mbk-nav-resize")).toHaveCount(
+        viewport === "desktop" ? 1 : 0,
+      );
       await expect(
         page
           .locator(viewport === "desktop" ? ".browser-frame" : ".phone-frame")

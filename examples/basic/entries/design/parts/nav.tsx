@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import { FlowIcon, FolderIcon, FolderOpenIcon, ScreenIcon } from "./icons.js";
+import { NavResizeHandle } from "./nav_resize.js";
 
 /** One entry in the catalogue navigation tree. */
 export interface NavNode {
@@ -165,6 +166,7 @@ export function NavTree({
         changedOnly={changedOnly}
         nodes={nodes}
       />
+      <NavResizeHandle />
     </nav>
   );
 }

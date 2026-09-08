@@ -601,10 +601,56 @@ test("the browser frame expands to an overlay and collapses again", async ({
   await expect(page.locator("#mb-main h2")).toHaveText("Details");
 });
 
+test("desktop catalogue navigation resizes and remembers its width", async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 900, width: 1_280 });
+  await page.goto("/");
+  const nav = page.locator("[data-mokabook-nav]");
+  const handle = page.locator("[data-mokabook-nav-resize]");
+  await expect(handle).toBeVisible();
+  await expect(handle).toHaveAttribute("role", "separator");
+
+  const start = await nav.boundingBox();
+  const grip = await handle.boundingBox();
+  expect(start).not.toBeNull();
+  expect(grip).not.toBeNull();
+  expect(start?.width).toBeCloseTo(248, 0);
+  if (!start || !grip) throw new Error("navigation resize bounds unavailable");
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + grip.width / 2 + 80, grip.y + 100);
+  await page.mouse.up();
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(328, 0);
+
+  await page.reload();
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(328, 0);
+
+  await handle.focus();
+  await page.keyboard.press("Home");
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(192, 0);
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(208, 0);
+  await page.keyboard.press("End");
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(480, 0);
+  await expect(handle).toHaveAttribute("aria-valuenow", "480");
+});
+
 test("narrow viewports collapse navigation into a drawer", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 420 });
   await page.goto("/");
   await expect(page.locator("[data-mokabook-nav]")).toBeHidden();
+  await expect(page.locator("[data-mokabook-nav-resize]")).toBeHidden();
   await page.click("[data-mokabook-menu]");
   await expect(page.locator("[data-mokabook-nav]")).toBeVisible();
   await expect(page.locator("[data-mokabook-menu]")).toHaveAttribute(

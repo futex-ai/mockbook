@@ -14,6 +14,36 @@ test.afterAll(async () => {
   await preview.close();
 });
 
+test("static catalogue navigation retains pointer and keyboard resizing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 900, width: 1_280 });
+  await page.goto(`${preview.url}/view/screens/welcome`);
+  const nav = page.locator(".mbk-nav");
+  const handle = page.getByRole("separator", {
+    name: "Resize navigation panel",
+  });
+  await expect(handle).toBeVisible();
+  const grip = await handle.boundingBox();
+  if (!grip) throw new Error("static navigation resize bounds unavailable");
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + grip.width / 2 + 64, grip.y + 100);
+  await page.mouse.up();
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(312, 0);
+  await handle.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(296, 0);
+  await page.reload();
+  await expect
+    .poll(async () => (await nav.boundingBox())?.width)
+    .toBeCloseTo(296, 0);
+});
+
 test("direct screen fragments update current and swap sources", async ({
   page,
 }) => {
@@ -89,6 +119,7 @@ test("JavaScript-disabled static preview stays at its portable top", async ({
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto(`${preview.url}/view/screens/details?fragment=details`);
+  await expect(page.locator("[data-mokabook-nav-resize]")).toBeHidden();
   for (const source of await frameSources(page)) {
     expect(source.src).not.toContain("#");
     expect(source.light).not.toContain("#");

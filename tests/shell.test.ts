@@ -301,6 +301,11 @@ test("catalogue nav marks active, changed, and iconed rows", () => {
   assert.match(html, /class="mbk-nav-ico folder"><svg/);
   assert.match(html, /class="mbk-nav-count">2</);
   assert.match(html, /Collapse all/);
+  assert.match(html, /data-mokabook-nav-resize=""/);
+  assert.match(
+    html,
+    /aria-label="Resize navigation panel"[^>]*aria-orientation="vertical"[^>]*role="separator"/,
+  );
   const inactive = homePage(catalogue, context);
   assert.equal(inactive.includes('aria-current="page"[^>]*data-route'), false);
 });
@@ -638,6 +643,15 @@ test("shell stylesheet stays aligned with the design contract", () => {
   assert.match(SHELL_CSS, /width: 390px/);
   assert.match(SHELL_CSS, /max-width: 1180px/);
   assert.match(SHELL_CSS, /max-width: 56\.25rem/);
+  assert.match(SHELL_CSS, /width: var\(--mbk-nav-width, 248px\)/);
+  assert.match(
+    SHELL_CSS,
+    /\.mbk-nav\[data-resize-ready\] \.mbk-nav-resize \{[\s\S]*display: block;/,
+  );
+  assert.match(
+    SHELL_CSS,
+    /@media \(max-width: 56\.25rem\) \{[\s\S]*\.mbk-nav-resize \{[\s\S]*display: none;/,
+  );
   assert.match(
     SHELL_CSS,
     /\.phone-status \{[\s\S]*flex: 0 0 44px;[\s\S]*padding: 14px 28px 0;/,

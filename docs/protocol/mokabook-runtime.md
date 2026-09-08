@@ -101,10 +101,15 @@ entries.
 The package owns a neutral, responsive Mokabook shell: a top bar with brand,
 search with its tag picker; a catalogue navigation
 column with a `Collapse all` control, an All/Changes filter, nested disclosure
-groups with folder/screen/page/flow icons and indent guides; linked breadcrumbs
-with an id chip; viewport and color-scheme switching; realistic phone and
-browser device chrome; a per-frame expand-to-overlay toggle; and a collapsible
-details inspector.
+groups with folder/screen/page/flow icons and indent guides; an accessible
+desktop split separator that resizes the navigation within the design bounds
+and remembers the served-origin preference; linked breadcrumbs with an id
+chip; viewport and color-scheme switching; realistic phone and browser device
+chrome; a per-frame expand-to-overlay toggle; and a collapsible details
+inspector. Current and comparison views share the same navigation and saved
+width. Static catalogues ship the resize behavior as a self-contained script;
+comparison snapshots carry no shell scripts. The mobile drawer does not expose
+the separator.
 Consumer brand chrome does not appear in the shell. A small set of documented
 CSS custom properties may tune the shell accent without replacing its
 structural styles. The shell serves its packaged Inter variable font from
