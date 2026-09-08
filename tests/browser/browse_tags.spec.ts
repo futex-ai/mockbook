@@ -69,6 +69,7 @@ test("the open picker takes Escape ahead of the expanded frame", async ({
   await page.click(".browser-expand");
   await expect(page.locator(".browser-frame.is-expanded")).toBeVisible();
 
+  // Synthesised state: the expand scrim covers the bar, so no real click opens the panel here.
   await page.locator(toggle).dispatchEvent("click");
   await expect(page.locator(panel)).toBeVisible();
   await page.keyboard.press("Escape");
@@ -113,6 +114,19 @@ test("the picker chips answer the arrow, Home, and End keys", async ({
   await expect(page.locator(chip("onboarding"))).toBeFocused();
 
   await page.keyboard.press("Enter");
+  await expect(page.locator(search)).toHaveValue("tag:onboarding");
+  await expectClosed(page);
+  await expect(page.locator(toggle)).toBeFocused();
+});
+
+test("Space activates the focused picker chip natively", async ({ page }) => {
+  await page.goto("/");
+  await openPicker(page);
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator(chip("onboarding"))).toBeFocused();
+
+  await page.keyboard.press(" ");
+
   await expect(page.locator(search)).toHaveValue("tag:onboarding");
   await expectClosed(page);
   await expect(page.locator(toggle)).toBeFocused();

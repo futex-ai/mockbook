@@ -91,6 +91,11 @@ test("opening the picker focuses the chip the query names", () => {
 
   assert.equal(shell.root.activeElement, shell.pickerOnboarding);
   assert.deepEqual(tabIndexes(shell), ["-1", "-1", "0"]);
+
+  shell.search.value = "tag:billing";
+  syncTagChips(shell.doc);
+  assert.equal(shell.pickerBilling.getAttribute("aria-pressed"), "true");
+  assert.deepEqual(tabIndexes(shell), ["-1", "-1", "0"]);
 });
 
 test("a chip chosen in the picker closes it and returns focus", () => {
@@ -110,7 +115,7 @@ test("a chip chosen in the picker closes it and returns focus", () => {
   assert.equal(shell.pickerForms.getAttribute("aria-pressed"), "true");
 });
 
-test("an inspector chip never opens the picker or takes its focus", () => {
+test("an inspector chip never opens the picker and rescues focus from it", () => {
   const shell = tagShell();
 
   handleTagControlClick(shell.doc, asElement(shell.forms));
@@ -124,7 +129,7 @@ test("an inspector chip never opens the picker or takes its focus", () => {
   handleTagControlClick(shell.doc, asElement(shell.onboarding));
   assert.equal(shell.search.value, "tag:onboarding");
   assert.equal(shell.panel.hidden, true);
-  assert.equal(shell.root.activeElement, shell.pickerForms);
+  assert.equal(shell.root.activeElement, shell.toggle);
 });
 
 test("Escape closes the picker and leaves the query alone", () => {
@@ -159,13 +164,14 @@ test("a click outside closes the picker without taking focus", () => {
   );
   assert.equal(shell.panel.hidden, false);
 
+  shell.welcomeRow.focus();
   assert.equal(
     handleTagControlClick(shell.doc, asElement(shell.welcomeRow)),
     false,
   );
   assert.equal(shell.panel.hidden, true);
   assert.equal(shell.toggle.getAttribute("aria-expanded"), "false");
-  assert.equal(shell.root.activeElement, shell.pickerBilling);
+  assert.equal(shell.root.activeElement, shell.welcomeRow);
 });
 
 test("arrow, Home, and End keys rove across the picker chips", () => {
@@ -190,6 +196,7 @@ test("arrow, Home, and End keys rove across the picker chips", () => {
   assert.equal(shell.root.activeElement, shell.pickerOnboarding);
 
   assert.equal(moved(shell, "Enter", shell.pickerOnboarding), false);
+  assert.equal(moved(shell, " ", shell.pickerOnboarding), false);
   assert.equal(moved(shell, "ArrowRight", shell.forms), false);
   assert.equal(shell.root.activeElement, shell.pickerOnboarding);
 });

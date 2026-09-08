@@ -26,7 +26,9 @@ export function TagChip(props: { tag: string }) {
 
 /**
  * The tag control at the trailing edge of the search field and the closed
- * panel it drops under it, listing every tag the catalogue declares. A
+ * panel it drops under it, listing every tag the catalogue declares. The
+ * panel's chip row is a toolbar because the Browse client roves one tab stop
+ * across it; the details inspector's chips stay independent tab stops. A
  * catalogue that declares no tags renders neither.
  */
 export function SearchTagPicker(props: { tags: readonly string[] }) {
@@ -53,7 +55,7 @@ export function SearchTagPicker(props: { tags: readonly string[] }) {
         role="group"
       >
         <div className="mbk-tag-picker-head">Tags</div>
-        <span className="mbk-chips">
+        <span aria-label="Tag filters" className="mbk-chips" role="toolbar">
           {props.tags.map((tag) => (
             <TagChip key={tag} tag={tag} />
           ))}

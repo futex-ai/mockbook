@@ -209,11 +209,13 @@ and closes a panel of every tag the catalogue declares: opening moves focus to
 the entered tag's chip, else to the first, and the chip row carries one tab stop
 that ArrowLeft and ArrowRight rove and wrap at both ends, Home and End send to
 its ends, and Enter or Space activates. Choosing a chip there also closes the
-panel and returns focus to the control. Escape closes the panel ahead of an
-expanded frame, returning focus to the control without changing the query, while
-a click outside closes it and leaves focus alone. The panel is ephemeral: nothing
-reopens it after a watched reload or a restored session. Each user edit to
-search or the All/Changed filter opens groups to reveal its current matches.
+panel and returns focus to the control. An open panel answers Escape before an
+expanded frame does, closing the panel and returning focus to the control
+without changing the query, while a click outside closes it and leaves focus
+where the click put it, returning focus to the control only when the closing
+panel still holds it. The panel is ephemeral: nothing reopens it after a
+watched reload or a restored session. Each user edit to search or the
+All/Changed filter opens groups to reveal its current matches.
 Route changes and watched-reload restoration during active filtering
 preserve groups the user subsequently collapsed, except for the destination's
 ancestor path. Clearing all filtering restores the earlier disclosure state,

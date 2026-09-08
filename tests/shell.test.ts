@@ -165,7 +165,7 @@ function tagPicker(...tags: readonly string[]): string {
   return (
     '<div aria-label="Tags" class="mbk-tag-picker" hidden="" id="mb-tag-picker" ' +
     'role="group"><div class="mbk-tag-picker-head">Tags</div>' +
-    '<span class="mbk-chips">' +
+    '<span aria-label="Tag filters" class="mbk-chips" role="toolbar">' +
     tags.map(tagChip).join("") +
     "</span></div>"
   );

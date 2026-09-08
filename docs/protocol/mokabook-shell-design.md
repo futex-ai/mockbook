@@ -129,10 +129,12 @@ scrollable region scrolls internally:
   panel moves focus to the chip for the entered tag, or to the first chip when
   no tag is entered; the chip row then keeps a single tab stop that ArrowLeft
   and ArrowRight rove and wrap at both ends, Home and End send to its ends, and
-  Enter or Space activates. Escape closes the panel and returns focus to the
-  control without changing the query, and a click outside closes it without
-  moving focus. A catalogue that declares no tags renders neither the control
-  nor the panel.
+  Enter or Space activates. That chip row is a labelled toolbar carrying the
+  single tab stop, while the details inspector's chips stay independent tab
+  stops. Escape closes the panel and returns focus to the control without
+  changing the query, and a click outside closes it, returning focus to the
+  control only when the closing panel still holds it. A catalogue that declares
+  no tags renders neither the control nor the panel.
 - **Navigation** — 248px column, `#fbfbfa` background, hairline right border.
   Head row `CATALOGUE` (uppercase, 11px) with a `Collapse all` text button;
   an All/Changed segmented filter (with a monospace changed count) when Git

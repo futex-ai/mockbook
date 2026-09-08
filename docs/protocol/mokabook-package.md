@@ -290,8 +290,10 @@ Nested trees do not inherit this field from their collections or root.
 `tags`, a classification list whose values use the same lowercase kebab-case
 grammar as ids. A list must not repeat a tag, and authored order is preserved
 rather than sorted. Collections are structural and reject the field, and nested
-trees never inherit it from a collection or root. Tags are optional catalogue
-vocabulary, not a second hierarchy: an untagged catalogue stays valid.
+trees never inherit it from a collection or root. A collection is rejected for
+carrying the key at all, so `tags: undefined` is as much a violation as
+`tags: ["forms"]`. Tags are optional catalogue vocabulary, not a second
+hierarchy: an untagged catalogue stays valid.
 
 Imports of `mokabook` from modules beneath `entriesDir` bind the authoring
 helpers to that importing module. Definitions created at module evaluation or

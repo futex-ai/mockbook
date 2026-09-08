@@ -134,7 +134,7 @@ function navRowFacts(row: Element): {
   return {
     route: row.getAttribute("data-route") ?? "",
     tags: (row.getAttribute("data-tags") ?? "")
-      .split(" ")
+      .split(/\s+/)
       .filter((tag) => tag !== ""),
     text: row.textContent ?? "",
   };

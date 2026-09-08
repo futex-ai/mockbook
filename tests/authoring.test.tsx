@@ -10,6 +10,7 @@ import type {
   RegistryDefinition,
   ResolvedRegistryEntry,
   ScreenInput,
+  UseCaseInput,
 } from "../dist/authoring/types.js";
 import type { ResolvedConfig } from "../dist/config/types.js";
 import {
@@ -61,6 +62,16 @@ const collectionBase: CollectionInput = {
   id: "tagged-collection",
   relatedDocs: [],
   title: "Tagged collection",
+};
+
+const useCaseBase: UseCaseInput = {
+  dependencies: [],
+  description: "Tagged journey",
+  id: "tagged-journey",
+  relatedDocs: [],
+  route: "user-flows/tagged-journey.html",
+  steps: [{ screenId: "tagged-screen" }],
+  title: "Tagged journey",
 };
 
 test("ReviewIgnore serializes to inert paired comments", () => {
@@ -140,16 +151,7 @@ test("define helpers keep authored tags on screens and use cases", () => {
     ...screenBase,
     tags: ["forms", "onboarding"],
   });
-  const useCase = defineUseCase({
-    dependencies: [],
-    description: "Tagged journey",
-    id: "tagged-journey",
-    relatedDocs: [],
-    route: "user-flows/tagged-journey.html",
-    steps: [{ screenId: "tagged-screen" }],
-    tags: ["forms"],
-    title: "Tagged journey",
-  });
+  const useCase = defineUseCase({ ...useCaseBase, tags: ["forms"] });
 
   assert.deepEqual(definition.tags, ["forms", "onboarding"]);
   assert.deepEqual(useCase.tags, ["forms"]);
@@ -203,6 +205,23 @@ test("entry validation rejects tags outside the catalogue-id grammar", () => {
   ]);
 });
 
+test("entry validation accepts declared tags on screens and use cases", () => {
+  assert.deepEqual(
+    validateEntry(
+      resolved(defineScreen({ ...screenBase, tags: ["forms", "onboarding"] })),
+      validationConfig,
+    ),
+    [],
+  );
+  assert.deepEqual(useCaseTagViolations(["forms", "onboarding"]), []);
+  assert.deepEqual(useCaseTagViolations(["forms", "Forms!"]), [
+    tagProblem(
+      "tags must be an array of lowercase kebab-case strings",
+      "tagged-journey",
+    ),
+  ]);
+});
+
 test("empty tags are valid and equivalent to absent tags", () => {
   const empty = defineScreen({ ...screenBase, tags: [] });
 
@@ -216,9 +235,14 @@ test("empty tags are valid and equivalent to absent tags", () => {
 
 test("collections reject a declared tags field", () => {
   const taggedInput = { ...collectionBase, tags: ["forms"] };
+  const undefinedInput = { ...collectionBase, tags: undefined };
 
   assert.deepEqual(
     validateEntry(resolved(defineCollection(taggedInput)), validationConfig),
+    [tagProblem("tags are not supported on collections", "tagged-collection")],
+  );
+  assert.deepEqual(
+    validateEntry(resolved(defineCollection(undefinedInput)), validationConfig),
     [tagProblem("tags are not supported on collections", "tagged-collection")],
   );
   assert.deepEqual(
@@ -230,6 +254,11 @@ test("collections reject a declared tags field", () => {
 function tagViolations(tags: unknown): RegistryViolation[] {
   const input = { ...screenBase, tags } as ScreenInput;
   return validateEntry(resolved(defineScreen(input)), validationConfig);
+}
+
+function useCaseTagViolations(tags: unknown): RegistryViolation[] {
+  const input = { ...useCaseBase, tags } as UseCaseInput;
+  return validateEntry(resolved(defineUseCase(input)), validationConfig);
 }
 
 function tagProblem(message: string, id = "tagged-screen"): RegistryViolation {

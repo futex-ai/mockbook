@@ -165,6 +165,9 @@ test("rows match only when every tag term is declared on the row", () => {
     rowMatchesQuery(parseSearchQuery("tag:forms tag:onboarding"), details),
     false,
   );
+});
+
+test("row tags lowercase defensively though authoring can never emit them", () => {
   assert.equal(
     rowMatchesQuery(parseSearchQuery("TAG:Forms"), {
       route: "screens/legacy.html",

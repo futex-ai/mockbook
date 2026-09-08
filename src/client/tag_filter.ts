@@ -4,7 +4,8 @@
  * search field's tag button opens a picker over the catalogue's own chips: it
  * lands focus on the selected chip, roves Left and Right across the row and
  * wraps at both ends, and closes on a selection, on Escape, or on a click
- * outside. The open panel is ephemeral and nothing about it is remembered. */
+ * outside. Closing never strands focus in the hidden panel. The open panel is
+ * ephemeral and nothing about it is remembered. */
 
 import { clearTagTerm, parseSearchQuery, setTagTerm } from "./search_query.js";
 
@@ -35,22 +36,23 @@ export function syncTagChips(doc: Document): void {
  * button opens and closes the picker. Selecting a chip on either surface
  * replaces any entered tag term, and selecting the selected chip clears it; a
  * chip chosen in the picker also closes it and hands focus back to the button.
- * Every other click outside an open panel closes it and leaves focus alone.
+ * Every other click outside an open panel closes it and leaves focus where the
+ * click left it, unless the panel still holds it.
  */
 export function handleTagControlClick(doc: Document, target: Element): boolean {
   const picker = tagPicker(doc);
   if (target.closest(TOGGLE)) {
     if (!picker) return true;
     if (picker.panel.hidden) openPicker(doc, picker);
-    else closePicker(picker, true);
+    else closePicker(doc, picker, true);
     return true;
   }
   const inPicker = picker !== undefined && picker.panel.contains(target);
-  if (picker && !inPicker) closePicker(picker, false);
+  if (picker && !inPicker) closePicker(doc, picker, false);
   const chip = target.closest<HTMLElement>(CHIP);
   if (!chip) return false;
   selectChipTag(doc, chip);
-  if (picker && inPicker) closePicker(picker, true);
+  if (picker && inPicker) closePicker(doc, picker, true);
   return true;
 }
 
@@ -71,7 +73,7 @@ export function handleTagPickerKeydown(
   const picker = tagPicker(doc);
   if (!picker || picker.panel.hidden) return false;
   if (key === "Escape") {
-    closePicker(picker, true);
+    closePicker(doc, picker, true);
     return true;
   }
   const next = movedChip(picker.chips, key, target?.closest<HTMLElement>(CHIP));
@@ -90,11 +92,21 @@ function openPicker(doc: Document, picker: TagPicker): void {
   focusChip(picker, selected ?? picker.chips[0]);
 }
 
-/** Close an open panel, optionally handing focus back to the tag button. */
-function closePicker(picker: TagPicker, restoreFocus: boolean): void {
+/**
+ * Close an open panel, optionally handing focus back to the tag button. Focus
+ * returns to the button unasked whenever the closing panel still holds it,
+ * because a browser that does not focus a clicked button would otherwise
+ * strand focus in the hidden subtree.
+ */
+function closePicker(
+  doc: Document,
+  picker: TagPicker,
+  restoreFocus: boolean,
+): void {
   if (picker.panel.hidden) return;
+  const held = picker.panel.contains(doc.activeElement);
   setPanelOpen(picker, false);
-  if (restoreFocus) picker.toggle.focus();
+  if (restoreFocus || held) picker.toggle.focus();
 }
 
 /** The one place the panel's `hidden` and the button's `aria-expanded` move. */

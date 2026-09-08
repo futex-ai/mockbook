@@ -66,6 +66,39 @@ test("a tag term hides untagged rows and the groups they empty", () => {
   assert.equal(nav.screens.open, false);
 });
 
+test("a tag term composes with the Changed filter", () => {
+  const nav = navFixture();
+  nav.welcome.setAttribute("data-changed", "true");
+  nav.glossary.setAttribute("data-changed", "true");
+  nav.changed.setAttribute("aria-pressed", "true");
+  nav.search.value = "tag:onboarding";
+
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.welcome.hidden, false);
+  assert.equal(nav.glossary.hidden, true);
+  assert.equal(nav.details.hidden, true);
+  assert.equal(nav.screens.hidden, false);
+  assert.equal(nav.docs.hidden, true);
+
+  nav.welcome.setAttribute("data-changed", "false");
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.welcome.hidden, true);
+  assert.equal(nav.screens.hidden, true);
+});
+
+test("row tags split on any whitespace the markup carries", () => {
+  const nav = navFixture();
+  nav.welcome.setAttribute("data-tags", "forms\tonboarding");
+  nav.search.value = "tag:onboarding";
+
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.welcome.hidden, false);
+  assert.equal(nav.details.hidden, true);
+});
+
 test("free text still matches rows that declare no tags", () => {
   const nav = navFixture();
   nav.search.value = "GLOSSARY";
@@ -108,8 +141,10 @@ test("navigation clears only a query that hides its destination", () => {
   assert.equal(nav.glossary.hidden, false);
 });
 
-/** One catalogue column: two tagged screens and one untagged legacy page. */
+/** One catalogue column with its All/Changed filter: two tagged screens and
+ * one untagged legacy page. */
 interface NavFixture {
+  changed: FakeNode;
   details: FakeNode;
   docs: FakeNode;
   glossary: FakeNode;
@@ -126,14 +161,15 @@ function navFixture(): NavFixture {
   const glossary = navRow("docs/glossary.html", "Glossary");
   const screens = navGroup("collection:screens", welcome, details);
   const docs = navGroup("collection:docs", glossary);
+  const changed = filterOption("changed", "false");
   const root = new FakeNode("div").append(
     search,
     filterOption("all", "true"),
-    filterOption("changed", "false"),
+    changed,
     screens,
     docs,
   );
-  return { details, docs, glossary, root, screens, search, welcome };
+  return { changed, details, docs, glossary, root, screens, search, welcome };
 }
 
 function navRow(route: string, label: string, tags?: string): FakeNode {

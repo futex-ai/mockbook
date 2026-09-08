@@ -155,11 +155,12 @@ test("manifest serializes declared tags and omits absent ones", () => {
       [
         resolvedScreen("a", "a.html", {
           tags: ["onboarding", "forms"],
-          useCaseIds: ["tour"],
+          useCaseIds: ["tour", "untagged-tour"],
         }),
         resolvedScreen("b", "b.html", { tags: [] }),
         resolvedScreen("c", "c.html"),
         resolvedUseCase(["forms"]),
+        resolvedUseCase([], "untagged-tour", "untagged-tour.html"),
       ],
       [],
       ["light"],
@@ -174,6 +175,7 @@ test("manifest serializes declared tags and omits absent ones", () => {
       ["b", false],
       ["c", false],
       ["tour", true],
+      ["untagged-tour", false],
     ],
   );
   assert.deepEqual(Object.keys(entries[0] ?? {}).slice(-4), [
@@ -247,17 +249,21 @@ function manifestWithScreen(id: string, route: string) {
   return createManifest([resolvedScreen(id, route)], [], ["light"]);
 }
 
-function resolvedUseCase(tags?: readonly string[]): ResolvedRegistryEntry {
+function resolvedUseCase(
+  tags?: readonly string[],
+  id = "tour",
+  route = "tour.html",
+): ResolvedRegistryEntry {
   return {
     __viaDefine: true,
     dependencies: [],
     description: "A journey",
-    id: "tour",
+    id,
     kind: "use-case",
     relatedDocs: [],
-    route: "tour.html",
-    sourcePath: "/repo/entries/tour.mockup.tsx",
-    sourceRelativePath: "entries/tour.mockup.tsx",
+    route,
+    sourcePath: `/repo/entries/${id}.mockup.tsx`,
+    sourceRelativePath: `entries/${id}.mockup.tsx`,
     steps: [{ screenId: "a" }],
     ...(tags ? { tags } : {}),
     title: "Tour",

@@ -82,8 +82,8 @@ test("tag-only manifest changes mark their route as changed", async (context) =>
   const config = await loadConfig(fixture.root);
   const manifest = (await compileCatalogue(config)).manifest;
 
-  const untaggedScreen = structuredClone(manifest);
-  const baseDetails = untaggedScreen.entries.find(
+  const taggedScreenBase = structuredClone(manifest);
+  const baseDetails = taggedScreenBase.entries.find(
     (entry) => entry.id === "details",
   );
   if (baseDetails?.kind !== "screen") {
@@ -91,17 +91,19 @@ test("tag-only manifest changes mark their route as changed", async (context) =>
   }
   baseDetails.tags = ["forms"];
   assert.deepEqual(
-    changedManifestRoutes(manifest, untaggedScreen, config, []),
+    changedManifestRoutes(manifest, taggedScreenBase, config, []),
     ["screens/details.html", "user-flows/tour.html"],
   );
 
-  const untaggedUseCase = structuredClone(manifest);
-  const baseTour = untaggedUseCase.entries.find((entry) => entry.id === "tour");
+  const taggedUseCaseBase = structuredClone(manifest);
+  const baseTour = taggedUseCaseBase.entries.find(
+    (entry) => entry.id === "tour",
+  );
   if (baseTour?.kind !== "use-case")
     throw new Error("fixture base tour missing");
   baseTour.tags = ["onboarding"];
   assert.deepEqual(
-    changedManifestRoutes(manifest, untaggedUseCase, config, []),
+    changedManifestRoutes(manifest, taggedUseCaseBase, config, []),
     ["user-flows/tour.html"],
   );
 });

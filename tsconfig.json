@@ -27,5 +27,5 @@
     "examples/**/*.ts",
     "examples/**/*.tsx"
   ],
-  "exclude": ["tests/fixtures/consumers/**/*.tsx"]
+  "exclude": ["node_modules", "tests/fixtures/consumers/**/*.tsx"]
 }
