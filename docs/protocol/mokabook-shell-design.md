@@ -110,7 +110,7 @@ scrollable region scrolls internally:
   its narrow bar always shows the mark alone, while a Review bar carries no
   field and keeps the whole brand. A query splits into terms: every `tag:<tag>`
   term matches only rows whose entry declares that tag, and the remaining words
-  rejoin into one phrase that must appear in a row's title or route. A row stays
+  rejoin into one phrase that must appear in a row's authored ID, title, or route. A row stays
   visible only when it matches every tag term and that phrase; tag terms hide
   the groups they empty and open the groups they keep, and they compose with the
   All/Changed filter.
