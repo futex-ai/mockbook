@@ -215,3 +215,36 @@ validation and diff review. Repository rules exempt documentation-only changes
 from `cargo xtask check`; implementation gates above remain mandatory. Commit
 and push the validated planning files, then run `cargo xtask review` and report
 its findings without starting implementation. Keep this plan Active.
+
+### Planning Review Record
+
+Planning commit `cde0932` was pushed before `cargo xtask review` completed on
+2026-09-09 against `origin/main` at `bb3a22f`. Markdown formatting, 53 local
+documentation links, 22 documented catalogue ids, and diff/deletion checks
+passed. The documentation-only exemption applied to `cargo xtask check`.
+Implementation remains unstarted. These findings are recorded for the user's
+decision; no review fixes have been applied.
+
+1. **Severity: Medium — incomplete existing destination inventory.**
+   The reviewer noted that the new contract lists only the five new route
+   mappings, while the older shell-design inventory omits the existing Current
+   and Overlay routes. The existing destination ids do appear in the new
+   control mappings, but their id-to-route inventory is not complete.
+   Leaving this ambiguity can make implementers duplicate or move a destination
+   that should remain stable. A. Complete one canonical existing-id/route
+   inventory, including Current/Overlay, and link to it from the new contract.
+   B. Only narrow the new inventory's wording and cross-reference the current
+   shell inventory. Recommended: A; keep one owner for the inventory and add
+   a manifest cross-check to implementation verification to prevent drift.
+
+2. **Severity: Medium — historical example note can conflict with planned states.**
+   The reviewer flagged the old example-notes claim that catalogue-link work
+   requires no new design screens. The new introduction says the notes describe
+   current artboards, but the historical bullet's phrase “this change” can be
+   read as referring to the new five-state adoption. Leaving it ambiguous can
+   lead implementers to omit the new Details/tag destinations. A. Scope the
+   old statement explicitly to the completed navigation work and cross-reference
+   this adoption's five planned states. B. Move the old statement into a dated
+   historical section linked to its completed plan. Recommended: A; keep the
+   destination contract as the source for the new scope rather than maintaining
+   another independent requirements list in example notes.
