@@ -183,8 +183,8 @@ order.
 globs, while stylesheet `match` and legacy aliases/lint routes match catalogue
 routes. `repoRoot` defaults to the config directory. Duplicate stylesheet
 matches and watch paths are invalid. Additional watch rules cannot override
-configured source/module rebuilds, configured stylesheet reloads, or
-package-owned ignores for dependency, build, test, Review, header-proven
+configured source/module rebuilds, reloads for configured stylesheets and
+referenced resources, or package-owned ignores for dependency, build, test, Review, header-proven
 generated, and transaction paths. An unowned public HTML file below
 `mockupsDir` remains consumer-authored and can match an explicit watch rule.
 Authored source directories may sit below `mockupsDir` for a `docs/mockups/src`
@@ -225,10 +225,14 @@ to existing screens and never defines a screen inline. Ids are explicit,
 globally unique kebab-case values and remain stable across navigation changes.
 
 Each entry provides a title, description, related docs, and dependency paths.
-A dependency may identify an existing repository file or directory; Browse and
-Review match the path itself and every descendant, while Review reports the
-concrete changed descendant as evidence. Screens and use cases provide a
-stable relative `.html` route; use cases live under `user-flows/`. Screens may
+A dependency may identify an existing repository file or directory; Review
+matches the path itself and every descendant and reports the concrete changed
+path as impact evidence. Dependency declarations and source paths alone do not
+add entries to Browse Changes: that filter compares output, rendered resources,
+reviewable metadata, and collection ancestry, then propagates affected screens
+to their flows. See [the Changes contract](./mokabook-changes.md).
+Screens and use cases provide a stable relative `.html` route; use cases live
+under `user-flows/`. Screens may
 provide an address-bar label and use-case membership. Nested definitions
 inherit declared metadata, but ids never derive from tree position.
 

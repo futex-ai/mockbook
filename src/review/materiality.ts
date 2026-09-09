@@ -1,13 +1,13 @@
-/** Shared Review materiality rules for artifacts and CI summaries. */
+/** Separate comparison output changes from diagnostic impact evidence. */
 
 import type { ScreenReview } from "./types.js";
 
-/** Return whether an unchanged screen still has review impact evidence. */
+/** Return whether a screen has impact evidence without a material output change. */
 export function isImpactOnly(screen: ScreenReview): boolean {
-  return screen.state === "unchanged" && screen.sharedImpact.length > 0;
+  return !hasOutputChange(screen) && screen.sharedImpact.length > 0;
 }
 
-/** Return whether a screen needs reviewer attention. */
-export function isMaterial(screen: ScreenReview): boolean {
-  return screen.state !== "unchanged" || isImpactOnly(screen);
+/** Added, removed, or changed fragments are output changes; ignored-only is not. */
+export function hasOutputChange(screen: ScreenReview): boolean {
+  return ["added", "removed", "changed"].includes(screen.state);
 }

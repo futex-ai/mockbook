@@ -71,6 +71,10 @@ shared resize grip on the catalogue navigation in Current and comparison views; 
 keep the drawer fixed. The recorded tokens and responsive rules live in
 [`docs/protocol/mokabook-shell-design.md`](../../docs/protocol/mokabook-shell-design.md).
 
+The shared-impact and ignored-only comparison examples open from All with zero
+Changes. Dependency evidence remains available in comparison details, while
+unchanged output and paired ignored-only edits do not fill the review list.
+
 From the repository root:
 
 ```bash

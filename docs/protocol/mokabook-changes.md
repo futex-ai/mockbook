@@ -4,6 +4,51 @@ The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` is no longer a CLI option.
 
+## Changes membership
+
+Changes is a review list of added/removed screens, material fragment changes,
+reviewable route metadata changes, and user flows that embed those screens.
+A new or edited flow is included independently. Source edits, source moves,
+dependency declaration edits, and shared-impact matches alone do not add
+otherwise unchanged entries. Dependency and shared-impact evidence remains in
+comparison details, accessible for every screen from All.
+
+Before marking an existing fragment, compare its branch-point and working-tree
+documents with the same paired ignore normalization and material-key rules as
+the comparison engine. Ignored-only changes are excluded from Changes; real
+content changes, material-key changes, and one-sided ignored-region adoption
+with changed content remain eligible. Both viewports and every available color
+scheme participate. Metadata includes route/address, titles, descriptions,
+rationale, tags, related-doc links, flow steps and memberships, view structure,
+and collection ancestry; it excludes source locations and dependencies.
+Valid generated ownership headers are excluded from document comparison, so a
+source move alone stays unchanged. Stored snapshots retain the original headers.
+
+Changes to local resources referenced by a fragment also keep that screen in
+Changes. Follow CSS imports, CSS URLs, and embedded-document resources
+transitively using the snapshot resource resolver and public-file confinement.
+Only references outside paired ignored regions participate; speculative
+preload/prefetch hints alone do not establish rendered impact. A linked resource
+edit is conservative evidence of a rendering change, not a pixel measurement.
+Unreferenced public files never add entries through a broad shared-impact glob.
+Every reachable existing resource is validated, including images and fonts;
+finding a changed resource does not skip its CSS/HTML references or later graph
+edges. Added screens, newly available views, and existing material fragment
+changes do not bypass resource validation.
+A deleted resource still marks its consumers only when its closest existing
+ancestor is a confined public directory and its baseline is a regular Git file.
+Dangling symlinks, escaping symlinks, source-root references, and newly missing
+resources fail validation rather than being treated as deletions. Snapshot
+generation still requires current references to resolve, including resources
+whose verified deletion made their consumers eligible for Changes.
+
+This detection reads files without rebuilding the baseline, writing snapshots,
+or generating a comparison. Baseline reads are batched; shared resource edges
+are cached within one calculation and cycles terminate. Apart from verified
+resource deletions, an unavailable or invalid input disables the filter,
+preserving access through All.
+Watched updates and static publishing use this same membership calculation.
+
 ## Screen controls
 
 Every structured screen offers Current / Side by side / Overlay / Difference
@@ -107,6 +152,15 @@ is calculated.
 
 The private output contains `review.json`, `summary.md`, an ownership marker,
 and the isolated snapshots. No HTML report or navigation payload is written.
+The summary's `output changes` count includes only screens classified as added,
+removed, or changed, counting each screen once across all viewports and color
+schemes. Ignored-only screens remain a separate diagnostic count.
+`impact evidence` independently counts screens with shared-impact or dependency
+evidence, including screens with output changes; `impact-only` is the subset
+without output changes and can overlap ignored-only. Neither evidence nor
+ignored-only edits inflate output changes. These counts aggregate fragment
+comparisons per screen; the catalogue Changes total also considers rendered
+resources, reviewable metadata, and flows. The JSON retains every screen and its evidence.
 
 Base and head panes live under separate route-preserving snapshot roots. Local
 resources referenced by pane HTML or CSS are copied transitively, including
