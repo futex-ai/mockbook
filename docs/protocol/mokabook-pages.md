@@ -27,7 +27,7 @@ or an existing multi-state reference page. It does not require invented
 mobile/desktop variants. Screens continue to own their real viewport and
 color-scheme fragments; use-case steps continue to reference screens only.
 This change adds no PDF parser, browser scripting privilege, or page comparison
-engine. PDF-named Accounting mockups are HTML documents, not binary PDF input.
+engine. A page callback always returns HTML, including printable documents.
 
 ## Public Authoring
 
@@ -144,14 +144,10 @@ viewport arrays, callbacks, or screen-only fields in the manifest. Schema v4
 rejects a top-level `legacyPages` field. Preserve existing deterministic
 entry sorting, dependency normalization, and serialization conventions.
 
-`sourceFiles` is the sorted, unique inventory of repository-relative consumer
-authoring modules from the shared bundle, including entries, the renderer,
-and imported render helpers. It includes every entry's `sourcePath`; ordinary
-CSS/font/image assets and external dependencies are not authoring modules.
-Validate path confinement and forbid overlap with generated output. Current
-serving and publishing use this persisted inventory to block source files even
-when a migrated helper lives outside `entriesDir`; no legacy-root setting is
-needed. A malformed or missing inventory invalidates a current v4 manifest.
+`sourceFiles` follows the [source-protection contract](./mokabook-source-protection.md):
+the complete config/consumer authoring graph, validated against current inputs.
+Reserved source basenames stay protected even when unimported. Serving, resource
+validation, Review, and publication share that policy without legacy roots.
 
 Only the historical comparison reader may handle earlier shapes. Catalogue lookup,
 the cached hierarchy, navigation, breadcrumbs, details, search, route targets,
@@ -210,9 +206,10 @@ Screen comparison generation and use-case impact propagation retain their
 screen-only boundary. Adding page support must not make those paths assume
 every non-collection/non-use-case entry has screen fragments. Pages expose
 Current only; they do not trigger snapshot generation or fabricate comparisons.
-Removed v4 pages remain discoverable in Changes with their baseline metadata
-and an explicit missing-current state, following current removed-screen route
-precedence. No additional collection tree is synthesized for removed pages.
+The [catalogue-change contract](./mokabook-catalogue-changes.md) owns the shared
+typed impact/removal snapshot, route/ID precedence, and flat removed-page rows
+in Changes. Baseline ancestry stays in details even when every ancestor is
+deleted; no historical collection tree is synthesized.
 
 Watch rebuilds imported sources, recomputes page impact before notification,
 and restores disclosures by entry/collection identity. Parent changes update
@@ -236,5 +233,5 @@ including obsolete-config rejection and safe old-artifact regeneration.
 Use a mixed collection containing a screen, page, and use case; an unclaimed
 page; distinct same-title collections; and a document whose route disagrees
 with its collection ancestry. Verify output determinism and every existing
-screen safety boundary. The five-page Accounting inventory and release
-acceptance are fixed in [the migration contract](./mokabook-page-migration.md).
+screen safety boundary. [Migration](./mokabook-page-migration.md) owns generic
+release acceptance; consumer-specific inventory belongs in migration notes.

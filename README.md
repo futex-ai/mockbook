@@ -460,3 +460,6 @@ recorded by the
 - [Implementation plans](./plans/README.md)
 - [Planned unified catalogue pages](./docs/protocol/mokabook-pages.md) and
   [required breaking upgrade](./docs/protocol/mokabook-page-migration.md)
+- [Planned source protection](./docs/protocol/mokabook-source-protection.md) and
+  [catalogue change metadata](./docs/protocol/mokabook-catalogue-changes.md)
+- [Versioned Accounting page migration](./docs/migration/accounting-page-entries.md)

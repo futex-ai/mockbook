@@ -61,6 +61,14 @@ preserving the valid route, viewport, color scheme, and fragment. Comparison
 endpoints return the ordinary not-found response and never generate output.
 The browser sends no change/comparison requests.
 
+In both publication options, strip the watched-server live-update entrypoint
+from every captured shell page and omit its watch-only assets. Keep the browser
+modules needed for ordinary navigation and optional comparison controls. Never
+start an EventSource, poll for development updates, or publish/redirect an
+`/__mokabook/events` endpoint. On static hosting that URL has the ordinary
+not-found response. This preserves the existing static-export invariant, also
+for home, missing-route, and removed-entry pages.
+
 Existing generated comparison directories, including configured review output,
 must stay excluded from public asset copying. Building over a previous export
 with comparisons replaces the complete owned artifact transactionally, removing
@@ -73,7 +81,9 @@ With `--include-changes`, publish the existing All/Changes navigation and screen
 comparison controls, including a zero changed count. Retain removed-screen
 metadata, routes, and comparisons under the existing ID/route precedence rules.
 Once page support lands, include page impact and removed-v4-page missing-current
-states as defined by the page contract; pages still have no visual comparisons.
+states from the [shared catalogue snapshot](./mokabook-catalogue-changes.md),
+including flat Changes rows after deleting their parents. Pages still have no
+visual comparisons. Until that target lands, preserve current screen metadata.
 
 Resolve the effective base and HEAD once, then pin their merge-base commit for
 both route impact and screen comparisons. Capture the current catalogue,
@@ -93,6 +103,9 @@ comparison failure aborts publication and preserves the previous owned output.
 Do not silently fall back to a catalogue without changes when they were
 explicitly requested. Preserve source protection, snapshot isolation, resource
 confinement, and sandbox restrictions in both options.
+After the v4 cutover, both options apply the
+[shared source policy](./mokabook-source-protection.md), including unimported
+reserved files and complete config/consumer input inventories.
 
 ## Workflows And Presentation
 
@@ -121,3 +134,7 @@ changes during capture, and frozen comparisons after publication. Browser tests
 cover controls, persisted preferences, direct links, search/tags, anchors,
 Back/Forward, zero-change review, and no comparison network requests by default
 at mobile and desktop widths. Preserve existing comparison and safety tests.
+Parameterize static-export tests over both options: no live-update entrypoint,
+no EventSource or polling request, and no events endpoint or redirect. Test
+home, current, not-found, and supported removed-entry routes while proving
+normal navigation and opted-in comparison loading still work.

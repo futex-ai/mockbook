@@ -7,6 +7,10 @@ section, or `mokabook review` command; `--out` is no longer a CLI option.
 The approved [page-entry target](./mokabook-pages.md) adds page impact and
 missing-current states to this same filter while keeping comparison controls
 screen-only. Page support is planned; this document describes current behavior.
+Its [shared catalogue snapshot](./mokabook-catalogue-changes.md) will supply
+impact/removal metadata independently of the screen comparison result, with
+flat removed pages and baseline ancestry in details. The future
+[source policy](./mokabook-source-protection.md) also covers Review asset reads.
 
 The approved [publication option](./mokabook-publication.md) will make published
 Changes and comparisons opt-in. It is not implemented; the publishing behavior

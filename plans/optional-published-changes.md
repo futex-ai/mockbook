@@ -38,7 +38,18 @@ milestone/checklist/index structure, and whitespace checks. The integration audi
 preserved all 51 paths changed on main from the recorded source tip; the complete
 branch diff against main remains documentation only. Post-push review follows.
 
-## Milestone 2: Design both publication states
+## Milestone 2: Resolve publication review — completed
+
+Make the static-export invariant explicit after the user's review decision.
+
+- [x] Require both export options to omit live updates and events endpoints.
+- [x] Specify tests for watch scripts, EventSource/polling, and all captured routes.
+- [x] Link page publication to the shared removed-entry metadata contract.
+
+Validate Markdown and the diff, then commit/push and run the required review;
+implementation and its full checks remain outstanding below.
+
+## Milestone 3: Design both publication states
 
 Tags: mockup
 
@@ -57,7 +68,7 @@ Define the visible capability difference using existing shell designs.
 The functioning design catalogue specifies both publication states before UI
 implementation begins.
 
-## Milestone 3: Implement publication options and capture
+## Milestone 4: Implement publication options and capture
 
 Add the option and export capability boundaries with the existing product
 functional throughout. Keep the script explicitly including review until the
@@ -72,6 +83,8 @@ shell is ready and the final milestone switches its public default.
 - [ ] Test and implement explicit review capture with one pinned merge base,
       consistent current inputs, immutable packaged comparisons, and actionable
       failure without fallback when the base or comparison is unavailable.
+- [ ] Preserve removal of the live-update entrypoint, watch-only assets, and
+      events routes/redirects in both options. Test every captured route class.
 - [ ] Exclude existing review artifacts from public copying in both options.
       Test review-to-default replacement, ID/route precedence, source/resource
       safeguards, rollback, and isolation from a running development server.
@@ -80,7 +93,7 @@ shell is ready and the final milestone switches its public default.
 
 Both backend capabilities are tested and ready for the shell and workflow switch.
 
-## Milestone 4: Activate optional review in publication
+## Milestone 5: Activate optional review in publication
 
 Tags: ui
 
@@ -94,12 +107,14 @@ this milestone limited to shell/client presentation and browser validation.
       when review is unavailable; preserve route, scheme, viewport, and anchor.
 - [ ] Verify zero-change review, removed entries when supported, search/tags,
       navigation, Back/Forward, and absence of comparison requests by default.
+      Assert no EventSource or development polling in either export option,
+      including startup, navigation, and refresh after selecting comparisons.
 - [ ] Run focused shell/client and Chromium tests. Start the real server and
       serve both generated artifacts for mobile/desktop visual smoke tests.
 
 The shell presents both completed options without altering local development.
 
-## Milestone 5: Switch workflows, verify, commit, push, review
+## Milestone 6: Switch workflows, verify, commit, push, review
 
 Deliver the completed behavior with documented commands and explicit workflow
 selection after the UI is ready.

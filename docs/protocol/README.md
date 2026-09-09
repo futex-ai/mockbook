@@ -11,6 +11,8 @@ delivery steps.
 - [Package and authoring contract](./mokabook-package.md)
 - [Build and Browse runtime](./mokabook-runtime.md)
 - [Pages in the catalogue (approved target)](./mokabook-pages.md)
+- [Source protection (approved target)](./mokabook-source-protection.md)
+- [Catalogue change metadata (approved target)](./mokabook-catalogue-changes.md)
 - [Breaking page migration (approved target)](./mokabook-page-migration.md)
 - [Optional changes in publication (approved target)](./mokabook-publication.md)
 - [Changes and screen comparisons](./mokabook-changes.md)

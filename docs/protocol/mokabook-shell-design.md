@@ -23,6 +23,9 @@ implemented.
 The approved [page-entry target](./mokabook-pages.md) requires additional
 whole-document and removed-page designs before its UI is implemented. Those
 states are planned and are not included in the implemented catalogue below.
+The [removed-page contract](./mokabook-catalogue-changes.md) requires a flat row
+in Changes and baseline breadcrumbs in details even after all parents are
+deleted; its mobile/desktop mockups must not recreate historical collections.
 
 The approved [publication option](./mokabook-publication.md) also requires mobile
 and desktop designs with Changes and comparison controls omitted or included.
