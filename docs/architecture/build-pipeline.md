@@ -18,7 +18,10 @@ validate definitions and cross-references in memory
 renderer({ node, entry, viewport, colorScheme, stylesheets })
         |
         v
-resolve mock:id links -> compatibility bridge -> validate markers/links/resources
+adapt explicit child controls -> resolve mock:id links -> compatibility bridge
+        |
+        v
+validate markers/links/resources
         |
         v
 mobile/desktop light and optional dark HTML + schema-v3 manifest in memory
@@ -79,7 +82,8 @@ type Renderer = (input: RenderInput) => string;
 ```
 
 The returned string must be a complete HTML document. Mokabook
-converts `ReviewIgnore` templates into inert comments and resolves every
+converts `ReviewIgnore` templates into inert comments, consumes the paired
+`MockLink asChild` templates to adapt marked controls into native links, and resolves every
 complete value of the form `mock:<id>[#fragment]` found in `href` or
 `data-nav-href` to viewport-matched fragments in the same color scheme, falling
 back to light when the destination screen has no dark view. Both
@@ -87,6 +91,14 @@ attributes are resolved when they coexist, and the same pass covers legacy
 pages, which remain light-only. Text, scripts, styles, and unrelated attributes
 containing the same characters remain unchanged. A use-case link resolves
 through its first screen; collections are intentionally not linkable.
+
+The [child-control adapter](../protocol/mokabook-link-controls.md) uses parsed
+source locations to patch only the marked control and its boundary templates.
+It validates one supported root with no independent descendant interactions,
+retains inactive destinations as metadata, and adds default link/focus CSS only
+to documents with active adapted controls. Custom and legacy renderers use the
+same adapter before logical records are captured. Compatibility output cannot
+reintroduce unresolved child markers. Unmarked document bytes stay unchanged.
 
 The [catalogue navigation contract](../protocol/mokabook-navigation.md) retains
 the stable id and optional fragment in a reserved `data-mokabook-link`

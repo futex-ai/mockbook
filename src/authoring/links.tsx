@@ -1,4 +1,10 @@
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import {
+  Fragment,
+  isValidElement,
+  type AnchorHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
 import { isCatalogueId, isLogicalFragment } from "../navigation/logical.js";
 
@@ -14,16 +20,46 @@ export function mockLink(id: string, fragment?: string): string {
 }
 
 /** Anchor props for an id-addressed Mokabook link. */
-export interface MockLinkProps extends Omit<
+interface AnchorLinkProps extends Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
   "href"
 > {
+  asChild?: false;
   children?: ReactNode;
   fragment?: string;
   to: string;
 }
 
-/** Render a plain anchor addressed by stable registry id. */
-export function MockLink({ fragment, to, ...props }: MockLinkProps) {
-  return <a {...props} href={mockLink(to, fragment)} />;
+interface ChildLinkProps {
+  asChild: true;
+  children: ReactElement;
+  fragment?: string;
+  to: string;
+}
+
+/** Ordinary anchor props or an explicitly adapted single child control. */
+export type MockLinkProps = AnchorLinkProps | ChildLinkProps;
+
+/** Render an anchor, or mark a styled control for static link adaptation. */
+export function MockLink({ asChild, fragment, to, ...props }: MockLinkProps) {
+  const href = mockLink(to, fragment);
+  if (asChild !== undefined && typeof asChild !== "boolean") {
+    throw new TypeError("MockLink asChild must be a boolean");
+  }
+  if (!asChild) return <a {...props} href={href} />;
+  if (Object.keys(props).some((key) => key !== "children")) {
+    throw new TypeError("MockLink asChild attributes belong on the child");
+  }
+  if (!isValidElement(props.children) || props.children.type === Fragment) {
+    throw new TypeError(
+      "MockLink asChild requires one non-Fragment React element",
+    );
+  }
+  return (
+    <>
+      <template data-mokabook-link-child-start={href} />
+      {props.children}
+      <template data-mokabook-link-child-end="" />
+    </>
+  );
 }
