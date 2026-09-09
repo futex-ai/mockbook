@@ -1,64 +1,27 @@
 import { screen } from "mokabook";
 
-import { WelcomeHead } from "./browse_screens.js";
-import { DetailsPanel } from "./parts/details.js";
-import { NavTree, type NavNode } from "./parts/nav.js";
-import { Shell } from "./parts/shell.js";
-import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
-
-/** The tag the depicted selection entered as a search term. */
-const ACTIVE_TAG = "forms";
-
-/** The query that selection left in the search field. */
-const TAG_QUERY = `tag:${ACTIVE_TAG}`;
-
-/**
- * Rows the query keeps: entries without the tag and the groups they empty drop
- * out, and the groups that keep a row stay open.
- */
-const TAGGED_TREE: readonly NavNode[] = [
-  { count: 3, depth: 0, kind: "collection", label: "Example", open: true },
-  { count: 2, depth: 1, kind: "collection", label: "Screens", open: true },
-  { depth: 2, kind: "screen", label: "Welcome" },
-  { depth: 2, kind: "screen", label: "Details" },
-];
+import { DESTINATIONS } from "./parts/destinations.js";
+import { TagScreen } from "./parts/tag_screen.js";
 
 function TagFilterDesktop() {
   return (
-    <Shell
-      activeTag={ACTIVE_TAG}
+    <TagScreen
+      design={DESTINATIONS.formsPicker}
+      tag="forms"
+      picker
       viewport="desktop"
-      nav={<NavTree activeLabel="Welcome" nodes={TAGGED_TREE} />}
-      searchValue={TAG_QUERY}
-      tagPickerOpen
-    >
-      <WelcomeHead active="desktop" />
-      <Stage>
-        <BrowserFrame address="example.test/welcome" label="Desktop">
-          <MiniWelcome />
-        </BrowserFrame>
-      </Stage>
-      <DetailsPanel activeTag={ACTIVE_TAG} open />
-    </Shell>
+    />
   );
 }
 
 function TagFilterMobile() {
   return (
-    <Shell
-      activeTag={ACTIVE_TAG}
+    <TagScreen
+      design={DESTINATIONS.formsPicker}
+      tag="forms"
+      picker
       viewport="mobile"
-      nav={null}
-      searchValue={TAG_QUERY}
-      tagPickerOpen
-    >
-      <WelcomeHead active="mobile" />
-      <Stage>
-        <PhoneFrame label="Mobile" small>
-          <MiniWelcome compact />
-        </PhoneFrame>
-      </Stage>
-    </Shell>
+    />
   );
 }
 

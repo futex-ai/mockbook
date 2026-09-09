@@ -428,6 +428,10 @@ proves the consumer contract against a real cross-platform component stack.
 Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
+The design mockups use `MockLink` for supported navigation and state transitions;
+the two example buttons demonstrate `MockLink asChild`. See the
+[design mockup links contract](./docs/protocol/mokabook-design-links.md) for
+canonical destinations and the controls that remain visual depictions.
 
 ### Key Code
 

@@ -1,113 +1,26 @@
-import type { ReactNode } from "react";
-
 import { screen } from "mokabook";
 
-import { DetailsPanel } from "./parts/details.js";
+import { CompareGrid, MissingPane, Pane } from "./parts/compare.js";
 import {
-  CompareGrid,
-  MissingPane,
-  Pane,
-  ComparisonStage,
-} from "./parts/compare.js";
-import { ReviewNav, type ReviewState } from "./parts/review.js";
+  ComparePage,
+  FramedShot,
+  type CompareViewport,
+} from "./parts/compare_page.js";
+import { DESTINATIONS } from "./parts/destinations.js";
 import {
-  ScreenHead,
-  SchemeSwitch,
-  Shell,
-  ViewSwitch,
-  type ShellColorScheme,
-} from "./parts/shell.js";
-import {
-  BrowserFrame,
   MiniDetails,
   MiniFarewell,
   MiniWelcome,
-  PhoneFrame,
-} from "./parts/stage.js";
-
-type CompareViewport = "desktop" | "mobile";
-
-interface ComparePageProps {
-  activeTitle: string;
-  children: ReactNode;
-  colorScheme?: ShellColorScheme | undefined;
-  idChip: string;
-  mode?: "difference" | "overlay" | "side-by-side";
-  state: ReviewState;
-  title: string;
-  viewport: CompareViewport;
-}
-
-function ComparePage({
-  activeTitle,
-  children,
-  colorScheme,
-  idChip,
-  mode,
-  state,
-  title,
-  viewport,
-}: ComparePageProps) {
-  return (
-    <Shell
-      viewport={viewport}
-      colorScheme={colorScheme}
-      nav={
-        viewport === "desktop" ? <ReviewNav activeTitle={activeTitle} /> : null
-      }
-    >
-      <ScreenHead
-        action={
-          <>
-            <ViewSwitch active={viewport} />
-            {colorScheme && viewport === "mobile" ? (
-              <SchemeSwitch active={colorScheme} />
-            ) : null}
-          </>
-        }
-        comparisonMode={mode ?? "side-by-side"}
-        crumbs={["Example", "Screens"]}
-        idChip={idChip}
-        title={title}
-      />
-      <ComparisonStage state={state} viewport={viewport}>
-        {children}
-      </ComparisonStage>
-      <DetailsPanel />
-    </Shell>
-  );
-}
-
-function FramedShot({
-  address,
-  children,
-  dark,
-  viewport,
-}: {
-  address: string;
-  children: ReactNode;
-  dark?: boolean;
-  viewport: CompareViewport;
-}) {
-  if (viewport === "desktop") {
-    return (
-      <BrowserFrame address={address} dark={dark} expandable={false}>
-        {children}
-      </BrowserFrame>
-    );
-  }
-  return (
-    <PhoneFrame dark={dark} small>
-      {children}
-    </PhoneFrame>
-  );
-}
+} from "./parts/mini_screens.js";
 
 function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   const compact = viewport === "mobile";
   return (
     <ComparePage
+      design={DESTINATIONS.changed}
+      colorScheme="light"
       activeTitle="Welcome"
+      subject="welcome"
       idChip="example-welcome"
       state="changed"
       title="Welcome"
@@ -133,7 +46,9 @@ function AddedCompare({ viewport }: { viewport: CompareViewport }) {
   const compact = viewport === "mobile";
   return (
     <ComparePage
+      design={DESTINATIONS.added}
       activeTitle="Details"
+      subject="details"
       idChip="example-details"
       state="added"
       title="Details"
@@ -159,7 +74,9 @@ function RemovedCompare({ viewport }: { viewport: CompareViewport }) {
   const compact = viewport === "mobile";
   return (
     <ComparePage
+      design={DESTINATIONS.removed}
       activeTitle="Farewell"
+      subject="farewell"
       idChip="example-farewell"
       state="removed"
       title="Farewell"
@@ -185,7 +102,9 @@ function DifferenceCompare({ viewport }: { viewport: CompareViewport }) {
   const compact = viewport === "mobile";
   return (
     <ComparePage
+      design={DESTINATIONS.difference}
       activeTitle="Welcome"
+      subject="welcome"
       idChip="example-welcome"
       mode="difference"
       state="changed"
@@ -212,7 +131,9 @@ function DarkViewCompare({ viewport }: { viewport: CompareViewport }) {
   const compact = viewport === "mobile";
   return (
     <ComparePage
+      design={DESTINATIONS.darkChanged}
       activeTitle="Welcome"
+      subject="welcome"
       colorScheme="dark"
       idChip="example-welcome"
       state="changed"

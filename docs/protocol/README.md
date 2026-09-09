@@ -15,4 +15,5 @@ delivery steps.
 - [Catalogue navigation contract](./mokabook-navigation.md)
 - [Styled catalogue link controls](./mokabook-link-controls.md)
 - [Shell design contract](./mokabook-shell-design.md)
+- [Design mockup links](./mokabook-design-links.md)
 - [CI and npm release contract](./npm-release.md)

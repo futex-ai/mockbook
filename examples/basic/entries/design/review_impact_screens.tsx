@@ -1,7 +1,9 @@
 import { screen } from "mokabook";
 
 import { CompareGrid, ComparisonStage, Pane } from "./parts/compare.js";
+import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
+import { MiniWelcome } from "./parts/mini_screens.js";
 import { NavDrawer } from "./parts/nav.js";
 import {
   EmptyReviewNav,
@@ -10,7 +12,7 @@ import {
   SharedImpactCard,
 } from "./parts/review.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
-import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
+import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
 
 type ReviewViewport = "desktop" | "mobile";
 
@@ -34,7 +36,11 @@ function WelcomeShot({
 
 function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
   return (
-    <Shell viewport={viewport} nav={<ReviewNav activeTitle="Welcome" />}>
+    <Shell
+      design={DESTINATIONS.shared}
+      viewport={viewport}
+      nav={<ReviewNav activeTitle="Welcome" />}
+    >
       <ScreenHead
         crumbs={["Example", "Screens"]}
         idChip="example-welcome"
@@ -56,14 +62,18 @@ function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
           </Pane>
         </CompareGrid>
       </ComparisonStage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
 
 function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
   return (
-    <Shell viewport={viewport} nav={<ReviewNav activeTitle="Welcome" />}>
+    <Shell
+      design={DESTINATIONS.ignored}
+      viewport={viewport}
+      nav={<ReviewNav activeTitle="Welcome" />}
+    >
       <ScreenHead
         action={<ViewSwitch active={viewport} />}
         comparisonMode="side-by-side"
@@ -85,7 +95,7 @@ function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
           </Pane>
         </CompareGrid>
       </ComparisonStage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
@@ -93,6 +103,7 @@ function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
 function EmptyChanges({ viewport }: { viewport: ReviewViewport }) {
   return (
     <Shell
+      design={DESTINATIONS.empty}
       viewport={viewport}
       nav={<EmptyReviewNav />}
       aside={
@@ -110,7 +121,7 @@ function EmptyChanges({ viewport }: { viewport: ReviewViewport }) {
       <Stage>
         <WelcomeShot viewport={viewport} comparison={false} />
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
