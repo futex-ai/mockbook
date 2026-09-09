@@ -609,6 +609,23 @@ test("the brand names itself and the search bar drops that name", () => {
   assert.match(SHELL_CSS, /\.mbk-search \{[^}]*flex: 1;[^}]*min-width: 0;/);
 });
 
+test("the search field leads with a legible search icon, not a glyph", () => {
+  const browse = homePage(createCatalogue(manifest), context);
+  assert.ok(browse.includes("mbk-search"));
+  assert.equal(browse.includes("\u2315"), false);
+  assert.ok(
+    browse.includes(
+      '<div class="mbk-search">' +
+        '<svg aria-hidden="true" fill="none" height="15" stroke="currentColor" ' +
+        'stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+        'viewBox="0 0 24 24" width="15">' +
+        '<circle cx="11" cy="11" r="7"></circle>' +
+        '<path d="M20 20l-3.9-3.9"></path></svg>',
+    ),
+  );
+  assert.match(SHELL_CSS, /\.mbk-search > svg \{[^}]*flex-shrink: 0;/);
+});
+
 test("missing routes keep the catalogue shell", () => {
   const catalogue = createCatalogue(manifest);
   const missing = notFoundPage("view/unknown.html", catalogue, context);

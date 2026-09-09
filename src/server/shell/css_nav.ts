@@ -108,6 +108,10 @@ export const SHELL_NAV_CSS = `
   color: var(--chrome-muted);
 }
 
+.mbk-search > svg {
+  flex-shrink: 0;
+}
+
 .mbk-search input {
   flex: 1;
   min-width: 0;

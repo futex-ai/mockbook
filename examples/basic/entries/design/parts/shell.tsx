@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { CompareToolbar } from "./compare.js";
+import { SearchIcon } from "./icons.js";
 import { SearchTagButton, TagPicker } from "./tag_filter.js";
 
 /** Rendering target for a design mockup artboard. */
@@ -44,7 +45,7 @@ interface SearchFieldProps {
 function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
   return (
     <div className="mbk-search">
-      <span aria-hidden="true">⌕</span>
+      <SearchIcon />
       {value === undefined ? (
         "Search screens…"
       ) : (

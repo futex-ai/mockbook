@@ -59,6 +59,16 @@ export function ScreenIcon({ size }: IconProps) {
   );
 }
 
+/** The search affordance at the leading edge of the top bar's search field. */
+export function SearchIcon({ size }: IconProps) {
+  return (
+    <IconSvg size={size ?? 15}>
+      <circle cx={11} cy={11} r={7} />
+      <path d="M20 20l-3.9-3.9" />
+    </IconSvg>
+  );
+}
+
 /** A document page, used for related-doc references. */
 export function PageIcon({ size }: IconProps) {
   return (
