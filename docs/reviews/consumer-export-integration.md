@@ -2,7 +2,8 @@
 
 The two code findings below were subsequently approved and implemented. The
 historical review and CI results are retained; see **Approved Follow-Up** for the
-current changes and validation. Required CI confirmation is still pending.
+changes and the [follow-up review](./consumer-export-followup.md) for passing CI
+and the new unapproved recommendations.
 
 ## Approved Fix
 
@@ -198,5 +199,7 @@ tests, 105 browser tests, 3 Rust tests, formatting, lint, typechecking, generate
 examples, package/license checks, and packed ESM/NodeNext/npx/Accounting/Juno
 consumer smoke tests. The Rust file-length audit passed for all 10 files.
 Main was fetched again and remains `a5ecbc0`, already contained in this branch;
-the preservation audit found no mainline file deletions. Post-push review and
-required CI results remain pending.
+the preservation audit found no mainline file deletions. The implementation was
+committed and pushed as `38e0aaa` before `cargo xtask review`. Required CI passed
+on both supported runtimes. The [follow-up review](./consumer-export-followup.md)
+records the final results and two new independently checked recommendations.

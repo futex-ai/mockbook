@@ -1,19 +1,20 @@
 # Consumer Static Export
 
-Previous delivery validation: all 553 unit/integration tests and 104 browser tests passed locally on Node 24 after main integration.
-Packed local ESM, NodeNext, clean-cache npx, Accounting, and Juno consumers
-passed. Markdown formatting, local links, lint, and typechecking passed.
-GitHub Node 24 CI passed; Node 22 CI failed twice in an unchanged mainline watcher
-test. The PR was delivered but not merge-ready; the approved follow-up below
-addresses both code findings and the Node 22 test-observation race. Full CI
-confirmation is pending; see the integration review below.
+Current validation: all 578 unit/integration tests, 105 browser tests, and
+3 Rust tests pass locally on Node 24 and in GitHub CI on Node 22.14 and Node 24.
+The complete `cargo xtask check` gate, packed consumer checks, and preview
+deployment passed. The approved follow-ups are pushed as `38e0aaa`. The
+[follow-up review](../docs/reviews/consumer-export-followup.md) records a new
+High install-race finding and Low pre-existing release-doc drift. These are
+unapproved recommendations; the install race should be addressed before merging.
 
 ## Objective And Status
 
-Milestones 1–9 completed, including the approved transaction and adapter-alias
-follow-ups, latest-main integration, and [PR #49](https://github.com/futex-ai/mokabook/pull/49).
+Milestones 1–13 completed, including the approved transaction, adapter-alias,
+deployment-identity, preview-confinement, and CI follow-ups, latest-main
+integration, and [PR #49](https://github.com/futex-ai/mokabook/pull/49).
 The [integration review](../docs/reviews/consumer-export-integration.md) records
-validation, CI status, and new unapproved recommendations. The
+the preceding delivery and original findings. The
 [preceding review](../docs/reviews/consumer-static-export.md) retains earlier context.
 The user subsequently approved both code follow-ups and investigation of Node 22
 CI. Milestones 10–13 track that work without reopening completed milestones.
@@ -402,7 +403,7 @@ Keep progressive navigation within one deployment and reload across versions.
 Validation: 4 delivery unit tests and 13 static/preview browser tests passed;
 mobile and desktop owning-screen screenshots retain the approved appearance.
 
-## Milestone 12: Resolve Node 22 Watcher Verification
+## Milestone 12: Resolve Node 22 Watcher Verification — completed
 
 Determine the failing publication sequence before changing runtime or tests.
 
@@ -412,7 +413,7 @@ Determine the failing publication sequence before changing runtime or tests.
       appropriate watcher lifecycle or shared test-observation boundary.
 - [x] Retain every recovery assertion and deadline; pass focused Linux tests
       and the full relevant local suites.
-- [ ] Confirm both supported CI runtimes after the validated commit is pushed.
+- [x] Confirm both supported CI runtimes after the validated commit is pushed.
 - [x] Clarify the watch/testing contract and README for any new useful context.
 
 Diagnosis: a controlled Node 22/Linux removal/repair interleaving reproduced the
@@ -421,23 +422,32 @@ same assertion: version 5 showed two Changes for the removed file, then version
 helper accepted the intermediate version; a shared semantic-state expectation
 now preserves the 20-second deadline, with deterministic polling and real
 filesystem regressions. The original CI log did not record its intermediate
-count; both CI runtimes must still confirm the fix.
+count; both CI runtimes subsequently passed all tests on `38e0aaa`.
 
-## Milestone 13: Verify, Push, Review, And Update PR
+## Milestone 13: Verify, Push, Review, And Update PR — completed
 
 Deliver the approved follow-ups through the repository's verification workflow.
 
 - [x] Run `cargo xtask check` and the relevant consumer/static/browser smoke
       checks with all tests passing; inspect preservation and deletions vs main.
-- [ ] Run `git add -A`, commit all source/tests/docs with Conventional Commits,
+- [x] Run `git add -A`, commit all source/tests/docs with Conventional Commits,
       and push the branch before running `cargo xtask review`.
-- [ ] Run the independent post-push review and report any new findings with
+- [x] Run the independent post-push review and report any new findings with
       severity, context, impact, lettered options, and a recommendation; do not
       automatically implement another unapproved review cycle.
-- [ ] Confirm PR #49 CI results, update its body and the review records, and
+- [x] Confirm PR #49 CI results, update its body and the review records, and
       validate, commit, and push the final documentation closeout.
 
 Local validation: Linux Node 22.14.0/npm 11.7.0 passed all 578 unit/integration
 tests. The full Node 24.2.0 `cargo xtask check` passed those 578 tests, all 105
 browser tests, 3 Rust tests, all package/consumer smoke checks, and every other
 gate. Main remains `a5ecbc0`; the branch preserves it without any file deletions.
+
+Delivery: implementation `38e0aaa` was committed and pushed before the required
+review. Both supported CI runtimes and Required CI passed. The review returned
+one High installation-race finding and one Low pre-existing release-doc finding;
+both are independently confirmed and recorded with options in the
+[follow-up review](../docs/reviews/consumer-export-followup.md). They were not
+automatically fixed or added as implementation TODOs. Final documentation
+closeout records the completed approved scope without merging PR #49 or
+publishing a release.
