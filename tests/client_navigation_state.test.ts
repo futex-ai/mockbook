@@ -25,6 +25,12 @@ const glossary = {
   tags: [],
   text: "Glossary",
 };
+const transferReady = {
+  id: "transactions-list-transfer-ready",
+  route: "screens/transfer-ready.html",
+  tags: ["accounting"],
+  text: "Ready to transfer",
+};
 
 test("active-row constraint changes clear only controls that hide it", () => {
   assert.deepEqual(
@@ -208,6 +214,23 @@ test("free text matches row text or route regardless of term order", () => {
   assert.equal(
     rowMatchesQuery(parseSearchQuery("tag:forms welcome"), details),
     false,
+  );
+});
+
+test("free text matches a structured page id", () => {
+  assert.equal(
+    rowMatchesQuery(
+      parseSearchQuery("transactions-list-transfer-ready"),
+      transferReady,
+    ),
+    true,
+  );
+  assert.equal(
+    rowMatchesQuery(parseSearchQuery("TRANSACTIONS-LIST-TRANSFER-READY"), {
+      ...transferReady,
+      text: "Unrelated title",
+    }),
+    true,
   );
 });
 
