@@ -199,8 +199,8 @@ restoration identically. Old portable artifact links remain valid.
 
 ## Changes, Watch, And Publishing
 
-Pages participate in the All/Changes filter. Compare stable page metadata,
-real ancestor IDs/titles, the generated document, explicitly declared
+Pages participate in the All/Changes filter wherever review is enabled. Compare
+stable page metadata, real ancestor IDs/titles, the generated document, explicitly declared
 dependencies, and shared-impact paths against the Git branch point. Renaming
 or reparenting a page affects its route; moving unrelated source composition
 without changing those inputs does not mark every page in that module changed.
@@ -222,8 +222,11 @@ with the same title. Active ancestors open through the existing reveal logic.
 
 Static publishing includes each page route, generated document and resources,
 ID redirect, validated anchor navigation, metadata, search/filter behavior,
-and removed-v4-page state. It performs no page comparison generation. Preserve
-transactional publication and existing screen comparison artifacts.
+and the current hierarchy. The [publication option](./mokabook-publication.md)
+defaults to the current catalogue; only an explicit opt-in includes Changes,
+removed-v4-page state, and screen comparison artifacts. Removed pages are absent
+from ordinary publication. Preserve transactional publication and generate no
+page comparisons. Local development retains its Git-aware Changes behavior.
 
 ## Acceptance
 

@@ -38,6 +38,13 @@ historical comparison boundary. Whole-document comparisons and page-valued
 use-case steps are outside this change; pages use Current and participate in
 Changes as specified.
 
+[Optional Published Changes](./optional-published-changes.md) independently owns
+the publication opt-in and workflow defaults. Integrate pages with that
+[contract](../docs/protocol/mokabook-publication.md): ordinary publication shows
+current entries; review publication additionally includes Changes and removals.
+Complete that option before page publication acceptance; page authoring/compiler
+work can proceed independently.
+
 ## Working Rules
 
 Each milestone must leave the existing product and its applicable checks
@@ -181,8 +188,9 @@ and consumer fixtures switch to it.
       impact, and removed-v4-page metadata. Test reparenting, title edits, unrelated
       shared-module edits, route reuse, old baselines, and screen-only diff requests.
 - [ ] Update watcher inputs, reload attribution, and published catalogue
-      assembly, including page resources, ID redirects, anchors, removed-page
-      states, and unchanged transactional/screen-comparison behavior. Test that
+      assembly, including page resources, ID redirects, anchors, and removed-page
+      states only when publication includes Changes. Honor the optional-publication
+      contract and preserve transactional/screen-comparison behavior. Test that
       imported helpers remain watched and unavailable through static routes.
 - [ ] Update focused fixtures at each boundary, run relevant server, navigation,
       watch, review, preview, safety, and packed-API tests, and run the build.
@@ -208,6 +216,8 @@ runtime. This milestone contains presentation and client work only.
 - [ ] Exercise ID/title/route/tag search, All/Changes, active-row reveal,
       disclosures, scroll restoration, direct/in-frame links, Back/Forward, watch
       reparenting, and static fragment restoration at mobile and desktop widths.
+- [ ] Verify pages honor both publication capabilities: ordinary exports contain
+      current pages only; opted-in exports retain page Changes and removal states.
 - [ ] Ignore old `legacy:` disclosure keys without resetting existing
       `collection:` state or applying saved state by title. Verify this on reload.
 - [ ] Start the real server and compare screen, page, use-case, and missing-page

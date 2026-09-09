@@ -62,6 +62,10 @@ permissions.
 
 ## Preview Deployments
 
+The approved [publication option](./mokabook-publication.md) will make comparisons
+explicit in PR builds and omit them from main builds. It is not implemented;
+this section describes the current workflow, which includes review in both.
+
 `.github/workflows/preview.yml` deploys a browsable copy of the synthetic basic
 consumer to the direct-upload Cloudflare Pages project `mokabook`. A `main`
 push updates the production deployment at `https://mokabook.pages.dev`.

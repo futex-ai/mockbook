@@ -98,7 +98,9 @@ without an explicit preserved match is treated as an added current page.
 Unmatched v2/v3 legacy records have no catalogue IDs and remain historical
 artifact records; they never become synthetic removed-page entries. Normal v4
 page removals have real IDs and use the missing-current behavior in the page
-contract. Keep all existing screen/base asset-copying, ignored-region, resource
+contract wherever Changes is enabled. Ordinary publication omits removed pages;
+the [publication option](./mokabook-publication.md) explicitly enables review.
+Keep all existing screen/base asset-copying, ignored-region, resource
 confinement, cancellation, and publication safeguards through schema changes.
 
 ## Accounting Inventory

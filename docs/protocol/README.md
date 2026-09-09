@@ -12,6 +12,7 @@ delivery steps.
 - [Build and Browse runtime](./mokabook-runtime.md)
 - [Pages in the catalogue (approved target)](./mokabook-pages.md)
 - [Breaking page migration (approved target)](./mokabook-page-migration.md)
+- [Optional changes in publication (approved target)](./mokabook-publication.md)
 - [Changes and screen comparisons](./mokabook-changes.md)
 - [Watched development](./mokabook-watch.md)
 - [Catalogue navigation contract](./mokabook-navigation.md)

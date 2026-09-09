@@ -8,6 +8,10 @@ The approved [page-entry target](./mokabook-pages.md) adds page impact and
 missing-current states to this same filter while keeping comparison controls
 screen-only. Page support is planned; this document describes current behavior.
 
+The approved [publication option](./mokabook-publication.md) will make published
+Changes and comparisons opt-in. It is not implemented; the publishing behavior
+below remains current until that separate change lands.
+
 ## Screen controls
 
 Every structured screen offers Current / Side by side / Overlay / Difference
