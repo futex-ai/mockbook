@@ -3,7 +3,8 @@ import test from "node:test";
 
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
-import { run } from "../dist/cli/run.js";
+import path from "node:path";
+import { runReview } from "../dist/review/run.js";
 import { loadConfig } from "../dist/config/load.js";
 import { renderReviewArtifact } from "../dist/review/artifact.js";
 import { compareReview } from "../dist/review/compare.js";
@@ -11,7 +12,7 @@ import { normalizeReviewPair } from "../dist/review/ignore.js";
 import type { ReviewArtifact } from "../dist/review/types.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
-test("CLI Review output cannot overlap generated or authored roots", async (context) => {
+test("Comparison snapshot output cannot overlap generated or authored roots", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
   const config = await loadConfig(fixture.root);
@@ -19,11 +20,7 @@ test("CLI Review output cannot overlap generated or authored roots", async (cont
 
   for (const out of ["mockups/review", "entries/review"]) {
     await assert.rejects(
-      () =>
-        run(
-          ["review", "--config", fixture.configPath, "--out", out],
-          fixture.root,
-        ),
+      () => runReview(config, "HEAD", path.join(fixture.root, out)),
       /must not overlap/,
     );
   }
@@ -91,7 +88,7 @@ test("different material keys remain part of Review classification", () => {
   assert.notEqual(normalized.base, normalized.head);
 });
 
-test("Review comparison panes are sandboxed without script permission", () => {
+test("Comparison artifacts retain snapshots without standalone UI", () => {
   const artifact: ReviewArtifact = {
     files: new Map([
       ["screens/screens/home/mobile/before.html", "<html></html>"],
@@ -127,12 +124,12 @@ test("Review comparison panes are sandboxed without script permission", () => {
     },
   };
   const files = renderReviewArtifact(artifact);
-  const comparison = [...files]
-    .filter(([name]) => name.endsWith("/index.html"))
-    .map(([, content]) => String(content))[0];
-
-  assert.match(comparison ?? "", /<iframe[^>]+sandbox=""/);
-  assert.doesNotMatch(comparison ?? "", /allow-scripts/);
+  assert.equal(files.has("index.html"), false);
+  assert.equal(files.has("review-navigation.js"), false);
+  assert.equal(
+    files.get("screens/screens/home/mobile/before.html"),
+    "<html></html>",
+  );
 });
 
 test("Review retains marker-bearing pane bytes as portable output", async (context) => {

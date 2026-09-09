@@ -1,5 +1,5 @@
 // Copies package-owned shell assets and bundles the dependency-free navigation
-// resize client as a classic script for both served and offline pages.
+// resize client as a classic script for served and static catalogues.
 import fs from "node:fs";
 import path from "node:path";
 

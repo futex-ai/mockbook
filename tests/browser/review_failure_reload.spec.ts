@@ -20,6 +20,7 @@ import {
 let fixture: TestFixture;
 let server: RunningServer;
 let shouldFail = true;
+let generations = 0;
 
 test.beforeAll(async () => {
   fixture = await createFixture();
@@ -27,11 +28,12 @@ test.beforeAll(async () => {
   const review: ServedReview = {
     base: "origin/main",
     async generate(): Promise<void> {
+      generations += 1;
       if (shouldFail) throw new Error("temporary comparison failure");
       await fs.promises.mkdir(outDir, { recursive: true });
       await fs.promises.writeFile(
-        path.join(outDir, "index.html"),
-        '<!doctype html><html><body><h1>Recovered review</h1><script src="/__mokabook/client/browser.js" type="module"></script></body></html>',
+        path.join(outDir, "review.json"),
+        JSON.stringify({ screens: [] }),
       );
       await fs.promises.writeFile(
         path.join(outDir, ".mokabook-review-artifact"),
@@ -54,7 +56,7 @@ test.afterAll(async () => {
   await removeFixture(fixture);
 });
 
-test("a watched update recovers an open Review failure page", async ({
+test("a watched update resets failed diffs to Current without generating", async ({
   page,
 }) => {
   const eventStream = page.waitForResponse(
@@ -62,18 +64,26 @@ test("a watched update recovers an open Review failure page", async ({
       new URL(response.url()).pathname === "/__mokabook/events" &&
       response.status() === 200,
   );
-  const response = await page.goto(`${server.url}/review/index.html`);
-  expect(response?.status()).toBe(500);
-  await expect(
-    page.locator('script[src="/__mokabook/client/browser.js"]'),
-  ).toHaveCount(1);
+  await page.goto(`${server.url}/view/screens/home.html`);
   await eventStream;
-
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Try again", exact: true }),
+  ).toBeVisible();
+  expect(generations).toBe(1);
   shouldFail = false;
   server.publishUpdate({ version: 2 });
-
-  await expect(page.locator("h1")).toHaveText("Recovered review");
-  await expect(page).toHaveURL(
-    /\/review\/__generations\/[a-f0-9-]+\/index\.html$/,
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-mokabook-update-version",
+    "2",
   );
+  await expect(
+    page.getByRole("button", { name: "Current", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(generations).toBe(1);
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(page.locator("[data-diff-stage]")).toContainText(
+    "This screen has no comparison available.",
+  );
+  expect(generations).toBe(2);
 });

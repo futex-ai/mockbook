@@ -1,0 +1,68 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+import { expect, test } from "@playwright/test";
+
+import { repositoryRoot } from "../helpers/fixture.js";
+
+const design = (route: string): string =>
+  pathToFileURL(
+    path.join(repositoryRoot, "examples/basic/generated/design", route),
+  ).href;
+
+test("flow designs keep comparisons on the owning screens", async ({
+  page,
+}) => {
+  for (const viewport of ["desktop", "mobile"]) {
+    await page.goto(design(`browse/views/use-case.${viewport}.html`));
+    await expect(
+      page.getByRole("group", { name: "Comparison mode" }),
+    ).toHaveCount(0);
+    await expect(page.locator(".flow-step-link")).toHaveCount(2);
+  }
+});
+
+test("comparison designs use screen context instead of report chrome", async ({
+  page,
+}) => {
+  for (const route of [
+    "outcomes/changed",
+    "outcomes/added",
+    "outcomes/removed",
+    "outcomes/difference",
+    "outcomes/dark-scheme",
+    "impact/shared-impact",
+    "impact/ignored-only",
+  ]) {
+    for (const viewport of ["desktop", "mobile"]) {
+      await page.goto(design(`review/${route}.${viewport}.html`));
+      await expect(
+        page.locator(".mbk-title-row .mbk-status, .mbk-review-summary"),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText("Comparison details", { exact: true }),
+      ).toBeVisible();
+      await expect(page.locator(".mbk-nav-resize")).toHaveCount(
+        viewport === "desktop" ? 1 : 0,
+      );
+      await expect(
+        page
+          .locator(viewport === "desktop" ? ".browser-frame" : ".phone-frame")
+          .first(),
+      ).toBeVisible();
+    }
+  }
+});
+
+test("empty Changes designs retain the selected current screen", async ({
+  page,
+}) => {
+  for (const viewport of ["desktop", "mobile"]) {
+    await page.goto(design(`review/impact/empty.${viewport}.html`));
+    await expect(page.locator(".mbk-screen-head h2")).toHaveText("Welcome");
+    await expect(
+      page.getByRole("group", { name: "Comparison mode" }),
+    ).toContainText("Current");
+    await expect(page.locator(".mbk-nav-filter-count")).toHaveText("0");
+  }
+});

@@ -1,100 +1,103 @@
-/** Compare-stage styles shared by served Review pages and the static
- * artifact: the before/after pane grid with its side-by-side, overlay, and
- * difference modes, embedded pane frames, and evidence cards. */
+/** In-place comparison controls and isolated snapshot panes. */
 
-/** Review compare-stage styles appended to the shell stylesheet. */
+/** Styles appended to the catalogue shell. */
 export const SHELL_REVIEW_CSS = `
-.mb-frag {
-  border: 0;
-  display: block;
-  min-height: 30rem;
-  width: 100%;
-}
-
-.mb-panes {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-}
-
-.mb-pane {
+.mbk-diff-screen, .mbk-current-screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   min-width: 0;
 }
-
-.mb-pane-label {
-  color: var(--mb-muted);
-  font-size: 0.78rem;
-  margin: 0 0 0.4rem;
-}
-
-.mb-pane-doc {
-  background: var(--mb-surface);
-  border: 1px solid var(--mb-border);
-  border-radius: 8px;
-  box-shadow: var(--mb-shadow);
-  overflow: hidden;
-}
-
-.mb-pane-doc--added { border-color: var(--mb-added); }
-.mb-pane-doc--removed { border-color: var(--mb-removed); }
-
-.mb-pane-doc .mb-frag {
-  height: 70vh;
-}
-
-.mb-pane-missing {
-  align-items: center;
-  border: 1px dashed var(--mb-border);
-  border-radius: 8px;
-  color: var(--mb-muted);
+.mbk-diff-screen [hidden] { display: none; }
+.mbk-diff-toolbar {
   display: flex;
-  font-size: 0.8rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--chrome-border);
+  background: var(--chrome-surface);
+}
+.mbk-diff-refresh {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  min-height: 13rem;
-  padding: 1rem;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--chrome-accent);
+  font: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+.mbk-diff-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
+  background: radial-gradient(circle, rgba(20,28,22,.05) 1px, transparent 1px) 0 0 / 22px 22px;
+}
+.mbk-diff-view { margin-bottom: 24px; }
+.mbk-diff-view h3 {
+  margin: 0 0 12px;
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+.mb-panes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  isolation: isolate;
+}
+.mbk-diff-mobile .mb-panes {
+  grid-template-columns: repeat(2, 390px);
+}
+.mb-pane { min-width: 0; }
+.mb-pane-label {
+  color: var(--chrome-muted);
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+.mb-pane-doc { width: 100%; }
+.mb-pane-missing {
+  display: grid;
+  place-content: center;
+  min-height: 240px;
+  padding: 20px;
+  border: 1px dashed var(--chrome-border-strong);
+  border-radius: 12px;
+  background: var(--chrome-surface);
+  color: var(--chrome-muted);
   text-align: center;
 }
-
 .mb-panes[data-compare-mode="overlay"],
-.mb-panes[data-compare-mode="difference"] {
-  grid-template-columns: 1fr;
-}
-
-.mb-panes[data-compare-mode="overlay"] .mb-pane,
-.mb-panes[data-compare-mode="difference"] .mb-pane {
-  grid-area: 1 / 1;
-}
-
-.mb-panes[data-compare-mode="overlay"] .mb-pane--after {
-  opacity: 0.5;
-}
-
-.mb-panes[data-compare-mode="difference"] .mb-pane--after .mb-pane-doc {
-  mix-blend-mode: difference;
-}
-
-.mb-panes[data-compare-mode="difference"] {
-  background: #fff;
-}
-
+.mb-panes[data-compare-mode="difference"] { grid-template-columns: minmax(0, 1fr); }
+.mbk-diff-mobile .mb-panes:not([data-compare-mode="side"]) { grid-template-columns: 390px; }
+.mb-panes:not([data-compare-mode="side"]) .mb-pane { grid-area: 1 / 1; }
+.mb-panes:not([data-compare-mode="side"]) .mb-pane-label { visibility: hidden; }
+.mb-panes[data-compare-mode="overlay"] .mb-pane--after { opacity: .5; }
+.mb-panes[data-compare-mode="difference"] .mb-pane--after .mb-pane-doc { mix-blend-mode: difference; }
 .mb-impact-card {
-  background: var(--mb-surface);
-  border: 1px solid var(--mb-border);
-  border-radius: var(--mb-radius);
-  flex-shrink: 0;
-  font-size: 0.8rem;
-  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--chrome-border);
+  border-radius: 8px;
+  background: var(--chrome-surface);
+  padding: 12px;
+  color: var(--chrome-ink-2);
+  overflow-wrap: anywhere;
 }
-
-.mb-impact-card h3 {
-  font-size: 0.72rem;
-  letter-spacing: 0.07em;
-  margin: 0 0 0.35rem;
-  text-transform: uppercase;
-}
-
-.mb-impact-card p {
-  color: var(--mb-muted);
-  margin: 0.35rem 0 0;
+.mb-impact-card summary { cursor: pointer; font-weight: 600; }
+.mb-impact-card p, .mb-impact-card ul { margin: 8px 0 0; }
+@media (max-width: 56.25rem) {
+  .mbk-diff-toolbar { padding: 8px 12px; }
+  .mbk-diff-toolbar .mbk-seg { flex: 1; }
+  .mbk-diff-toolbar .mbk-seg button { flex: 1; padding: 6px; white-space: nowrap; font-size: 11px; }
+  .mbk-diff-stage { padding: 16px; }
+  .mb-panes[data-compare-mode="side"],
+  .mbk-diff-mobile .mb-panes { grid-template-columns: minmax(0, 1fr); }
+  .mbk-diff-mobile .mb-panes:not([data-compare-mode="side"]) { grid-template-columns: minmax(0, 1fr); }
 }
 `;

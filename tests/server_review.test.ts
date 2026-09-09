@@ -1,70 +1,57 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { promisify } from "node:util";
 
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
 import { startCatalogueServer } from "../dist/server/http.js";
 import type { ServedReview } from "../dist/server/review_routes.js";
-import { serve } from "../dist/server/serve.js";
 import {
   createFixture,
   removeFixture,
-  validEntrySource,
   type TestFixture,
 } from "./helpers/fixture.js";
 
-const execFileAsync = promisify(execFile);
-
-async function git(root: string, args: readonly string[]): Promise<void> {
-  await execFileAsync("git", args, { cwd: root });
-}
+const endpoint = "/__mokabook/diffs/review.json";
 
 function countingReview(
   outDir: string,
-): ServedReview & { generations: number } {
+): ServedReview & { generations: number; failAt: number } {
   return {
     base: "origin/main",
+    outDir,
+    generations: 0,
+    failAt: -1,
     async generate(): Promise<void> {
       this.generations += 1;
-      await fs.promises.mkdir(outDir, { recursive: true });
-      await fs.promises.writeFile(
-        path.join(outDir, "index.html"),
-        `<!doctype html><html><body><h1>Generation ${this.generations}</h1><script src="/__mokabook/client/browser.js" type="module"></script></body></html>`,
-      );
-      await fs.promises.writeFile(
-        path.join(outDir, "review-navigation.js"),
-        `// Generation ${this.generations}\n`,
-      );
-      await fs.promises.mkdir(path.join(outDir, "snapshots", "head"), {
+      await fs.promises.mkdir(path.join(outDir, "snapshots/head"), {
         recursive: true,
       });
       await fs.promises.writeFile(
-        path.join(outDir, "snapshots", "head", "pane.html"),
-        paneDocument(this.generations),
+        path.join(outDir, "review.json"),
+        JSON.stringify({ generation: this.generations }),
+      );
+      await fs.promises.writeFile(
+        path.join(outDir, "snapshots/head/pane.html"),
+        `<h1>Generation ${this.generations}</h1>`,
+      );
+      await fs.promises.writeFile(
+        path.join(outDir, "snapshots/head/style.css"),
+        `/* Generation ${this.generations} */`,
       );
       await fs.promises.writeFile(
         path.join(outDir, ".mokabook-review-artifact"),
-        "schemaVersion=1\n",
+        "schemaVersion=2\n",
       );
+      if (this.generations === this.failAt)
+        throw new Error("private provider failure");
     },
-    generations: 0,
-    outDir,
   };
 }
 
-function paneDocument(generation: number): string {
-  return `<!doctype html><html data-review-pane="original"><body><h1>Generation ${generation}</h1></body></html>`;
-}
-
-async function startedFixtureServer(
-  fixture: TestFixture,
-  review?: ServedReview,
-) {
+async function start(fixture: TestFixture, review?: ServedReview) {
   const config = await loadConfig(fixture.root);
   await writeCompilation(await compileCatalogue(config), config);
   return startCatalogueServer(config, {
@@ -74,269 +61,138 @@ async function startedFixtureServer(
   });
 }
 
-test("served review generates lazily, recomputes on refresh, and stays safe", async (context) => {
+test("comparisons generate on demand and retain immutable snapshots after refresh", async (t) => {
   const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
+  t.after(() => removeFixture(fixture));
   const review = countingReview(path.join(fixture.root, ".review"));
-  const server = await startedFixtureServer(fixture, review);
-  context.after(() => server.close());
-
-  const redirect = await fetch(`${server.url}/review`, { redirect: "manual" });
-  assert.equal(redirect.status, 302);
-  assert.equal(redirect.headers.get("location"), "/review/index.html");
-
-  const first = await fetch(`${server.url}/review/index.html`);
+  const server = await start(fixture, review);
+  t.after(() => server.close());
+  await fetch(`${server.url}/view/screens/home.html`);
+  assert.equal(review.generations, 0);
+  assert.equal((await fetch(`${server.url}/review`)).status, 404);
+  const first = await fetch(`${server.url}${endpoint}`);
   assert.equal(first.status, 200);
-  assert.match(first.url, /\/review\/__generations\/[a-f0-9-]+\/index\.html$/);
-  assert.match(first.headers.get("content-type") ?? "", /text\/html/);
-  const firstHtml = await first.text();
-  assert.match(firstHtml, /Generation 1/);
-  assert.match(firstHtml, /data-mokabook-update-version="1"/);
-  assert.match(
-    await (await fetch(`${server.url}/review/index.html`)).text(),
-    /Generation 1/,
+  assert.match(first.url, /\/__generations\/[a-f0-9-]+\/review\.json$/);
+  assert.match(first.headers.get("content-type") ?? "", /application\/json/);
+  assert.equal(first.headers.get("cache-control"), "no-store");
+  assert.deepEqual(await first.json(), { generation: 1 });
+  const originalPane = new URL("snapshots/head/pane.html", first.url);
+  const originalStyle = new URL("snapshots/head/style.css", first.url);
+  assert.equal(
+    await (await fetch(originalPane)).text(),
+    "<h1>Generation 1</h1>",
   );
-  const firstNavigationUrl = new URL("review-navigation.js", first.url);
-  const firstPaneUrl = new URL("snapshots/head/pane.html", first.url);
-  const firstNavigation = await fetch(firstNavigationUrl);
-  assert.equal(firstNavigation.headers.get("cache-control"), "no-store");
-  assert.match(await firstNavigation.text(), /Generation 1/);
-  assert.equal(await (await fetch(firstPaneUrl)).text(), paneDocument(1));
+  await fetch(`${server.url}${endpoint}`);
   assert.equal(review.generations, 1);
-
-  const refreshed = await fetch(`${server.url}/review?refresh=1`);
-  assert.notEqual(refreshed.url, first.url);
-  const refreshedHtml = await refreshed.text();
-  assert.match(refreshedHtml, /Generation 2/);
-  assert.match(refreshedHtml, /data-mokabook-update-version="1"/);
-  assert.equal(review.generations, 2);
-  const refreshedNavigation = await fetch(
-    new URL("review-navigation.js", refreshed.url),
+  assert.equal(
+    await (await fetch(`${originalPane.href}?refresh=1`)).text(),
+    "<h1>Generation 1</h1>",
   );
-  assert.equal(refreshedNavigation.headers.get("cache-control"), "no-store");
-  assert.match(await refreshedNavigation.text(), /Generation 2/);
-  assert.match(await (await fetch(firstNavigationUrl)).text(), /Generation 1/);
-  assert.match(await (await fetch(firstPaneUrl)).text(), /Generation 1/);
-
-  const head = await fetch(`${server.url}/review/index.html`, {
-    method: "HEAD",
-  });
+  assert.equal(review.generations, 1);
+  const invalid = new URL("index.html?refresh=1", first.url);
+  assert.equal((await fetch(invalid)).status, 404);
+  assert.equal(review.generations, 1);
+  const refreshed = await fetch(`${server.url}${endpoint}?refresh=1`);
+  assert.notEqual(refreshed.url, first.url);
+  assert.deepEqual(await refreshed.json(), { generation: 2 });
+  assert.match(await (await fetch(originalPane)).text(), /Generation 1/);
+  assert.match(await (await fetch(originalStyle)).text(), /Generation 1/);
+  const head = await fetch(`${server.url}${endpoint}`, { method: "HEAD" });
   assert.equal(head.status, 200);
   assert.equal(await head.text(), "");
-
-  assert.equal(
-    (await fetch(`${server.url}/review/%2e%2e/package.json`)).status,
-    404,
-  );
-  assert.equal((await fetch(`${server.url}/review/missing.css`)).status, 404);
+  for (const suffix of [
+    "index.html",
+    "../package.json",
+    "%2e%2e/package.json",
+    "snapshots%2fhead%2fpane.html",
+  ]) {
+    assert.equal((await fetch(new URL(suffix, first.url))).status, 404);
+  }
 });
 
-test("published updates invalidate the served review artifact", async (context) => {
+test("watched invalidation waits for the next comparison request", async (t) => {
   const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
+  t.after(() => removeFixture(fixture));
   const review = countingReview(path.join(fixture.root, ".review"));
-  const server = await startedFixtureServer(fixture, review);
-  context.after(() => server.close());
-
-  const initial = await fetch(`${server.url}/review/index.html`);
-  assert.match(await initial.text(), /Generation 1/);
-
+  const server = await start(fixture, review);
+  t.after(() => server.close());
+  const initial = await fetch(`${server.url}${endpoint}`);
   server.publishUpdate();
-
-  const regenerated = await Promise.all([
-    fetch(initial.url).then(async (response) => ({
-      body: await response.text(),
-      url: response.url,
-    })),
-    fetch(`${server.url}/review/index.html`).then((response) =>
-      response.text().then((body) => ({ body, url: response.url })),
-    ),
+  assert.equal(review.generations, 1);
+  const results = await Promise.all([
+    fetch(initial.url),
+    fetch(`${server.url}${endpoint}`),
   ]);
-  for (const result of regenerated) {
-    assert.match(result.body, /Generation 2/);
-    assert.match(result.body, /data-mokabook-update-version="2"/);
-    assert.notEqual(result.url, initial.url);
+  for (const response of results) {
+    assert.deepEqual(await response.json(), { generation: 2 });
+    assert.notEqual(response.url, initial.url);
   }
   assert.equal(review.generations, 2);
 });
 
-test("a failed review generation answers a retryable page and then recovers", async (context) => {
+test("comparison failures return product copy and permit a retry", async (t) => {
   const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
-  const outDir = path.join(fixture.root, ".review");
-  let shouldFail = true;
-  const review: ServedReview = {
-    base: "origin/main",
-    async generate(): Promise<void> {
-      if (shouldFail) throw new Error("base ref is unavailable");
-      await fs.promises.mkdir(outDir, { recursive: true });
-      await fs.promises.writeFile(
-        path.join(outDir, "index.html"),
-        "<h1>Recovered</h1>",
-      );
-      await fs.promises.writeFile(
-        path.join(outDir, ".mokabook-review-artifact"),
-        "schemaVersion=1\n",
-      );
-    },
-    outDir,
-  };
-  const server = await startedFixtureServer(fixture, review);
-  context.after(() => server.close());
-
-  const failed = await fetch(`${server.url}/review/index.html`);
+  t.after(() => removeFixture(fixture));
+  const review = countingReview(path.join(fixture.root, ".review"));
+  review.failAt = 1;
+  const server = await start(fixture, review);
+  t.after(() => server.close());
+  const failed = await fetch(`${server.url}${endpoint}`);
   assert.equal(failed.status, 500);
-  const failedHtml = await failed.text();
-  assert.match(failedHtml, /Review comparison failed/);
-  assert.match(failedHtml, /data-mokabook-update-version="1"/);
-  assert.match(failedHtml, /Comparing this branch with <strong>origin\/main/);
-  assert.match(failedHtml, /base ref is unavailable/);
-  assert.match(failedHtml, /\/review\/index\.html\?refresh=1/);
-  assert.match(
-    failedHtml,
-    /<script src="\/__mokabook\/client\/browser\.js" type="module"><\/script>/,
+  assert.equal(failed.headers.get("cache-control"), "no-store");
+  const body = await failed.text();
+  assert.match(body, /comparison could not be loaded/);
+  assert.doesNotMatch(
+    (JSON.parse(body) as { error: string }).error,
+    /private provider failure|<html/,
   );
-
-  shouldFail = false;
-  const recovered = await fetch(`${server.url}/review/index.html`);
-  assert.equal(recovered.status, 200);
-  assert.match(await recovered.text(), /Recovered/);
+  assert.match(
+    (JSON.parse(body) as { details: string }).details,
+    /private provider failure/,
+  );
+  assert.deepEqual(
+    await (await fetch(`${server.url}${endpoint}?refresh=1`)).json(),
+    { generation: 2 },
+  );
 });
 
-test("a failed recompute restores the served generation", async (context) => {
+test("failed refresh restores previous snapshots and shutdown removes archives", async (t) => {
   const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
-  const outDir = path.join(fixture.root, ".review");
-  let attempts = 0;
-  const review: ServedReview = {
-    base: "origin/main",
-    async generate(): Promise<void> {
-      attempts += 1;
-      await fs.promises.mkdir(outDir, { recursive: true });
-      await fs.promises.writeFile(
-        path.join(outDir, "index.html"),
-        `<h1>Generation ${attempts}</h1>`,
-      );
-      await fs.promises.writeFile(
-        path.join(outDir, "review-navigation.js"),
-        `// Generation ${attempts}\n`,
-      );
-      await fs.promises.writeFile(
-        path.join(outDir, ".mokabook-review-artifact"),
-        "schemaVersion=1\n",
-      );
-      if (attempts === 2) throw new Error("replacement interrupted");
-    },
-    outDir,
-  };
-  const server = await startedFixtureServer(fixture, review);
+  t.after(() => removeFixture(fixture));
+  const review = countingReview(path.join(fixture.root, ".review"));
+  review.failAt = 2;
+  const server = await start(fixture, review);
   let closed = false;
-  context.after(async () => {
-    if (!closed) await server.close();
-  });
-
-  const first = await fetch(`${server.url}/review/index.html`);
-  assert.match(await first.text(), /Generation 1/);
-
-  const failed = await fetch(`${server.url}/review/index.html?refresh=1`);
+  t.after(() => (closed ? undefined : server.close()));
+  const first = await fetch(`${server.url}${endpoint}`);
+  const failed = await fetch(`${server.url}${endpoint}?refresh=1`);
   assert.equal(failed.status, 500);
-  assert.match(await failed.text(), /replacement interrupted/);
   assert.match(
-    await (await fetch(new URL("review-navigation.js", first.url))).text(),
+    await (await fetch(new URL("snapshots/head/pane.html", first.url))).text(),
     /Generation 1/,
   );
-
-  const recovered = await fetch(`${server.url}/review/index.html`);
-  assert.match(await recovered.text(), /Generation 3/);
-  assert.equal(attempts, 3);
-
+  assert.deepEqual(await (await fetch(`${server.url}${endpoint}`)).json(), {
+    generation: 3,
+  });
   await server.close();
   closed = true;
   assert.equal(
-    (await fs.promises.readdir(path.dirname(outDir))).some((entry) =>
+    (await fs.promises.readdir(fixture.root)).some((entry) =>
       entry.startsWith(".mokabook-review-served-"),
     ),
     false,
   );
 });
 
-test("a server without a review provider keeps the launcher view", async (context) => {
+test("static catalogue servers omit unavailable diff controls and Review routes", async (t) => {
   const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
-  const server = await startedFixtureServer(fixture);
-  context.after(() => server.close());
-
-  const launcher = await fetch(`${server.url}/review`);
-  assert.equal(launcher.status, 200);
-  assert.match(await launcher.text(), /mokabook review --base origin\/main/);
-  assert.equal((await fetch(`${server.url}/review/index.html`)).status, 404);
-});
-
-test("no-watch serve exposes the Git comparison with compare pages", async (context) => {
-  const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
-  const config = await loadConfig(fixture.root);
-  await writeCompilation(await compileCatalogue(config), config);
-  await git(fixture.root, ["init", "-q"]);
-  await git(fixture.root, ["config", "user.name", "Mokabook Test"]);
-  await git(fixture.root, ["config", "user.email", "mokabook@example.invalid"]);
-  await git(fixture.root, ["add", "."]);
-  await git(fixture.root, ["commit", "-qm", "test: base catalogue"]);
-  await fs.promises.writeFile(
-    fixture.entryPath,
-    validEntrySource({ firstTitle: "Updated Home" }),
-  );
-
-  const running = await serve(config, { base: "HEAD", port: 0, watch: false });
-  context.after(() => running.close());
-
-  const index = await fetch(`${running.url}/review/index.html`);
-  assert.equal(index.status, 200);
-  const indexHtml = await index.text();
-  assert.match(indexHtml, /Mokabook review/);
-  assert.match(indexHtml, /Updated Home/);
-  assert.match(indexHtml, /href="\/">Browse<\/a>/);
-  assert.match(indexHtml, /Recompute the comparison/);
-  const compareHref = indexHtml.match(/href="(comparisons\/[^"]+)"/)?.[1];
-  assert.ok(compareHref);
-
-  const compareUrl = new URL(compareHref, index.url);
-  const compare = await fetch(compareUrl);
-  assert.equal(compare.status, 200);
-  const compareHtml = await compare.text();
-  assert.match(compareHtml, /data-mode="side"/);
-  assert.match(compareHtml, /data-mode="overlay"/);
-  assert.match(compareHtml, /data-mode="difference"/);
-  assert.match(compareHtml, /Before — HEAD/);
-  assert.match(compareHtml, /After — this branch/);
-  assert.match(compareHtml, /href="\/">Browse<\/a>/);
-  assert.match(compareHtml, /\/__mokabook\/client\/browser\.js/);
-
-  const navigation = await fetch(new URL("review-navigation.js", index.url));
-  assert.equal(navigation.status, 200);
-  assert.match(navigation.headers.get("content-type") ?? "", /javascript/);
-  assert.match(await navigation.text(), /data-mokabook-review-route/);
-
-  assert.equal(fs.existsSync(path.join(fixture.root, ".gitignore")), false);
-  const refreshed = await fetch(`${running.url}/review/index.html?refresh=1`);
-  const reviewJson = (await (
-    await fetch(new URL("review.json", refreshed.url))
-  ).json()) as { changedPaths: string[] };
-  assert.equal(
-    reviewJson.changedPaths.some((changed) =>
-      changed.includes(".mokabook-review-served-"),
-    ),
-    false,
-  );
-
-  const paneSrc = compareHtml.match(/<iframe[^>]*src="([^"]+)"/)?.[1];
-  assert.ok(paneSrc);
-  const pane = await fetch(new URL(paneSrc, compare.url));
-  assert.equal(pane.status, 200);
-  const paneHtml = await pane.text();
-  assert.match(paneHtml, /Home/);
-  assert.match(paneHtml, /href="\.\/details\.mobile\.html"/);
-  assert.match(paneHtml, /data-mokabook-link="details"/);
-  assert.doesNotMatch(paneHtml, /data-mokabook-target/);
-  assert.match(compareHtml, /<iframe[^>]+sandbox=""/);
+  t.after(() => removeFixture(fixture));
+  const server = await start(fixture);
+  t.after(() => server.close());
+  const html = await (
+    await fetch(`${server.url}/view/screens/home.html`)
+  ).text();
+  assert.doesNotMatch(html, /data-diff-mode|href="\/review"/);
+  assert.equal((await fetch(`${server.url}${endpoint}`)).status, 404);
+  assert.equal((await fetch(`${server.url}/review`)).status, 404);
 });

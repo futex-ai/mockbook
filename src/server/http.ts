@@ -16,7 +16,8 @@ import {
   loadBrowserNavigationModules,
   loadShellFontAssets,
 } from "./client_modules.js";
-import { homePage, notFoundPage, reviewPage, viewPage } from "./pages.js";
+import { homePage, notFoundPage, viewPage } from "./pages.js";
+import { removedScreens } from "./removed_screens.js";
 import { requestedFragment, withFragmentQuery } from "./fragments.js";
 import { listenOnAvailablePort } from "./ports.js";
 import { safeDecode, safeDecodePath, send } from "./respond.js";
@@ -31,7 +32,7 @@ export interface ServerOptions {
   base: string;
   changedRoutes?: readonly string[];
   port: number;
-  /** When set, `/review` serves this comparison instead of the launcher. */
+  /** Enables on-demand comparison JSON and isolated snapshots. */
   review?: ServedReview;
   strictPort?: boolean;
   updateVersion?: number;
@@ -50,7 +51,11 @@ export async function startCatalogueServer(
   config: ResolvedConfig,
   options: ServerOptions,
 ): Promise<RunningServer> {
-  const catalogue = createCatalogue(readManifest(config));
+  const manifest = readManifest(config);
+  const removed = options.review
+    ? await removedScreens(config, manifest, options.base)
+    : [];
+  const catalogue = createCatalogue(manifest, removed);
   const clientModules = loadBrowserClientModules();
   const navigationModules = loadBrowserNavigationModules();
   const fontAssets = loadShellFontAssets();
@@ -134,12 +139,20 @@ function handleRequest(
     return send(response, 405, "text/plain", "Method not allowed", method);
   const url = new URL(rawUrl, "http://mokabook.invalid");
   const requestVersion = currentVersion();
+  const changed = currentChangedRoutes();
   const context = shellContext(
     base,
-    currentChangedRoutes(),
-    "browse",
+    changed
+      ? [
+          ...new Set([
+            ...changed,
+            ...catalogue.removedScreens.map((screen) => screen.route),
+          ]),
+        ]
+      : undefined,
     requestVersion,
   );
+  context.comparisons = reviewRoutes !== undefined;
   if (url.pathname === "/")
     return send(
       response,
@@ -148,25 +161,10 @@ function handleRequest(
       homePage(catalogue, context),
       method,
     );
-  if (
-    reviewRoutes &&
-    (url.pathname === "/review" || url.pathname.startsWith("/review/"))
-  ) {
-    void reviewRoutes.handle(url, response, method, requestVersion);
+  if (reviewRoutes && url.pathname.startsWith("/__mokabook/diffs/")) {
+    void reviewRoutes.handle(url, response, method);
     return;
   }
-  if (url.pathname === "/review")
-    return send(
-      response,
-      200,
-      "text/html",
-      reviewPage(
-        base,
-        catalogue,
-        shellContext(base, currentChangedRoutes(), "review", requestVersion),
-      ),
-      method,
-    );
   if (url.pathname === "/__mokabook/shell.css")
     return send(response, 200, "text/css", SHELL_CSS, method);
   if (url.pathname === "/__mokabook/events")
@@ -273,7 +271,10 @@ function renderView(
   method: string,
 ): void {
   const route = safeDecodePath(encodedRoute);
-  const entry = route ? catalogue.byRoute.get(route) : undefined;
+  const entry = route
+    ? (catalogue.byRoute.get(route) ??
+      catalogue.removedScreens.find((screen) => screen.route === route))
+    : undefined;
   if (!entry)
     return send(
       response,
@@ -283,7 +284,14 @@ function renderView(
       method,
     );
   const manifestEntry = "kind" in entry ? entry : undefined;
-  const fragment = requestedFragment(url, manifestEntry, catalogue, config);
+  const removed = catalogue.removedScreens.some(
+    (screen) => screen.route === route,
+  );
+  const fragment = removed
+    ? url.searchParams.has("fragment")
+      ? null
+      : undefined
+    : requestedFragment(url, manifestEntry, catalogue, config);
   if (fragment === null) {
     return send(response, 400, "text/plain", "Invalid fragment query", method);
   }

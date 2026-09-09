@@ -23,7 +23,7 @@ const NAV_TREE: readonly NavNode[] = [
   { depth: 1, kind: "flow", label: "Example tour" },
   { count: 2, depth: 0, kind: "collection", label: "Design", open: true },
   { depth: 1, kind: "collection", label: "Browse shell" },
-  { depth: 1, kind: "collection", label: "Review" },
+  { depth: 1, kind: "collection", label: "Changes" },
 ];
 
 /** Left padding applied to a top-level (depth 0) row, in pixels. */
@@ -101,11 +101,18 @@ function NavRow({
 
 interface NavTreeProps {
   activeLabel?: string | undefined;
+  changedCount?: number | undefined;
+  changedOnly?: boolean | undefined;
   /** Rows to draw instead of the whole catalogue, as a filter leaves them. */
   nodes?: readonly NavNode[] | undefined;
 }
 
-function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
+function CatalogueBody({
+  activeLabel,
+  changedCount = 3,
+  changedOnly,
+  nodes,
+}: NavTreeProps) {
   return (
     <>
       <div className="mbk-nav-head">
@@ -116,9 +123,19 @@ function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
         role="group"
         aria-label="Catalogue filter"
       >
-        <span className="mbk-nav-filter-opt active">All</span>
-        <span className="mbk-nav-filter-opt">
-          Changed<span className="mbk-nav-filter-count">3</span>
+        <span
+          className={
+            changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
+          }
+        >
+          All
+        </span>
+        <span
+          className={
+            changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
+          }
+        >
+          Changes<span className="mbk-nav-filter-count">{changedCount}</span>
         </span>
       </div>
       <div className="mbk-nav-scroll">
@@ -135,20 +152,40 @@ function CatalogueBody({ activeLabel, nodes }: NavTreeProps) {
 }
 
 /** Persistent desktop catalogue navigation. */
-export function NavTree({ activeLabel, nodes }: NavTreeProps) {
+export function NavTree({
+  activeLabel,
+  changedCount,
+  changedOnly,
+  nodes,
+}: NavTreeProps) {
   return (
     <nav className="mbk-nav" aria-label="Catalogue">
-      <CatalogueBody activeLabel={activeLabel} nodes={nodes} />
+      <CatalogueBody
+        activeLabel={activeLabel}
+        changedCount={changedCount}
+        changedOnly={changedOnly}
+        nodes={nodes}
+      />
       <NavResizeHandle />
     </nav>
   );
 }
 
 /** Mobile catalogue navigation drawer, shown open. */
-export function NavDrawer({ activeLabel, nodes }: NavTreeProps) {
+export function NavDrawer({
+  activeLabel,
+  changedCount,
+  changedOnly,
+  nodes,
+}: NavTreeProps) {
   return (
     <nav className="mbk-nav mbk-drawer" aria-label="Catalogue">
-      <CatalogueBody activeLabel={activeLabel} nodes={nodes} />
+      <CatalogueBody
+        activeLabel={activeLabel}
+        changedCount={changedCount}
+        changedOnly={changedOnly}
+        nodes={nodes}
+      />
     </nav>
   );
 }

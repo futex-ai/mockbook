@@ -1,39 +1,23 @@
 import type { ReactNode } from "react";
 
-import { StatusBadge, type ReviewState } from "./review.js";
-import { SchemeSwitch, type ShellColorScheme } from "./shell.js";
+import type { ReviewState } from "./review.js";
 
 interface CompareToolbarProps {
-  /**
-   * Selected color scheme, shown as a segment beside the viewport control.
-   * Omitted for a screen compared in one scheme, which has nothing to switch.
-   */
-  colorScheme?: ShellColorScheme | undefined;
-  mode: "difference" | "overlay" | "side-by-side";
-  viewport: "desktop" | "mobile";
+  mode: "current" | "difference" | "overlay" | "side-by-side";
 }
 
 const MODE_LABELS: readonly {
   key: CompareToolbarProps["mode"];
   label: string;
 }[] = [
+  { key: "current", label: "Current" },
   { key: "side-by-side", label: "Side by side" },
   { key: "overlay", label: "Overlay" },
   { key: "difference", label: "Difference" },
 ];
 
-const VIEWPORT_LABELS: readonly { key: string; label: string }[] = [
-  { key: "mobile", label: "Mobile" },
-  { key: "desktop", label: "Desktop" },
-  { key: "both", label: "Both" },
-];
-
-/** Comparison mode, viewport, and color-scheme controls for a compare page. */
-export function CompareToolbar({
-  colorScheme,
-  mode,
-  viewport,
-}: CompareToolbarProps) {
+/** Compact display options inside the normal screen. */
+export function CompareToolbar({ mode }: CompareToolbarProps) {
   return (
     <div className="mbk-cmp-toolbar">
       <span className="mbk-seg" role="group" aria-label="Comparison mode">
@@ -46,48 +30,85 @@ export function CompareToolbar({
           </span>
         ))}
       </span>
-      <span className="mbk-seg" role="group" aria-label="Viewport">
-        {VIEWPORT_LABELS.map((option) => (
-          <span
-            key={option.key}
-            className={option.key === viewport ? "active" : undefined}
-          >
-            {option.label}
-          </span>
-        ))}
-      </span>
-      {colorScheme ? <SchemeSwitch active={colorScheme} /> : null}
+      {mode !== "current" ? (
+        <span className="mbk-cmp-refresh" aria-label="Refresh comparison">
+          ↻
+        </span>
+      ) : null}
     </div>
   );
 }
 
-/** The before/after comparison grid on the dotted stage. */
-export function CompareGrid({ children }: { children: ReactNode }) {
-  return <div className="mbk-compare">{children}</div>;
+const STATE_LABELS: Record<ReviewState, string> = {
+  added: "New screen",
+  changed: "Screen changed",
+  "ignored-only": "Only excluded content changed",
+  removed: "Screen removed",
+  unchanged: "No changes to this screen",
+};
+
+/** Comparison status and secondary evidence share the scrollable screen stage. */
+export function ComparisonStage({
+  children,
+  evidence,
+  state,
+  viewport,
+}: {
+  children: ReactNode;
+  evidence?: ReactNode;
+  state: ReviewState;
+  viewport: "mobile" | "desktop";
+}) {
+  return (
+    <section className="mbk-comparison-stage">
+      <h3>
+        {viewport === "mobile" ? "Mobile" : "Desktop"} · {STATE_LABELS[state]}
+      </h3>
+      {children}
+      <details className="mbk-comparison-details" open={evidence !== undefined}>
+        <summary>Comparison details</summary>
+        <p>Compared with the branch point on origin/main.</p>
+        {evidence}
+      </details>
+    </section>
+  );
+}
+
+/** The before/current comparison grid on the dotted stage. */
+export function CompareGrid({
+  children,
+  difference,
+}: {
+  children: ReactNode;
+  difference?: boolean;
+}) {
+  return (
+    <div
+      className="mbk-compare"
+      data-compare-mode={difference ? "difference" : "side"}
+    >
+      {children}
+    </div>
+  );
 }
 
 interface PaneProps {
   children: ReactNode;
   label: string;
   side: "after" | "before";
-  tone?: "added" | "changed" | "removed";
 }
 
-/** One labeled before or after comparison pane. */
-export function Pane({ children, label, side, tone }: PaneProps) {
-  const dot = tone ?? (side === "before" ? "base" : "changed");
+/** One labeled before or current comparison pane. */
+export function Pane({ children, label, side }: PaneProps) {
   return (
-    <div className="mbk-compare-side">
-      <p className={`mbk-compare-label ${side}`}>
-        <span className={`mbk-chg-dot ${dot}`} aria-hidden="true" />
-        {label}
-      </p>
+    <div className={`mbk-compare-side mbk-compare-side--${side}`}>
+      <p className="mbk-compare-label">{label}</p>
       {children}
     </div>
   );
 }
 
-/** Placeholder pane for a screen absent on one side. */
+/** Explicit absence of a screen on one side. */
 export function MissingPane({
   label,
   message,
@@ -98,48 +119,8 @@ export function MissingPane({
   side: "after" | "before";
 }) {
   return (
-    <div className="mbk-compare-side">
-      <p className={`mbk-compare-label ${side}`}>
-        <span className="mbk-chg-dot base" aria-hidden="true" />
-        {label}
-      </p>
+    <Pane label={label} side={side}>
       <div className="mbk-pane-missing">{message}</div>
-    </div>
-  );
-}
-
-/** Legend for tinted difference regions. */
-export function DiffLegend() {
-  return (
-    <p className="mbk-diff-legend">
-      <span>
-        <i className="changed" aria-hidden="true" />
-        Changed
-      </span>
-      <span>
-        <i className="added" aria-hidden="true" />
-        Added
-      </span>
-      <span className="mbk-diff-legend-note">
-        After · this branch, with the differences from origin/main marked.
-      </span>
-    </p>
-  );
-}
-
-interface ReviewSummaryProps {
-  facts: string;
-  pct?: string | undefined;
-  state: ReviewState;
-}
-
-/** The foot summary band naming what changed on the compared screen. */
-export function ReviewSummary({ facts, pct, state }: ReviewSummaryProps) {
-  return (
-    <div className="mbk-review-summary">
-      <StatusBadge state={state} />
-      <span className="mbk-review-facts">{facts}</span>
-      {pct ? <span className="mbk-review-pct">{pct}</span> : null}
-    </div>
+    </Pane>
   );
 }

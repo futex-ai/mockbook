@@ -1,30 +1,16 @@
-/** Assemble self-contained Review pages, JSON, and the CI summary. */
+/** Retain comparison JSON, snapshots, and a diagnostic summary. */
 
 import type {
   ReviewArtifact,
   ReviewArtifactContent,
   ReviewResult,
 } from "./types.js";
-import {
-  comparePage,
-  indexPage,
-  type ReviewRenderOptions,
-} from "./artifact_pages.js";
-import {
-  REVIEW_NAVIGATION_SCRIPT,
-  reviewNavigationScript,
-} from "./artifact_navigation.js";
 import { isImpactOnly, isMaterial } from "./materiality.js";
-import {
-  NAVIGATION_RESIZE_SCRIPT,
-  loadNavigationResizeScript,
-} from "./navigation_resize_asset.js";
-import { addArtifactFile, comparisonPagePath } from "./paths.js";
+import { addArtifactFile } from "./paths.js";
 
-/** Add self-contained diagnostic pages, JSON, and CI summary to pane artifacts. */
+/** Add comparison metadata to isolated snapshot files. */
 export function renderReviewArtifact(
   artifact: ReviewArtifact,
-  options: ReviewRenderOptions = {},
 ): ReadonlyMap<string, ReviewArtifactContent> {
   const files = new Map(artifact.files);
   addArtifactFile(
@@ -33,26 +19,6 @@ export function renderReviewArtifact(
     `${JSON.stringify(artifact.result, null, 2)}\n`,
   );
   addArtifactFile(files, "summary.md", summaryMarkdown(artifact.result));
-  addArtifactFile(files, "index.html", indexPage(artifact.result, options));
-  addArtifactFile(
-    files,
-    REVIEW_NAVIGATION_SCRIPT,
-    reviewNavigationScript(artifact.result),
-  );
-  addArtifactFile(
-    files,
-    NAVIGATION_RESIZE_SCRIPT,
-    loadNavigationResizeScript(),
-  );
-  for (const screen of artifact.result.screens) {
-    for (const view of screen.views) {
-      addArtifactFile(
-        files,
-        comparisonPagePath(screen.route, view.viewport, view.colorScheme),
-        comparePage(artifact.result, screen, view, options),
-      );
-    }
-  }
   addArtifactFile(files, ".mokabook-review-artifact", "schemaVersion=2\n");
   return files;
 }

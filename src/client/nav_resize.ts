@@ -1,4 +1,4 @@
-/** Desktop navigation split-panel resizing shared by Browse and Review. */
+/** Desktop navigation split-panel resizing shared by catalogue views. */
 
 /** Attach pointer, keyboard, viewport, and persistence behavior to the nav. */
 export function initializeNavigationResize(

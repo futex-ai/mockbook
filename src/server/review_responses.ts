@@ -6,7 +6,6 @@ import type { ServerResponse } from "node:http";
 
 import { errorMessage } from "../errors.js";
 import { contentType, send } from "./respond.js";
-import { stampDocumentUpdateVersion } from "./versioned_document.js";
 
 /** Redirect to a stable or immutable Review route without caching. */
 export function redirectReview(
@@ -26,8 +25,6 @@ export function serveReviewArtifactFile(
   relative: string,
   response: ServerResponse,
   method: string,
-  updateVersion: number,
-  liveUpdateDocument: boolean,
 ): void {
   const rootPath = path.resolve(directory);
   const filePath = path.resolve(rootPath, relative);
@@ -44,50 +41,27 @@ export function serveReviewArtifactFile(
     "content-type": contentType(filePath),
     "x-content-type-options": "nosniff",
   });
-  const body = liveUpdateDocument
-    ? Buffer.from(
-        stampDocumentUpdateVersion(content.toString("utf8"), updateVersion),
-      )
-    : content;
-  response.end(method === "HEAD" ? undefined : body);
+  response.end(method === "HEAD" ? undefined : content);
 }
 
-/** Send a retryable, version-stamped Review generation failure document. */
+/** Comparison failures stay inside the current screen and offer a retry. */
 export function sendReviewFailure(
   response: ServerResponse,
   error: unknown,
   base: string,
   method: string,
-  updateVersion: number,
 ): void {
-  send(
-    response,
-    500,
-    "text/html",
-    stampDocumentUpdateVersion(failedPage(error, base), updateVersion),
-    method,
+  response.writeHead(500, {
+    "cache-control": "no-store",
+    "content-type": "application/json",
+    "x-content-type-options": "nosniff",
+  });
+  response.end(
+    method === "HEAD"
+      ? undefined
+      : JSON.stringify({
+          error: "The comparison could not be loaded. Try again.",
+          details: `Comparison with ${base}: ${errorMessage(error)}`,
+        }),
   );
-}
-
-function failedPage(error: unknown, base: string): string {
-  return (
-    `<!doctype html><html lang="en"><head><meta charset="utf-8">` +
-    `<title>Review comparison failed · Mokabook</title></head><body>` +
-    `<main><h1>Review comparison failed</h1>` +
-    `<p>Comparing this branch with <strong>${escapeHtml(base)}</strong> did ` +
-    `not complete.</p>` +
-    `<p>${escapeHtml(errorMessage(error))}</p>` +
-    `<p><a href="/review/index.html?refresh=1">Try again</a> · ` +
-    `<a href="/">Browse the catalogue</a></p></main>` +
-    `<script src="/__mokabook/client/browser.js" type="module"></script>` +
-    `</body></html>\n`
-  );
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }

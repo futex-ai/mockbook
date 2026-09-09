@@ -3,6 +3,8 @@
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
+import { minimatch } from "minimatch";
+
 import { projectRealPath, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { dependencyContainsChangedPath } from "../registry/dependency_paths.js";
@@ -59,6 +61,11 @@ export function changedManifestRoutes(
   const mockupsPrefix = toPosixPath(
     path.relative(config.repoRoot, config.mockupsDir),
   );
+  const sharedImpact = changedPaths.some((changed) =>
+    config.review.sharedImpact.some((glob) =>
+      minimatch(changed, glob, { dot: true }),
+    ),
+  );
   const routes = new Set<string>();
   const changedScreenIds = new Set<string>();
   const baseEntries = new Map(
@@ -71,6 +78,7 @@ export function changedManifestRoutes(
     const baseEntry = baseEntries.get(entry.id);
     const candidates = changedPathCandidates(entry, baseEntry, mockupsPrefix);
     if (
+      !sharedImpact &&
       isDeepStrictEqual(
         routeChangeProjection(entry, hierarchy),
         routeChangeProjection(baseEntry, baseHierarchy),

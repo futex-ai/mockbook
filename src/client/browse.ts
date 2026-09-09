@@ -1,5 +1,6 @@
 /** Progressive Browse shell enhancement served at /__mokabook/client/browse.js. */
 
+import { installDiffs } from "./diffs.js";
 import { createBrowserDetailsPreference } from "./browse_details.js";
 import { createBrowserNavPreference } from "./browse_navigation.js";
 import {
@@ -61,6 +62,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   navPreference.apply(doc);
   if (win.history.scrollRestoration) win.history.scrollRestoration = "manual";
   const sequencer = new NavigationSequencer();
+  const diffs = installDiffs(doc, win);
   let restoringHistory = false;
   const persistScroll = (): void => {
     win.history.replaceState(
@@ -131,6 +133,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
     for (const frame of main.querySelectorAll("iframe")) frame.remove();
     collapseFrame(doc, expandedFrame(doc));
     if (push) persistScroll();
+    diffs.reset();
     main.innerHTML = nextMain.innerHTML;
     const finalUrl = response.url || url;
     attachFrameNavigation(doc, frameActions);
@@ -211,6 +214,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       ?.getAttribute("data-color-scheme-option");
     if (schemeOption === "dark" || schemeOption === "light") {
       setColorScheme(doc, schemeOption);
+      diffs.update();
       return;
     }
     const viewportOption = target
@@ -218,6 +222,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       ?.getAttribute("data-viewport-option");
     if (viewportOption) {
       setViewport(doc, viewportOption);
+      diffs.update();
       return;
     }
     const filterButton = target.closest("[data-filter]");

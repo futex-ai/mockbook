@@ -42,7 +42,7 @@ test("shutdown prevents a queued refresh from starting", async (context) => {
     if (!closed) await server.close();
   });
 
-  const initial = fetch(`${server.url}/review/index.html`, {
+  const initial = fetch(`${server.url}/__mokabook/diffs/review.json`, {
     headers: { connection: "close" },
   });
   await firstStarted.promise;
@@ -59,7 +59,7 @@ test("shutdown prevents a queued refresh from starting", async (context) => {
     ).request;
     if (
       request?.headers?.host === new URL(server.url).host &&
-      request.url === "/review/index.html?refresh=1"
+      request.url === "/__mokabook/diffs/review.json?refresh=1"
     ) {
       refreshReceived.resolve();
     }
@@ -68,9 +68,12 @@ test("shutdown prevents a queued refresh from starting", async (context) => {
   context.after(() => {
     channel.unsubscribe(listener);
   });
-  const refresh = fetch(`${server.url}/review/index.html?refresh=1`, {
-    headers: { connection: "close" },
-  });
+  const refresh = fetch(
+    `${server.url}/__mokabook/diffs/review.json?refresh=1`,
+    {
+      headers: { connection: "close" },
+    },
+  );
   const requestsSettled = Promise.allSettled([initial, refresh]);
   await refreshReceived.promise;
 
@@ -90,7 +93,7 @@ async function writeOwnedGeneration(
 ): Promise<void> {
   await fs.promises.mkdir(outDir, { recursive: true });
   await fs.promises.writeFile(
-    path.join(outDir, "index.html"),
+    path.join(outDir, "review.json"),
     `<h1>Generation ${generation}</h1>`,
   );
   await fs.promises.writeFile(

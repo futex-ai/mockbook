@@ -1,9 +1,10 @@
 // Route-owned main-region rendering for the persistent Mokabook shell: the
-// home, missing-route, review-launcher, and target views, plus the title and
+// home, missing-route, and target views, plus the title and
 // active-route helpers the document scaffold and progressive navigation use.
 
 import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
+import { DiffScreen } from "./diffs.js";
 import { DetailsPanel } from "./details.js";
 import {
   SchemeSwitch,
@@ -18,7 +19,6 @@ import type { RouteTarget } from "./target.js";
 export type ShellView =
   | { kind: "home" }
   | { kind: "missing"; requested: string }
-  | { kind: "review" }
   | { kind: "target"; target: RouteTarget };
 
 /**
@@ -41,9 +41,29 @@ function HeadActions(props: { catalogue: Catalogue; target: RouteTarget }) {
 function TargetView(props: {
   catalogue: Catalogue;
   fragment?: string;
+  comparisons?: boolean;
   target: RouteTarget;
 }) {
   const head = targetHead(props.catalogue, props.target);
+  const target = props.target;
+  const removed =
+    target.kind === "entry" &&
+    props.catalogue.removedScreens.some(
+      (screen) => screen.route === target.entry.route,
+    );
+  const stage = removed ? (
+    <div className="mbk-empty" data-mokabook-stage="" data-viewport="both">
+      <h2>This screen was removed</h2>
+      <p>Select a comparison to see the previous screen.</p>
+    </div>
+  ) : (
+    <TargetStage
+      catalogue={props.catalogue}
+      {...(props.fragment ? { fragment: props.fragment } : {})}
+      legacyTitle={head.title}
+      target={props.target}
+    />
+  );
   return (
     <>
       <ScreenHead
@@ -54,12 +74,13 @@ function TargetView(props: {
         heading={head.title}
         id={head.id}
       />
-      <TargetStage
-        catalogue={props.catalogue}
-        {...(props.fragment ? { fragment: props.fragment } : {})}
-        legacyTitle={head.title}
-        target={props.target}
-      />
+      {props.comparisons &&
+      props.target.kind === "entry" &&
+      props.target.entry.kind === "screen" ? (
+        <DiffScreen route={props.target.entry.route}>{stage}</DiffScreen>
+      ) : (
+        stage
+      )}
       <DetailsPanel catalogue={props.catalogue} target={props.target} />
     </>
   );
@@ -104,28 +125,6 @@ function MissingView(props: { requested: string }) {
   );
 }
 
-function ReviewLauncherView(props: { base: string }) {
-  return (
-    <>
-      <p className="mbk-basewatch">
-        <span aria-hidden="true" className="mbk-basewatch-dot" />
-        Comparing this branch with <strong>{props.base}</strong>
-      </p>
-      <EmptyStage heading="Mokabook review">
-        <p>
-          Generate the static comparison for this branch, then open its report:
-        </p>
-        <p>
-          <code className="mbk-code">mokabook review --base {props.base}</code>
-        </p>
-        <a className="mbk-empty-link" href="/">
-          Browse the catalogue
-        </a>
-      </EmptyStage>
-    </>
-  );
-}
-
 /** The active catalogue route for a shell view, when it has one. */
 export function activeRouteForView(view: ShellView): string | undefined {
   if (view.kind !== "target") {
@@ -144,9 +143,6 @@ export function viewTitle(catalogue: Catalogue, view: ShellView): string {
   if (view.kind === "missing") {
     return "Not found · Mokabook";
   }
-  if (view.kind === "review") {
-    return "Review · Mokabook";
-  }
   return `${targetHead(catalogue, view.target).title} · Mokabook`;
 }
 
@@ -164,12 +160,10 @@ export function ShellMain(props: {
       {props.view.kind === "missing" ? (
         <MissingView requested={props.view.requested} />
       ) : null}
-      {props.view.kind === "review" ? (
-        <ReviewLauncherView base={props.context.base} />
-      ) : null}
       {props.view.kind === "target" ? (
         <TargetView
           catalogue={props.catalogue}
+          comparisons={props.context.comparisons ?? false}
           {...(props.context.fragment
             ? { fragment: props.context.fragment }
             : {})}

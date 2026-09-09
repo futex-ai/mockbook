@@ -83,8 +83,10 @@ export async function serve(
       config,
     );
     const base = options.base ?? config.review.base;
+    const changedRoutes = await computeChangedRoutes(config, base);
     const server = await dependencies.serverFactory.start(config, {
       base,
+      ...(changedRoutes ? { changedRoutes } : {}),
       port: options.port,
       review: configuredServedReview(config, base),
     });

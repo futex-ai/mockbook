@@ -4,7 +4,7 @@
 
 Mokabook is shared developer tooling for repositories that keep visual mockups
 as code and committed static artifacts. The package owns catalogue definitions,
-generation, validation, Browse, and Review behavior. A consumer owns all product
+generation, validation, browsing, and on-demand comparisons. A consumer owns all product
 screens, product copy, product components, styling, theme setup, and generated
 product output.
 
@@ -42,16 +42,16 @@ The public commands are:
 
 ```text
 mokabook                 Alias for `mokabook serve`
-mokabook serve           Serve Browse and Review; watch by default
+mokabook serve           Serve the catalogue and diffs; watch by default
 mokabook build           Generate static artifacts and the manifest
 mokabook check           Validate source and committed generated output
-mokabook review          Generate a static comparison artifact
 mokabook --help          Show commands, options, and config discovery
 mokabook --version       Show the installed package version
 ```
 
 Common options include `--config <path>`. Serve accepts `--port`, `--base`,
-`--watch`, and `--no-watch`. Review accepts `--base` and `--out`. A flag after
+`--watch`, and `--no-watch`. The removed `review` command and `--out` option
+are rejected. Screen comparisons are requested from the catalogue. A flag after
 the package name belongs to Mokabook; docs must show npx arguments in a form
 that is unambiguous to current npm.
 
@@ -83,9 +83,9 @@ the following contract:
 - optional renderer-module path and declarative route-to-stylesheet rules;
 - optional consumer package roots, aliases, conditions, fields, extensions, and
   loaders for app-owned module resolution;
-- default Git base ref used to find the `HEAD` branch point, and Review output
+- default Git base ref used to find the `HEAD` branch point, and internal comparison
   directory;
-- shared-impact globs for Review;
+- shared-impact globs for comparisons;
 - additional authored inputs and static assets for watched Serve;
 - optional legacy link aliases and lint policy needed by that consumer.
 - an optional temporary document transformer for an existing consumer cutover.

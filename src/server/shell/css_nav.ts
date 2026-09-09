@@ -169,31 +169,6 @@ export const SHELL_NAV_CSS = `
   overflow-y: auto;
 }
 
-.mbk-modes {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-  padding: 3px;
-  border-radius: 8px;
-  background: var(--chrome-bg);
-}
-
-.mbk-mode {
-  padding: 4px 12px;
-  border-radius: 6px;
-  color: var(--chrome-muted);
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.mbk-mode.active,
-.mbk-mode[aria-current="page"] {
-  background: var(--chrome-surface);
-  color: var(--chrome-ink);
-  box-shadow: 0 1px 2px rgba(20, 28, 22, 0.08);
-}
-
 .mbk-body {
   display: flex;
   flex: 1;

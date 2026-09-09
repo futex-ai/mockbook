@@ -4,12 +4,7 @@ import test from "node:test";
 import type { ManifestV3 } from "../dist/registry/types.js";
 import type { Catalogue } from "../dist/server/catalogue.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
-import {
-  homePage,
-  notFoundPage,
-  reviewPage,
-  viewPage,
-} from "../dist/server/pages.js";
+import { homePage, notFoundPage, viewPage } from "../dist/server/pages.js";
 import { SHELL_CSS } from "../dist/server/shell/css.js";
 import { buildNavTree } from "../dist/server/shell/nav_tree.js";
 
@@ -131,7 +126,6 @@ const untaggedManifest: ManifestV3 = {
 
 const context = {
   base: "origin/main",
-  mode: "browse" as const,
   updateVersion: 1,
 };
 
@@ -396,7 +390,7 @@ test("scheme switch renders only for catalogues with dark fragments", () => {
   assert.equal(occurrences(home, "data-mokabook-schemeswitch"), 1);
   assert.match(
     home,
-    /data-mokabook-search[\s\S]*?<\/div><span aria-label="Color scheme"[\s\S]*?<\/span><nav aria-label="Mokabook modes"/,
+    /data-mokabook-search[\s\S]*?<\/div><span aria-label="Color scheme"[\s\S]*?<\/span><\/header>/,
   );
 
   const screen = routePage(dark, "screens/welcome.html");
@@ -416,11 +410,6 @@ test("scheme switch renders only for catalogues with dark fragments", () => {
 
   const legacy = routePage(dark, "legacy/old.html");
   assert.equal(occurrences(legacy, "data-mokabook-schemeswitch"), 1);
-  const review = reviewPage("origin/main", dark, {
-    ...context,
-    mode: "review",
-  });
-  assert.equal(occurrences(review, "data-mokabook-schemeswitch"), 1);
 });
 
 test("screen stage carries per-frame scheme fragment data", () => {
@@ -598,12 +587,6 @@ test("the search field carries a tag control over a closed picker", () => {
   assert.match(untagged, /data-mokabook-search/);
   assert.equal(untagged.includes("mbk-search-tag"), false);
   assert.equal(untagged.includes("mb-tag-picker"), false);
-
-  const review = reviewPage("origin/main", createCatalogue(manifest), {
-    ...context,
-    mode: "review",
-  });
-  assert.equal(review.includes("mb-tag-picker"), false);
 });
 
 test("the brand names itself and the search bar drops that name", () => {
@@ -617,13 +600,6 @@ test("the brand names itself and the search bar drops that name", () => {
     ),
   );
 
-  const review = reviewPage("origin/main", createCatalogue(manifest), {
-    ...context,
-    mode: "review",
-  });
-  assert.ok(review.includes('<header class="mbk-topbar">'));
-  assert.ok(review.includes('<span class="mbk-name">Mokabook</span>'));
-
   assert.ok(
     flatCss(SHELL_CSS).includes(
       "@media (max-width: 56.25rem) { .mbk-menu { display: inline-flex; } " +
@@ -633,18 +609,11 @@ test("the brand names itself and the search bar drops that name", () => {
   assert.match(SHELL_CSS, /\.mbk-search \{[^}]*flex: 1;[^}]*min-width: 0;/);
 });
 
-test("missing routes and review keep the catalogue shell", () => {
+test("missing routes keep the catalogue shell", () => {
   const catalogue = createCatalogue(manifest);
   const missing = notFoundPage("view/unknown.html", catalogue, context);
   assert.match(missing, /Screen not found/);
   assert.match(missing, /aria-label="Catalogue"/);
-  const review = reviewPage("origin/main", catalogue, {
-    ...context,
-    mode: "review",
-  });
-  assert.match(review, /mokabook review --base origin\/main/);
-  assert.match(review, /aria-current="page"[^>]*href="\/review"/);
-  assert.match(review, /class="mbk-basewatch"/);
 });
 
 test("filter renders in the nav only when changed routes are known", () => {
@@ -693,12 +662,7 @@ test("shell stylesheet stays aligned with the design contract", () => {
     SHELL_CSS,
     /\.phone-screen \.mbk-frag \{[\s\S]*border-radius: 0 0 36px 36px;/,
   );
-  assert.ok(
-    flatCss(SHELL_CSS).includes(
-      '.mbk-cmp-toolbar > [aria-label="Viewport"]:not(:last-child) ' +
-        "{ margin-left: auto; }",
-    ),
-  );
+
   assert.match(SHELL_CSS, /prefers-reduced-motion/);
   assert.match(SHELL_CSS, /InterVariable\.woff2/);
   assert.match(SHELL_CSS, /\.mbk-idchip \{[\s\S]*cursor: pointer;/);

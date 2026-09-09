@@ -40,6 +40,9 @@ test("preview build snapshots a static Browse catalogue", async (context) => {
   assert.doesNotMatch(index, /href="\/view\/screens\/welcome\.html"/);
   const welcome = await read(output, "view/screens/welcome.html");
   assert.match(welcome, /Welcome · Mokabook/);
+  assert.match(welcome, /data-diff-screen="screens\/welcome.html"/);
+  for (const mode of ["current", "side", "overlay", "difference"])
+    assert.match(welcome, new RegExp(`data-diff-mode="${mode}"`));
   assert.match(welcome, /data-color-scheme-option="dark"/);
   const frame = welcome.match(
     /<iframe[^>]*data-fragment-light="([^"]+)"[^>]*src="([^"]+)"/,

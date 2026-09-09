@@ -691,8 +691,8 @@ test("the narrow search bar drops the name and fits its controls", async ({
   await expect(page.locator("[data-mokabook-menu]")).toBeVisible();
   await expect(page.locator("[data-mokabook-search]")).toBeVisible();
 
-  const modes = await page.locator(".mbk-modes").boundingBox();
-  if (!modes) throw new Error("the mode switch must be laid out");
+  const modes = await page.locator(".mbk-search").boundingBox();
+  if (!modes) throw new Error("the search must be laid out");
   expect(modes.x).toBeGreaterThanOrEqual(0);
   expect(modes.x + modes.width).toBeLessThanOrEqual(390);
 
@@ -700,12 +700,14 @@ test("the narrow search bar drops the name and fits its controls", async ({
   await expect(page.locator(".mbk-brand .mbk-name")).toBeVisible();
 });
 
-test("a narrow Review bar keeps the whole brand", async ({ page }) => {
+test("the removed Review route keeps a usable not-found shell", async ({
+  page,
+}) => {
   await page.setViewportSize({ height: 844, width: 390 });
-  await page.goto("/review");
-
-  await expect(page.locator("[data-mokabook-search]")).toHaveCount(0);
-  await expect(page.locator(".mbk-brand .mbk-name")).toBeVisible();
+  const response = await page.goto("/review");
+  expect(response?.status()).toBe(404);
+  await expect(page.locator("[data-mokabook-search]")).toBeVisible();
+  await expect(page.locator("#mb-main h2")).toHaveText("Screen not found");
 });
 
 test("missing routes keep the catalogue available", async ({ page }) => {

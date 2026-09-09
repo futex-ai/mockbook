@@ -8,8 +8,8 @@ export interface ShellContext {
   base: string;
   /** Routes changed since the base-ref branch point; absent when unknown. */
   changedRoutes?: readonly string[];
-  /** Which top-level mode the requested page belongs to. */
-  mode: "browse" | "review";
+  /** Whether on-demand comparison serving is available. */
+  comparisons?: boolean;
   /** Validated logical fragment applied to the routed target's frames. */
   fragment?: string;
   /** Update-stream version captured when this page request began. */
@@ -20,13 +20,11 @@ export interface ShellContext {
 export function shellContext(
   base: string,
   changedRoutes: readonly string[] | undefined,
-  mode: ShellContext["mode"],
   updateVersion: number,
 ): ShellContext {
   return {
     base,
     ...(changedRoutes ? { changedRoutes } : {}),
-    mode,
     updateVersion,
   };
 }

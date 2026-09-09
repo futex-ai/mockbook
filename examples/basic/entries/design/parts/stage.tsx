@@ -8,25 +8,20 @@ export function Stage({ children }: { children: ReactNode }) {
 interface MiniScreenProps {
   compact?: boolean;
   revised?: boolean;
-  tinted?: boolean;
 }
 
 /** Miniature depiction of the example Welcome fragment. */
-export function MiniWelcome({ compact, revised, tinted }: MiniScreenProps) {
+export function MiniWelcome({ compact, revised }: MiniScreenProps) {
   return (
     <div className="mbk-shot">
       <div className="mbk-shot-pad">
         <div className="mbk-shot-nav">
           {compact ? "Menu" : "Example navigation"}
         </div>
-        <h2 className={tinted ? "mbk-diff-changed" : undefined}>
+        <h2>
           {revised ? "Welcome to the Mokabook example" : "Welcome to Mokabook"}
         </h2>
-        {revised ? (
-          <p className={tinted ? "mbk-diff-added" : undefined}>
-            A short introduction now welcomes new readers.
-          </p>
-        ) : null}
+        {revised ? <p>A short introduction now welcomes new readers.</p> : null}
         <span className="mbk-shot-link">Open the details screen</span>
       </div>
     </div>
@@ -161,6 +156,7 @@ interface BrowserFrameProps {
   address: string;
   children: ReactNode;
   dark?: boolean | undefined;
+  expandable?: boolean;
   label?: string;
   lightOnly?: boolean;
 }
@@ -170,6 +166,7 @@ export function BrowserFrame({
   address,
   children,
   dark,
+  expandable = true,
   label,
   lightOnly,
 }: BrowserFrameProps) {
@@ -184,9 +181,11 @@ export function BrowserFrame({
             <i />
           </span>
           <span className="address">{address}</span>
-          <span className="browser-expand" aria-hidden="true">
-            ⤢
-          </span>
+          {expandable ? (
+            <span className="browser-expand" aria-hidden="true">
+              ⤢
+            </span>
+          ) : null}
         </div>
         <div
           className={

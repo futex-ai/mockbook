@@ -6,7 +6,6 @@ import { SHELL_DETAILS_CSS } from "./css_details.js";
 import { SHELL_NAV_CSS } from "./css_nav.js";
 import { SHELL_NAV_RESIZE_CSS } from "./css_nav_resize.js";
 import { SHELL_REVIEW_CSS } from "./css_review.js";
-import { SHELL_REVIEW_SHELL_CSS } from "./css_review_shell.js";
 import { SHELL_TOKENS_CSS } from "./css_tokens.js";
 import { SHELL_VIEW_CSS } from "./css_views.js";
 
@@ -18,5 +17,4 @@ export const SHELL_CSS =
   SHELL_VIEW_CSS +
   SHELL_DETAILS_CSS +
   SHELL_CHROME_CSS +
-  SHELL_REVIEW_CSS +
-  SHELL_REVIEW_SHELL_CSS;
+  SHELL_REVIEW_CSS;

@@ -288,8 +288,8 @@ test(
     );
     await waitFor(
       async () =>
-        (await (await fetch(`${url}/review`)).text()).includes(
-          "config-reloaded",
+        (await (await fetch(url)).text()).includes(
+          'data-mokabook-base="config-reloaded"',
         ),
       20_000,
     );

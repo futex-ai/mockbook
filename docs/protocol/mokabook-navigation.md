@@ -106,12 +106,12 @@ Raw relative links do not become catalogue links merely because they happen to
 resolve to a generated fragment. This keeps catalogue intent explicit and
 prevents Mokabook from taking over product or asset navigation accidentally.
 
-## Portable And Review Output
+## Portable And Comparison Output
 
 Committed generated documents keep their relative artifact `href` values.
 They must remain navigable when opened directly or copied without the Browse
-shell. Review snapshot trees copy the same portable documents and do not
-promote their marked links into Browse routes; link activation inside a Review
+shell. Comparison snapshot trees copy the same portable documents and do not
+promote their marked links into Browse routes; link activation inside a comparison
 pane retains the existing sandbox behavior.
 
 ## Browse Presentation
@@ -173,8 +173,8 @@ browsing context it creates, including `srcdoc`, local, and cross-origin child
 frames. Consumer-authored `_top`, `_parent`, named, `<base target>`, and
 `formtarget` values therefore cannot replace the shell even when they live in
 nested content the adapter cannot inspect. Trusted parent code is the only
-outer-navigation authority. Portable and Review documents retain their original
-bytes and Review keeps its stricter sandbox.
+outer-navigation authority. Portable and comparison documents retain their original
+bytes and comparisons keep its stricter sandbox.
 
 In served Browse, the `/id/<id>` redirect preserves the optional
 request-visible `fragment` query on
@@ -223,7 +223,7 @@ outer-navigation fallback.
 
 Consumer scripts remain disabled. Browse permits same-origin inspection but
 does not grant script, form, popup, download, or either top-navigation
-capability to consumer documents. Review panes retain their stricter existing
+capability to consumer documents. Comparison panes retain their stricter existing
 sandbox.
 
 External, raw relative, download, same-document hash, metadata-only, and
@@ -244,7 +244,7 @@ To establish the invariant, Browse must:
 2. open each ancestor `details[data-nav-collection]` of the active row;
 3. preserve unrelated collection disclosures;
 4. clear a search query only when it would hide the destination;
-5. switch Changed to All only when the destination is not changed;
+5. switch Changes to All only when the destination is not changed;
 6. reapply navigation visibility after those adjustments; and
 7. scroll the active row into the nearest visible part of the catalogue pane.
 
@@ -253,7 +253,7 @@ screen. Its tree retains the opened destination path for the next time it is
 opened. A user may collapse the active path afterward; the next route change
 re-establishes the invariant.
 
-Each user edit to search or the All/Changed filter opens groups to reveal the
+Each user edit to search or the All/Changes filter opens groups to reveal the
 rows matching the updated constraints. Reapplying the same active constraints
 during a route change or watched-reload restoration must instead preserve
 groups the user subsequently collapsed; only the destination row's ancestor
@@ -292,11 +292,11 @@ Coverage must prove:
   local, and cross-origin nested contexts; ancestor/named-context denial across
   HTML and SVG links, forms, marked, unmarked, download, and base targets;
   marked and unmarked links in every nested context ignored by outer navigation;
-  frame-owned external/download/hash behavior; and unchanged Review-pane links.
+  frame-owned external/download/hash behavior; and unchanged comparison-pane links.
 
 ## Related Docs
 
 - [Package and authoring contract](./mokabook-package.md)
-- [Build, Browse, and Review runtime](./mokabook-runtime.md)
+- [Build and Browse runtime](./mokabook-runtime.md)
 - [Shell design contract](./mokabook-shell-design.md)
 - [Build pipeline](../architecture/build-pipeline.md)

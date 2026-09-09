@@ -9,7 +9,6 @@ import { loadConfig } from "../dist/config/load.js";
 import { renderReviewArtifact } from "../dist/review/artifact.js";
 import { compareReview } from "../dist/review/compare.js";
 import { RepositoryGitClient, type GitClient } from "../dist/review/git.js";
-import { comparisonPagePath } from "../dist/review/paths.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import type { ManifestScreen } from "../dist/registry/types.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
@@ -283,7 +282,7 @@ test("Git bounds zero-byte blob batches by object count", async () => {
   assert.ok(Math.max(...contentBatchSizes) < paths.length);
 });
 
-test("Review comparison pages share large navigation markup", () => {
+test("Comparison metadata has no per-screen HTML or navigation copies", () => {
   const screens = Array.from({ length: 40 }, (_, index) => ({
     dependencies: [],
     id: `screen-${index}`,
@@ -311,17 +310,13 @@ test("Review comparison pages share large navigation markup", () => {
   };
 
   const files = renderReviewArtifact({ files: new Map(), result });
-  const comparison = files.get(
-    comparisonPagePath(screens[0]?.route ?? "", "mobile", "light"),
-  );
-  const navigation = files.get("review-navigation.js");
-
-  assert.ok(typeof comparison === "string");
-  assert.ok(typeof navigation === "string");
-  assert.match(comparison, /review-navigation\.js/);
-  assert.match(comparison, /Open Review index/);
-  assert.doesNotMatch(comparison, /Screen 39/);
-  assert.match(navigation, /Screen 39/);
+  assert.deepEqual([...files.keys()].sort(), [
+    ".mokabook-review-artifact",
+    "review.json",
+    "summary.md",
+  ]);
+  const metadata = JSON.parse(String(files.get("review.json"))) as ReviewResult;
+  assert.equal(metadata.screens.length, 40);
 });
 
 function requiredFile(
