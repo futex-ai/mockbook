@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
+import { useDesignNavigation } from "./design_navigation.js";
 import type { ReviewState } from "./review.js";
+import { SelectionControl } from "./selection_control.js";
 
 interface CompareToolbarProps {
   accessible?: boolean | undefined;
@@ -22,19 +24,22 @@ export function CompareToolbar({
   mode,
   accessible = false,
 }: CompareToolbarProps) {
-  const Control = accessible ? "button" : "span";
+  const navigation = useDesignNavigation();
   return (
     <div className="mbk-cmp-toolbar">
       <span className="mbk-seg" role="group" aria-label="Comparison mode">
         {MODE_LABELS.map((option) => (
-          <Control
+          <SelectionControl
             key={option.key}
-            type={accessible ? "button" : undefined}
-            aria-pressed={accessible ? option.key === mode : undefined}
-            className={option.key === mode ? "active" : undefined}
-          >
-            {option.label}
-          </Control>
+            accessible={accessible}
+            active={option.key === mode}
+            label={option.label}
+            to={
+              option.key === mode
+                ? undefined
+                : navigation.comparison?.[option.key]
+            }
+          />
         ))}
       </span>
       {mode !== "current" ? (

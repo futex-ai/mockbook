@@ -159,6 +159,29 @@ format/lint/type, generated-output, package, and Rust checks. An existing watche
 test timed out on the first run; its isolated retry and the full rerun passed
 without changing the test or runtime.
 
+## Milestone 4a: Scope design stylesheet impact and integrate main
+
+Tags: mockup
+
+Resolve the approved review finding without reopening Milestone 4, preserving
+the latest mainline design catalogue and its working navigation links.
+
+- [x] Add failing regression coverage for all three component stylesheets, then
+      remove their global shared-impact entries and retain scoped dependencies.
+- [x] Update the design contract and example README to explain scoped impact.
+- [x] Merge latest main, resolve conflicts path by path, and preserve its design
+      navigation, generated screens, tests, and docs alongside component mockups.
+- [x] Extend the complete design inventory and link checks to both families;
+      verify component controls do not inherit unrelated Browse transitions.
+- [x] Synchronize browser assertions with real on-demand comparison responses
+      after reproducing cold-generation timeouts; retain all behavior checks.
+- [x] Regenerate affected mockups, run focused tests and visual smoke checks,
+      then pass `cargo xtask check` and inspect the diff against `origin/main`.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch;
+      run `cargo xtask review` after the push and report any new findings.
+- [ ] Create a pull request against `main` describing the complete branch scope,
+      validation, and any remaining review findings.
+
 ## Milestone 5: Implement component pages and inspection
 
 Tags: ui

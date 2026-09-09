@@ -5,6 +5,7 @@ import {
   type ComponentPageState,
 } from "./component_details.js";
 import { VariantPicker, ViewControls } from "./controls.js";
+import { COMPONENT_PAGES } from "./destinations.js";
 import { DesignLinks, ExplorerShell } from "./navigation.js";
 import {
   ActionExample,
@@ -34,6 +35,7 @@ export function ComponentPage({
   return (
     <>
       <ExplorerShell
+        design={COMPONENT_PAGES[state]}
         active={title}
         scenario={
           state === "removed" ? "removed" : changed ? "component" : "all"

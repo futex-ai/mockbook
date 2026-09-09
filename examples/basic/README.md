@@ -21,6 +21,24 @@ navigate to the canonical Details page, retain its anchor through Light/Dark
 swaps, and select the Details row in the catalogue tree. The reciprocal Details
 link exercises the id-only form.
 
+The prominent `View details` and `Return to welcome` Firna buttons use
+`MockLink asChild`, alongside the three original text links. Both viewport
+variants and both schemes retain native pointer and keyboard navigation; the
+Details action includes its `details` anchor. The no-op handlers let Firna render
+enabled controls; generated anchors handle the navigation without scripts.
+
+The design screens use the same API for their brand, screen rows, miniature
+content, flow references, inspector, and supported scheme, comparison, and tag
+transitions. These links open canonical design states. Viewport, copy, refresh,
+resize, collapse-all, and unsupported combinations remain visual depictions.
+The actual outer shell provides its normal runtime controls. See the
+[design mockup links contract](../../docs/protocol/mokabook-design-links.md)
+and the [complete design inventory](../../docs/protocol/mokabook-shell-design.md#design-mockups).
+Shared destinations live in [destinations.ts](./entries/design/parts/destinations.ts);
+[navigation_states.ts](./entries/design/parts/navigation_states.ts) explicitly
+selects which transitions each artboard supports. Add an owning screen and its
+contract before enabling a new transition.
+
 ## Firna renderer adapter
 
 `renderer.tsx` is the reference consumer adapter for react-native-web
@@ -39,7 +57,7 @@ render plain React DOM need none of this and can keep a plain
 `renderToStaticMarkup` adapter.
 
 The `Design` navigation group is the owning design catalogue for Mokabook's
-Browse and Changes views. Its nineteen existing screens cover navigation,
+Browse and Changes views. Its twenty-four Browse and Changes screens cover navigation,
 Details, tags, color schemes, and comparison outcomes. Eighteen component
 explorer screens add component pages, saved variants, affected screens,
 repeated/nested inspection, highlighting, and empty or removed states. Every
@@ -54,13 +72,20 @@ links inside the designs connect component pages, variants, and consuming screen
 Each child gallery lists at most five owning screens; inspection also links
 two selected-instance screens in a nested gallery.
 
-All thirty-seven design screens use `colorSchemes: ["light"]`: they draw the
+All forty-two design screens use `colorSchemes: ["light"]`: they draw the
 Mokabook shell, including the existing dark-selection examples. The two product
 screens inherit the catalogue's light/dark settings and prove dark generation.
-Design headers retain the approved screen-stack logo and desktop navigation
-resize grip. The component designs reuse the existing shell, frames, controls,
+Design headers retain the approved screen-stack logo: 17px overlapping mobile
+and desktop outlines in a 24px sage square. Desktop keeps the navigation resize
+grip; mobile keeps its fixed drawer. The component designs reuse the existing shell, frames, controls,
 and Details panel, with synthetic usage fixtures under
 `entries/design/components/parts`. No component feature is added to the public API.
+
+Component design stylesheets are dependencies of the component collection,
+scoped to its eighteen routes. They remain watched for reloads, but are excluded
+from global `review.sharedImpact` so edits do not flag unrelated screens or the
+example tour as changed. A regression suite checks all three stylesheets against
+the real configuration and generated manifest.
 
 The recorded tokens and responsive rules live in the
 [shell design contract](../../docs/protocol/mokabook-shell-design.md); component
@@ -102,6 +127,6 @@ URLs apply one validated `fragment` query progressively in the parent shell.
 Published and served screens offer the same comparison controls in the actual
 Mokabook shell. Publishing prepares a validated Git comparison with isolated
 before/after resources, including removed-screen pages; browsers request those
-snapshots only after a comparison option is selected. The design screens inside
-the frames remain static pictures of that shell. There is no separate Review
+snapshots only after a comparison option is selected. Links inside the design frames navigate between authored artboards; their
+pictured comparison controls do not request actual comparison snapshots. There is no separate Review
 section or comparison CLI command.

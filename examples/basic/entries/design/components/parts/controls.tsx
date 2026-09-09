@@ -1,10 +1,7 @@
 import { MockLink } from "mokabook";
 
-import {
-  SchemeSwitch,
-  ViewSwitch,
-  type ArtboardViewport,
-} from "../../parts/shell.js";
+import { ViewSwitch, type ArtboardViewport } from "../../parts/shell.js";
+import { SchemeSwitch } from "../../parts/top_bar.js";
 import type { ComponentPageState } from "./component_details.js";
 
 export function ViewControls({ viewport }: { viewport: ArtboardViewport }) {

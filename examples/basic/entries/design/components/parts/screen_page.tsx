@@ -4,6 +4,7 @@ import { MissingPane, Pane, CompareGrid } from "../../parts/compare.js";
 import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
 import { Stage } from "../../parts/stage.js";
 import { HighlightToggle, ViewControls } from "./controls.js";
+import { INSPECTION_PAGES } from "./destinations.js";
 import { DesignLinks, ExplorerShell } from "./navigation.js";
 import { ScreenDetails } from "./screen_details.js";
 import { ConsumerFrame, type ScreenPageState } from "./screen_preview.js";
@@ -28,6 +29,7 @@ export function ScreenPage({
   return (
     <>
       <ExplorerShell
+        design={INSPECTION_PAGES[state]}
         active={title}
         scenario={
           removed ? "removed" : state === "direct-change" ? "screen" : "all"

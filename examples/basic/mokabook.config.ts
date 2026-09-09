@@ -25,9 +25,6 @@ export default defineConfig({
   review: {
     outDir: ".context/basic-review",
     sharedImpact: [
-      "examples/basic/generated/design-components.css",
-      "examples/basic/generated/design-component-inspection.css",
-      "examples/basic/generated/design-component-details.css",
       "examples/basic/generated/design-review.css",
       "examples/basic/generated/design-stage.css",
       "examples/basic/generated/design.css",

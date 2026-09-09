@@ -361,6 +361,9 @@ inputs such as `examples/basic/theme.ts`; the CLI is rebuilt on every start.
 in Chromium via Playwright; it uses the installed Chrome channel by default and
 honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
+Tests using the real Git-backed comparison fixture await its final JSON response
+before applying UI assertion deadlines. Cold snapshot generation has a bounded
+30-second wait; the existing UI assertions retain their default deadlines.
 
 `cargo xtask check` is the authoritative local gate. It includes formatting,
 lint, typechecking, unit/integration tests, the committed example, package
@@ -430,6 +433,11 @@ recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
 The [component design catalogue](./docs/protocol/mokabook-component-design.md)
 adds mobile and desktop references for component pages and screen inspection.
+
+The design mockups use `MockLink` for supported navigation and state transitions;
+the two example buttons demonstrate `MockLink asChild`. See the
+[design mockup links contract](./docs/protocol/mokabook-design-links.md) for
+canonical destinations and the controls that remain visual depictions.
 
 ### Key Code
 

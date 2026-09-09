@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { requestComparison } from "./comparison_test_helpers.js";
 import { comparisonFixture } from "./diffs_fixture.js";
 
 let fixture: Awaited<ReturnType<typeof comparisonFixture>>;
@@ -38,7 +39,7 @@ test("Changes keeps resized navigation across diff modes and screen navigation",
     .toBeCloseTo(312, 0);
   expect(comparisonRequests).toEqual([]);
 
-  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await requestComparison(page, "Overlay");
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
   await expect(handle).toHaveAttribute("aria-valuenow", "312");
   await handle.focus();

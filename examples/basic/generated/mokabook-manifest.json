@@ -75,7 +75,36 @@
         "design-browse-navigation",
         "design-browse-tag-filter",
         "design-browse-dark-scheme",
-        "design-browse-light-only"
+        "design-browse-light-only",
+        "design-browse-tags"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/design.mockup.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Canonical Welcome tag selection and picker states.",
+      "id": "design-browse-tags",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Shell states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/design.mockup.tsx",
+      "title": "Tag states",
+      "childIds": [
+        "design-browse-tag-picker",
+        "design-browse-tag-forms",
+        "design-browse-tag-onboarding",
+        "design-browse-tag-onboarding-picker"
       ]
     },
     {
@@ -101,7 +130,8 @@
       "childIds": [
         "design-browse-home",
         "design-browse-screen",
-        "design-browse-use-case"
+        "design-browse-use-case",
+        "design-browse-details-screen"
       ]
     },
     {
@@ -615,6 +645,170 @@
     },
     {
       "dependencies": [
+        "examples/basic/entries/design/browse/states/tags/forms.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Welcome with tag:forms and the tag picker closed.",
+      "id": "design-browse-tag-forms",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Shell states",
+        "Tag states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/browse/states/tags/forms.tsx",
+      "title": "Forms filter",
+      "fragments": {
+        "desktop": "design/browse/states/tags/forms.desktop.html",
+        "mobile": "design/browse/states/tags/forms.mobile.html"
+      },
+      "route": "design/browse/states/tags/forms.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/browse/states/tags/onboarding-picker.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Welcome with tag:onboarding and the tag picker open.",
+      "id": "design-browse-tag-onboarding-picker",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Shell states",
+        "Tag states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/browse/states/tags/onboarding-picker.tsx",
+      "title": "Onboarding tag picker",
+      "fragments": {
+        "desktop": "design/browse/states/tags/onboarding-picker.desktop.html",
+        "mobile": "design/browse/states/tags/onboarding-picker.mobile.html"
+      },
+      "route": "design/browse/states/tags/onboarding-picker.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/browse/states/tags/onboarding.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Welcome with tag:onboarding and the tag picker closed.",
+      "id": "design-browse-tag-onboarding",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Shell states",
+        "Tag states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/browse/states/tags/onboarding.tsx",
+      "title": "Onboarding filter",
+      "fragments": {
+        "desktop": "design/browse/states/tags/onboarding.desktop.html",
+        "mobile": "design/browse/states/tags/onboarding.mobile.html"
+      },
+      "route": "design/browse/states/tags/onboarding.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/browse/states/tags/picker.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Welcome with an empty query and the tag picker open.",
+      "id": "design-browse-tag-picker",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Shell states",
+        "Tag states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/browse/states/tags/picker.tsx",
+      "title": "Tag picker",
+      "fragments": {
+        "desktop": "design/browse/states/tags/picker.desktop.html",
+        "mobile": "design/browse/states/tags/picker.mobile.html"
+      },
+      "route": "design/browse/states/tags/picker.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/browse/views/details-screen.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "The normal Details screen with light selected and its inspector closed.",
+      "id": "design-browse-details-screen",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Catalogue views"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/browse/views/details-screen.tsx",
+      "title": "Details screen",
+      "fragments": {
+        "desktop": "design/browse/views/details-screen.desktop.html",
+        "mobile": "design/browse/views/details-screen.mobile.html"
+      },
+      "route": "design/browse/views/details-screen.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
         "examples/basic/entries/design/browse_screens.tsx",
         "examples/basic/generated/design-stage.css",
         "examples/basic/generated/design.css"
@@ -679,7 +873,7 @@
     },
     {
       "dependencies": [
-        "examples/basic/entries/design/browse_screens.tsx",
+        "examples/basic/entries/design/browse/views/use-case.tsx",
         "examples/basic/generated/design-stage.css",
         "examples/basic/generated/design.css"
       ],
@@ -696,7 +890,7 @@
         "docs/protocol/mokabook-shell-design.md",
         "examples/basic/notes.md"
       ],
-      "sourcePath": "examples/basic/entries/design/browse_screens.tsx",
+      "sourcePath": "examples/basic/entries/design/browse/views/use-case.tsx",
       "title": "Selected use case",
       "fragments": {
         "desktop": "design/browse/views/use-case.desktop.html",

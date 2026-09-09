@@ -20,26 +20,26 @@ indexes, each with at most five direct owning screens; inspection also links a n
 selection gallery with two owning screens. Every screen has a separate
 mobile component and desktop component; there are no new user-flow pages.
 
-| Relative route                      | State                                            |
-| ----------------------------------- | ------------------------------------------------ |
-| `overview.html`                     | Action page, default variant, props, and Used by |
-| `pages/variants.html`               | Disabled saved variant                           |
-| `pages/comparison.html`             | Saved variant before/current comparison          |
-| `pages/affected.html`               | One changed component and two affected screens   |
-| `pages/toolbar.html`                | Component consuming Action                       |
-| `pages/help.html`                   | Invoked component with no visible region         |
-| `inspection/details.html`           | Repeated instances and selected props            |
-| `inspection/highlight.html`         | Outermost component cutouts                      |
-| `inspection/nested.html`            | Nested Action selected in the screen and Details |
-| `inspection/direct-change.html`     | Independent screen prop change; two Changes      |
-| `inspection/consumer.html`          | A second screen reached from Used by             |
-| `inspection/selection/toolbar.html` | Selected container with its own props            |
-| `inspection/selection/help.html`    | Selected invisible instance                      |
-| `states/empty.html`                 | Validated empty usage                            |
-| `states/unavailable.html`           | Missing inspection metadata                      |
-| `states/unused.html`                | Saved component with no consumers                |
-| `states/removed.html`               | Removed saved variant and former consumer        |
-| `states/removed-consumer.html`      | Retained removed-screen comparison               |
+| Entry id                                    | Route                                                 | State                                            |
+| ------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| `design-component-overview`                 | `design/components/overview.html`                     | Action page, default variant, props, and Used by |
+| `design-component-variants`                 | `design/components/pages/variants.html`               | Disabled saved variant                           |
+| `design-component-comparison`               | `design/components/pages/comparison.html`             | Saved variant before/current comparison          |
+| `design-component-affected`                 | `design/components/pages/affected.html`               | One changed component and two affected screens   |
+| `design-component-toolbar`                  | `design/components/pages/toolbar.html`                | Component consuming Action                       |
+| `design-component-help`                     | `design/components/pages/help.html`                   | Invoked component with no visible region         |
+| `design-component-inspection-details`       | `design/components/inspection/details.html`           | Repeated instances and selected props            |
+| `design-component-inspection-highlight`     | `design/components/inspection/highlight.html`         | Outermost component cutouts                      |
+| `design-component-inspection-nested`        | `design/components/inspection/nested.html`            | Nested Action selected in the screen and Details |
+| `design-component-inspection-direct-change` | `design/components/inspection/direct-change.html`     | Independent screen prop change; two Changes      |
+| `design-component-inspection-consumer`      | `design/components/inspection/consumer.html`          | A second screen reached from Used by             |
+| `design-component-inspection-toolbar`       | `design/components/inspection/selection/toolbar.html` | Selected container with its own props            |
+| `design-component-inspection-help`          | `design/components/inspection/selection/help.html`    | Selected invisible instance                      |
+| `design-component-empty`                    | `design/components/states/empty.html`                 | Validated empty usage                            |
+| `design-component-unavailable`              | `design/components/states/unavailable.html`           | Missing inspection metadata                      |
+| `design-component-unused`                   | `design/components/states/unused.html`                | Saved component with no consumers                |
+| `design-component-removed`                  | `design/components/states/removed.html`               | Removed saved variant and former consumer        |
+| `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Retained removed-screen comparison               |
 
 Standalone files insert `.mobile` or `.desktop` before `.html`. All eighteen
 screens opt into light documents, matching the existing shell mockups. They
@@ -47,6 +47,15 @@ depict the Light context and retain the shell's Light/Dark selection. Links use
 the existing logical-id navigation contract so they work both directly from
 disk and in Browse. State links demonstrate navigation between mockups; static
 depictions of shell controls do not implement the future runtime inspector.
+
+The shared shell retains the [existing design navigation](./mokabook-design-links.md)
+for brand, home breadcrumb, and the canonical mobile drawer. Component artboards
+select their own typed navigation state; they never inherit Welcome's tag,
+scheme, inspector, or comparison transitions. Their viewport, scheme, comparison,
+and highlight depictions retain native button focus and pressed/disabled states.
+The shared selection control preserves native anchor semantics when an authored
+transition exists. Existing Browse and Changes artboards retain their non-link
+spans for unsupported controls.
 
 ## Component Pages
 
@@ -108,9 +117,16 @@ example and an explicit empty Used by list.
 ## Verification And Maintenance
 
 Use the real generator; never hand-edit generated HTML. The three component
-stylesheets are hand-authored public inputs, confined to `design/components/**`
-and included in shared-impact and watched stylesheet configuration. Shared
-fixtures and reusable screen parts live beside the owning screen modules.
+stylesheets are hand-authored public inputs, confined to `design/components/**`.
+The component collection declares them as inherited entry dependencies, so edits
+affect only its eighteen design routes. Keep them out of the global
+`review.sharedImpact` list; watched stylesheet rules still reload their edits.
+Shared fixtures and reusable screen parts live beside the owning screen modules.
+
+`tests/component_design_attribution.test.ts` exercises each component stylesheet
+against the real example configuration and committed manifest. It requires exact
+Changes membership for the component routes, excluding unrelated design screens,
+product screens, and their use case.
 
 Run `npm run example:build`, `npm run example:check`, and
 `npx playwright test tests/browser/component_design*.spec.ts`. The browser suite

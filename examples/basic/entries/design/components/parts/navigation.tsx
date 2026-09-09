@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 
 import { NavTree, type NavNode } from "../../parts/nav.js";
 import { Shell, type ArtboardViewport } from "../../parts/shell.js";
+import {
+  COMPONENT_PAGES,
+  INSPECTION_PAGES,
+  type ComponentDesignDestination,
+} from "./destinations.js";
 
 export type ChangeScenario = "all" | "component" | "screen" | "removed";
 
@@ -30,10 +35,10 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
             label: scenario === "removed" ? "Farewell" : "Welcome",
             to:
               scenario === "removed"
-                ? "design-component-removed-consumer"
+                ? INSPECTION_PAGES["removed-consumer"]
                 : scenario === "screen"
-                  ? "design-component-inspection-direct-change"
-                  : "design-component-inspection-details",
+                  ? INSPECTION_PAGES["direct-change"]
+                  : INSPECTION_PAGES.details,
           },
           ...(scenario === "all"
             ? [
@@ -41,7 +46,7 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
                   depth: 1,
                   kind: "screen" as const,
                   label: "Details",
-                  to: "design-component-inspection-consumer",
+                  to: INSPECTION_PAGES.consumer,
                 },
               ]
             : []),
@@ -51,7 +56,7 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
                   depth: 1,
                   kind: "screen" as const,
                   label: "Reading room",
-                  to: "design-component-empty",
+                  to: INSPECTION_PAGES.empty,
                 },
               ]
             : []),
@@ -71,10 +76,10 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
       label: "Action",
       to:
         scenario === "removed"
-          ? "design-component-removed"
+          ? COMPONENT_PAGES.removed
           : scenario === "all"
-            ? "design-component-overview"
-            : "design-component-affected",
+            ? COMPONENT_PAGES.default
+            : COMPONENT_PAGES.affected,
     },
     ...(scenario === "all"
       ? [
@@ -82,19 +87,19 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
             depth: 1,
             kind: "component" as const,
             label: "Toolbar",
-            to: "design-component-toolbar",
+            to: COMPONENT_PAGES.toolbar,
           },
           {
             depth: 1,
             kind: "component" as const,
             label: "Help hint",
-            to: "design-component-help",
+            to: COMPONENT_PAGES.hidden,
           },
           {
             depth: 1,
             kind: "component" as const,
             label: "Badge",
-            to: "design-component-unused",
+            to: COMPONENT_PAGES.unused,
           },
         ]
       : []),
@@ -105,11 +110,13 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
 export function ExplorerShell({
   active = "Action",
   children,
+  design,
   scenario = "all",
   viewport,
 }: {
   active?: string;
   children: ReactNode;
+  design: ComponentDesignDestination;
   scenario?: ChangeScenario;
   viewport: ArtboardViewport;
 }) {
@@ -122,6 +129,7 @@ export function ExplorerShell({
   return (
     <div className="ce-design">
       <Shell
+        design={design}
         accessibleControls
         searchPlaceholder="Search catalogue…"
         viewport={viewport}
