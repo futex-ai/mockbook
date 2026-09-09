@@ -91,16 +91,16 @@ export function pendingGeneratedOrphanRoutes(
 
 /** Determine whether an existing target may be replaced safely. */
 export function isOwned(candidate: string, config: ResolvedConfig): boolean {
-  if (
-    !isInside(config.mockupsDir, candidate) ||
-    isAuthoringSource(candidate, config)
-  ) {
-    return false;
-  }
-  const relative = toPosixPath(path.relative(config.mockupsDir, candidate));
-  if (relative === MANIFEST_NAME) return true;
-  if (!candidate.endsWith(".html")) return false;
   try {
+    if (
+      !isInside(config.mockupsDir, candidate) ||
+      isAuthoringSource(candidate, config)
+    ) {
+      return false;
+    }
+    const relative = toPosixPath(path.relative(config.mockupsDir, candidate));
+    if (relative === MANIFEST_NAME) return true;
+    if (!candidate.endsWith(".html")) return false;
     if (!fs.lstatSync(candidate).isFile()) return false;
     const handle = fs.openSync(candidate, "r");
     try {

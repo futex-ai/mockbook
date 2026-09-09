@@ -19,6 +19,11 @@ export interface HtmlReferences {
   resources: readonly string[];
 }
 
+/** Whether discovery also includes speculative browser resource requests. */
+export interface HtmlReferenceOptions {
+  resourceHints?: boolean;
+}
+
 const SOURCE_ATTRIBUTES = new Map<string, readonly string[]>([
   ["audio", ["src"]],
   ["embed", ["src"]],
@@ -36,7 +41,10 @@ const SOURCE_ATTRIBUTES = new Map<string, readonly string[]>([
 ]);
 
 /** Extract navigation links, resource URLs, and anchors from HTML. */
-export function extractHtmlReferences(content: string): HtmlReferences {
+export function extractHtmlReferences(
+  content: string,
+  options: HtmlReferenceOptions = {},
+): HtmlReferences {
   const anchors = new Set<string>();
   const hrefs: string[] = [];
   const resources: string[] = [];
@@ -53,7 +61,15 @@ export function extractHtmlReferences(content: string): HtmlReferences {
       hrefs.push(href);
     }
     if (navigationHref !== undefined) hrefs.push(navigationHref);
-    for (const name of sourceAttributes) {
+    const resourceHint =
+      node.tagName === "link" &&
+      /(?:^|\s)(?:preload|modulepreload|prefetch|preconnect|dns-prefetch)(?:\s|$)/i.test(
+        attributes.get("rel") ?? "",
+      ) &&
+      !/(?:^|\s)stylesheet(?:\s|$)/i.test(attributes.get("rel") ?? "");
+    for (const name of options.resourceHints === false && resourceHint
+      ? []
+      : sourceAttributes) {
       const value = attributes.get(name);
       if (value !== undefined) resources.push(value);
     }

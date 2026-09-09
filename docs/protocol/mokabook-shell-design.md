@@ -60,8 +60,8 @@ contract until their standalone screens are implemented.
 | `design-review-removed`               | `design/review/outcomes/removed.html`              | Removed screen with missing head pane        |
 | `design-review-difference`            | `design/review/outcomes/difference.html`           | Blend-mode difference comparison             |
 | `design-review-dark-scheme`           | `design/review/outcomes/dark-scheme.html`          | Dark view compared side by side              |
-| `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Summary with shared-impact card              |
-| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-region-only classification           |
+| `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Unchanged screen from All with evidence      |
+| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only comparison opened from All      |
 | `design-review-empty`                 | `design/review/impact/empty.html`                  | Empty Changes filter retaining Current       |
 | `design-page-view`                    | `design/browse/pages/view.html`                    | Complete document in its declared collection |
 | `design-page-details`                 | `design/browse/pages/details.html`                 | Document metadata and close action           |

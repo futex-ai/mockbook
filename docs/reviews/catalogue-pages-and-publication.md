@@ -17,8 +17,8 @@ and the subsequent post-push review are recorded below. The original review
 completed with findings.
 
 The post-fix review of `aa1c523` completed with three additional valid findings.
-Those remain open for user selection under the repository's no-automatic-fix
-rule and are recorded in the final section below.
+The user subsequently authorized those fixes as well. All three were reproduced
+or checked against the implemented API, and their resolutions are recorded below.
 
 ## Findings
 
@@ -127,12 +127,12 @@ corrects the stale README instruction to restart after editing that helper.
 
 ## Review After aa1c523
 
-All three new findings were independently checked. These are follow-ups for
-user selection, not a claim that the requested fixes remain unimplemented.
+All three findings were independently checked and their recommended fixes were
+authorized by the user. They are resolved as described below.
 
-1. **Medium — public manifests expose the source-file inventory. Open.**
-   The [public asset classifier](../../src/config/public_files.ts) permits
-   `mokabook-manifest.json`, and publication copies it into `static/`.
+1. **Medium — public manifests expose the source-file inventory. Resolved.**
+   The [public asset classifier](../../src/config/public_files.ts) permitted
+   `mokabook-manifest.json`, and publication copied it into `static/`.
    A disposable probe confirmed a live HTTP 200 and published JSON containing
    an imported `mockups/private/renderer-helper.ts` path. Its source contents
    remained protected: the helper returned 404 and was not copied. The issue
@@ -141,13 +141,17 @@ user selection, not a claim that the requested fixes remain unimplemented.
    classify it as internal across public HTTP, export, and Review resource reads;
    cover direct requests, aliases, and both publication options. **B.** Publish a
    separate sanitized catalogue manifest. **C.** Explicitly support the complete
-   inventory as public metadata. **Recommend A:** browsers already receive their
+   inventory as public metadata. **Recommended and applied: A.** Browsers already receive their
    needed catalogue data through the shell, and one shared classification rule
    avoids inconsistent exclusions. Choose B if a public metadata consumer needs it.
+   A shared internal-metadata policy now protects canonical and historical
+   manifests and their aliases in HTTP, publication, generated references, and
+   current/historical Review reads. Internal readers and ordinary public JSON
+   remain supported. A stale historical alias cannot block unrelated resources.
 
-2. **Medium — publication fingerprints miss an earlier manifest change. Open.**
-   [The publisher](../../scripts/preview/catalogue.mjs) reads a manifest before
-   its initial fingerprint; [the server](../../src/server/http.ts) reads it again.
+2. **Medium — publication fingerprints miss an earlier manifest change. Resolved.**
+   [The publisher](../../scripts/preview/catalogue.mjs) read a manifest before
+   its initial fingerprint; [the server](../../src/server/http.ts) read it again.
    A probe added a page after the first manifest read but before the fingerprint
    read its inputs. Publication succeeded with matching fingerprints and a new
    navigation link, but without that page's captured view or ID redirect.
@@ -156,24 +160,56 @@ user selection, not a claim that the requested fixes remain unimplemented.
    ordering regression. **B.** Use one validated publication snapshot for the
    server, capture loop, change metadata, and redirects, with fingerprint checks
    bracketing its reads and capture. **C.** Lock builds and publication together.
-   **Recommend B, including A's ordering correction:** removing the second
+   **Recommended and applied: B, including A's ordering correction.** Removing the second
    independent manifest read prevents future divergence between these consumers;
    A alone repairs the demonstrated race with less API work.
+   Input capture now hashes the exact manifest bytes used to construct one
+   validated snapshot shared by the capture server, page list, resource
+   adaptation, Changes, and redirects. Both publication options verify the
+   fingerprint before installation and preserve previous output on failure.
+   Inventoried helpers under `.context` remain included; canonical stage/output
+   exclusions keep legitimate in-repository directory aliases working.
 
-3. **Low — the package protocol retains obsolete legacy guidance and omits pages. Open.**
-   The [package contract](../protocol/mokabook-package.md) still describes legacy
+3. **Low — the package protocol retains obsolete legacy guidance and omits pages. Resolved.**
+   The [package contract](../protocol/mokabook-package.md) described legacy
    `exclude` values, although config validation rejects the `legacy` key. Its
-   public API and tags summaries omit page helpers even though `PageInput` accepts
+   public API and tags summaries omitted page helpers even though `PageInput` accepts
    tags and both page authoring forms are supported. This gives upgrading consumers
    contradictory configuration guidance and an incomplete feature reference.
    Options: **A.** Remove obsolete config guidance and audit the public API/tags
    summaries against current exports, linking page-specific detail to its owning
    spec. **B.** Consolidate the duplicated authoring reference into dedicated
    entry-kind docs and keep historical behavior only in migration guidance.
-   **Recommend A:** one complete contract audit addresses the related omissions
+   **Recommended and applied: A.** One complete contract audit addresses the related omissions
    without requiring a broader documentation reorganization.
+   The contract now documents legacy-key rejection, both page authoring forms,
+   the page exports, and page tags, with links to the owning page specification.
 
 The snapshot-race and manifest probes use disposable fixtures and clean them up.
 Their script and results are retained as `.context/review-fixes-validate-new-findings.mjs`
 and `.context/review-fixes-new-findings-validation.json`. They changed no tracked
 implementation files and do not replace regression tests for future fixes.
+
+## Second Authorized Follow-Up
+
+The initial regression run failed all 12 metadata/publication cases. An
+additional context-helper regression exposed an incomplete initial digest and
+drove exact-byte manifest capture. The final focused run passes 32 tests,
+including both publication options, historical metadata readers, snapshot
+mutation and rollback, in-repository aliases, and watcher recovery.
+
+Fetched main `a5ecbc0` was audited from the captured source tip `e332110` before
+integration. All new main files and material Changes/resource-watch behavior
+are retained. Material content/resource filtering now also handles pages;
+historical resource validation uses the baseline's source inventory. Existing
+main regressions exposed and cover dangling-resource ownership recovery.
+The mainline additions and preservation audit are retained under `.context`.
+Only the three already approved legacy/removal files are deleted against main.
+
+Two updated desktop design artifacts and their mobile variants were generated
+from their owning source, opened directly from disk, and visually inspected.
+The full `cargo xtask check` passed with 544 Node tests, 104 Chromium tests,
+three Rust tests, formatting, lint, typechecking, package and packed-consumer
+smoke checks, current example output (70 files), clippy, and the Rust file-length
+audit. All 175 local Markdown targets across 24 changed documents resolve.
+The next post-push review is pending.

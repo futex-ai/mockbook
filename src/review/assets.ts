@@ -1,14 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { isAuthoringSource } from "../build/source_inventory.js";
+import { isPrivateStaticPath } from "../config/public_files.js";
 import { isInside, isSafeRepositoryPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
-import {
-  extractCssReferences,
-  extractHtmlReferences,
-} from "../html_references.js";
+import { referencedRoutes } from "./asset_references.js";
 import type { GitClient, GitFile } from "./git.js";
 import { addArtifactFile, snapshotPath } from "./paths.js";
 import type { ReviewArtifactContent } from "./types.js";
@@ -18,32 +15,85 @@ export interface ReviewAssetReader {
   read(route: string): Promise<Uint8Array>;
 }
 
+/** A worktree reader that distinguishes absent files from invalid resources. */
+export interface OptionalReviewAssetReader extends ReviewAssetReader {
+  /** Missing paths still require a confined, existing public ancestor. */
+  readIfExists(route: string): Promise<Uint8Array | undefined>;
+}
+
+/** Validated public location, including a confined location for a missing file. */
+export interface LocatedReviewAsset {
+  content?: Uint8Array;
+  physicalPath: string;
+}
+
 /** Confined filesystem implementation for current-worktree Review assets. */
-export class FileSystemReviewAssetReader implements ReviewAssetReader {
+export class FileSystemReviewAssetReader implements OptionalReviewAssetReader {
   constructor(private readonly config: ResolvedConfig) {}
 
   async read(route: string): Promise<Uint8Array> {
+    const content = await this.readIfExists(route);
+    if (content === undefined) throw assetError(route, "file is missing");
+    return content;
+  }
+
+  async readIfExists(route: string): Promise<Uint8Array | undefined> {
+    return (await this.readLocated(route)).content;
+  }
+
+  /** Retain the validated physical location so watchers can observe local aliases. */
+  async readLocated(route: string): Promise<LocatedReviewAsset> {
     const candidate = assertPublicStaticRoute(route, this.config);
     try {
+      const existing = await closestExistingPath(candidate);
       const [realRoot, realCandidate] = await Promise.all([
         fs.promises.realpath(this.config.mockupsDir),
-        fs.promises.realpath(candidate),
+        fs.promises.realpath(existing),
       ]);
       const sourceRoots = await Promise.all([
         fs.promises.realpath(this.config.entriesDir),
       ]);
       if (
         !isInside(realRoot, realCandidate) ||
-        sourceRoots.some((root) => isInside(root, realCandidate)) ||
-        !(await fs.promises.stat(realCandidate)).isFile()
+        sourceRoots.some((root) => isInside(root, realCandidate))
       ) {
         throw assetError(route, "not a public static file");
       }
-      return await fs.promises.readFile(realCandidate);
+      const stat = await fs.promises.stat(realCandidate);
+      if (existing !== candidate && stat.isDirectory()) {
+        return {
+          physicalPath: path.resolve(
+            realCandidate,
+            path.relative(existing, candidate),
+          ),
+        };
+      }
+      if (existing !== candidate || !stat.isFile())
+        throw assetError(route, "not a public static file");
+      return {
+        content: await fs.promises.readFile(realCandidate),
+        physicalPath: realCandidate,
+      };
     } catch (error) {
       if (error instanceof MokabookError) throw error;
       throw assetError(route, errorMessage(error), error);
     }
+  }
+}
+
+/** Stop at symlinks so dangling or escaping links cannot masquerade as deletions. */
+async function closestExistingPath(candidate: string): Promise<string> {
+  try {
+    await fs.promises.lstat(candidate);
+    return candidate;
+  } catch (error) {
+    const parent = path.dirname(candidate);
+    if (
+      (error as NodeJS.ErrnoException).code !== "ENOENT" ||
+      parent === candidate
+    )
+      throw error;
+    return closestExistingPath(parent);
   }
 }
 
@@ -176,77 +226,6 @@ async function readGitFilesIndividually(
   return files;
 }
 
-function referencedRoutes(
-  sourceRoute: string,
-  content: ReviewArtifactContent,
-): string[] {
-  const extension = path.posix.extname(sourceRoute).toLowerCase();
-  const text =
-    typeof content === "string"
-      ? content
-      : Buffer.from(content).toString("utf8");
-  const references =
-    extension === ".css"
-      ? extractCssReferences(text)
-      : extension === ".html" || extension === ".htm"
-        ? extractHtmlReferences(text).resources
-        : [];
-  return [
-    ...new Set(
-      references.flatMap((reference) => {
-        const resolved = resolveReference(sourceRoute, reference);
-        return resolved ? [resolved] : [];
-      }),
-    ),
-  ].sort();
-}
-
-function resolveReference(
-  sourceRoute: string,
-  rawReference: string,
-): string | undefined {
-  const reference = rawReference.trim();
-  if (reference.startsWith("//")) {
-    throw assetError(
-      sourceRoute,
-      `non-portable asset URL ${reference} (protocol-relative)`,
-    );
-  }
-  if (reference.startsWith("/")) {
-    throw assetError(
-      sourceRoute,
-      `non-portable asset URL ${reference} (root-absolute)`,
-    );
-  }
-  if (
-    reference === "" ||
-    reference.startsWith("#") ||
-    /^(?:https?:|data:)/i.test(reference)
-  ) {
-    return undefined;
-  }
-  if (/^[a-z][a-z0-9+.-]*:/i.test(reference)) {
-    throw assetError(
-      sourceRoute,
-      `non-portable asset URL ${reference} (unsupported scheme)`,
-    );
-  }
-  const encodedPath = reference.split(/[?#]/, 1)[0] ?? "";
-  let decodedPath: string;
-  try {
-    decodedPath = decodeURIComponent(encodedPath);
-  } catch (error) {
-    throw assetError(sourceRoute, `invalid asset URL ${reference}`, error);
-  }
-  const resolved = path.posix.normalize(
-    path.posix.join(path.posix.dirname(sourceRoute), decodedPath),
-  );
-  if (!isSafeRepositoryPath(resolved)) {
-    throw assetError(sourceRoute, `asset URL escapes mockupsDir: ${reference}`);
-  }
-  return resolved;
-}
-
 function assertPublicStaticRoute(
   route: string,
   config: ResolvedConfig,
@@ -255,7 +234,7 @@ function assertPublicStaticRoute(
   const candidate = path.resolve(config.mockupsDir, route);
   if (
     !isInside(config.mockupsDir, candidate) ||
-    isAuthoringSource(candidate, config)
+    isPrivateStaticPath(candidate, config)
   ) {
     throw assetError(route, "not a public static file");
   }

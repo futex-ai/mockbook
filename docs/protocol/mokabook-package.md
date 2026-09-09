@@ -174,8 +174,8 @@ order.
 `watch.rules[].paths` and Review `sharedImpact` are repository-relative POSIX
 globs, while stylesheet `match` matches catalogue routes. `repoRoot` defaults to the config directory. Duplicate stylesheet
 matches and watch paths are invalid. Additional watch rules cannot override
-configured source/module rebuilds, configured stylesheet reloads, or
-package-owned ignores for dependency, build, test, Review, header-proven
+configured source/module rebuilds, reloads for configured stylesheets and
+referenced resources, or package-owned ignores for dependency, build, test, Review, header-proven
 generated, and transaction paths. An unowned public HTML file below
 `mockupsDir` remains consumer-authored and can match an explicit watch rule.
 Authored source directories may sit below `mockupsDir` for a `docs/mockups/src`
@@ -193,33 +193,43 @@ deduplicated lists, while loader keys are extensions and values are supported
 esbuild loader names. React and React DOM still resolve through Mokabook's
 consumer-peer plugin so these options cannot introduce a second React runtime.
 
-Legacy `exclude` values are source-relative POSIX globs. They exist for a
-staged migration that must omit obsolete source-owned framework prototypes;
-they must not be used to hide a product page that still belongs in the
-catalogue.
+The `legacy` config key is rejected, including `legacy: undefined`. Register
+complete documents explicitly with `definePage` or nested `page`, following the
+[source-preserving migration](./mokabook-page-migration.md). Historical manifest
+compatibility does not restore source discovery or legacy configuration.
 
 ## Public Authoring API
 
 The root package export supplies typed, documented authoring helpers:
 
 - `defineConfig`;
-- `defineScreen`, `defineCollection`, and `defineUseCase`;
-- `defineRoot`, `collection`, and `screen` for nested trees;
+- `defineScreen`, `definePage`, `defineCollection`, and `defineUseCase`;
+- `defineRoot`, `collection`, `screen`, and `page` for nested trees;
 - `mockLink` and `MockLink` for id-addressed links;
 - `ReviewIgnore`, `ReviewIgnoreScope`, and `reviewMaterialKey`.
 
-The root also exports the `ColorScheme` type, exactly `"dark" | "light"`.
+The root also exports the authoring input/definition types, including
+`PageInput`, `PageDefinition`, and `NestedPageInput`, plus configuration,
+renderer, and compatibility-transformer interfaces. `ColorScheme` is exactly
+`"dark" | "light"`; `Viewport` is `"desktop" | "mobile"`.
 
 A screen owns one mobile React node and one desktop React node. A collection is
 structural and owns child ids but no route. A use case owns ordered references
-to existing screens and never defines a screen inline. Ids are explicit,
+to existing screens and never defines a screen inline. A page owns one
+complete HTML document from a synchronous render callback, with no device or
+color variants. The [page contract](./mokabook-pages.md) defines both explicit
+and nested authoring forms. Ids are explicit,
 globally unique kebab-case values and remain stable across navigation changes.
 
 Each entry provides a title, description, related docs, and dependency paths.
-A dependency may identify an existing repository file or directory; Browse and
-Review match the path itself and every descendant, while Review reports the
-concrete changed descendant as evidence. Screens and use cases provide a
-stable relative `.html` route; use cases live under `user-flows/`. Screens may
+A dependency may identify an existing repository file or directory; Review
+matches the path itself and every descendant and reports the concrete changed
+path as impact evidence. Dependency declarations and source paths alone do not
+add entries to Browse Changes: that filter compares output, rendered resources,
+reviewable metadata, and collection ancestry, then propagates affected screens
+to their flows. See [the Changes contract](./mokabook-changes.md).
+Screens, pages, and use cases provide a stable relative `.html` route; use cases live
+under `user-flows/`. Screens may
 provide an address-bar label and use-case membership. Nested definitions
 inherit declared metadata, but ids never derive from tree position.
 
@@ -277,7 +287,8 @@ supported opt-out from a dark-enabled catalogue. A declaration must be
 non-empty, duplicate-free, include `"light"`, and be a subset of the config.
 Nested trees do not inherit this field from their collections or root.
 
-`defineScreen`, `defineUseCase`, and nested `screen` inputs may also declare
+`defineScreen`, `definePage`, `defineUseCase`, and nested `screen` and `page`
+inputs may also declare
 `tags`, a classification list whose values use the same lowercase kebab-case
 grammar as ids. A list must not repeat a tag, and authored order is preserved
 rather than sorted. Collections are structural and reject the field, and nested

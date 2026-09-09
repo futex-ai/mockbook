@@ -39,8 +39,11 @@ serialized `navPath` labels.
 
 `changedRoutes` is the sorted, unique union of affected current routed entries
 and the selected removed-entry routes. Current route attribution keeps the
-existing ID-based metadata, generated-artifact, explicit-dependency, ancestry,
-and shared-impact rules, extended with the page's single output. Screen impact
+existing ID-based metadata, material generated-output, rendered-resource, and
+ancestry rules, extended with the page's single document. Apply the same paired
+ignore normalization to page documents. Source paths, dependency declarations,
+and shared-impact matches alone do not add otherwise unchanged entries, as
+specified by the [Changes contract](./mokabook-changes.md). Screen impact
 continues to propagate to use cases through their screen steps. Current display
 metadata comes from the matching current catalogue; removed display metadata
 comes from `removedEntries`. No removed-use-case support is introduced here.

@@ -7,6 +7,7 @@ import {
   projectRealPath,
 } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
+import { isInternalCatalogueFile } from "../config/public_files.js";
 import { MokabookError, errorMessage } from "../errors.js";
 import { isAuthoringSource } from "./source_inventory.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
@@ -51,6 +52,7 @@ export function validateGeneratedOutputPaths(
       );
     }
     if (
+      (route !== MANIFEST_NAME && isInternalCatalogueFile(target, config)) ||
       isAuthoringSource(target, config) ||
       authoredRoots.some((root) => isInside(root, target)) ||
       realAuthoredRoots.some((root) => isInside(root, projectedTarget))

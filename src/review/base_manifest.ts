@@ -28,6 +28,23 @@ export async function readBaseManifest(
   );
 }
 
+/** Apply the baseline's own source policy without executing historical consumer code. */
+export function baselineResourceConfig(
+  config: ResolvedConfig,
+  manifest: HistoricalManifest,
+): ResolvedConfig {
+  return {
+    ...config,
+    sourceFiles:
+      manifest.schemaVersion === 4
+        ? manifest.sourceFiles
+        : [
+            ...manifest.entries.map((entry) => entry.sourcePath),
+            ...manifest.legacyPages.map((page) => page.sourcePath),
+          ],
+  };
+}
+
 function joinGit(prefix: string, route: string): string {
   return prefix === "" ? route : `${prefix}/${route}`;
 }

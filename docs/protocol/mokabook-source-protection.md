@@ -17,6 +17,17 @@ and its resolved repository-relative target. A public-looking symlink cannot
 make a protected target public. Existing regular-file and root-confinement
 checks remain mandatory.
 
+The canonical `mokabook-manifest.json` and historical `mockbook-manifest.json`
+at `mockupsDir` are internal metadata. Deny both configured paths and their
+realpath aliases at every public-resource boundary, even when their inventory
+is absent or they are pending generated output. Keep them readable by internal
+build, freshness, and Git-baseline readers. They are not authoring inputs and
+must not be added to `sourceFiles` merely to make them private. Ordinary public
+JSON remains supported. Browsers receive the catalogue data they need through
+the shell; no public manifest endpoint is provided.
+An absent or dangling historical-manifest alias remains private without
+preventing unrelated public files from loading.
+
 Reserve basenames ending in `.source.html`, `.source.htm`, `.source.ts`,
 `.source.tsx`, `.source.js`, `.source.jsx`, `.source.mts`, `.source.cts`,
 `.source.mjs`, or `.source.cjs`, matched case-insensitively. Their protection is
@@ -33,7 +44,9 @@ scripts are not made private merely because they end in `.js`.
 
 Reject generated output routes that use a reserved source basename or overlap
 any protected input, including through a symlink. A generated ownership header,
-logical link, or asset reference cannot override source protection. A request
+logical link, or asset reference cannot override source or internal-metadata
+protection. Only the builder's canonical manifest output may target its internal
+metadata path. A request
 for a protected file has the existing not-found behavior; a generated document
 that needs it as a public resource fails validation with its referring route.
 
@@ -96,7 +109,8 @@ inventory, entry source paths, and reserved-name rules. Never execute historical
 config or rebuild a Git baseline to refresh its inventory. Historical v2/v3
 readers retain their version-specific source/root safeguards and also deny
 reserved source basenames; they are the only readers allowed to lack v4's
-inventory. Current-side resource reads always use the current validated policy.
+inventory. Internal manifest paths stay private for every historical schema.
+Current-side resource reads always use the current validated policy.
 
 ## Acceptance
 
@@ -112,3 +126,5 @@ Exercise the same fixtures through GET/HEAD `/static`, resource validation,
 current and historical Review reads, and both publication options. Verify that
 CSS, fonts, images, and public scripts still work. Test watcher reclassification
 after dependency changes and prove default publication validation uses no Git.
+Cover internal manifests, their symlink aliases, generated links/resources,
+ordinary public JSON, and continued internal current/v2/v3/v4 manifest reads.

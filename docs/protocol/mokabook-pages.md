@@ -103,8 +103,9 @@ Pages are one light document regardless of the catalogue color-scheme setting.
 
 Registry imports, page callbacks, imported document modules, and screen rendering
 share the existing consumer bundle and React runtime.
-Imported sources participate in watched rebuilds. Declared dependencies and
-their directory descendants retain their existing impact semantics.
+Imported sources participate in watched rebuilds. Declared dependencies retain
+their metadata and evidence role; an input edit alone does not add a page whose
+document, rendered resources, and reviewable metadata remain unchanged.
 
 The complete output passes the shared child-control adapter, logical-link and
 fragment validation, compatibility transformer, final metadata/ownership checks,
@@ -198,8 +199,10 @@ restoration identically. Old portable artifact links remain valid.
 ## Changes, Watch, And Publishing
 
 Pages participate in the All/Changes filter wherever review is enabled. Compare
-stable page metadata, real ancestor IDs/titles, the generated document, explicitly declared
-dependencies, and shared-impact paths against the Git branch point. Renaming
+stable page metadata, real ancestor IDs/titles, the generated document, and its
+rendered local resources against the Git branch point. Apply the shared
+[material-change rules](./mokabook-changes.md), including paired ignore regions;
+source/dependency changes alone do not affect membership. Renaming
 or reparenting a page marks that entry changed. A flat `definePage` keeps its
 explicit `route`; title and collection membership never rewrite it. A nested
 `page` derives its route from the root path, collection segments, and its slug,

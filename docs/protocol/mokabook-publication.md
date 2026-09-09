@@ -76,6 +76,31 @@ with comparisons replaces the complete owned artifact transactionally, removing
 obsolete review files and redirects; never leave them reachable through a
 previous generation or stale asset copy.
 
+## Consistent Publication Snapshot
+
+Both options begin input capture before loading the current catalogue. Read
+the manifest bytes once and hash those exact bytes together with its inventoried
+inputs and public resources. Include inventoried helpers even beneath otherwise
+excluded `.context` directories. Construct one validated catalogue snapshot
+from that captured manifest and use it for the capture server, page capture
+list, resource adaptation, and ID
+redirects. When Changes is enabled, compute its route impact and removed-entry
+metadata from that exact current manifest and the pinned Git baseline. The
+capture server must not independently reload the manifest.
+
+Exclude the active staging directory and destination from input enumeration by
+their canonical paths as well as the usual generated-artifact rules. This keeps
+publication's own writes out of its input digest when `.context` or a parent
+directory is an in-repository symlink. Explicit inventoried authoring inputs
+remain included even when directory enumeration excludes their location.
+
+Fingerprint again after capturing pages, comparisons, and public resources and
+before installing the staged artifact. A changed fingerprint fails publication
+and preserves the previous artifact. A completed rebuild before the initial
+fingerprint belongs wholly to the new snapshot; a rebuild after it must not
+produce mixed navigation, missing pages, or stale redirects. Default publication
+performs the same filesystem consistency checks without consulting Git.
+
 ## Explicitly Include Changes
 
 With `--include-changes`, publish the existing All/Changes navigation and screen
@@ -141,3 +166,6 @@ normal navigation and opted-in comparison loading still work.
 For both options, reject escaping context, parent, and output symlinks without
 changing the outside target. Prove valid in-repository symlinks and a symlinked
 repository root still support publication.
+Test a rebuild immediately before the first input scan and a manifest mutation
+after its initial read. Verify navigation, captured routes, ID redirects, and
+opted-in change metadata agree, and failed capture preserves the previous output.

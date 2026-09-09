@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { isPublicStaticFile } from "../config/public_files.js";
+import {
+  isPrivateStaticPath,
+  isPublicStaticFile,
+} from "../config/public_files.js";
 import { isSafeRepositoryPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
@@ -37,9 +40,11 @@ export function validateHtmlLinks(
   );
   const parsed = new Map<string, ParsedResource>();
   for (const [route, content] of outputs) {
+    if (isPrivateStaticPath(path.resolve(config.mockupsDir, route), config))
+      continue;
     parsed.set(route, htmlResource(extractHtmlReferences(content)));
   }
-  const pending = [...outputs.keys()].sort();
+  const pending = [...parsed.keys()].sort();
   const visited = new Set<string>();
   const violations: string[] = [];
   while (pending.length > 0) {
@@ -135,6 +140,8 @@ function validateReference(
     return { violation: `link escapes mockupsDir: ${reference}` };
   }
   const target = rawTarget.replace(/^\.\//, "");
+  if (isPrivateStaticPath(path.resolve(config.mockupsDir, target), config))
+    return { violation: `missing target ${reference} (protected file)` };
   let targetResource = parsed.get(target);
   if (!targetResource) {
     targetResource = loadResource(target, new Map(), config, pendingOrphans);
@@ -177,11 +184,12 @@ function loadResource(
   config: ResolvedConfig,
   pendingOrphans: ReadonlySet<string>,
 ): ParsedResource | undefined {
+  const candidate = path.resolve(config.mockupsDir, route);
+  if (isPrivateStaticPath(candidate, config)) return undefined;
   const generated = outputs.get(route);
   if (generated !== undefined)
     return htmlResource(extractHtmlReferences(generated));
   if (pendingOrphans.has(route)) return undefined;
-  const candidate = path.resolve(config.mockupsDir, route);
   if (!isPublicStaticFile(candidate, config)) return undefined;
   const extension = path.posix.extname(route).toLowerCase();
   if (extension !== ".css" && extension !== ".html" && extension !== ".htm") {

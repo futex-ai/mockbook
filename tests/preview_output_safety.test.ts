@@ -6,6 +6,8 @@ import test from "node:test";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
+import type { PublicationOptions } from "../dist/publication/options.js";
+import { NodeGitCommandRunner } from "../dist/review/git.js";
 import { buildPreview } from "../scripts/preview/catalogue.mjs";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
@@ -48,26 +50,49 @@ for (const includeChanges of [false, true]) {
   }
 }
 
-test("publication accepts context and parent symlinks contained by the real repository", async (context) => {
-  const fixture = await createFixture();
-  const aliasRoot = await createFixture();
-  context.after(() => removeFixture(fixture));
-  context.after(() => removeFixture(aliasRoot));
-  const rootAlias = path.join(aliasRoot.root, "repository");
-  await fs.promises.symlink(fixture.root, rootAlias);
-  const config = await loadConfig(rootAlias);
-  await writeCompilation(await compileCatalogue(config), config);
-  const artifacts = path.join(fixture.root, "artifacts");
-  await fs.promises.mkdir(path.join(artifacts, "nested"), { recursive: true });
-  await fs.promises.symlink("artifacts", path.join(fixture.root, ".context"));
-  await fs.promises.symlink("nested", path.join(artifacts, "linked"));
-  const output = path.join(rootAlias, ".context/linked/published");
-  await buildPreview(config, output);
-  assert.match(
-    await fs.promises.readFile(
-      path.join(artifacts, "nested/published/index.html"),
-      "utf8",
-    ),
-    /<title>Mokabook<\/title>/,
-  );
-});
+for (const includeChanges of [false, true]) {
+  test(`publication accepts context and parent symlinks contained by the real repository (changes: ${includeChanges})`, async (context) => {
+    const fixture = await createFixture();
+    const aliasRoot = await createFixture();
+    context.after(() => removeFixture(fixture));
+    context.after(() => removeFixture(aliasRoot));
+    const rootAlias = path.join(aliasRoot.root, "repository");
+    await fs.promises.symlink(fixture.root, rootAlias);
+    const config = await loadConfig(rootAlias);
+    await writeCompilation(await compileCatalogue(config), config);
+    if (includeChanges) {
+      const runner = new NodeGitCommandRunner(fixture.root);
+      await runner.run(["init", "-q"]);
+      await runner.run(["add", "."]);
+      await runner.run([
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.invalid",
+        "commit",
+        "-qm",
+        "test: publication baseline",
+      ]);
+    }
+    const artifacts = path.join(fixture.root, "artifacts");
+    await fs.promises.mkdir(path.join(artifacts, "nested"), {
+      recursive: true,
+    });
+    await fs.promises.symlink("artifacts", path.join(fixture.root, ".context"));
+    await fs.promises.symlink("nested", path.join(artifacts, "linked"));
+    const output = path.join(rootAlias, ".context/linked/published");
+    const options: PublicationOptions = includeChanges
+      ? { includeChanges: true, base: "HEAD" }
+      : {};
+    await buildPreview(config, output, options);
+    assert.match(
+      await fs.promises.readFile(
+        path.join(artifacts, "nested/published/index.html"),
+        "utf8",
+      ),
+      /<title>Mokabook<\/title>/,
+    );
+    await buildPreview(config, output, options);
+    assert.equal(fs.existsSync(path.join(output, "index.html")), true);
+  });
+}

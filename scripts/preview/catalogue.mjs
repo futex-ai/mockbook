@@ -6,7 +6,7 @@ import {
   NodeGitCommandRunner,
   RepositoryGitClient,
 } from "../../dist/review/git.js";
-import { fingerprintInputs, isComparisonPath } from "./inputs.mjs";
+import { capturePublicationInputs, isComparisonPath } from "./inputs.mjs";
 import { adaptBrowseDocument } from "../../dist/browse/document_adapter.js";
 import {
   isInside,
@@ -14,8 +14,7 @@ import {
   toPosixPath,
 } from "../../dist/config/paths.js";
 import { isPublicStaticFile } from "../../dist/config/public_files.js";
-import { readManifest } from "../../dist/registry/manifest.js";
-import { createCatalogue } from "../../dist/server/catalogue.js";
+import { loadCatalogueSnapshot } from "../../dist/server/catalogue_snapshot.js";
 import { computeCatalogueChanges } from "../../dist/server/changed.js";
 import {
   loadBrowserClientModules,
@@ -43,14 +42,11 @@ export async function buildPreview(config, output, options = {}) {
     path.join(path.dirname(output), ".mokabook-preview-stage-"),
   );
   try {
-    const manifest = readManifest(config);
-    const catalogue = createCatalogue(manifest);
+    const excludedRoots = [stage, output];
+    const inputs = await capturePublicationInputs(config, excludedRoots);
     const base = capability.includeChanges
       ? (capability.base ?? config.review.base)
       : "";
-    const fingerprint = capability.includeChanges
-      ? await fingerprintInputs(config)
-      : undefined;
     let git;
     if (capability.includeChanges) {
       const repository = new RepositoryGitClient(
@@ -65,19 +61,21 @@ export async function buildPreview(config, output, options = {}) {
         },
       });
     }
-    const changes = git
-      ? await computeCatalogueChanges(config, base, git)
-      : undefined;
-    const changedRoutes = changes?.changedRoutes;
-    if (capability.includeChanges && !changedRoutes)
-      throw new Error("preview change detection failed");
+    const snapshot = await loadCatalogueSnapshot(
+      config,
+      git
+        ? (manifest) => computeCatalogueChanges(config, base, git, manifest)
+        : undefined,
+      inputs.manifest,
+    );
+    const { catalogue, changes } = snapshot;
+    const manifest = catalogue.manifest;
     const review = git
       ? previewComparisonProvider(config, stage, base, git)
       : undefined;
     const server = await startCatalogueServer(config, {
       base,
-      ...(changes ? { changes } : {}),
-      ...(changedRoutes ? { changedRoutes } : {}),
+      snapshot,
       port: 0,
       ...(review ? { review } : {}),
     });
@@ -119,7 +117,10 @@ export async function buildPreview(config, output, options = {}) {
         ...(comparison ? [comparison.redirect] : []),
         redirects([
           ...manifest.entries,
-          ...removed.filter((screen) => !catalogue.byId.has(screen.id)),
+          ...removed.filter(
+            (screen) =>
+              !manifest.entries.some((entry) => entry.id === screen.id),
+          ),
         ]),
       ].join("\n"),
     );
@@ -130,8 +131,8 @@ export async function buildPreview(config, output, options = {}) {
         "/__mokabook/diffs/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n",
       );
     if (
-      fingerprint !== undefined &&
-      fingerprint !== (await fingerprintInputs(config))
+      inputs.fingerprint !==
+      (await capturePublicationInputs(config, excludedRoots)).fingerprint
     )
       throw new Error(
         "consumer inputs changed during publication; retry with stable inputs",

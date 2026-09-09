@@ -1,5 +1,10 @@
 import chokidar, { type FSWatcher } from "chokidar";
 
+import {
+  rawRenamePaths,
+  ResourceWatchNotifications,
+} from "./watch_notifications.js";
+
 /** Consumer-input watcher lifecycle used by watched Serve. */
 export interface ConsumerWatcher {
   close(): Promise<void>;
@@ -11,11 +16,17 @@ export interface ConsumerWatcher {
 /** Predicate used to prune package-owned paths from a recursive watch. */
 export type WatchIgnorePredicate = (candidate: string) => boolean;
 
+/** Filesystem traversal policy for a watcher with a confined set of inputs. */
+export interface ConsumerWatchOptions {
+  followSymlinks?: boolean;
+}
+
 /** Factory seam for watcher integration tests and alternate platforms. */
 export interface ConsumerWatcherFactory {
   create(
     targets: readonly string[],
     ignore?: WatchIgnorePredicate,
+    options?: ConsumerWatchOptions,
   ): ConsumerWatcher;
 }
 
@@ -24,26 +35,53 @@ export class ChokidarWatcherFactory implements ConsumerWatcherFactory {
   create(
     targets: readonly string[],
     ignore?: WatchIgnorePredicate,
+    options?: ConsumerWatchOptions,
   ): ConsumerWatcher {
     return new ChokidarConsumerWatcher(
       chokidar.watch([...targets], {
+        ...options,
         awaitWriteFinish: { pollInterval: 20, stabilityThreshold: 50 },
         ...(ignore ? { ignored: ignore } : {}),
         ignoreInitial: true,
       }),
+      options?.followSymlinks === false,
+      ignore,
     );
   }
 }
 
 class ChokidarConsumerWatcher implements ConsumerWatcher {
-  constructor(private readonly watcher: FSWatcher) {}
+  readonly #notifications = new Set<ResourceWatchNotifications>();
+
+  constructor(
+    private readonly watcher: FSWatcher,
+    private readonly observeEntryReplacements: boolean,
+    private readonly ignore?: WatchIgnorePredicate,
+  ) {}
 
   close(): Promise<void> {
+    for (const notifications of this.#notifications) notifications.close();
     return this.watcher.close();
   }
 
   onChange(callback: (path: string) => void): void {
-    this.watcher.on("all", (_event, candidate) => callback(candidate));
+    if (!this.observeEntryReplacements) {
+      this.watcher.on("all", (_event, candidate) => callback(candidate));
+      return;
+    }
+    const notifications = new ResourceWatchNotifications(callback);
+    this.#notifications.add(notifications);
+    this.watcher.on("all", (_event, candidate) =>
+      notifications.notify(candidate),
+    );
+    this.watcher.on(
+      "raw",
+      (event: string, candidate: string, details: unknown) => {
+        if (event !== "rename") return;
+        for (const path of rawRenamePaths(candidate, details, this.ignore))
+          notifications.notify(path);
+      },
+    );
   }
 
   onError(callback: (error: Error) => void): void {

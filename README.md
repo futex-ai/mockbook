@@ -169,7 +169,10 @@ stays stable.
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
-without writing and reports missing, stale, or orphan generated files. Browse
+without writing and reports missing, stale, or orphan generated files. The
+manifest stays internal: its source inventory is unavailable through HTTP,
+published assets, and comparison resources. Ordinary public JSON remains
+supported. Browse
 serves the package-owned Mokabook shell — resizable desktop catalogue
 navigation with folder/screen/flow icons and an All/Changes filter, search that
 narrows the tree by page ID, title, route, and `tag:` terms that the field's tag
@@ -182,13 +185,23 @@ use-case flows, a collapsed-by-default details inspector that remembers its
 disclosure across routes and reloads, id redirects, and watched updates. The
 Changes filter compares
 an explicit projection of route-level manifest metadata, collection ancestry,
-generated fragments, and explicitly declared dependencies with the branch
+generated fragments, and their rendered local resources with the branch
 point shared by `HEAD` and the configured Git base. Collection ancestry comes
 from real `childIds` relationships; compatibility-only `navPath` labels are
 excluded. Commits added only to the base branch after divergence do not appear
-as branch changes; staged, unstaged, and untracked workspace edits still do. A
-registry module that defines many routes does not make every route appear
-changed merely because the module's imports or composition changed.
+as branch changes; staged, unstaged, and untracked workspace edits still do.
+A source or dependency edit does not add screens whose output and reviewable
+metadata remain unchanged. Source locations and dependency declarations are
+evidence, so reorganizing them alone does not fill Changes. Generated fragments
+use the comparison engine's paired ignore rules: excluded chrome-only edits
+stay out, while material keys and changes to screen content remain reviewable.
+Linked CSS, fonts, images, and transitive local resources still mark the screens
+that reference them; unrelated shared files do not mark the whole catalogue.
+The filter validates referenced public files, including changed stylesheets and
+their imports. Invalid resources make Changes unavailable until repaired;
+verified deletions still identify affected screens, while All remains accessible.
+Serve automatically watches those referenced local resources, including nested
+CSS imports, and refreshes its watch set when their references change.
 Lightweight watched updates recompute this route snapshot before notifying the
 browser, so the Changes rows and count match the files that triggered each
 reload without restarting the server child.
@@ -204,11 +217,15 @@ stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
 catalogue available and offer a retry. Navigation and reload return to Current.
 Added and removed screens show explicit missing sides, and unchanged screens
-can still be compared from All. Shared-impact files keep affected screens in
-Changes even if their generated fragments are unchanged.
+can still be compared from All. Shared-impact and declared-dependency evidence
+remains in comparison details, including for unchanged screens opened from All.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
-rules, and isolated snapshot dependencies. Overlays use 50% opacity; Difference
+rules, and isolated snapshot dependencies. Its private diagnostic summary counts
+screens with output changes separately from dependency evidence and ignored-only
+edits. Each count includes a screen once across all viewports and color schemes;
+these screen counts differ from the catalogue's screen, page, and flow count.
+Overlays use 50% opacity; Difference
 uses CSS blending, without inventing pixel measurements. Immutable generations
 keep snapshots coherent during refresh, retain replaced resources briefly, and
 drain generation work before shutdown. The former Review tab, standalone report,
@@ -238,8 +255,8 @@ after readiness. A watched child also closes its server when the parent IPC
 channel disconnects. Header-proven generated output plus package-owned
 dependency, build, test, comparison, and transaction paths are pruned even when a
 custom rule watches the repository root; an unowned public HTML file can still
-use an explicit watch rule, and configured stylesheets retain reload
-precedence. Shutdown interrupts replacement-watcher readiness, closes the
+use an explicit watch rule, and configured stylesheets and referenced resources
+retain reload precedence. Shutdown interrupts replacement-watcher readiness, closes the
 candidate before draining the remaining lifecycle, and waits for child exit
 through graceful, terminate, and force-kill stages. Every served catalogue shell records the update version
 captured when its request begins. Open shell pages compare that
@@ -281,8 +298,9 @@ installed dependencies remain supported outside the root.
 - `legacy` configuration has been removed. Register complete documents with
   `definePage` or nested `page`; imported helpers remain protected source inputs.
 - `watch` classifies additional consumer inputs after proven package-owned
-  ignores and configured stylesheets; this includes authored static HTML under
-  `mockupsDir`. `review` selects the Git base ref used to find the branch point,
+  ignores, configured stylesheets, and referenced resources; this includes
+  unrelated authored static HTML under `mockupsDir`. `review` selects the Git
+  base ref used to find the branch point,
   internal snapshot directory, and shared-impact globs.
 - `compatibility.readManifestV2` permits a historical v2 Git baseline only when
   its canonical manifest is absent. Current output always requires v4. A temporary `compatibility.transformer` may deterministically
@@ -404,11 +422,19 @@ inspector ports to isolate concurrent workspaces. The suite uses the installed
 Chrome channel by default and honors `PLAYWRIGHT_CHANNEL` for an alternative
 browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
+These tests build real Git comparisons and Pages previews. Await generation
+responses before asserting comparison UI, and set preview setup timeouts in
+the setup hook so build time is separate from browser assertions.
 
 `cargo xtask check` is the authoritative local gate. It includes formatting,
 lint, typechecking, unit/integration tests, the committed example, package
 allowlist and license checks, clean packed ESM/NodeNext/npx/Accounting/Juno
 consumers, Chromium tests, and all Rust checks.
+
+`npm test` runs at most two suites concurrently so Git-heavy watcher and
+publication scenarios remain responsive alongside other development work.
+Long resource-watch scenarios allow three minutes for their complete sequence;
+production child-startup and individual watched-update deadlines stay separate.
 
 ## Preview Deployments
 
@@ -417,6 +443,10 @@ consumers, Chromium tests, and all Rust checks.
 viewport/color choices, ID redirects, resources, and whole-document pages.
 It works without Git history. Both publication options omit live updates,
 watch-only modules, events endpoints, and stale comparison artifacts.
+Both options use one validated catalogue snapshot for navigation, captured pages,
+and redirects. Input fingerprints retain the exact manifest bytes used by the
+snapshot and are checked again after capture; a change aborts publication and
+keeps the previous artifact.
 Output stays beneath `.context`, whose resolved location must remain inside the
 real repository root. In-repository symlinks are supported; escaping context,
 parent, or output symlinks are rejected before any publication writes.
@@ -498,7 +528,11 @@ canonical destinations and the controls that remain visual depictions.
 - [`src/review`](./src/review) — Git extraction, comparison, ignore normalization,
   and isolated comparison snapshots.
 - [`src/build/source_inventory.ts`](./src/build/source_inventory.ts) — resolved
-  authoring inputs and shared source protection.
+  authoring inputs; [`src/config/public_files.ts`](./src/config/public_files.ts)
+  applies the shared source and internal-metadata policy to public resources.
+- [`src/server/catalogue_snapshot.ts`](./src/server/catalogue_snapshot.ts) —
+  one validated generation for serving and publication; HTTP dispatch lives in
+  [`src/server/http_routes.ts`](./src/server/http_routes.ts).
 - [`xtask`](./xtask/README.md) — full repository checks and post-push review.
 
 ### Related Docs

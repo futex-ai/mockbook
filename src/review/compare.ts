@@ -17,7 +17,7 @@ import {
   GitReviewAssetReader,
   type ReviewAssetReader,
 } from "./assets.js";
-import { readBaseManifest } from "./base_manifest.js";
+import { baselineResourceConfig, readBaseManifest } from "./base_manifest.js";
 import { reviewChangedPaths } from "./changed_paths.js";
 import type { GitClient } from "./git.js";
 import { normalizeReviewPair, normalizeSingleDocument } from "./ignore.js";
@@ -59,18 +59,8 @@ export async function compareReview(
   const mockupsPrefix = toPosixPath(
     path.relative(config.repoRoot, config.mockupsDir),
   );
-  const baselineConfig = {
-    ...config,
-    sourceFiles:
-      baseManifest.schemaVersion === 4
-        ? baseManifest.sourceFiles
-        : [
-            ...baseManifest.entries.map((entry) => entry.sourcePath),
-            ...baseManifest.legacyPages.map((page) => page.sourcePath),
-          ],
-  };
   const baseAssetReader = new GitReviewAssetReader(
-    baselineConfig,
+    baselineResourceConfig(config, baseManifest),
     git,
     baseCommit,
     mockupsPrefix,

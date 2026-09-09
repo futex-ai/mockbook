@@ -25,7 +25,7 @@ import {
 
 const execFileAsync = promisify(execFile);
 
-test("changed routes match source, dependency, and fragment paths", async (context) => {
+test("changed routes select fragment edits rather than source or dependency edits", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
   const config = await loadConfig(fixture.root);
@@ -41,7 +41,7 @@ test("changed routes match source, dependency, and fragment paths", async (conte
     changedManifestRoutes(compilation.manifest, compilation.manifest, config, [
       "notes.md",
     ]),
-    ["screens/details.html", "screens/home.html", "user-flows/tour.html"],
+    [],
   );
   assert.deepEqual(
     changedManifestRoutes(compilation.manifest, compilation.manifest, config, [
@@ -214,7 +214,7 @@ test("branch comparisons exclude commits made only on the base branch", async (c
   );
 });
 
-test("changed routes match descendants of directory dependencies", async (context) => {
+test("directory dependency edits alone leave unchanged routes out of Changes", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
   const config = await loadConfig(fixture.root);
@@ -227,7 +227,7 @@ test("changed routes match descendants of directory dependencies", async (contex
     changedManifestRoutes(manifest, manifest, config, [
       "src/components/Button.tsx",
     ]),
-    ["screens/home.html", "user-flows/tour.html"],
+    [],
   );
 });
 
@@ -265,7 +265,7 @@ test("changed-route detection degrades to undefined when Git fails", async (cont
   };
   assert.deepEqual(
     await computeChangedRoutes(config, "origin/main", succeeding),
-    ["screens/details.html", "screens/home.html", "user-flows/tour.html"],
+    [],
   );
 });
 
