@@ -343,6 +343,20 @@ npm run example:check
 cargo xtask check
 ```
 
+For local development after installing dependencies, run:
+
+```bash
+npm run dev
+```
+
+This builds the local CLI and starts the example catalogue with watching enabled.
+Open the printed URL, starting at `http://127.0.0.1:4173`. Edits to example
+entries, the renderer, and configured stylesheets update the catalogue
+automatically; generated HTML is written to `examples/basic/generated/`.
+Use `npm run dev -- --port 0` to let the operating system choose a free port.
+Restart the command after changing Mokabook's own `src/` files or other unwatched
+inputs such as `examples/basic/theme.ts`; the CLI is rebuilt on every start.
+
 `npm run test:browser` drives the catalogue shell and on-demand screen comparisons
 in Chromium via Playwright; it uses the installed Chrome channel by default and
 honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel

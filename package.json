@@ -40,6 +40,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json && node scripts/copy-assets.mjs",
     "clean": "node scripts/clean.mjs",
+    "dev": "npm run build && node dist/cli/bin.js serve --config examples/basic/mokabook.config.ts",
     "example:build": "node dist/cli/bin.js build --config examples/basic/mokabook.config.ts",
     "example:check": "node dist/cli/bin.js check --config examples/basic/mokabook.config.ts",
     "format": "prettier --write .",

@@ -58,9 +58,20 @@ keep the drawer fixed. The recorded tokens and responsive rules live in
 From the repository root:
 
 ```bash
+npm run dev
+```
+
+This builds the local CLI, generates the catalogue, and watches entries, the
+renderer, and configured stylesheets. Open the printed URL; the browser reloads
+after watched edits. Forward Serve options with `npm run dev -- --port 0`.
+Restart the command after changing Mokabook's `src/` files or unwatched inputs
+such as this example's `theme.ts`.
+
+For one-off generation, verification, or publishing an artifact:
+
+```bash
 npm run example:build
 npm run example:check
-node dist/cli/bin.js serve --config examples/basic/mokabook.config.ts --port 0 --no-watch
 npm run preview:build
 ```
 
