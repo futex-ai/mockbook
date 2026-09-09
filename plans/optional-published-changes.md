@@ -2,8 +2,8 @@
 
 ## Status And Outcome
 
-Implementation and verification are complete; commit, push, and final review
-remain. The user requested an option after reviewing whether Changes belongs
+Implementation, validation, commit, push, and review are complete. Three new
+review findings remain documented follow-ups. The user requested an option after reviewing whether Changes belongs
 in a published catalogue.
 
 Publish the current catalogue by default. Authors can explicitly include
@@ -115,7 +115,7 @@ this milestone limited to shell/client presentation and browser validation.
 
 The shell presents both completed options without altering local development.
 
-## Milestone 6: Switch workflows, verify, commit, push, review
+## Milestone 6: Switch workflows, verify, commit, push, review — completed
 
 Deliver the completed behavior with documented commands and explicit workflow
 selection after the UI is ready.
@@ -138,14 +138,14 @@ selection after the UI is ready.
 - [x] Fetch main and audit its additions from the captured pre-integration tip;
       preserve all unrelated features. Inspect the diff and deletions against
       `origin/main`, validate Markdown/links, and record verification results.
-- [ ] Run `git add -A`, commit all completed work with a Conventional Commit
+- [x] Run `git add -A`, commit all completed work with a Conventional Commit
       title of at most 50 characters and an explanatory body, then push. Record
       the authorized change to default publication and retained opt-in review.
       Inspect the committed diff and deletions against `origin/main`.
-- [ ] After the push, run `cargo xtask review`. Do not automatically fix its
+- [x] After the push, run `cargo xtask review`. Do not automatically fix its
       findings; report numbered items with severity, context, impact, lettered
       options, and a recommendation considering broader prevention.
-- [ ] Record unresolved findings, complete only finished milestones, and move
+- [x] Record unresolved findings, complete only finished milestones, and move
       this plan to Completed in the index when all required work is done.
       Validate and commit/push final documentation bookkeeping if needed.
 
@@ -172,3 +172,20 @@ The browser suite now waits for completed comparison responses and uses
 independent Wrangler inspector ports when workspaces run concurrently. All 151
 local Markdown targets resolve. Logs and visual evidence are under `.context`;
 final commit/push/review records follow below.
+
+## Delivery Review
+
+Implementation commit `57eb59a` and integration commit `709151a` were pushed
+to `calummoore/same-name-roots`. The final `cargo xtask review` completed against
+`93ac778` after the integration push (invocation 2 of 10; the first was
+interrupted when main advanced, without final findings). All new implementation,
+test, and design files were tracked and included in that review. The final
+preservation audit found only the three explicitly authorized removals.
+
+All four new findings were checked independently. Outside-root source imports
+(high), an escaping context-root symlink (medium), and screen-only common shell
+copy (low) remain for user selection. Stale documentation labels (low) are
+resolved in final bookkeeping. The [complete review record](../docs/reviews/catalogue-pages-and-publication.md)
+contains reproduction evidence, impact, lettered options, and recommendations.
+Required delivery tasks are complete; this is not a claim of a clean review.
+Final documentation bookkeeping is validated and committed/pushed separately.

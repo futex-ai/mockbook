@@ -2,13 +2,13 @@
 
 ## Active
 
-- [Optional Published Changes](./optional-published-changes.md)
-- [Unified Catalogue Pages](./unified-catalogue-pages.md)
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 
 ## Completed
 
+- [Optional Published Changes](./optional-published-changes.md)
+- [Unified Catalogue Pages](./unified-catalogue-pages.md)
 - [Mokabook Design MockLinks](./mokabook-design-mocklinks.md)
 - [MockLink Child Controls](./mocklink-child-controls.md)
 - [Hierarchy-Inferred Breadcrumbs](./hierarchy-inferred-breadcrumbs.md)

@@ -389,14 +389,14 @@ Open the printed URL, starting at `http://127.0.0.1:4173`. Edits to example
 entries, the renderer, and configured stylesheets update the catalogue
 automatically; generated HTML is written to `examples/basic/generated/`.
 Use `npm run dev -- --port 0` to let the operating system choose a free port.
-Restart the command after changing Mokabook's own `src/` files ; the CLI is rebuilt on every start.
+Restart the command after changing Mokabook's own `src/` files; the CLI is rebuilt on every start.
 
 `npm run test:browser` drives the catalogue shell and on-demand screen comparisons
 in Chromium via Playwright. Comparison tests await the real generation response
 before asserting the rendered UI. Static preview fixtures use ephemeral
 inspector ports to isolate concurrent workspaces. The suite uses the installed
-Chrome channel by default and
-honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
+Chrome channel by default and honors `PLAYWRIGHT_CHANNEL` for an alternative
+browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 
 `cargo xtask check` is the authoritative local gate. It includes formatting,
@@ -499,8 +499,8 @@ canonical destinations and the controls that remain visual depictions.
 - [Accounting migration inventory](./docs/migration/accounting-framework-inventory.md)
 - [Styled control migration guide](./docs/migration/accounting-link-controls.md)
 - [Implementation plans](./plans/README.md)
-- [Planned unified catalogue pages](./docs/protocol/mokabook-pages.md) and
+- [Unified catalogue pages](./docs/protocol/mokabook-pages.md) and
   [required breaking upgrade](./docs/protocol/mokabook-page-migration.md)
-- [Planned source protection](./docs/protocol/mokabook-source-protection.md) and
+- [Authoring source protection](./docs/protocol/mokabook-source-protection.md) and
   [catalogue change metadata](./docs/protocol/mokabook-catalogue-changes.md)
 - [Versioned Accounting page migration](./docs/migration/accounting-page-entries.md)

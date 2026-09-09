@@ -2,8 +2,8 @@
 
 ## Status And Outcome
 
-Implementation and consumer verification are complete; commit, push, and final
-review remain. The user approved a mandatory
+Implementation, consumer rehearsal, validation, commit, push, and review are
+complete. Three new review findings remain documented follow-ups. The user approved a mandatory
 breaking upgrade after the Accounting inspection found a second App root, and
 subsequently requested fixes for the contract reviews.
 
@@ -264,7 +264,7 @@ guidance, and rehearse the actual Accounting inventory before release.
 
 The package has a verified migration and rehearsal; durable adoption follows separately.
 
-## Milestone 9: Verify, commit, push, and review
+## Milestone 9: Verify, commit, push, and review — completed
 
 Finish implementation delivery only after all required checks pass; keep the
 complete new source, tests, docs, and generated artifacts in the reviewed diff.
@@ -290,17 +290,17 @@ complete new source, tests, docs, and generated artifacts in the reviewed diff.
       its additions. Inspect the diff and deletions against `origin/main` and stop
       for any unapproved feature removal. Validate Markdown links and generated
       output and record verification results in this plan.
-- [ ] Run `git add -A`, commit the completed implementation using Conventional
+- [x] Run `git add -A`, commit the completed implementation using Conventional
       Commits with a title of at most 50 characters and an explanatory body, push
       the branch, and inspect the committed diff/deletions against `origin/main`.
       Use breaking-change notation and record the authorized removal of legacy
       configuration/discovery/rendering, related cleanup, and consumer upgrade
       requirements in the implementation commit and release notes.
-- [ ] After the push, run `cargo xtask review` against `origin/main`. Do not
+- [x] After the push, run `cargo xtask review` against `origin/main`. Do not
       automatically fix its findings. Report every item with severity, feature
       context, impact, lettered options, and a clear recommendation that evaluates
       whether a broader rule/test/abstraction would prevent recurrence.
-- [ ] Record the review outcome and unresolved decisions; mark only finished
+- [x] Record the review outcome and unresolved decisions; mark only finished
       milestones complete and move this plan to Completed when all required work
       is done. Validate and commit/push final documentation bookkeeping if needed.
 
@@ -353,6 +353,23 @@ ephemeral Wrangler inspector ports; loading/error assertions remain immediate.
 All 583 compiled package files are byte-identical to the Accounting candidate,
 so the verified consumer rehearsal covers the final runtime. No further files
 were removed. The final push and post-push review are recorded below.
+
+## Delivery Review
+
+Implementation commit `57eb59a` and integration commit `709151a` were pushed
+to `calummoore/same-name-roots`. The final `cargo xtask review` completed against
+`93ac778` after the integration push (invocation 2 of 10; the first was
+interrupted when main advanced, without final findings). All new implementation,
+test, and design files were tracked and included in that review. The final
+preservation audit found only the three explicitly authorized removals.
+
+All four new findings were checked independently. Outside-root source imports
+(high), an escaping context-root symlink (medium), and screen-only common shell
+copy (low) remain for user selection. Stale documentation labels (low) are
+resolved in final bookkeeping. The [complete review record](../docs/reviews/catalogue-pages-and-publication.md)
+contains reproduction evidence, impact, lettered options, and recommendations.
+Required delivery tasks are complete; this is not a claim of a clean review.
+Final documentation bookkeeping is validated and committed/pushed separately.
 
 ## Consumer Follow-Up (Outside Package Completion)
 
