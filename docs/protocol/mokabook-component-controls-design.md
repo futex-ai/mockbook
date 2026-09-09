@@ -58,20 +58,19 @@ are bounded child galleries with four, four, and two owning screens respectively
 Every screen has distinct mobile and desktop components. The catalogue provides
 state navigation without adding a footer to the rendered product artboard.
 
-| Entry id                               | Route                                               | State                                           |
-| -------------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
-| `design-component-controls`            | `design/components/controls/overview.html`          | Default saved variant with all control types    |
-| `design-component-controls-edited`     | `design/components/controls/editing/edited.html`    | Edited values and matching preview              |
-| `design-component-controls-unset`      | `design/components/controls/editing/unset.html`     | Optional hint unset                             |
-| `design-component-controls-variant`    | `design/components/controls/editing/variant.html`   | Disabled saved variant selected                 |
-| `design-component-controls-reset`      | `design/components/controls/editing/reset.html`     | Reset to saved values                           |
-| `design-component-controls-pending`    | `design/components/controls/states/pending.html`    | Last valid preview while an update is pending   |
-| `design-component-controls-invalid`    | `design/components/controls/states/invalid.html`    | Field validation with last valid preview        |
-| `design-component-controls-error`      | `design/components/controls/states/error.html`      | Render failure, retry, and reset                |
-| `design-component-controls-comparison` | `design/components/controls/states/comparison.html` | Saved variant comparison and read-only controls |
-| `design-component-controls-readonly`   | `design/components/controls/published/default.html` | Read-only values and available saved variants   |
-
-| `design-component-controls-readonly-variant` | `design/components/controls/published/variant.html` | Disabled saved variant with read-only values |
+| Entry id                                     | Route                                               | State                                           |
+| -------------------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
+| `design-component-controls`                  | `design/components/controls/overview.html`          | Default saved variant with all control types    |
+| `design-component-controls-edited`           | `design/components/controls/editing/edited.html`    | Edited values and matching preview              |
+| `design-component-controls-unset`            | `design/components/controls/editing/unset.html`     | Optional hint unset                             |
+| `design-component-controls-variant`          | `design/components/controls/editing/variant.html`   | Disabled saved variant selected                 |
+| `design-component-controls-reset`            | `design/components/controls/editing/reset.html`     | Reset to saved values                           |
+| `design-component-controls-pending`          | `design/components/controls/states/pending.html`    | Last valid preview while an update is pending   |
+| `design-component-controls-invalid`          | `design/components/controls/states/invalid.html`    | Field validation with last valid preview        |
+| `design-component-controls-error`            | `design/components/controls/states/error.html`      | Render failure, retry, and reset                |
+| `design-component-controls-comparison`       | `design/components/controls/states/comparison.html` | Saved variant comparison and read-only controls |
+| `design-component-controls-readonly`         | `design/components/controls/published/default.html` | Read-only values and available saved variants   |
+| `design-component-controls-readonly-variant` | `design/components/controls/published/variant.html` | Disabled saved variant with read-only values    |
 
 ## Verification
 

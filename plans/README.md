@@ -2,7 +2,8 @@
 
 ## Active
 
-- [Component Explorer](./component-explorer.md)
+- [Component Explorer](./component-explorer.md) — all mockups ready for sign-off;
+  runtime implementation pending.
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 

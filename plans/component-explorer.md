@@ -1,9 +1,8 @@
 # Component Explorer
 
-Status: active; Milestones 4 and 4a completed. Component runtime implementation
-remains pending; the earlier documentation change delivered the target contract.
-The user requested all component mockups together for sign-off: execute 4b and 7
-now, ahead of the pending runtime/backend milestones.
+Status: active; all mockup milestones (4, 4a, 4b, and 7) are completed and ready
+for joint sign-off. Component runtime implementation remains pending. At the
+user's request, 4b and 7 were delivered ahead of the runtime/backend milestones.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -191,7 +190,7 @@ no review-driven code fixes were applied. The pending delivery checklist observe
 during review is now complete. `cargo xtask check` passed with 431 TypeScript,
 111 browser, and 3 Rust tests; Node 22.14/24 CI and the PR preview also passed.
 
-## Milestone 4b: Complete the reviewed inspector mockups
+## Milestone 4b: Complete the reviewed inspector mockups — completed
 
 Tags: mockup
 
@@ -212,15 +211,22 @@ milestones. Share the inspector across component and consuming-screen designs.
       and verify links, metadata, responsive layout, selection, and keyboard use.
 - [x] Pass focused suites and `cargo xtask check`; inspect the diff and deletions.
 - [x] Run `git add -A`, commit with Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after pushing; report new findings for user decision.
-- [ ] Update PR #48 with the complete mockup sign-off scope and validation.
+- [x] Run `cargo xtask review` after pushing; report new findings for user decision.
+- [x] Update PR #48 with the complete mockup sign-off scope and validation.
 
 Mockup implementation and visual verification are complete: 31 owning screens,
 62 mobile/desktop artboards, and all 56 existing mainline HTML files preserved
 byte for byte. `cargo xtask check` passed with 439 TypeScript, 122 browser, and
 3 Rust tests, including build, formatting, lint, typechecking, generated-output,
-package smokes, and Rust checks. Commit/push and post-push review are tracked
-separately above; the review is still pending at this delivery stage.
+package smokes, and Rust checks. Implementation commit `646bb43` is pushed;
+the post-push `cargo xtask review` completed and its findings are recorded in
+[PR #48](https://github.com/futex-ai/mokabook/pull/48). The review's pending
+handoff observation is closed by this delivery record. Three low-priority
+follow-ups remain for user decision: stale counts in neighboring docs,
+incomplete focused-test guidance, and a manually maintained browser route list.
+The controls table formatting was corrected independently during handoff;
+no other new review fixes were applied. Published-preview checks passed for
+inspector open/close, controls navigation, and read-only saved variants.
 
 ## Milestone 5: Implement component pages and inspection
 
@@ -273,13 +279,13 @@ the endpoint inactive in published output and independent of generated files.
 - [ ] Build and smoke-test real consumer rerenders while browsing/watching;
       prove static publishing has no rendering endpoint or background requests.
 
-## Milestone 7: Design editable component controls
+## Milestone 7: Design editable component controls — completed
 
 Tags: mockup
 
 Extend the component-page design with local controls and published saved-variant
 behavior before implementing the new controls UI.
-Complete this milestone now with 4b for one design sign-off. The mockups use
+Delivered with 4b for one design sign-off. The mockups use
 authored fixture states and do not depend on the unimplemented rendering service.
 
 - [x] Create mobile/desktop screen components for controls, edited values/reset,
@@ -296,7 +302,7 @@ authored fixture states and do not depend on the unimplemented rendering service
       the saved component page in both layouts.
 - [x] Update design docs; regenerate/check the example, run relevant tests,
       and visually verify every changed generated page directly from disk.
-- [ ] Include this milestone in 4b's full check, commit/push, post-push review,
+- [x] Include this milestone in 4b's full check, commit/push, post-push review,
       and PR handoff, with commit/push and review tracked independently.
 
 ## Milestone 8: Implement editable component controls
