@@ -4,6 +4,10 @@ The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` is no longer a CLI option.
 
+The approved [page-entry target](./mokabook-pages.md) adds page impact and
+missing-current states to this same filter while keeping comparison controls
+screen-only. Page support is planned; this document describes current behavior.
+
 ## Screen controls
 
 Every structured screen offers Current / Side by side / Overlay / Difference

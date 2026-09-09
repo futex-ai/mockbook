@@ -19,6 +19,11 @@ The catalogue-link implementation and its verification history are recorded in
 the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
+The approved [page-entry target](./mokabook-pages.md) and
+[source/manifest migration](./mokabook-page-migration.md) are not implemented.
+They define the future `page` kind and unified hierarchy; the API and schema-v3
+descriptions below remain the current behavior until that cutover.
+
 ## Package Identity
 
 - The public package name is `mokabook`.

@@ -6,6 +6,10 @@ This contract is implemented. Its delivery and verification history is recorded
 in the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
+The approved [page-entry target](./mokabook-pages.md) extends these link and
+ancestor rules to whole-document pages with IDs. That extension is planned;
+the legacy-page behavior below remains current until its implementation.
+
 ## Scope
 
 This document defines how links authored inside generated mockup documents

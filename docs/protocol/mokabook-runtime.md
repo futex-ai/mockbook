@@ -1,5 +1,10 @@
 # Mokabook Build And Browse Runtime
 
+The approved [page-entry target](./mokabook-pages.md) will replace the separate
+legacy navigation tree with ordinary collection-owned pages. Its
+[migration contract](./mokabook-page-migration.md) is not implemented; this
+document continues to describe the current runtime.
+
 ## Source Of Truth
 
 Consumer-authored registry modules and legacy page modules are the source of

@@ -439,3 +439,5 @@ recorded by the
 - [Accounting migration inventory](./docs/migration/accounting-framework-inventory.md)
 - [Styled control migration guide](./docs/migration/accounting-link-controls.md)
 - [Implementation plans](./plans/README.md)
+- [Planned unified catalogue pages](./docs/protocol/mokabook-pages.md) and
+  [consumer migration contract](./docs/protocol/mokabook-page-migration.md)

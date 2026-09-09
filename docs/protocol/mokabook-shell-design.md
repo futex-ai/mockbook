@@ -20,6 +20,10 @@ control with its picker panel, the mark-only narrow brand, and the top bar's
 stacking above the navigation drawer scrim. Every state recorded here is
 implemented.
 
+The approved [page-entry target](./mokabook-pages.md) requires additional
+whole-document and removed-page designs before its UI is implemented. Those
+states are planned and are not included in the implemented catalogue below.
+
 ## Design Mockups
 
 The approved screens are authored in `examples/basic/entries/design/` and
