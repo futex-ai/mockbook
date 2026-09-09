@@ -686,6 +686,12 @@ test("the narrow search bar drops the name and fits its controls", async ({
   }));
   expect(bar.scroll).toBeLessThanOrEqual(bar.client);
   await expect(page.locator(".mbk-brand .mbk-mark")).toBeVisible();
+  await expect(page.locator(".mbk-brand .mbk-mark svg")).toBeVisible();
+  await expect(page.locator(".mbk-brand .mbk-mark")).toHaveCSS("width", "24px");
+  await expect(page.locator(".mbk-brand .mbk-mark svg")).toHaveCSS(
+    "width",
+    "17px",
+  );
   await expect(page.locator(".mbk-brand .mbk-name")).toBeHidden();
   await expect(page.getByRole("link", { name: "Mokabook" })).toBeVisible();
   await expect(page.locator("[data-mokabook-menu]")).toBeVisible();

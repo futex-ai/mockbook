@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
 import { SchemeSwitch } from "./head.js";
-import { SearchIcon } from "./icons.js";
+import { BrandIcon, SearchIcon } from "./icons.js";
 import { CatalogueNav } from "./nav.js";
 import { SearchTagPicker } from "./tags.js";
 import { ShellMain, viewTitle } from "./views.js";
@@ -30,7 +30,7 @@ function TopBar(props: { catalogue: Catalogue }) {
       </button>
       <a aria-label="Mokabook" className="mbk-brand" href="/">
         <span aria-hidden="true" className="mbk-mark">
-          ◫
+          <BrandIcon />
         </span>
         <span className="mbk-name">Mokabook</span>
       </a>

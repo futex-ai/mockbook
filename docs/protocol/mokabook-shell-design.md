@@ -23,27 +23,34 @@ implemented.
 ## Design Mockups
 
 The approved screens are authored in `examples/basic/entries/design/` and
-generated under `examples/basic/generated/design/`:
+generated under `examples/basic/generated/design/`. This is the canonical
+inventory of existing design-screen ids and logical routes, matching the
+[committed manifest](../../examples/basic/generated/mokabook-manifest.json).
+Update this inventory when design entries change and verify exact id/route
+agreement with the manifest. Planned destinations stay in their feature
+contract until their standalone screens are implemented.
 
-| Route                                     | State                                  |
-| ----------------------------------------- | -------------------------------------- |
-| `design/browse/views/home.html`           | Catalogue home with navigation tree    |
-| `design/browse/views/screen.html`         | Selected screen with framed fragments  |
-| `design/browse/views/use-case.html`       | Selected use case with ordered steps   |
-| `design/browse/states/details.html`       | Expanded details inspector             |
-| `design/browse/states/missing-route.html` | Not-found view with navigation         |
-| `design/browse/states/navigation.html`    | Collapsed navigation drawer            |
-| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree        |
-| `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens     |
-| `design/browse/states/light-only.html`    | Light-only screen under dark           |
-| `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare   |
-| `design/review/outcomes/added.html`       | Added screen with missing base pane    |
-| `design/review/outcomes/removed.html`     | Removed screen with missing head pane  |
-| `design/review/outcomes/difference.html`  | Blend-mode difference comparison       |
-| `design/review/outcomes/dark-scheme.html` | Dark view compared side by side        |
-| `design/review/impact/shared-impact.html` | Summary with shared-impact card        |
-| `design/review/impact/ignored-only.html`  | Ignored-region-only classification     |
-| `design/review/impact/empty.html`         | Empty Changes filter retaining Current |
+| Entry id                      | Route                                     | State                                  |
+| ----------------------------- | ----------------------------------------- | -------------------------------------- |
+| `design-browse-home`          | `design/browse/views/home.html`           | Catalogue home with navigation tree    |
+| `design-browse-screen`        | `design/browse/views/screen.html`         | Selected screen with framed fragments  |
+| `design-browse-use-case`      | `design/browse/views/use-case.html`       | Selected use case with ordered steps   |
+| `design-browse-details`       | `design/browse/states/details.html`       | Expanded details inspector             |
+| `design-browse-missing-route` | `design/browse/states/missing-route.html` | Not-found view with navigation         |
+| `design-browse-navigation`    | `design/browse/states/navigation.html`    | Collapsed navigation drawer            |
+| `design-browse-tag-filter`    | `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree        |
+| `design-browse-dark-scheme`   | `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens     |
+| `design-browse-light-only`    | `design/browse/states/light-only.html`    | Light-only screen under dark           |
+| `design-changes-current`      | `design/review/controls/current.html`     | Current screen in Changes              |
+| `design-changes-overlay`      | `design/review/controls/overlay.html`     | On-demand overlay comparison           |
+| `design-review-changed`       | `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare   |
+| `design-review-added`         | `design/review/outcomes/added.html`       | Added screen with missing base pane    |
+| `design-review-removed`       | `design/review/outcomes/removed.html`     | Removed screen with missing head pane  |
+| `design-review-difference`    | `design/review/outcomes/difference.html`  | Blend-mode difference comparison       |
+| `design-review-dark-scheme`   | `design/review/outcomes/dark-scheme.html` | Dark view compared side by side        |
+| `design-review-shared-impact` | `design/review/impact/shared-impact.html` | Summary with shared-impact card        |
+| `design-review-ignored-only`  | `design/review/impact/ignored-only.html`  | Ignored-region-only classification     |
+| `design-review-empty`         | `design/review/impact/empty.html`         | Empty Changes filter retaining Current |
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
@@ -103,13 +110,17 @@ The shell fills the viewport (`100vh`, document scrolling disabled); every
 scrollable region scrolls internally:
 
 - **Top bar** — 48px, surface background, hairline bottom border: brand mark
-  (24px rounded square in the accent with the `◫` glyph), the product name in
+  (a non-shrinking 24px accent square with 6px corners and a 17px inline SVG
+  of overlapping mobile and desktop screen outlines), the product name in
   its own `mbk-name` span, a centred search field (max-width 440px, led by a
   15px stroked magnifier icon that holds its size while the field flexes)
   that flexes down to whatever room the bar leaves it, the color-scheme control
   when the catalogue has one. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
-  retains space; the brand link keeps its accessible name. There is no mode
+  retains space; the brand link keeps its accessible name. The decorative mark
+  inherits the accent-contrast color and uses two-unit strokes on a 24-unit
+  viewBox, with the mobile outline in front and a gap in the desktop outline
+  at the overlap. There is no mode
   switch. A query splits into terms: every `tag:<tag>`
   term matches only rows whose entry declares that tag, and the remaining words
   rejoin into one phrase that must appear in a row's authored ID, title, or

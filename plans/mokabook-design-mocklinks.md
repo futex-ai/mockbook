@@ -163,6 +163,9 @@ and published-preview behavior agree with the adoption contract.
 - [ ] Validate every generated design link against manifest destinations in
       both variants. Check every new state's incoming and return navigation;
       assert label/subject/query/picker agreement, not merely a link count.
+- [ ] Check the canonical existing-design inventory against the complete
+      manifest id/route set; keep pending additions in the feature contract
+      until their standalone screens ship.
 - [ ] Exercise real example buttons in light/dark output and actual Review
       snapshot fallback. Keep Review's frame-owned links distinct from a
       design artboard that merely depicts a comparison.
@@ -222,8 +225,9 @@ Planning commit `cde0932` was pushed before `cargo xtask review` completed on
 2026-09-09 against `origin/main` at `bb3a22f`. Markdown formatting, 53 local
 documentation links, 22 documented catalogue ids, and diff/deletion checks
 passed. The documentation-only exemption applied to `cargo xtask check`.
-Implementation remains unstarted. These findings are recorded for the user's
-decision; no review fixes have been applied.
+Implementation remains unstarted. These findings were initially recorded for
+the user's decision without fixes. The user subsequently authorized valid
+review fixes; their disposition is tracked in Milestone 7 below.
 
 1. **Severity: Medium — incomplete existing destination inventory.**
    The reviewer noted that the new contract lists only the five new route
@@ -248,3 +252,31 @@ decision; no review fixes have been applied.
    historical section linked to its completed plan. Recommended: A; keep the
    destination contract as the source for the new scope rather than maintaining
    another independent requirements list in example notes.
+
+## Milestone 7: Address approved planning review findings
+
+Outcome: the existing route inventory and historical notes agree with the
+planned adoption, while feature implementation remains unstarted.
+
+- [x] Verify the findings independently: the manifest has 19 design screens,
+      the old inventory omits Current/Overlay and all entry ids, and the old
+      notes refer to the completed in-frame navigation work.
+- [x] Complete one canonical id/route inventory, cross-reference it from the
+      adoption contract and example README, and require manifest comparison
+      during future implementation verification.
+- [x] Identify the historical note's completed scope and link to the five
+      planned additions in the adoption contract.
+- [x] Validate Markdown, local links/anchors, exact manifest inventory parity,
+      and the diff. Apply the documentation-only full-check exemption.
+- [ ] Preserve the audited mainline logo update, then `git add -A`, commit the
+      fixes using Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after the push and record/report new findings
+      without automatically fixing them; commit/push the final review record.
+
+Validation: the inventory probe first failed for two missing routes and all
+19 missing ids, then passed with exact manifest parity after the fix. All 58
+local documentation links (including three heading anchors), Markdown
+formatting, and diff checks pass. Source tip before integration was `ef2bfd1`;
+the audited main addition was `815405e` (screen-stack logo). The merge has no
+conflicts, and code, tests, and generated output match `origin/main` exactly.
+Only documentation differs from main, so `cargo xtask check` is exempt.

@@ -24,9 +24,11 @@ in each entry's description and rationale, never inside the rendered screens:
 - Desktop Current and comparison views share one visible navigation split grip.
   The static mockups record its resting state; pointer, keyboard, bounds, and
   persistence behavior are specified in the runtime protocol.
-- Catalogue-link navigation reuses the approved active-row, disclosure, and
-  frame visuals. The implementation adds behavior and inert generated metadata
-  only, so this change requires no new Design catalogue screen or pixel state.
+- The completed [in-frame catalogue navigation work](../../plans/in-frame-catalogue-link-navigation.md)
+  reused the approved active-row, disclosure, and frame visuals, adding runtime
+  behavior and inert generated metadata without new design screens. The
+  planned [design mockup adoption](../../docs/protocol/mokabook-design-links.md#canonical-destination-inventory)
+  requires five new standalone states; that contract owns their destinations.
 - The dark-scheme, light-only, and dark view compare screens are light
   documents that draw a shell with dark selected, so they opt out of dark
   generation like every other design screen. Only the depicted device screens

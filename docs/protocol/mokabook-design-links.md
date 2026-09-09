@@ -56,9 +56,13 @@ available. `example-farewell` remains an intentionally absent product entry.
 
 ## Canonical Destination Inventory
 
-The existing design ids below retain their current routes. Five new screens
-complete the destination set; each has separate mobile and desktop components
-and must render standalone before a control or flow links to it.
+Existing destinations and their stable id/route mappings are listed in the
+[canonical design inventory](./mokabook-shell-design.md#design-mockups),
+including the Current and Overlay screens. They retain those ids and routes.
+
+The table below lists only the five planned additions. Each has separate
+mobile and desktop components and must render standalone before a control or
+flow links to it; add its id/route to the canonical inventory when it ships.
 
 | New entry id                          | Route                                              | Depicted state                                                    |
 | ------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
@@ -196,6 +200,9 @@ normal enhanced navigation. Do not equate these two contexts.
   in both viewports, plus every light/dark example-button output. Detect wrong
   subjects, self-links masquerading as transitions, collection/absent ids,
   duplicate/nested focus targets, and inactive controls becoming links.
+- Check the canonical existing-design inventory against the complete manifest
+  design-screen set, including exact id/route pairs. Keep unimplemented planned
+  destinations separate from that inventory so omissions and drift are visible.
 - Prove each new state is reachable from its owning screen/flow and has the
   specified return route. Test tag query/picker agreement and scheme pairing.
 - In Browse, exercise pointer and Tab/Enter activation from mobile and desktop
