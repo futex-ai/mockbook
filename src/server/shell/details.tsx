@@ -173,13 +173,13 @@ function LegacyDetailsBody(props: { sourcePath: string }) {
   );
 }
 
-/** The collapsible details panel for the selected route. */
+/** The collapsed-by-default details panel for the selected route. */
 export function DetailsPanel(props: {
   catalogue: Catalogue;
   target: RouteTarget;
 }) {
   return (
-    <details className="mbk-details" data-mokabook-details="" open>
+    <details className="mbk-details" data-mokabook-details="">
       <summary className="mbk-details-bar">
         <span className="chev">
           <ChevronIcon size={12} />

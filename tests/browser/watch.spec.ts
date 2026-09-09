@@ -92,11 +92,12 @@ test("watched serve rebuilds and reloads after an authored change", async ({
     "src",
     /screens\/home\.mobile\.dark\.html$/,
   );
-  await page.locator("[data-mokabook-details] summary").click();
-  await expect(page.locator("[data-mokabook-details]")).not.toHaveAttribute(
-    "open",
-    "",
-  );
+  const details = page.locator("[data-mokabook-details]");
+  await expect(details).not.toHaveAttribute("open", "");
+  await details.locator("summary").click();
+  await expect(details).toHaveAttribute("open", "");
+  await details.locator("summary").click();
+  await expect(details).not.toHaveAttribute("open", "");
   await page.setViewportSize({ height: 900, width: 420 });
   await page.click("[data-mokabook-menu]");
   await fs.promises.writeFile(
@@ -141,10 +142,7 @@ test("watched serve rebuilds and reloads after an authored change", async ({
       '.mbk-screen-head [data-mokabook-schemeswitch] [data-color-scheme-option="dark"]',
     ),
   ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator("[data-mokabook-details]")).not.toHaveAttribute(
-    "open",
-    "",
-  );
+  await expect(details).not.toHaveAttribute("open", "");
   await expect(page.locator("[data-mokabook-shell]")).toHaveAttribute(
     "data-drawer",
     "open",
