@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { CompareToolbar } from "./compare.js";
-import { SearchIcon } from "./icons.js";
+import { BrandIcon, SearchIcon } from "./icons.js";
 import { SearchTagButton, TagPicker } from "./tag_filter.js";
 
 /** Rendering target for a design mockup artboard. */
@@ -29,7 +29,7 @@ function Brand({ markOnly }: { markOnly: boolean }) {
   return (
     <span className="mbk-brand">
       <span className="mbk-mark" aria-hidden="true">
-        ◫
+        <BrandIcon />
       </span>
       {markOnly ? null : "Mokabook"}
     </span>

@@ -47,7 +47,10 @@ comparison states plus Current and Overlay controls, plus Current and Overlay co
 design screens explicitly opt out with `colorSchemes: ["light"]` because they
 are light documents that draw the Mokabook shell, including the three that
 depict the shell with dark selected; the two product screens inherit the
-catalogue default and prove dark generation. Desktop variants depict the
+catalogue default and prove dark generation. All design headers use the approved
+screen-stack logo: 17px overlapping mobile and desktop outlines in a 24px
+sage square.
+Desktop variants depict the
 shared resize grip on the catalogue navigation in Current and comparison views; narrow variants
 keep the drawer fixed. The recorded tokens and responsive rules live in
 [`docs/protocol/mokabook-shell-design.md`](../../docs/protocol/mokabook-shell-design.md).
@@ -55,9 +58,20 @@ keep the drawer fixed. The recorded tokens and responsive rules live in
 From the repository root:
 
 ```bash
+npm run dev
+```
+
+This builds the local CLI, generates the catalogue, and watches entries, the
+renderer, and configured stylesheets. Open the printed URL; the browser reloads
+after watched edits. Forward Serve options with `npm run dev -- --port 0`.
+Restart the command after changing Mokabook's `src/` files or unwatched inputs
+such as this example's `theme.ts`.
+
+For one-off generation, verification, or publishing an artifact:
+
+```bash
 npm run example:build
 npm run example:check
-node dist/cli/bin.js serve --config examples/basic/mokabook.config.ts --port 0 --no-watch
 npm run preview:build
 ```
 
