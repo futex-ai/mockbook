@@ -230,6 +230,20 @@
   white-space: nowrap;
 }
 
+.address-url {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The trailing copy affordance keeps its size while the address truncates. */
+.address-copy {
+  color: var(--chrome-muted);
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 10px;
+}
+
 .browser-expand {
   align-items: center;
   background: var(--chrome-surface);
@@ -238,7 +252,6 @@
   color: var(--chrome-muted);
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 14px;
   height: 26px;
   justify-content: center;
   line-height: 1;
