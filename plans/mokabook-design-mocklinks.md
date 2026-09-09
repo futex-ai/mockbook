@@ -6,9 +6,8 @@ Make Mokabook's own design catalogue navigable through its pictured links,
 rows, and supported state controls, in both mobile and desktop variants.
 The basic example's prominent buttons also demonstrate `MockLink asChild`.
 
-Status: implementation and verification complete; commit, push, and final
-review are in progress. Latest main was already integrated at `e47524b`. The
-complete contract is
+Status: complete. All milestones are delivered; implementation `9fbbc17` is
+pushed and reviewed against integrated main `e47524b`. The complete contract is
 [Design mockup links](../docs/protocol/mokabook-design-links.md), which builds
 on the implemented [navigation](../docs/protocol/mokabook-navigation.md) and
 [child controls](../docs/protocol/mokabook-link-controls.md) contracts.
@@ -188,7 +187,7 @@ and published-preview behavior agree with the adoption contract.
       statuses and screen counts, and confirm the five new screens and every
       generated HTML/manifest update will be tracked in the delivery commit.
 
-## Milestone 6: Commit, push, and review
+## Milestone 6: Commit, push, and review — completed
 
 Outcome: the validated implementation is committed, pushed, and independently
 reviewed, with findings left for the user's decision.
@@ -199,18 +198,18 @@ reviewed, with findings left for the user's decision.
 - [x] After tests and `cargo xtask check` pass, inspect
       `git diff --name-status origin/main`, deletions against main, and the
       complete diff. Stop for any unapproved removal or feature reduction.
-- [ ] Run `git add -A`; inspect the staged diff including new source, test,
+- [x] Run `git add -A`; inspect the staged diff including new source, test,
       generated, and documentation files. Commit with a Conventional Commits
       title of at most 50 characters and an explanatory body.
-- [ ] Inspect `git diff --name-status origin/main..HEAD`, then push the current
+- [x] Inspect `git diff --name-status origin/main..HEAD`, then push the current
       branch without renaming it.
-- [ ] Run `cargo xtask review` after the push so it reviews the complete
+- [x] Run `cargo xtask review` after the push so it reviews the complete
       committed branch diff against `origin/main`.
-- [ ] Report every finding with a number, severity, context, impact of doing
+- [x] Report every finding with a number, severity, context, impact of doing
       nothing, lettered solution options, and a recommended option. Evaluate
       whether a shared rule/test/abstraction prevents recurrence. Do not
       automatically fix findings from this review.
-- [ ] Record the review result and completed milestones, move this plan to
+- [x] Record the review result and completed milestones, move this plan to
       Completed only when its required tasks are done, and validate/commit/push
       any final documentation record separately if needed.
 
@@ -290,4 +289,18 @@ to settle; all 27 repeated keyboard cases pass. `cargo xtask check` passed with
 426 TypeScript tests, 94 browser tests, three Rust tests, formatting, linting,
 typechecking, generated-output checks, packed consumers, clippy, and the Rust
 file-length audit. All 33 original entries and their routes are preserved;
-there are no deleted files. Commit, push, and final review remain in progress.
+there are no deleted files. All 60 local Markdown file links also pass.
+
+Implementation `9fbbc17` was committed, pushed, and reviewed against `e47524b`
+on 2026-09-09. No actionable code, behavior, security, or generated-output issues
+were found. The reviewer's read-only sandbox blocked its independent fixture
+check from creating a temporary directory; the full gate above passed outside
+that sandbox. Final documentation uses the documentation-only check exemption.
+
+1. **Low — pending plan delivery status: scheduled closeout completed.**
+   The reviewed commit still listed delivery tasks as pending. Leaving them
+   unchanged would mislead future agents into repeating completed work.
+   A. Record the review and move the plan to Completed (recommended, completed
+   by the already-authorized final milestone). B. Leave it Active with only
+   final disposition pending. The existing post-review record step prevents
+   stale status; no broader code or test change is warranted.
