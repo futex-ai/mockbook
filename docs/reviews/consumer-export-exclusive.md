@@ -59,7 +59,7 @@ reopening completed milestones or authorizing an automatic new-finding cycle.
   The first Linux browser attempt lacked the default Google Chrome executable;
   rerunning the complete gate with the installed Chromium browser selected via
   `PLAYWRIGHT_CHANNEL=chromium` passed. No product or test code changed between
-  those attempts. Focused required macOS/Windows CI runs follow the push.
+  those attempts. Focused required macOS/Windows CI results are recorded below.
 - At initial verification main was `a5ecbc0`, already merged, with no mainline
   file deletions. See the subsequent integration below for newer mainline work.
 
@@ -86,10 +86,40 @@ unit/integration tests, 107 browser tests, three Rust tests, and every formattin
 lint, typechecking, generated-example, package/license, packed-consumer,
 Rust formatting/Clippy, and file-length gate. The earlier Linux/Node 22 and
 macOS/Node 24 results describe the pre-merge source; required supported-runtime
-and native-platform CI will verify the merge after its push.
+and native-platform CI subsequently verified the merge after its push.
 
-No mainline file deletions or unresolved conflicts remain. Merge commit/push,
-a fresh post-push review, and GitHub CI are pending.
+No mainline file deletions or unresolved conflicts remain. Integration was
+committed and pushed as `4f944b0` before the final review. All 19 additional
+post-commit preview/watcher/polling smoke tests passed on macOS Node 24.2.0.
+
+## Post-Push Review And CI
+
+The final `cargo xtask review` completed successfully against `4f944b0` and
+`origin/main` (`aa5adea`) with **no actionable findings**. This follow-up used two
+of the skill's ten allowed command invocations: the first was interrupted for
+new mainline integration; the second completed. There are no unaddressed or
+rejected items from the completed pass. The two approved issues above are fixed
+in the filesystem-transactions and release-docs groups.
+
+The reviewer inspected the committed source read-only, confirmed a clean
+whitespace/deletion audit, and checked npm's current primary release docs. It did
+not run tests; the independent local and CI verification reported here supplies
+that evidence. Native/filesystem differences remain a release consideration,
+covered by real Linux, macOS, and Windows tests rather than assumed from review.
+
+[CI on the integrated commit](https://github.com/futex-ai/mokabook/actions/runs/34409892855)
+passed both complete Node 22/24 gates, both native platform jobs, and Required CI.
+Each complete gate passed 598 unit/integration tests, 107 browser tests, and
+three Rust tests. The [PR preview](https://github.com/futex-ai/mokabook/actions/runs/34409892871)
+also deployed successfully.
+The first Node 24 attempt passed all 598 unit/integration tests and 106 browser
+tests, but one unchanged mobile sandbox-navigation test could not observe the
+destination element within its existing five-second assertion deadline. This
+test is identical on main. All ten unchanged, trace-enabled local repeats passed
+on Node 24; the original CI run did not retain a trace, so its exact cause is not
+proven. The unchanged Node 24 job then passed the complete gate on its second
+attempt, including all 107 browser tests. No product code, assertion, deadline,
+or retry configuration was changed to accommodate the failure.
 
 ## Separate Dependency Audit — Needs Decision
 
@@ -112,6 +142,9 @@ a fresh post-push review, and GitHub CI are pending.
 
 ## Delivery
 
-The fixes are pushed as `95bee11`; latest-main integration and its required
-post-push review and CI confirmation remain in progress. No npm release or PR
-merge is part of this follow-up.
+The fixes are pushed as `95bee11`, with latest-main integration in `4f944b0`,
+a clean completed post-push review, and all required code CI passing. This
+documentation-only closeout records the completed milestones and PR summary;
+no production source changed after the reviewed implementation. The separate
+dependency recommendation remains for the user's decision. No npm release or
+PR merge was performed.

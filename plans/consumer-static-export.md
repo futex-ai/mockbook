@@ -1,20 +1,23 @@
 # Consumer Static Export
 
 Current validation: the complete post-integration `cargo xtask check` passes on
-macOS Node 25.4.0, including all 598 unit/integration tests, 107 browser tests,
-three Rust tests, and packed consumer smoke tests. The pre-integration gate also
-passed on Linux Node 22.14, and all 112 focused export/release tests passed on
+macOS Node 25.4.0 and in CI on Node 22.14 and Node 24, including all 598
+unit/integration tests, 107 browser tests, three Rust tests, and packed consumer
+smoke tests. Both native platform jobs and Required CI pass. The pre-integration
+gate also passed on Linux Node 22.14, and all 112 focused export/release tests passed on
 macOS Node 24. The two approved findings from the
 [follow-up review](../docs/reviews/consumer-export-followup.md) are implemented in
 milestones 14–16: exclusive directory transactions and current release guidance.
 The [exclusive-destination review record](../docs/reviews/consumer-export-exclusive.md)
-tracks implementation push `95bee11`, verified integration of main `aa5adea`,
-and the pending merge commit/push, post-push review, and supported-runtime CI.
+tracks implementation `95bee11`, integration of main `aa5adea` in `4f944b0`,
+and the completed post-push review with no actionable findings. Milestones 1–16
+are complete; the record retains the initial CI browser failure, passing retry,
+and separate dependency-maintenance recommendation.
 Earlier milestones remain completed and retain their historical validation.
 
 ## Objective And Status
 
-Milestones 1–13 completed, including the approved transaction, adapter-alias,
+Milestones 1–16 completed, including the approved transaction, adapter-alias,
 deployment-identity, preview-confinement, and CI follow-ups, latest-main
 integration, and [PR #49](https://github.com/futex-ai/mokabook/pull/49).
 The [integration review](../docs/reviews/consumer-export-integration.md) records
@@ -22,6 +25,8 @@ the preceding delivery and original findings. The
 [preceding review](../docs/reviews/consumer-static-export.md) retains earlier context.
 The user subsequently approved both code follow-ups and investigation of Node 22
 CI. Milestones 10–13 track that work without reopening completed milestones.
+Milestones 14–16 complete the approved exclusive-destination and release-doc
+follow-ups, subsequent main integration, verification, and review.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
 The user approved fixing all four review findings, followed by merging latest main.
@@ -456,7 +461,7 @@ automatically fixed or added as implementation TODOs. Final documentation
 closeout records the completed approved scope without merging PR #49 or
 publishing a release.
 
-## Milestone 14: Preserve Concurrent Export Destinations
+## Milestone 14: Preserve Concurrent Export Destinations — completed
 
 Close the approved installation and rollback races without weakening complete,
 atomic directory installation or requiring a consumer compiler toolchain.
@@ -469,7 +474,7 @@ atomic directory installation or requiring a consumer compiler toolchain.
       fail closed on unsupported native operations without replacing rename.
 - [x] Test initial absence, late owned/empty outputs, identity changes and
       removal, capture substitutions, and install/restore check-to-call races.
-- [ ] Verify native semantics and packaged consumers, add focused macOS/Windows
+- [x] Verify native semantics and packaged consumers, add focused macOS/Windows
       CI alongside the existing complete Linux gates, and update relevant docs.
 
 ## Milestone 15: Clarify Current Release Guidance — completed
@@ -482,9 +487,10 @@ publication behavior.
 - [x] Preserve bootstrap context as explicitly completed history, align README,
       and validate Markdown plus the existing release-contract tests.
 
-## Milestone 16: Verify, Push, Review, And Update PR
+## Milestone 16: Verify, Push, Review, And Update PR — completed
 
-Deliver the approved findings through the existing PR, with no release or merge.
+Deliver the approved findings through the existing PR, without publishing an
+npm release or merging the PR.
 
 - [x] Run relevant tests and `cargo xtask check` with all tests passing; audit
       changes and deletions against `origin/main`.
@@ -495,10 +501,19 @@ Deliver the approved findings through the existing PR, with no release or merge.
       watcher-test conflicts path-by-path. Preserve main's interfaces, tests,
       icon implementation, and generated design output alongside this branch's
       additional polling and controlled-recovery regressions.
-- [ ] Rerun the relevant tests and complete `cargo xtask check` after integration;
+- [x] Rerun the relevant tests and complete `cargo xtask check` after integration;
       audit mainline preservation, then `git add -A`, commit, and push the merge.
-- [ ] Run the post-push review; independently assess and report new findings with
+- [x] Run the post-push review; independently assess and report new findings with
       severity, context, impact, lettered options, and a recommendation rather
       than automatically implementing another unapproved cycle.
-- [ ] Confirm CI, update PR #49 and review records, then validate, commit, and
+- [x] Confirm CI, update PR #49 and review records, then validate, commit, and
       push the final documentation closeout.
+
+Delivery: fixes `95bee11` and main integration `4f944b0` were committed and
+pushed before the final review. Both complete supported-runtime CI gates pass
+598 unit/integration, 107 browser, and three Rust tests; native macOS/Windows
+jobs, Required CI, and preview deployment also pass. One initial Node 24 browser
+assertion failed; ten unchanged local repetitions and the full CI retry passed,
+without code, assertion, deadline, or retry-policy changes. The exact original
+cause is unproven and retained in the review record. The final independent
+review reported no actionable findings. Final bookkeeping is documentation-only.
