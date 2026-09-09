@@ -2,6 +2,7 @@
 
 ## Active
 
+- [Component Explorer](./component-explorer.md)
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 
