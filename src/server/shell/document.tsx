@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
 import { SchemeSwitch } from "./head.js";
+import { SearchIcon } from "./icons.js";
 import { CatalogueNav } from "./nav.js";
 import { SearchTagPicker } from "./tags.js";
 import { ShellMain, viewTitle } from "./views.js";
@@ -34,7 +35,7 @@ function TopBar(props: { catalogue: Catalogue }) {
         <span className="mbk-name">Mokabook</span>
       </a>
       <div className="mbk-search">
-        <span aria-hidden="true">⌕</span>
+        <SearchIcon />
         <input
           aria-label="Search screens"
           data-mokabook-search=""

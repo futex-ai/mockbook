@@ -137,6 +137,11 @@ body {
   position: relative;
 }
 
+/* The leading search icon keeps its size while the field flexes. */
+.mbk-search > svg {
+  flex-shrink: 0;
+}
+
 /* An entered query reads in the ink color; only the empty-field placeholder
    copy keeps the muted tone of the field itself. */
 .mbk-search-value {

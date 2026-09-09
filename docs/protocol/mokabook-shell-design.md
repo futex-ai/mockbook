@@ -98,7 +98,8 @@ scrollable region scrolls internally:
 
 - **Top bar** — 48px, surface background, hairline bottom border: brand mark
   (24px rounded square in the accent with the `◫` glyph), the product name in
-  its own `mbk-name` span, a centred search field (max-width 440px, `⌕` glyph)
+  its own `mbk-name` span, a centred search field (max-width 440px, led by a
+  15px stroked magnifier icon that holds its size while the field flexes)
   that flexes down to whatever room the bar leaves it, the color-scheme control
   when the catalogue has one. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
@@ -110,7 +111,7 @@ scrollable region scrolls internally:
   tag terms hide the groups they empty and open the groups they keep, and they
   compose with the All/Changes filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
-  field, muted like the leading `⌕` glyph and filling to a soft rounded square
+  field, muted like the leading search icon and filling to a soft rounded square
   on hover. It opens a panel anchored under the field and aligned to its width
   (max-width 440px): a `--chrome-surface` card with a hairline border, 10px
   radius, and `--chrome-shadow` elevation, holding an uppercase 11px muted
