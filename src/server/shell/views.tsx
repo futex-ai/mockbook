@@ -99,8 +99,8 @@ function HomeView(props: { catalogue: Catalogue }) {
   return (
     <EmptyStage heading="Mokabook">
       <p>
-        Browse the mockup catalogue: expand folders and choose a screen or user
-        flow from the navigation.
+        Browse the mockup catalogue: expand folders and choose an item from the
+        navigation.
       </p>
       <p className="mbk-empty-note">
         {screens} structured screen{screens === 1 ? "" : "s"} · {useCases} user
@@ -113,14 +113,14 @@ function HomeView(props: { catalogue: Catalogue }) {
 
 function MissingView(props: { requested: string }) {
   return (
-    <EmptyStage heading="Screen not found">
+    <EmptyStage heading="Item not found">
       <p>
         Nothing in the catalogue matches <code>{props.requested}</code>. It may
-        have been renamed or removed — choose a screen from the navigation
+        have been renamed or removed — choose another item from the navigation
         instead.
       </p>
       <p className="mbk-empty-note">
-        If a screen was just added, rebuild the catalogue with{" "}
+        If this item was just added, rebuild the catalogue with{" "}
         <code>mokabook build</code>.
       </p>
       <a className="mbk-empty-link" href="/">

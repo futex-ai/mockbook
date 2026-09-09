@@ -81,11 +81,6 @@ export function graphSourceFiles(
       (loader === undefined &&
         /\.(?:css|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf)$/i.test(absolute));
     if (publicAsset && !isReservedSource(absolute)) return [];
-    if (
-      !isInside(repoRoot, absolute) &&
-      !isInside(fs.realpathSync(repoRoot), real)
-    )
-      return [];
     if (real.split(path.sep).includes("node_modules")) return [];
     return [absolute];
   });

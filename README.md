@@ -263,6 +263,12 @@ Mokabook discovers `mokabook.config.ts`, `.mts`, `.js`, or `.mjs` by walking
 upward from the current directory. Every filesystem path is relative to that
 file and confined to `repoRoot`.
 
+Transitive authoring imports must also remain inside that root. Config, entry,
+renderer, transformer, and page-helper imports outside it fail with the offending
+path instead of creating an incomplete source inventory. Move shared authoring
+code inside the root or explicitly configure a common root containing it;
+installed dependencies remain supported outside the root.
+
 - `entriesDir` and `mockupsDir` select structured source and generated output.
 - `colorSchemes` defaults to `["light"]`; `["light", "dark"]` enables dark
   fragments catalogue-wide, with per-screen light-only opt-outs.
@@ -411,6 +417,9 @@ consumers, Chromium tests, and all Rust checks.
 viewport/color choices, ID redirects, resources, and whole-document pages.
 It works without Git history. Both publication options omit live updates,
 watch-only modules, events endpoints, and stale comparison artifacts.
+Output stays beneath `.context`, whose resolved location must remain inside the
+real repository root. In-repository symlinks are supported; escaping context,
+parent, or output symlinks are rejected before any publication writes.
 
 To include Changes, removed-entry states, and frozen screen comparisons:
 

@@ -143,7 +143,10 @@ scrollable region scrolls internally:
   that flexes down to whatever room the bar leaves it, the color-scheme control
   when the catalogue has one. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
-  retains space; the brand link keeps its accessible name. The decorative mark
+  retains space; the brand link keeps its accessible name. Search uses
+  `Search catalogue` as its accessible name and `Search catalogue…` as its
+  placeholder in both viewport sizes, covering screens, pages, and flows.
+  The decorative mark
   inherits the accent-contrast color and uses two-unit strokes on a 24-unit
   viewBox, with the mobile outline in front and a gap in the desktop outline
   at the overlap. There is no mode
@@ -224,6 +227,11 @@ scrollable region scrolls internally:
   the search field, so the filter stays visible and clearable there, and the
   chip whose tag is in the entered query carries the accent active state with
   contrast text and glyph. An entry that declares no tags omits the row.
+
+Shared home guidance asks visitors to choose an item from the navigation.
+Unknown routes use `Item not found` and offer another catalogue item or the
+catalogue home. Kind-specific wording is reserved for a known screen, page,
+or flow; shared controls and missing-route messages cover the whole catalogue.
 
 ## Device Chrome
 

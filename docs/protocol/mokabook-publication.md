@@ -22,6 +22,13 @@ remain supported. Accept options in any order;
 reject unknown or repeated options, missing values, and `--base` without
 `--include-changes` before loading consumer code or changing output.
 
+Output must be a strict descendant of `.context` both lexically and after
+resolving symlinks. The resolved context directory and output must stay within
+the real `repoRoot`, including existing ancestors of a new output path. Reject
+escapes before creating staging directories or replacing output. In-repository
+context and parent symlinks remain supported; an ownership marker never permits
+an outside-root destination.
+
 The internal `buildPreview(config, output, options)` boundary receives:
 
 ```ts
@@ -131,3 +138,6 @@ Parameterize static-export tests over both options: no live-update entrypoint,
 no EventSource or polling request, and no events endpoint or redirect. Test
 home, current, not-found, and supported removed-entry routes while proving
 normal navigation and opted-in comparison loading still work.
+For both options, reject escaping context, parent, and output symlinks without
+changing the outside target. Prove valid in-repository symlinks and a symlinked
+repository root still support publication.

@@ -76,7 +76,7 @@ test("preview build snapshots a static Browse catalogue", async (context) => {
       )
     ).size > 0,
   );
-  assert.match(await read(output, "404.html"), /Screen not found/);
+  assert.match(await read(output, "404.html"), /Item not found/);
   assert.match(
     await read(output, "_redirects"),
     /\/id\/example-welcome \/view\/screens\/welcome 302/,

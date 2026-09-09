@@ -68,6 +68,12 @@ permission or a substitute for complete static import discovery.
 Reject absolute, escaping, malformed, duplicate, or unsorted inventory paths,
 unresolvable source aliases, source/output overlap, and missing entry/configured
 module paths. Source targets must remain regular files inside `repoRoot`.
+Reject a config or consumer graph containing an outside authoring input; never
+silently omit it from the inventory. Apply this after excluding runtime,
+installed-dependency, and public-asset inputs, so a consumer's transitive
+renderer, transformer, page, and template imports use the same boundary.
+The error names the offending input. Consumers must move their authoring code
+inside `repoRoot` or explicitly configure a common root containing it.
 
 ## Freshness And Lifecycle
 
@@ -99,6 +105,8 @@ last import, config/renderer/transformer/helper imports outside `entriesDir`,
 tree-shaken inputs, local workspace packages, and arbitrary helper filenames.
 Test missing/stale inventories, logical and realpath aliases, symlink escapes,
 mixed source/asset roles, reserved output routes, and rejected protected links.
+Cover outside config, entry, renderer, transformer, page-helper, and raw-template
+imports, while proving installed dependencies outside the root still load.
 
 Exercise the same fixtures through GET/HEAD `/static`, resource validation,
 current and historical Review reads, and both publication options. Verify that

@@ -17,7 +17,7 @@ function HomeBody() {
     <EmptyState
       to={DESTINATIONS.welcome}
       title="Mokabook"
-      body="Browse the mockup catalogue generated from this repository."
+      body="Browse the mockup catalogue: expand folders and choose an item from the navigation."
       linkLabel="Open the first screen"
     />
   );
@@ -111,7 +111,7 @@ function MissingRouteBody() {
   return (
     <EmptyState
       to={DESTINATIONS.home}
-      title="Screen not found"
+      title="Item not found"
       body="Nothing in the catalogue matches"
       code="view/screens/unknown.html"
       linkLabel="Go to the catalogue home"

@@ -121,6 +121,10 @@ the existing Example collection alongside Screens and Example tour. Its exact
 the public page API. The design catalogue has four responsive page states and
 two publication states.
 
+Every design uses the shared `Search catalogue…` wording. Home guidance and the
+`Item not found` state cover screens, documents, and flows; the runtime shell
+uses the same catalogue-wide language at both viewport sizes.
+
 `npm run preview:build` exports current content without Git or review controls.
 Add `-- --include-changes --base origin/main` to package Changes and immutable
 screen comparisons. Both options omit development update connections.

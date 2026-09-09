@@ -44,7 +44,7 @@ function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
     <div className="mbk-search">
       <SearchIcon />
       {value === undefined ? (
-        "Search screens…"
+        "Search catalogue…"
       ) : (
         <span className="mbk-search-value">{value}</span>
       )}

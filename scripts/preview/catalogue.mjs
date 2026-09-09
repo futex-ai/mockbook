@@ -273,13 +273,15 @@ function assertOwnedOutput(output) {
 
 function assertSafeOutput(output, repoRoot) {
   const contextRoot = path.join(repoRoot, ".context");
-  const relative = path.relative(contextRoot, output);
+  const realRepoRoot = fs.realpathSync(repoRoot);
+  const realContextRoot = projectRealPath(contextRoot);
+  const realOutput = projectRealPath(output);
   if (
-    relative === "" ||
-    relative.startsWith(`..${path.sep}`) ||
-    path.isAbsolute(relative) ||
-    !isInside(projectRealPath(contextRoot), projectRealPath(output)) ||
-    projectRealPath(output) === projectRealPath(contextRoot)
+    !isInside(contextRoot, output) ||
+    !isInside(realRepoRoot, realContextRoot) ||
+    !isInside(realRepoRoot, realOutput) ||
+    !isInside(realContextRoot, realOutput) ||
+    realOutput === realContextRoot
   ) {
     throw new Error(`preview output must be inside ${contextRoot}`);
   }

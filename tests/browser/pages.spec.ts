@@ -1,6 +1,26 @@
 import { expect, test } from "@playwright/test";
 
 for (const width of [390, 1280]) {
+  test(`catalogue guidance includes documents at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await expect(page.locator("#mb-main")).toContainText(
+      "choose an item from the navigation",
+    );
+    await expect(
+      page.getByRole("searchbox", { name: "Search catalogue" }),
+    ).toHaveAttribute("placeholder", "Search catalogue…");
+    await page.goto("/view/missing-document.html");
+    await expect(page.locator("#mb-main h2")).toHaveText("Item not found");
+    await expect(page.locator("#mb-main")).toContainText(
+      "choose another item from the navigation",
+    );
+    await page.getByRole("link", { name: "Go to the catalogue home" }).click();
+    await expect(page.locator("#mb-main h2")).toHaveText("Mokabook");
+  });
+
   test(`document pages retain metadata, anchors and mixed navigation at ${width}px`, async ({
     page,
   }) => {
@@ -40,7 +60,7 @@ for (const width of [390, 1280]) {
     await expect(
       page.locator('[data-entry-id="example-handbook"]'),
     ).toHaveCount(1);
-    const search = page.locator("[data-mokabook-search]");
+    const search = page.getByRole("searchbox", { name: "Search catalogue" });
     for (const query of [
       "example-handbook",
       "Getting started",

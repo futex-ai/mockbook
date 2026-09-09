@@ -3,7 +3,8 @@
 ## Status And Outcome
 
 Implementation, consumer rehearsal, validation, commit, push, and review are
-complete. Three new review findings remain documented follow-ups. The user approved a mandatory
+complete. Authorized follow-up fixes are recorded in the
+[review record](../docs/reviews/catalogue-pages-and-publication.md). The user approved a mandatory
 breaking upgrade after the Accounting inspection found a second App root, and
 subsequently requested fixes for the contract reviews.
 
@@ -365,8 +366,9 @@ preservation audit found only the three explicitly authorized removals.
 
 All four new findings were checked independently. Outside-root source imports
 (high), an escaping context-root symlink (medium), and screen-only common shell
-copy (low) remain for user selection. Stale documentation labels (low) are
-resolved in final bookkeeping. The [complete review record](../docs/reviews/catalogue-pages-and-publication.md)
+copy (low) were initially left for user selection and have since received
+authorized fixes. Stale documentation labels (low) were resolved in final
+bookkeeping. The [complete review record](../docs/reviews/catalogue-pages-and-publication.md)
 contains reproduction evidence, impact, lettered options, and recommendations.
 Required delivery tasks are complete; this is not a claim of a clean review.
 Final documentation bookkeeping is validated and committed/pushed separately.

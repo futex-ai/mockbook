@@ -595,7 +595,7 @@ test("the search field carries a tag control over a closed picker", () => {
   const html = homePage(createCatalogue(manifest), context);
   assert.ok(
     html.includes(
-      'data-mokabook-search="" placeholder="Search screens…" type="search"/>' +
+      'aria-label="Search catalogue" data-mokabook-search="" placeholder="Search catalogue…" type="search"/>' +
         TAG_TOGGLE +
         tagPicker("billing", "forms", "onboarding") +
         "</div>",
@@ -653,7 +653,9 @@ test("the search field leads with a legible search icon, not a glyph", () => {
 test("missing routes keep the catalogue shell", () => {
   const catalogue = createCatalogue(manifest);
   const missing = notFoundPage("view/unknown.html", catalogue, context);
-  assert.match(missing, /Screen not found/);
+  assert.match(missing, /Item not found/);
+  assert.match(missing, /choose another item from the navigation/);
+  assert.match(missing, /If this item was just added/);
   assert.match(missing, /aria-label="Catalogue"/);
 });
 
