@@ -117,5 +117,74 @@ so an omitted document cannot escape validation merely by being absent from the
 copied set. All 45 publication boundary tests pass. The final full gate passed
 with 572 Node tests, 104 Chromium tests, and 3 Rust tests, plus all formatting,
 lint, typechecking, example/package/packed-consumer, clippy, and file-length
-checks. The real example publication smoke passed again. Review invocation 6
-will follow this correction's commit and push.
+checks. The real example publication smoke passed again. Correction `e9047fe`
+was pushed before review invocation 6 of 10 overall against `origin/main` at
+`a5ecbc0`. That review completed with three findings. Independent probes rejected
+item 1 and validated items 2–3, with the qualifications below. The four originally
+requested fixes remain resolved; the new valid findings are reported for user
+selection under the repository's review rule.
+
+## Review After e9047fe
+
+1. **Medium reported — nested page source attribution is lost. Invalid.**
+   The reviewer inferred a missing copy of `definedIn` in
+   [page flattening](../../src/authoring/definitions.ts), comparing it with the
+   explicit assignments for screens and collections. The page branch already
+   preserves the field through its rest/spread object, `definePage`, and branding.
+   The root loader only supplies a fallback when attribution is absent.
+   A real helper-authored page nested under a collection compiled with
+   `sourcePath: "entries/shared.ts"` and the matching generated ownership header.
+   Leaving the implementation unchanged has no demonstrated attribution defect.
+   Options: **A.** Retain the working propagation. **B.** Add a redundant explicit
+   assignment. **Recommended: A**; the independent build disproves the claim,
+   so no production change is justified.
+
+2. **Medium — no-watch startup computes Changes twice and can retain stale fallback routes. Open.**
+   [Serve](../../src/server/serve.ts) precomputes a route list, then
+   [HTTP startup](../../src/server/http.ts) computes a complete catalogue-change
+   snapshot again. Ordinarily the second result supersedes the first; duplicate
+   work alone does not prove two conflicting snapshots are displayed. However,
+   an independent probe removed a page and failed the second Git calculation:
+   both calculations ran, `guide.html` remained in the fallback Changes list,
+   the removed-page row was absent, and its route returned 404. Doing nothing
+   preserves this inconsistent fallback and redundant Git/manifest reads.
+   Options: **A.** Construct one validated snapshot at no-watch startup, pass it
+   through the server factory, and remove the independent route-list fallback.
+   **B.** Let HTTP startup alone own snapshot creation and remove Serve's pre-read.
+   **Recommended: A**, with failure/removal and single-calculation regressions at
+   the orchestration boundary. This reuses the existing snapshot contract rather
+   than adding recovery rules for two partial results. Merely eliminating the
+   duplicate calculation does not additionally pin later on-demand comparisons;
+   that would require an explicit provider decision beyond this demonstrated bug.
+
+3. **Medium — preserved legacy-page comparison is promised but absent. Open.**
+   [The migration contract](../protocol/mokabook-page-migration.md) requires an
+   exact-route historical adapter using the current page's ID and the legacy
+   document/source. [Document pairing](../../src/server/changed_content.ts)
+   looks only at historical entries by ID. A validated v3 fixture with a matching
+   `legacyPages` route produced no historical-document reads or material paths;
+   the new page appeared in Changes through its added metadata. The contract
+   explicitly permits adoption to remain changed, so this finding does not promise
+   zero Changes after migration. Its missing behavior is historical document,
+   paired-ignore, and resource comparison. Separately, the
+   [runtime contract](../protocol/mokabook-runtime.md) still describes a live legacy
+   route-directory tree that the implemented catalogue no longer has.
+   Options: **A.** Add a typed route-based historical-page adapter under the
+   existing validated baseline boundary, test identical/ignored/material/resource
+   cases, and correct the stale runtime paragraph. **B.** Deliberately drop the
+   adapter promise and document migrations as added current pages, also correcting
+   the runtime paragraph. **Recommended: A** to fulfill the accepted migration
+   contract. B is a product/contract reduction, not an equivalent code fix.
+
+The final reviewer ran a read-only diff and whitespace check; it did not rebuild
+or rerun write-producing suites. The full gate above supplies that verification.
+Three independent probes passed while establishing the validity decisions; their
+script, output, and JSON are retained as
+`.context/review-followup-3-review-validation.{ts,log,json}`. All disposable
+consumers and the temporary server were cleaned up. No product code changed
+while evaluating the final findings. No completed milestone was reopened and
+no new plan was created.
+
+Final documentation bookkeeping validated 190 local Markdown targets across
+25 changed documents. The final code remains at e9047fe; only this review record
+changed after the completed review.
