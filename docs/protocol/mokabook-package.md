@@ -22,7 +22,9 @@ the completed
 The approved [page-entry target](./mokabook-pages.md) and
 [source/manifest migration](./mokabook-page-migration.md) are not implemented.
 They define the future `page` kind and unified hierarchy; the API and schema-v3
-descriptions below remain the current behavior until that cutover.
+descriptions below remain the current behavior until that cutover. The target
+removes `legacy` configuration and requires consumers to adopt ordinary page
+definitions; there is no legacy registration adapter in the new API.
 
 ## Package Identity
 

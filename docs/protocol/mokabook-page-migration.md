@@ -1,4 +1,4 @@
-# Page Compatibility And Consumer Migration
+# Breaking Page Migration
 
 ## Delivery Status
 
@@ -8,54 +8,68 @@ navigation remains implemented until the planned cutover is complete. The
 change is a pre-1.0 breaking authoring/manifest change and needs release notes
 and packed-consumer verification before publication.
 
-## Existing Source Adapter
+## Required Upgrade
 
-Retain generic `.source.ts`, `.source.tsx`, and `.source.html` rendering,
-configured comment-component expansion, route aliases, exclusions, and lint
-policies. Keep these under the existing `legacy` configuration as an input
-adapter. Their origin does not become a runtime entry kind or hierarchy.
+Remove the `legacy` configuration and its discovery/rendering API, including
+`pagesDir`, comment-component expansion, route aliases, exclusions, and legacy
+lint settings. Do not implement `legacy.entries`, a registration adapter,
+automatic conversion, an opt-out flag, or a deprecation period. Configuration
+validation rejects the obsolete `legacy` key, even when set to `undefined`,
+before bundling or writing and directs the author to `definePage` and this
+migration procedure.
 
-Extend that configuration with explicit registrations:
+Every whole-document page must be a `definePage` or nested `page` entry under
+`entriesDir`, with an explicit ID, route or slug, render callback, and metadata.
+Collections own its membership. Existing `.source.ts`/`.source.tsx` modules may
+remain as ordinary imported render helpers; their filename has no discovery
+meaning. The compiler never scans them into a second inventory. Consumers with
+only structured entries need no screen API rewrite but must rebuild v4 output.
 
-```ts
-interface LegacyPageRegistration extends EntryInput {
-  tags?: readonly string[];
-}
+Consumers replace `.source.html` comment templates with ordinary TSX/function
+composition returning complete HTML. Preserve the rendered component content
+and portable links. Translate each route alias into the new page's explicit
+`route`, and retain screen-count, stage-ID, allowlist, and source-content
+requirements as consumer source-policy tests. Shared package HTML, resource,
+link, metadata, ownership, and sandbox checks continue to apply to all pages.
 
-interface LegacyConfig {
-  // Existing fields, including pagesDir, remain supported.
-  entries?: Readonly<Record<string, LegacyPageRegistration>>;
-}
-```
+Only historical manifest parsing remains for old Git comparisons, as defined
+below. The existing unrelated document-transformer API retains its contract;
+it cannot accept obsolete `legacy` configuration or restore legacy discovery.
 
-Keys are exact POSIX paths relative to `legacy.pagesDir`, including the source
-extension; globs, traversal, absolute paths, and symlink escapes are invalid.
-Metadata follows the normal page contract. A registration has no `route`,
-`render`, or parent field: existing source-to-route/alias rules determine the
-route, the adapter supplies rendering, and collections claim its ID through
-`childIds`. Its attributed source and ownership header remain the original
-source file. Dependency declarations retain their existing normalization.
+## Consumer Migration And Output Ownership
 
-Every discovered, non-excluded source must have exactly one registration;
-every registration must resolve to a discovered, non-excluded source. Missing,
-stale, duplicate-ID, or colliding-route registrations fail before rendering or
-writing, with the source path and required action. Never silently hide a page,
-invent its ID, choose a collection by title, or restore directory navigation.
-An omitted `entries` field is valid only when no legacy sources are discovered.
+Before changing the dependency or config, record the old manifest, generated
+page bytes, source/route inventory, anchors, and resources in a clean, recoverable
+checkout. Add a normal page definition for every retained document and claim
+its ID from the intended collection. Import its existing `source()` callback
+where possible, with the source in its declared dependencies. Remove `legacy`
+configuration and replace consumer rules that depend on its discovery model.
 
-The loader turns registered sources into page definitions before shared ID,
-route, collection, and output validation. Sources render once through the
-existing adapter; `.source.html` component expansion and legacy lint policies
-still run. This is a single output owner and a single manifest entry, not a
-second pass that emits `legacyPages`. A direct `definePage` and a registration
-claiming the same source route fail rather than producing duplicate rows.
+New page ownership headers name the registry module beneath `entriesDir`.
+An old page header can name a helper beneath the removed `legacy.pagesDir`,
+which is no longer an authorized output owner. The upgraded writer must
+continue refusing that overwrite; do not add a permissive owner fallback or a
+permanent legacy root to make rebuilding succeed.
 
-Consumers may instead import a document's existing `source()` function into
-`definePage`. They must retire its automatic discovery/registration in the
-same change, retain its applicable source-policy tests, and preserve its route
-and anchors. Switching ownership from source to registry module must pass the
-existing owned-output replacement checks. Do not erase source files or loosen
-source-root, ownership, resource, or sandbox validation to achieve the migration.
+During the consumer migration, verify each old generated page against the
+saved validated manifest and old config: exact route and source/header match,
+regular file, in-root path, no symlink escape, and no authored-source collision.
+Archive its bytes, then remove only those verified generated files before
+rebuilding at the same routes. This is a consumer migration step, not an
+automatic runtime cleanup command. Unowned or mismatched files require manual
+resolution and must not be deleted. Never remove source files, static assets,
+whole output directories, or generated files outside the recorded inventory.
+
+On failure, restore the previous dependency/config, authoring tree, and artifacts;
+do not commit a half-migrated catalogue. On success, compare old and new route,
+anchor, resource, and rendered-content inventories and commit the regenerated
+pages with the new ownership headers and v4 manifest. A missing document is a
+migration failure even when the remaining catalogue builds successfully.
+
+Imported render-source modules must remain protected from static serving after
+the old source-root configuration is removed. Track those modules in the shared
+authoring graph, manifest `sourceFiles`, and watcher; do not expose them as public HTML or TypeScript
+assets merely because their directory is no longer configured as legacy.
 
 ## Manifest Readers And Git Baselines
 
@@ -111,9 +125,10 @@ time and fail on collisions rather than renaming any existing entry. Use titles
 descriptions, dependencies, and related docs from the owning source/spec.
 Each `.source.tsx` suffix still generates its existing `.html` route.
 
-Use compatibility registrations for this initial cutover so rendering and
-ownership headers stay intact. Add their IDs to the owning collection modules,
-not another App or Book collection. Payroll pages then appear beneath the real
+Create ordinary `definePage` entries importing the five existing `source()`
+functions, with their existing generated routes written explicitly. Perform
+the verified output-ownership migration above. Add their IDs to the owning
+collection modules, not another App or Book collection. Payroll pages then appear beneath the real
 App / Book / Payroll ancestry; header/selection appears within Transactions'
 existing list collection. No package default may mention these IDs or routes.
 
@@ -126,19 +141,24 @@ keep their existing IDs, hierarchy, routes, and mobile/desktop output.
 
 ## Verification And Delivery Boundary
 
-The Mokabook repository owns the API, adapters, schema/readers, shell, examples,
+The Mokabook repository owns the API, schema/readers, shell, examples,
 generic regression fixtures, packed consumers, and this migration guidance.
-Accounting-owned registrations and source-policy changes belong in an
+Accounting-owned page definitions and source-policy changes belong in an
 Accounting branch. A synced workspace is inspection input, not a substitute
 for delivering a consumer commit to its owning repository.
 
 Before the Mokabook feature branch is ready, pack the candidate and prove its
-API, source adapter, mixed navigation, and migration against the existing
+API, obsolete-config rejection, mixed navigation, and migration against the existing
 Accounting/Juno consumer fixtures. Also rehearse the five-page cutover in an
 isolated disposable Accounting checkout using that exact tarball, without
 modifying the inspected synced workspace or waiting for an npm release.
 Archive the candidate identity, patch, inventory assertions, and verification
 results under the task's ignored `.context` directory.
+
+The implementation commit and release notes must identify the removal of the
+legacy authoring/discovery API as a breaking change, with upgrade instructions.
+Use the repository's Conventional Commits breaking-change notation and release
+workflow. Do not publish a release that implies unchanged consumer compatibility.
 
 The Accounting rehearsal must run `mockups:build`, `mockups:check`,
 `mockups:test`, `mockups:typecheck`, relevant browser tests, and its required

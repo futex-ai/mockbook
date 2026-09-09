@@ -5,7 +5,7 @@
 Approved target, not implemented. The current package emits schema v3 and
 builds separate structured and legacy navigation trees. This contract defines
 their replacement; [page migration](./mokabook-page-migration.md) defines the
-compatibility and consumer cutover. Current behavior remains documented in
+required consumer upgrade and historical comparison support. Current behavior remains documented in
 [the package contract](./mokabook-package.md) and
 [the runtime contract](./mokabook-runtime.md) until implementation lands.
 Implementation is tracked in [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
@@ -16,6 +16,11 @@ Every browsable document belongs to the same catalogue as screens and use
 cases. Collections own navigation through `childIds`; source directories,
 route directories, and displayed titles never create or merge collections.
 Whole-document rendering remains supported independently of navigation.
+
+This is a breaking upgrade: remove legacy source discovery and configuration.
+All pages use `definePage` or nested `page`; no source-registration adapter or
+compatibility mode accepts the old authoring API. Consumers must update their
+definitions/configuration and rebuild the catalogue before using the new version.
 
 A page is one complete authored HTML document, such as a printable document
 or an existing multi-state reference page. It does not require invented
@@ -94,8 +99,8 @@ does not wrap it, inject stylesheets, or generate extra variants. The consumer
 continues to own the document's styles, responsive markup, and render context.
 Pages are one light document regardless of the catalogue color-scheme setting.
 
-Registry imports, page callbacks, imported document modules, screen rendering,
-and source adapters share the existing consumer bundle and React runtime.
+Registry imports, page callbacks, imported document modules, and screen rendering
+share the existing consumer bundle and React runtime.
 Imported sources participate in watched rebuilds. Declared dependencies and
 their directory descendants retain their existing impact semantics.
 
@@ -107,9 +112,11 @@ source-path, symlink, and foreign-file safeguards. Page routes cannot collide
 with any other logical route or generated fragment. One owner may use its own
 page route as its output; this is not treated as a self-collision.
 
-Ownership headers identify the definition's registry module. Compatibility
-registrations retain the original document source as owner, as specified in
-the migration contract. Generated paths never imply collection ancestry.
+Ownership headers identify the definition's registry module. Consumer migration
+must explicitly regenerate old artifacts whose previous source is no longer an
+authorized owner, as specified in the migration contract. Retain strict source
+protection for imported render helpers and all overwrite safeguards. Generated
+paths never imply collection ancestry.
 
 ## Manifest And Runtime Model
 
@@ -126,6 +133,7 @@ interface ManifestV4 {
   entries: readonly ManifestEntry[];
   generatedBy: "mokabook";
   schemaVersion: 4;
+  sourceFiles: readonly string[];
 }
 ```
 
@@ -136,7 +144,16 @@ viewport arrays, callbacks, or screen-only fields in the manifest. Schema v4
 rejects a top-level `legacyPages` field. Preserve existing deterministic
 entry sorting, dependency normalization, and serialization conventions.
 
-Only the compatibility reader may handle earlier shapes. Catalogue lookup,
+`sourceFiles` is the sorted, unique inventory of repository-relative consumer
+authoring modules from the shared bundle, including entries, the renderer,
+and imported render helpers. It includes every entry's `sourcePath`; ordinary
+CSS/font/image assets and external dependencies are not authoring modules.
+Validate path confinement and forbid overlap with generated output. Current
+serving and publishing use this persisted inventory to block source files even
+when a migrated helper lives outside `entriesDir`; no legacy-root setting is
+needed. A malformed or missing inventory invalidates a current v4 manifest.
+
+Only the historical comparison reader may handle earlier shapes. Catalogue lookup,
 the cached hierarchy, navigation, breadcrumbs, details, search, route targets,
 and static publication consume one validated current entry model. Page leaves
 use `entry:<id>`; collections retain `collection:<id>`. Remove runtime
@@ -211,7 +228,8 @@ transactional publication and existing screen comparison artifacts.
 ## Acceptance
 
 Authoring, schema, build, links, server, browser, watcher, comparison-regression,
-and packed-consumer tests cover both direct and compatibility-backed pages.
+and packed-consumer tests cover normal pages and mandatory consumer migration,
+including obsolete-config rejection and safe old-artifact regeneration.
 Use a mixed collection containing a screen, page, and use case; an unclaimed
 page; distinct same-title collections; and a document whose route disagrees
 with its collection ancestry. Verify output determinism and every existing
