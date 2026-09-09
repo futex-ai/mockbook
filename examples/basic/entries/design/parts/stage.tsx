@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { CopyIcon, ExpandIcon } from "./icons.js";
+
 /** The dotted screen stage holding the device chromes. */
 export function Stage({ children }: { children: ReactNode }) {
   return <div className="mbk-stage">{children}</div>;
@@ -131,10 +133,15 @@ export function BrowserFrame({
             <i />
             <i />
           </span>
-          <span className="address">{address}</span>
+          <span className="address">
+            <span className="address-url">{address}</span>
+            <span className="address-copy" aria-hidden="true">
+              <CopyIcon />
+            </span>
+          </span>
           {expandable ? (
             <span className="browser-expand" aria-hidden="true">
-              ⤢
+              <ExpandIcon />
             </span>
           ) : null}
         </div>
