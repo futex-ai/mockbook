@@ -1,15 +1,18 @@
 # Consumer Static Export
 
-Validation: all 553 unit/integration tests and 104 browser tests passed after main integration.
+Local Node 24 validation: all 553 unit/integration tests and 104 browser tests passed after main integration.
 Packed local ESM, NodeNext, clean-cache npx, Accounting, and Juno consumers
 passed. Markdown formatting, local links, lint, and typechecking passed.
+GitHub Node 24 CI passed; Node 22 CI failed twice in an unchanged mainline watcher
+test. The PR is delivered but not merge-ready; see the integration review below.
 
 ## Objective And Status
 
-Milestones 1–8 completed, including both approved transaction follow-ups.
-The user approved fixing the remaining adapter-alias finding, merging latest
-main, and creating a PR. Milestone 9 tracks that delivery; the
-[review report](../docs/reviews/consumer-static-export.md) retains its context.
+Milestones 1–9 completed, including the approved transaction and adapter-alias
+follow-ups, latest-main integration, and [PR #49](https://github.com/futex-ai/mokabook/pull/49).
+The [integration review](../docs/reviews/consumer-export-integration.md) records
+validation, CI status, and new unapproved recommendations. The
+[preceding review](../docs/reviews/consumer-static-export.md) retains earlier context.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
 The user approved fixing all four review findings, followed by merging latest main.
@@ -329,7 +332,7 @@ The post-push review completed on 2026-09-09 against main `93ac778`; its one new
 Medium finding, reproduction, and recommended preventive scope are in the
 [review report](../docs/reviews/consumer-static-export.md).
 
-## Milestone 9: Validate Host Aliases And Deliver The PR
+## Milestone 9: Validate Host Aliases And Deliver The PR — completed
 
 Fix the approved collision gap, preserve latest main, and open the feature PR.
 
@@ -346,12 +349,19 @@ Fix the approved collision gap, preserve latest main, and open the feature PR.
       on the merged result; audit mainline preservation and deletions.
 - [x] Stabilize subprocess-heavy verification after reproduced startup timeouts
       by bounding test-file parallelism; retain all tests and their deadlines.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch
       before `cargo xtask review`; report new findings without automatic fixes.
-- [ ] Complete plan/index/review records, validate and commit/push any final
+- [x] Complete plan/index/review records, validate and commit/push any final
       documentation bookkeeping, and create a PR targeting `main` with results.
 
 Integration audit: source `5b143d1`, merge base `93ac778`, fetched main `a5ecbc0`.
 Main adds material-output Changes and resource watching. Both watch conflicts
 retain main's behavior plus export exclusions; no mainline files were deleted.
 See the [integration record](../docs/reviews/consumer-export-integration.md).
+
+Delivery: merged implementation `43b6de0` was committed and pushed before the
+completed independent review. Seven additional static/preview browser smoke
+tests passed. [PR #49](https://github.com/futex-ai/mokabook/pull/49) is open against
+`main`. The review reported one Medium and two Low observations; the two code
+recommendations remain unapproved, while the pre-existing documentation closeout
+records the delivery status. No PR merge or npm release was performed.
