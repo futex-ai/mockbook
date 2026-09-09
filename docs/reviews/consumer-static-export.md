@@ -283,4 +283,8 @@ Verification: read-only, in-memory calls to the built modules accepted an
 alias/directory prefix collision, a case-folded alias/file collision, and an
 alias/alias prefix collision. Adding those aliases to the existing file inventory
 rejected all three cases. No export or filesystem mutation was used for this
-reproduction. This new finding remains unchanged pending the user's decision.
+reproduction. It was left unchanged at review handoff; the user subsequently
+approved the shared-index fix, latest-main integration, and PR delivery in
+[Milestone 9](../../plans/consumer-static-export.md). The
+[integration record](./consumer-export-integration.md) tracks final verification
+and post-push review for that delivery.

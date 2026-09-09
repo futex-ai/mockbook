@@ -4,11 +4,10 @@ import { CompareGrid, ComparisonStage, Pane } from "./parts/compare.js";
 import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
 import { MiniWelcome } from "./parts/mini_screens.js";
-import { NavDrawer } from "./parts/nav.js";
+import { NavDrawer, NavTree } from "./parts/nav.js";
 import {
   EmptyReviewNav,
   IgnoredImpactCard,
-  ReviewNav,
   SharedImpactCard,
 } from "./parts/review.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
@@ -39,7 +38,7 @@ function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
     <Shell
       design={DESTINATIONS.shared}
       viewport={viewport}
-      nav={<ReviewNav activeTitle="Welcome" />}
+      nav={<NavTree activeLabel="Welcome" changedCount={0} />}
     >
       <ScreenHead
         crumbs={["Example", "Screens"]}
@@ -72,7 +71,7 @@ function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
     <Shell
       design={DESTINATIONS.ignored}
       viewport={viewport}
-      nav={<ReviewNav activeTitle="Welcome" />}
+      nav={<NavTree activeLabel="Welcome" changedCount={0} />}
     >
       <ScreenHead
         action={<ViewSwitch active={viewport} />}
@@ -131,7 +130,7 @@ export const reviewImpactScreens = [
   screen({
     colorSchemes: ["light"],
     description:
-      "A screen comparison with secondary evidence from changed shared inputs.",
+      "An unchanged screen opened from All retains secondary evidence from changed shared inputs.",
     desktop: <SharedImpactSummary viewport="desktop" />,
     id: "design-review-shared-impact",
     mobile: <SharedImpactSummary viewport="mobile" />,

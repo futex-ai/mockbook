@@ -61,6 +61,16 @@ Reject incompatible duplicate routes, aliases, or reserved paths before
 installation. Shared byte-identical resources may be deduplicated. Current-id
 precedence for renamed/reused ids follows the Changes contract.
 
+Adapter aliases enter the same case-folded path namespace as files, including
+the final ownership marker. Each alias is a safe relative, file-like route
+whose target is an existing exported file, not another alias. Reject exact
+alias/file matches even when their bytes would agree, case-folded matches, and
+ancestor/descendant collisions between aliases or between aliases and files,
+independent of insertion order. Distinct sibling aliases may share one target.
+These checks happen before installation and preserve any previous export on
+failure. They also apply to the preview adapter's extensionless HTML aliases;
+ordinary consumer exports retain their real `.html` routes.
+
 ## Static Navigation
 
 Embed a typed, versioned static-delivery descriptor in shell-owned metadata,

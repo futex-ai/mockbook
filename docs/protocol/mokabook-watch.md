@@ -4,13 +4,14 @@
 snapshot. Every catalogue shell loads the package-owned browser client, which connects to
 the versioned event stream and reloads its current durable URL after a higher
 version arrives. Snapshot panes do not run this client. Watch classification
-derives only from resolved config:
+derives from resolved config and the resources referenced by generated output:
 
 - the discovered or explicit config file reloads configuration, generated
   output, watch targets, and the child;
 - entry/page/renderer inputs rebuild generated output;
 - an input shared with shell metadata rebuilds before restarting the child;
-- configured CSS/fonts/images reload the browser without rebuilding;
+- configured stylesheets and referenced local CSS, fonts, images, and other
+  resources reload the browser without rebuilding;
 - header-proven generated output plus `.git`, `.context`, `node_modules`,
   `dist`, `target`, coverage, browser-test output, comparison output, and Mokabook
   transaction trees are pruned from broad watches and classify as ignored;
@@ -23,15 +24,27 @@ additional watch rules. Package source under `node_modules` or an npx cache is
 never treated as consumer source. Development of Mokabook itself uses repository
 tooling rather than a hidden consumer-specific self-reload path.
 
+Resource discovery follows the same portable HTML/CSS URL rules as Changes,
+including transitive imports and nested documents, with shared edges read once
+per discovery pass and cycles visited once. External URLs and resource hints
+are excluded. Live documents include ignored-region resources in this watch
+graph so their rendered chrome refreshes even when Changes remains empty.
+Only confined public files and their validated local alias targets are watched;
+resource watchers do not follow symlinks. Their lexical paths remain observable
+so an invalid or replaced alias can be repaired. Generated files and
+package-owned ignored paths remain excluded, preventing output feedback loops.
+
 The repository's `npm run dev` command builds the local CLI once, then runs
 watched Serve with `examples/basic/mokabook.config.ts`. Arguments after `--`
 are forwarded to Serve, for example `npm run dev -- --port 0`. Restarting the
 command rebuilds changes to Mokabook's own source; this shortcut does not add
-watch targets beyond the example's resolved config.
+watch targets beyond the example's inputs and referenced resources.
 
 An unowned public HTML file beneath `mockupsDir` is an authored static input,
-not generated merely because of its extension, so an explicit rule may reload,
-restart, rebuild, or ignore it.
+not generated merely because of its extension. Reachable HTML resources reload
+automatically; an unrelated file can use an explicit reload, restart, rebuild,
+or ignore rule. Configured inputs and discovered resources take precedence over
+additional rules.
 
 Export markers prove ownership of their listed files, not every descendant of
 the output directory. Ignore inventory-listed files and the marker itself, but
@@ -41,8 +54,11 @@ traversal. Active transaction trees and the initialized internal reservation
 namespace remain pruned. Unowned files still make subsequent export replacement
 fail; watch classification does not grant permission to overwrite them.
 
-Watchers become ready before initial generation begins. Notifications during
-generation and child startup are buffered. A child validates the catalogue and binds before
+Source/config watchers become ready before initial compilation begins. Resource
+watches are discovered from the candidate output and become ready before it is
+written. Discovery repeats after readiness to capture newly introduced references
+during watcher attachment. Notifications during generation and child startup are
+buffered. A child validates the catalogue and binds before
 readiness. Initial startup tries a requested concrete port and then each higher
 port in order when the address is occupied; port `0` delegates selection to the
 operating system. The resolved port remains stable across child restarts, which
@@ -60,6 +76,18 @@ watcher-readiness, or candidate-build failure closes the candidate watcher and
 retains the previous config, watcher, output, and child. An explicit CLI
 `--base` remains pinned; without one, the restarted child uses the newly loaded
 config's comparison base.
+
+Initial startup, successful rebuilds and configuration changes, and resource
+reloads refresh the reachable resource watch set. A ready replacement is adopted
+only with its matching output; failed writes discard it and retain the previous
+resource watches. Reloads keep missing or invalid paths and their last-known
+descendants observable until repaired or unreferenced. Invalid resources still
+make Changes unavailable, while verified baseline deletions identify affected
+screens. Neither case prevents a live reload or comparison-cache invalidation.
+Resource watches coalesce file and entry-replacement notifications and replace
+their observers when validity changes, so repairing a dangling alias as a regular
+file also restores subsequent edits. Unnamed raw events and unrelated generated
+entries cannot broaden the resource watch set.
 
 Rebuilds are debounced and transactional. A failed rebuild keeps the last-good
 server and output, reports the error, and waits for another authored change. A
@@ -83,8 +111,9 @@ move its navigation row and ancestor crumbs in the same reload. Disclosure
 recovery still applies to every unchanged stable collection id; removed ids and
 obsolete label-path keys have no target and are ignored.
 
-When a successful rebuild leaves the manifest structure unchanged, or an
-explicit watch rule requests a reload, the parent keeps the ready child and
+When a successful rebuild leaves the manifest structure unchanged, or a
+resource edit or explicit watch rule requests a reload, the parent keeps the
+ready child and
 recomputes the complete optional changed-route snapshot. One typed update
 message replaces the child's shell snapshot before the event-stream version is
 published. An available empty list keeps the filter visible at zero; an
@@ -109,7 +138,7 @@ waits for another explicit diff selection. Concurrent comparison requests reuse
 one regeneration and snapshots remain pinned to their immutable generation.
 
 Shutdown first stops queued work and waits for any active configuration
-transaction, then closes the final adopted watcher, timers, child processes,
+transaction, then closes all final adopted watchers, timers, child processes,
 HTTP servers, event streams, and ports. A candidate watcher is discarded if
 shutdown begins before adoption: shutdown interrupts an outstanding candidate
 readiness wait and closes that watcher before the action queue finishes

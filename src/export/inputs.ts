@@ -3,10 +3,26 @@ import { isDeepStrictEqual } from "node:util";
 import { compileCatalogue, type Compilation } from "../build/compile.js";
 import { loadConfig } from "../config/load.js";
 import type { ResolvedConfig } from "../config/types.js";
+import type { OptionalReviewAssetReader } from "../review/assets.js";
 import type { GitClient } from "../review/git.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import { exportError } from "./error.js";
 import { capturePublicFiles } from "./public_files.js";
+
+/** Share captured public bytes between comparison and Changes calculations. */
+export function capturedAssetReader(
+  files: ReadonlyMap<string, Buffer>,
+): OptionalReviewAssetReader {
+  return {
+    read: async (name) => {
+      const bytes = files.get(name);
+      if (!bytes)
+        throw exportError(`Comparison resource is not exportable: ${name}`);
+      return bytes;
+    },
+    readIfExists: async (name) => files.get(name),
+  };
+}
 
 /** Pin branch identity and changed-path evidence for every comparison consumer. */
 export function pinnedGit(

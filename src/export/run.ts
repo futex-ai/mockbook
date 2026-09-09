@@ -10,9 +10,14 @@ import { readBaseManifest } from "../review/base_manifest.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import { compareReview } from "../review/compare.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import { changedContentPaths } from "../server/changed_content.js";
 import { withExportCleanup } from "./cleanup.js";
 import { assertExportActive, exportError } from "./error.js";
-import { assertInputsUnchanged, pinnedGit } from "./inputs.js";
+import {
+  assertInputsUnchanged,
+  capturedAssetReader,
+  pinnedGit,
+} from "./inputs.js";
 import { ExportInventory } from "./inventory.js";
 import { EXPORT_MARKER } from "./ownership.js";
 import { resolveExportOutput } from "./paths.js";
@@ -56,6 +61,7 @@ async function generateExport(
     assertExportActive(options.signal);
     await writeCompilation(compilation, config);
     const publicFiles = await capturePublicFiles(config);
+    const assetReader = capturedAssetReader(publicFiles);
     const exclusions = [output, transaction.reservationRoot];
     const changed = await reviewChangedPaths(
       git,
@@ -70,15 +76,17 @@ async function generateExport(
       pinnedGit(git, commit, changed),
       base,
       transaction.stage,
-      {
-        read: async (name) => {
-          const bytes = publicFiles.get(name);
-          if (!bytes)
-            throw exportError(`Comparison resource is not exportable: ${name}`);
-          return bytes;
-        },
-      },
+      assetReader,
       exclusions,
+    );
+    const contentChanges = await changedContentPaths(
+      compilation.manifest,
+      baseline,
+      config,
+      git,
+      commit,
+      changed,
+      assetReader,
     );
     const site = assembleExport(
       config,
@@ -86,6 +94,7 @@ async function generateExport(
       baseline,
       comparison,
       publicFiles,
+      contentChanges,
     );
     const result: ExportResult = {
       outDir: output,
@@ -98,11 +107,11 @@ async function generateExport(
     );
     const files = new ExportInventory();
     for (const [name, bytes] of site.inventory.files) files.add(name, bytes);
-    validateExportReferences(files.files, aliases ?? new Map());
     files.add(
       EXPORT_MARKER,
       `${JSON.stringify({ schemaVersion: 1, files: [...files.files.keys()].sort() }, null, 2)}\n`,
     );
+    validateExportReferences(files.files, aliases ?? new Map());
     for (const [name, bytes] of files.files) {
       assertExportActive(options.signal);
       const target = path.join(transaction.stage, name);

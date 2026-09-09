@@ -63,9 +63,12 @@ failures. It does not silently export a zero Changes count or disable controls.
 
 Resolve and pin one merge-base commit for the operation. Both route-level
 Changes attribution and screen comparisons use that commit, the same current
-manifest/generated documents, and the same changed-path exclusions. Preserve
-the existing distinct attribution rules; do not derive the navigation filter
-by simply counting materially changed comparison screens.
+manifest/generated documents, and the same changed-path exclusions. Apply the
+shared Changes calculation to captured public bytes: normalize paired ignored
+regions, compare reviewable metadata, and follow rendered local resources.
+Ignored-only edits, source moves, and dependency/shared-impact evidence alone
+do not add entries. Retain that evidence in comparisons, and do not derive the
+navigation filter by counting materially changed comparison screens.
 
 Keep `ReviewResult.schemaVersion` at 2, all existing states, shared/dependency
 impact, ignored regions, both viewports, and all effective color schemes.

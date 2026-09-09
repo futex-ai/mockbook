@@ -12,12 +12,24 @@ import {
 } from "../html_link_validation.js";
 import type { ReviewArtifactContent } from "../review/types.js";
 import { exportError } from "./error.js";
+import { ExportPathIndex } from "./path_index.js";
 
 /** Prove every local document/resource/module request has an exported target. */
 export function validateExportReferences(
   files: ReadonlyMap<string, ReviewArtifactContent>,
   aliases: ReadonlyMap<string, string> = new Map(),
 ): void {
+  const paths = new ExportPathIndex();
+  for (const name of files.keys()) paths.add(name);
+  for (const [alias, target] of aliases) {
+    if (
+      !isSafeRepositoryPath(alias) ||
+      !isSafeRepositoryPath(target) ||
+      !files.has(target)
+    )
+      throw exportError(`Invalid hosting alias: ${alias} -> ${target}`);
+    paths.add(alias);
+  }
   const documents = new Map(
     [...files].flatMap(([name, bytes]) =>
       /\.html?$/i.test(name)
@@ -32,15 +44,6 @@ export function validateExportReferences(
         : [],
     ),
   );
-  for (const [alias, target] of aliases) {
-    if (
-      !isSafeRepositoryPath(alias) ||
-      !isSafeRepositoryPath(target) ||
-      files.has(alias) ||
-      !files.has(target)
-    )
-      throw exportError(`Invalid hosting alias: ${alias} -> ${target}`);
-  }
   for (const [name, bytes] of files) {
     const content = Buffer.from(bytes).toString("utf8");
     const extension = path.posix.extname(name).toLowerCase();

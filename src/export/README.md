@@ -8,10 +8,15 @@ Deployment and hosting credentials remain outside Mokabook.
 compares them through the existing review engine, and verifies inputs again
 before installation. `site.ts` uses the existing shell and Browse adapter to
 assemble exact pages, real id aliases, package assets, and immutable comparisons.
+The shared `server/changed_content.ts` calculation receives the same captured
+asset reader as comparisons, preserving Serve's material-output/resource Changes
+membership without reading a different current-file snapshot.
 
 `paths.ts`, `ownership.ts`, and `transaction.ts` constrain replacement to a
-validated, exclusively reserved output. `inventory.ts` and `references.ts`
-check path collisions and local resource closure. `ignored.ts` keeps owned
+validated, exclusively reserved output. `inventory.ts` and `references.ts` use
+`path_index.ts` for one case-folded file/alias collision policy, including
+directory prefixes and the final ownership marker. Reference validation also
+proves local resource closure. `ignored.ts` keeps owned
 outputs and transactions out of broad Watch rules. The repository-only preview
 adapter supplies validated host aliases and legacy ownership explicitly.
 

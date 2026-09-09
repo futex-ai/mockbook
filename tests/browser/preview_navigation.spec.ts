@@ -7,11 +7,12 @@ let preview: PreviewFixture;
 test.describe.configure({ timeout: 90_000 });
 
 test.beforeAll(async () => {
+  test.setTimeout(90_000);
   preview = await startPreviewFixture();
 });
 
 test.afterAll(async () => {
-  await preview.close();
+  await preview?.close();
 });
 
 test("static catalogue navigation retains pointer and keyboard resizing", async ({

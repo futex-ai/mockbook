@@ -42,6 +42,12 @@ test("comparison designs use screen context instead of report chrome", async ({
       await expect(
         page.getByText("Comparison details", { exact: true }),
       ).toBeVisible();
+      if (route.startsWith("impact/") && viewport === "desktop") {
+        await expect(page.locator(".mbk-nav-filter-opt.active")).toHaveText(
+          "All",
+        );
+        await expect(page.locator(".mbk-nav-filter-count")).toHaveText("0");
+      }
       await expect(page.locator(".mbk-nav-resize")).toHaveCount(
         viewport === "desktop" ? 1 : 0,
       );

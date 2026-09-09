@@ -30,7 +30,7 @@ test("an empty registry retains normal build validation and the previous site", 
   );
 });
 
-test("ignored-only and shared-impact changes keep distinct catalogue attribution", async (context) => {
+test("ignored-only and shared-impact evidence does not fill exported Changes", async (context) => {
   const source = (value: string) =>
     validEntrySource({
       body: `<ReviewIgnore id="counter"><span>${value}</span></ReviewIgnore>`,
@@ -62,7 +62,7 @@ test("ignored-only and shared-impact changes keep distinct catalogue attribution
     path.join(fixture.output, "index.html"),
     "utf8",
   );
-  assert.match(html, /data-changed="true"[^>]*data-entry-id="details"/);
+  assert.doesNotMatch(html, /data-changed="true"/);
 });
 
 test("renamed screens keep both routes but only the current id alias", async (context) => {
@@ -122,10 +122,17 @@ test("provider aliases cannot weaken generic resource validation", () => {
   for (const aliases of [
     new Map([["view/home", "missing.html"]]),
     new Map([["../escape", "view/home.html"]]),
-    new Map([["index.html", "view/home.html"]]),
   ])
     assert.throws(
       () => validateExportReferences(files, aliases),
       /Invalid hosting alias/,
     );
+  assert.throws(
+    () =>
+      validateExportReferences(
+        files,
+        new Map([["index.html", "view/home.html"]]),
+      ),
+    /Export path collision/,
+  );
 });

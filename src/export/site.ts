@@ -31,6 +31,7 @@ export function assembleExport(
   baseline: ManifestV3,
   comparison: ReviewArtifact,
   publicFiles: ReadonlyMap<string, Buffer>,
+  contentChanges: readonly string[],
 ): { inventory: ExportInventory; delivery: StaticDelivery } {
   const current = createCatalogue(compilation.manifest);
   const removed = baseline.entries.filter(
@@ -84,7 +85,7 @@ export function assembleExport(
     compilation.manifest,
     baseline,
     config,
-    comparison.result.changedPaths,
+    contentChanges,
   );
   const context: ShellContext = {
     base: comparison.result.baseRef,

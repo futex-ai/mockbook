@@ -14,6 +14,8 @@ crates.io.
 
 The crate provides the implementation behind `cargo xtask check`,
 `cargo xtask review`, and `cargo xtask rust-file-length-lint`.
+The Node unit/integration suite runs at most four test files concurrently;
+individual concurrency tests and their existing timeouts remain unchanged.
 
 ## Quick Start
 

@@ -1,15 +1,15 @@
 # Consumer Static Export
 
-Validation: all 485 unit/integration tests and 104 browser tests passed after the transaction fixes.
+Validation: all 553 unit/integration tests and 104 browser tests passed after main integration.
 Packed local ESM, NodeNext, clean-cache npx, Accounting, and Juno consumers
 passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
 Milestones 1–8 completed, including both approved transaction follow-ups.
-The post-push review reported one new Medium adapter-alias finding, recorded
-with options in the [review report](../docs/reviews/consumer-static-export.md)
-for the user's decision; it was not automatically fixed.
+The user approved fixing the remaining adapter-alias finding, merging latest
+main, and creating a PR. Milestone 9 tracks that delivery; the
+[review report](../docs/reviews/consumer-static-export.md) retains its context.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
 The user approved fixing all four review findings, followed by merging latest main.
@@ -328,3 +328,30 @@ Delivered `7fee0f4` with 20 new regressions and the complete passing gate above.
 The post-push review completed on 2026-09-09 against main `93ac778`; its one new
 Medium finding, reproduction, and recommended preventive scope are in the
 [review report](../docs/reviews/consumer-static-export.md).
+
+## Milestone 9: Validate Host Aliases And Deliver The PR
+
+Fix the approved collision gap, preserve latest main, and open the feature PR.
+
+- [x] Reproduce alias/file, alias/directory, alias/alias, and case-folded
+      collisions with failing tests, including the real preview adapter.
+- [x] Share one collision index across files and aliases, including final
+      reserved output paths; preserve valid aliases and exact-file deduplication.
+- [x] Update the delivery protocol and relevant READMEs; pass focused tests.
+- [x] Fetch main, capture the source tip, and audit incoming additions before
+      merging; preserve each feature while resolving conflicts path-by-path.
+- [x] Preserve main's new material-output/resource Changes calculation in
+      export using captured inputs; add failing integration regressions first.
+- [x] Pass the complete `cargo xtask check` gate and preview/export smoke tests
+      on the merged result; audit mainline preservation and deletions.
+- [x] Stabilize subprocess-heavy verification after reproduced startup timeouts
+      by bounding test-file parallelism; retain all tests and their deadlines.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch
+      before `cargo xtask review`; report new findings without automatic fixes.
+- [ ] Complete plan/index/review records, validate and commit/push any final
+      documentation bookkeeping, and create a PR targeting `main` with results.
+
+Integration audit: source `5b143d1`, merge base `93ac778`, fetched main `a5ecbc0`.
+Main adds material-output Changes and resource watching. Both watch conflicts
+retain main's behavior plus export exclusions; no mainline files were deleted.
+See the [integration record](../docs/reviews/consumer-export-integration.md).

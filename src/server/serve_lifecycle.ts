@@ -1,6 +1,13 @@
 /** Shutdown and child-restart helpers for watched Serve orchestration. */
 
+import type { Compilation } from "../build/compile.js";
+import type { GeneratedOutputStore } from "../build/output_store.js";
+import type { ResolvedConfig } from "../config/types.js";
 import type { RunningServer } from "./http.js";
+import type {
+  PreparedResourceWatch,
+  ResourceWatcher,
+} from "./resource_watcher.js";
 import type { RunningServe } from "./serve.js";
 import type { ProcessSupervisor } from "./supervisor.js";
 import type { ConsumerWatcher } from "./watcher.js";
@@ -22,16 +29,44 @@ export async function watcherReadyBeforeShutdown(
   ]);
 }
 
-/** Close queued work, the active watcher, and child while preserving first failure. */
+/** Write candidate output only after its resource watches are ready. */
+export async function prepareWatchedOutput(
+  config: ResolvedConfig,
+  compilation: Compilation,
+  resources: ResourceWatcher,
+  outputStore: GeneratedOutputStore,
+  shutdownStarted: Promise<void>,
+  isClosed: () => boolean,
+): Promise<PreparedResourceWatch | undefined> {
+  const prepared = await resources.prepare(
+    config,
+    compilation,
+    shutdownStarted,
+  );
+  if (!prepared) return undefined;
+  try {
+    if (!isClosed()) await outputStore.write(compilation, config);
+    if (!isClosed()) return prepared;
+  } catch (error) {
+    await prepared.close();
+    throw error;
+  }
+  await prepared.close();
+  return undefined;
+}
+
+/** Close queued work, active watchers, and child while preserving first failure. */
 export async function closeWatched(
   actionQueue: WatchActionQueue,
   currentWatcher: () => ConsumerWatcher,
+  resources: ResourceWatcher,
   supervisor: ProcessSupervisor,
 ): Promise<void> {
   let firstError: unknown;
   for (const close of [
     () => actionQueue.close(),
     () => currentWatcher().close(),
+    () => resources.close(),
     () => supervisor.close(),
   ]) {
     try {
