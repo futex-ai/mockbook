@@ -156,15 +156,15 @@ align focus validation with the contract, and separate consumer migration docs.
       the package README generic.
 - [x] Run relevant tests, browser smoke tests, and `cargo xtask check`.
 
-## Milestone 6: Deliver and review the fixes
+## Milestone 6: Deliver and review the fixes — completed
 
 Complete the required delivery sequence after the approved fixes pass validation.
 
 - [x] Audit the diff against `origin/main`, stage all files with `git add -A`,
       commit using Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after the push and report any new findings without
+- [x] Run `cargo xtask review` after the push and report any new findings without
       automatically fixing them.
-- [ ] Record the review result, complete the plan/index, validate Markdown, and
+- [x] Record the review result, complete the plan/index, validate Markdown, and
       commit/push the final delivery record if needed.
 
 Approved fixes: items 1 and 2 now share parsed metadata validation, including
@@ -181,6 +181,89 @@ lint, typechecking, example validation, and packed-consumer checks. The known
 port-allocation test race occurred on the first run; the isolated test and
 full rerun passed. No production or test changes were made for that race.
 
-This delivery commit includes the approved implementation fixes. Its mandatory
-post-push review is pending at commit time; the remaining Milestone 6 items are
-completed in a separate documentation commit after that review returns.
+The approved fixes were committed and pushed as `d5ab08a`. The mandatory
+post-push review has now completed; this final documentation record closes the
+scheduled delivery tasks. The two additional compatibility findings below are
+recorded for the user to decide, without further implementation changes.
+
+## Follow-Up Review Outcome
+
+The reviewer reported four items below. Item 1 was disproved by the merge
+preview; items 2 and 3 remain for the user's decision; item 4 is completed by
+this planned delivery record. Evidence and scope recommendations follow the
+original report.
+
+1. **Severity: High — branch would remove a current `origin/main` feature.**
+
+   **Context:** `HEAD` is behind local `origin/main` by one commit: `1dcfb67 fix(search): match authored page IDs (#39)`. The committed diff removes ID search by dropping `data-entry-id` from nav rows in [src/server/shell/nav.tsx](../src/server/shell/nav.tsx#L62) and matching only text/route in [src/client/search_query.ts](../src/client/search_query.ts#L23). It also updates docs to remove ID search while the UI still exposes copyable IDs in [src/server/shell/head.tsx](../src/server/shell/head.tsx#L113).
+
+   **Impact of doing nothing:** merging this branch as-is regresses mainline Browse search and deletes tests/docs added by `origin/main`. Users who copy an ID chip or know a `MockLink` target ID may no longer find the screen unless title/route happen to match.
+
+   **Options:** A. Rebase/merge `origin/main` and preserve `1dcfb67`, restoring `data-entry-id`, ID query matching, tests, and docs. B. If removing ID search is intentional, get explicit approval and document it as a behavior change.
+
+   **Recommended:** A.
+
+2. **Severity: Medium — compatibility transforms can invalidate adapted-control safety after validation.**
+
+   **Context:** child controls are validated before the compatibility transformer in [src/compatibility/transform.ts](../src/compatibility/transform.ts#L35), but after transform only metadata/logical records are checked at [src/compatibility/transform.ts](../src/compatibility/transform.ts#L83). Those checks do not reject new interactive ancestors, nested controls, or inline handlers on the adapted anchor. I verified with the built validators that wrapping the generated anchor in `<button>`, adding `onclick`, or inserting a nested `<button>` passes current metadata/logical validation.
+
+   **Impact of doing nothing:** a compatibility bridge can ship output that violates the documented “no inline handlers / no nested controls / no interactive ancestor” contract, especially in standalone files and Review snapshots.
+
+   **Options:** A. Add a post-transform validator for `data-mokabook-link-control` owners that rechecks native anchor shape, inline handlers, descendants, and ancestors. B. Document compatibility transformers as fully trusted and allowed to break adapted-control safety.
+
+   **Recommended:** A, with regression cases in `tests/compatibility_link_controls.test.ts`.
+
+3. **Severity: Medium — control metadata ownership is not bound strongly enough.**
+
+   **Context:** [src/build/link_control_metadata.ts](../src/build/link_control_metadata.ts#L104) records only control metadata plus `id`, `href`, `data-nav-href`, and `data-mokabook-link`. It ignores preserved owner attributes such as `class`, `style`, labels, and DOM position. The existing test at [tests/compatibility_link_controls.test.ts](../tests/compatibility_link_controls.test.ts#L51) catches moving metadata only because the ordinary link has a distinguishing `id`; the same move to a no-id same-destination link passes.
+
+   **Impact of doing nothing:** compatibility transforms can move `data-mokabook-link-control` from the styled adapted control to a plain same-destination link without detection, breaking the documented “moving metadata to a different logical owner fails” guarantee.
+
+   **Options:** A. Strengthen owner records with the adapted root’s non-package attributes, and add no-id same-destination regression coverage. B. Add an opaque generated owner token and treat any missing/duplicated/moved token as invalid. C. Weaken the docs to describe the current best-effort record matching.
+
+   **Recommended:** A plus B if the contract needs a hard ownership guarantee.
+
+4. **Severity: Low — delivery plan still records review as pending.**
+
+   **Context:** [plans/mocklink-child-controls.md](../plans/mocklink-child-controls.md#L165) leaves post-push `cargo xtask review` and final plan/index recording unchecked, and [plans/README.md](../plans/README.md#L3) still lists the plan as active.
+
+   **Impact of doing nothing:** reviewers cannot tell from committed docs whether the required post-push Review step completed for the final fix commit.
+
+   **Options:** A. Run/record the post-push review result and move the plan to Completed if done. B. Keep it active but add a dated blocker/status note.
+
+   **Recommended:** A.
+
+Reviewer scope: read-only source inspection, Git diff checks, and pure validator probes against the existing build. The reviewer did not repeat the full gate; it had already passed before the implementation commit and push.
+
+### Disposition And Scope
+
+1. **Reported High — mainline ID search removal: not a branch regression.**
+   `origin/main` advanced during review from `b45327a` to `1dcfb67`, while the
+   reviewed branch remained `d5ab08a`. The reviewer treated a two-tip diff as a
+   removal. The branch-point diff contains no ID-search changes.
+   `git merge-tree --write-tree 1dcfb67 d5ab08a` completed without conflicts and
+   produced tree `080898945cf420b011c2a47f33872359105a7dd3`. All nine ID-search
+   code/test/protocol files match `1dcfb67` exactly in that tree; the merged
+   README retains main's ID-search guidance and adds only this feature's docs.
+   No mainline removal is proposed or authorized. A. Preserve main through the
+   normal merge (recommended and verified). B. Refresh the branch from main
+   before integration if desired; no ID-search reimplementation is needed.
+
+2. **Medium — final adapted-control validation: pending user decision.**
+   Prefer one semantic validator shared by initial adaptation and final
+   compatibility validation, with ancestor, descendant, and inline-handler
+   regressions. Reusing the policy prevents future validation drift across the
+   two boundaries; checking only the demonstrated wrapper would leave the
+   related cases open.
+
+3. **Medium — owner identity among identical destinations: pending user decision.**
+   Strengthen the owner record and define exactly which consumer edits remain
+   allowed. Add regression coverage for two links without ids sharing a target.
+   A token by itself is movable alongside its metadata, so pair any identity
+   token with the owner validation rather than relying on a token alone.
+   This requires a contract/test update beyond merely adding another string to
+   the existing fingerprint.
+
+4. **Low — pending delivery record: completed as scheduled.**
+   Review cannot be marked finished in the commit it is reviewing. This record
+   completes the already-planned post-review bookkeeping and index update.
