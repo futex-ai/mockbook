@@ -157,8 +157,9 @@ breadcrumbs with hash-prefixed copyable ID chips, realistic browser chrome with
 an expand-to-overlay toggle, phone chrome whose screen reserves a clock,
 signal, Wi-Fi, and battery status band above the mobile fragment, header
 viewport controls, a Light/Dark switch when the catalogue has dark fragments,
-use-case flows, a details inspector that remembers its disclosure across routes
-and reloads, id redirects, and watched updates. The Changed filter compares
+use-case flows, a collapsed-by-default details inspector that remembers its
+disclosure across routes and reloads, id redirects, and watched updates. The
+Changed filter compares
 an explicit projection of route-level manifest metadata, collection ancestry,
 generated fragments, and explicitly declared dependencies with the branch
 point shared by `HEAD` and the configured Git base. Collection ancestry comes

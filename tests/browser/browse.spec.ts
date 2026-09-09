@@ -219,20 +219,19 @@ test("search matches authored page ids", async ({ page }) => {
   await expect(page.locator(tourRow)).toBeHidden();
 });
 
-test("details disclosure is remembered across routes and reloads", async ({
-  page,
-}) => {
+test("details starts collapsed and remembers disclosure", async ({ page }) => {
   const details = page.locator("[data-mokabook-details]");
   await page.goto("/view/screens/welcome.html");
-  await details.locator("summary").click();
   await expect(details).not.toHaveAttribute("open", "");
+  await details.locator("summary").click();
+  await expect(details).toHaveAttribute("open", "");
 
   await page.click(detailsRow);
   await expect(page.locator("#mb-main h2")).toHaveText("Details");
-  await expect(details).not.toHaveAttribute("open", "");
+  await expect(details).toHaveAttribute("open", "");
 
   await page.reload();
-  await expect(details).not.toHaveAttribute("open", "");
+  await expect(details).toHaveAttribute("open", "");
   await page.evaluate(() => {
     document
       .querySelector<HTMLElement>("[data-mokabook-details] summary")
@@ -240,7 +239,7 @@ test("details disclosure is remembered across routes and reloads", async ({
     window.location.assign("/view/screens/welcome.html");
   });
   await page.waitForURL(/\/view\/screens\/welcome\.html$/);
-  await expect(details).toHaveAttribute("open", "");
+  await expect(details).not.toHaveAttribute("open", "");
 });
 
 test("searching opens groups and clearing restores their disclosure", async ({
@@ -279,6 +278,7 @@ test("details tag chips enter, keep, and clear their term", async ({
   await expect(page.locator(tourRow)).toBeVisible();
   await markPage(page);
 
+  await page.locator("[data-mokabook-details] summary").click();
   await page.click(formsChip);
   await expect(page.locator("[data-mokabook-search]")).toHaveValue("tag:forms");
   await expect(page.locator(formsChip)).toHaveClass(/active/);
