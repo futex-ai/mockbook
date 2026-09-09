@@ -434,10 +434,12 @@ recorded by the
 
 ### Related Docs
 
-The planned [component explorer contract](./docs/protocol/mokabook-components.md)
-covers component pages, saved variants, automatic change attribution, screen
-inspection, and local prop controls. It is not implemented yet; delivery is
-tracked in the [plans index](./plans/README.md).
+The planned [registered components contract](./docs/protocol/mokabook-components.md)
+links to the [change attribution](./docs/protocol/mokabook-component-changes.md),
+[pages and inspection](./docs/protocol/mokabook-component-explorer.md), and
+[local prop controls](./docs/protocol/mokabook-component-controls.md) contracts.
+These features are not implemented yet; delivery is tracked in the
+[plans index](./plans/README.md).
 
 - [Protocol index](./docs/protocol/README.md)
 - [Package ownership boundary](./docs/architecture/package-boundary.md)

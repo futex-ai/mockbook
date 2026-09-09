@@ -38,9 +38,14 @@ const action = defineComponent({
   route: "components/action.html",
   dependencies: ["src/components/Action.tsx"],
   relatedDocs: [],
-  render: (props: { label: string; disabled: boolean }) => (
-    <Action disabled={props.disabled}>{props.label}</Action>
-  ),
+  propSchema: {
+    kind: "object",
+    properties: {
+      label: { schema: { kind: "string" } },
+      disabled: { schema: { kind: "boolean" } },
+    },
+  },
+  render: (props) => <Action disabled={props.disabled}>{props.label}</Action>,
   variants: [
     {
       id: "default",
@@ -72,17 +77,19 @@ const submit = (
 ```
 
 The input includes the common entry metadata, a stable relative `.html` route,
-`render`, and a nonempty ordered `variants` list. `tags`, `colorSchemes`,
-`controls`, `slots`, and `ownedDependencies` are optional. Existing id, route,
+`propSchema`, `render`, and a nonempty ordered `variants` list. `tags`,
+`colorSchemes`, `controls`, `slots`, and `ownedDependencies` are optional. Existing id, route,
 dependency, tag, and color-scheme validation applies. Variant ids are unique
-kebab-case strings
-within their component; the first variant is the default. Each variant contains
-an id, title, complete typed props, and an optional description. There is no
+kebab-case strings within their component; the first variant is the default.
+Each variant contains an id, title, complete typed props, and an optional
+description. There is no
 implicit merge between variants.
 
-The render parameter determines the wrapper and variant prop types. Both typed
-and untyped consumers receive validation at the authoring boundary. The adapter
-receives `render(props, { viewport, colorScheme })` and may choose a
+The required [prop schema](./mokabook-component-props.md) determines the adapter,
+wrapper, and variant data types. Its shared runtime validator checks typed and
+untyped calls, recorded props, and local controls; render annotations and saved
+variants do not infer or override that schema. The adapter receives
+`render(props, { viewport, colorScheme })` and may choose a
 viewport-specific consumer component. Theme providers and styling remain
 consumer-owned.
 `RenderInput.entry` becomes a screen/component union and gains the selected
@@ -145,8 +152,10 @@ collision, ownership, resource, orphan, and transactional-write checks apply.
 
 Catalogues with registered components emit manifest schema v4, including typed
 component entries, variant fragments, and per-view usage records for screens
-and components. Unregistered catalogues retain v3 bytes. Readers accept v3 and
-v4, retaining the existing explicit v2 compatibility path; unknown versions
+and components. The [manifest schema](./mokabook-component-manifest.md) defines
+every record, reference, ordering rule, and validation boundary. Unregistered
+catalogues retain v3 bytes. Readers accept v3 and v4, retaining the existing
+explicit v2 compatibility path; unknown versions
 fail. Historical manifests without usage metadata do not imply an empty
 component tree or justify suppressing changes.
 
@@ -173,6 +182,9 @@ Implementations must not silently register an unreachable component page.
 ## Related Contracts
 
 - [Component change attribution](./mokabook-component-changes.md)
+- [Runtime prop schema and codec](./mokabook-component-props.md)
+- [Manifest v4 schema](./mokabook-component-manifest.md)
+- [Comparison v3 schema](./mokabook-component-review.md)
 - [Component pages and screen inspection](./mokabook-component-explorer.md)
 - [Component controls](./mokabook-component-controls.md)
 - [Build pipeline](../architecture/build-pipeline.md)

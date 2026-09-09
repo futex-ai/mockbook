@@ -53,6 +53,21 @@ Record the agreed behavior and its integration boundaries before implementation.
       `f11e516d144b4616986423ccf3e8ed86095eed21`, fetched/audited main, and
       fast-forwarded to `bb3a22f` to retain its search-icon fix without conflicts.
 
+## Milestone 1a: Complete the reviewed contract — completed
+
+Apply the four approved findings from the initial review of `6bf3183`.
+This adds a documentation milestone without reopening completed Milestone 1.
+
+- [x] Define exact [manifest v4](../docs/protocol/mokabook-component-manifest.md)
+      and [comparison v3](../docs/protocol/mokabook-component-review.md) interfaces,
+      references, sorting, optional fields, path rules, and shared fixture checks.
+- [x] Require one [runtime prop schema](../docs/protocol/mokabook-component-props.md)
+      for derived types, authoring, variants, controls, recorded props, and hashes.
+- [x] Specify memory-only transient rendering and no-file/watch-feedback tests;
+      clarify README links to registration, attribution, inspection, and controls.
+- [x] Validate changed Markdown, local links, and the normative TypeScript
+      declarations. Keep feature code unimplemented and the plan Active.
+
 ## Milestone 2: Build component registration and ownership
 
 Deliver tested internal authoring/build support while current public catalogues
@@ -60,6 +75,9 @@ continue to work. Standalone generated fixtures prove the component renders.
 
 - [ ] Implement typed/runtime-validated definitions, variants, controls metadata,
       slot declarations, component wrappers, and explicit repeated-instance ids.
+- [ ] Share the explicit prop-schema validator and canonical codec across all
+      callers; test rejected JS/TS inputs, optional/uncontrolled fields, unions,
+      nested values, key round trips, negative zero, and mutation isolation.
 - [ ] Extend source attribution, collection validation, discovery, and the
       single consumer graph without inferring usage from import lists.
 - [ ] Capture actual per-view instances, input material, caller-owned slots,
@@ -68,6 +86,8 @@ continue to work. Standalone generated fixtures prove the component renders.
       ownership, retaining plain-string renderers and consumer theme providers.
 - [ ] Generate variant fragments and manifest v4; retain v3 output bytes for
       unregistered catalogues and existing v2/v3 baseline readers.
+- [ ] Implement the normative manifest types/validator with shared accepted and
+      rejected fixtures, reference/path checks, and deterministic serialization.
 - [ ] Validate nested/multi-root/text/null boundaries, reserved metadata,
       compatibility transforms, owned dependencies, and unsupported inputs.
 - [ ] Extend transactional output, collision/orphan checks, links, variant
@@ -97,6 +117,8 @@ with lightweight Browse detection and no eagerly generated snapshots.
       missing sides; keep before/after documents and assets unmodified.
 - [ ] Extend served/published data and artifact packaging, historical schema
       readers, immutable generations, and cache invalidation for component views.
+- [ ] Implement the normative result schema and Changes reasons; share fixtures
+      across producers/readers to prove exact membership, sides, and usage chains.
 - [ ] Test every attribution-contract table row, unchanged-render prop changes,
       slots, simultaneous component/screen edits, asset-only changes, migration,
       light/dark/mobile/desktop, and no snapshot work from ordinary browsing.
@@ -164,11 +186,15 @@ the endpoint inactive in published output and independent of generated files.
 - [ ] Reuse consumer adapters/providers and the full marker/link/resource
       validation pipeline in a supervised worker with bounded jobs and timeout.
 - [ ] Return immutable transient preview URLs and usage records; implement
-      count/byte/lifetime bounds, expiration, valid resource resolution, and cleanup.
+      memory-only bundles, count/byte/lifetime bounds, expiration, valid resource
+      resolution, no-store/nosniff headers, and cleanup without disk spill.
 - [ ] Integrate successful/failed watched replacement, stale-generation handling,
       cancellation, worker recovery, and shutdown with the last-good lifecycle.
 - [ ] Test control types/presets, malformed or unauthorized requests, unchanged
       committed output, queue/artifact limits, failure/timeout/restart, and shutdown.
+- [ ] Assert controls create no filesystem output, Git changes, watch events,
+      rebuild/reload loops, Check orphans, or publication entries, including with
+      a repository-root watch rule; verify memory is released on shutdown.
 - [ ] Build and smoke-test real consumer rerenders while browsing/watching;
       prove static publishing has no rendering endpoint or background requests.
 
@@ -247,7 +273,7 @@ Deliver the validated implementation through the mandatory post-push review.
       when their tasks are done, and move this plan from Active to Completed.
       Validate and commit/push any final delivery-record update separately.
 
-The initial plan-only change uses AGENTS.md's documentation exception: validate
+Documentation-only plan/protocol changes use AGENTS.md's exception: validate
 changed Markdown and review the diff instead of running `cargo xtask check`,
 then commit, push, and run `cargo xtask review`. This does not complete the
 implementation milestones or move the plan out of Active.

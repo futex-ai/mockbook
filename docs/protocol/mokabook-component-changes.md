@@ -59,6 +59,8 @@ affected-consumer evidence. New readers retain schema-v2 screen artifact support
 component-aware results use schema v3. Screen entries retain their actual view
 results, with affected-only evidence separate from direct Changes membership.
 All comparisons keep full unmodified before/after documents and isolated assets.
+The [comparison schema](./mokabook-component-review.md) defines the exact result,
+Changes membership, reasons, affected evidence, side pairing, and validation.
 
 ## Normalization And Input Ownership
 
@@ -81,10 +83,11 @@ retain their own identities and data input signals. Outer suppression must not
 erase these signals. Added/removed/replaced occurrences and changes in their
 ordered position remain material, including empty-rendering instances.
 
-Data keys use deterministic structured serialization with validation of every
-prop. Object key order is immaterial; array order, primitive types, null, and
-the existing undefined semantics remain explicit. Missing input evidence never
-means unchanged inputs. Invalid or incomplete records fail validation instead
+Data keys use the shared [prop validator and codec](./mokabook-component-props.md)
+for every declared prop, including uncontrolled fields. Object key order is
+immaterial; array order, primitive types, null, and optional undefined semantics
+remain explicit. Missing input evidence never means unchanged inputs. Invalid
+or incomplete records fail validation instead
 of granting blanket ignore behavior.
 
 Existing manual `ReviewIgnore` regions retain their current id, material, and

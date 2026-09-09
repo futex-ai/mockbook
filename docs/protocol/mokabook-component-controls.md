@@ -22,18 +22,39 @@ variant's actual value, updates the preview after validation, and has a label
 derived from declared metadata or the prop name. No invented sample values
 replace missing values; optional fields expose their unset state.
 
-Support text, boolean, finite number, and select controls. Text may declare a
-maximum length; numbers may declare minimum, maximum, and positive step; selects
-declare a nonempty list of unique named primitive values. Declarations include
-optional label/description fields, must identify an existing data prop, and must
-match its type and every saved variant value. React slots and arbitrary JSON
-editors are not live controls. Complex consumer values use declared preset keys
-resolved by the render adapter.
+The normative declarations below reference the required
+[prop schema](./mokabook-component-props.md). Unknown fields, an undeclared data
+prop, or a slot key fail registration. Optionality and data types come only from
+that schema; controls cannot override them. Empty text remains a string, and
+unset removes only an optional prop. React slots and arbitrary JSON editors are
+not live controls; complex values use schema-defined consumer preset keys.
 
-A control declares `optional: true` to permit an unset value; otherwise every
-saved variant must supply its value. The default is false. This explicit runtime
-declaration is required because TypeScript optionality is erased. Unsetting an
-optional input removes the prop before rendering; empty text remains a string.
+```ts
+interface ComponentControlLabel {
+  label?: string;
+  description?: string;
+}
+
+type ComponentControl = ComponentControlLabel &
+  (
+    | { kind: "text"; maxLength?: number }
+    | { kind: "boolean" }
+    | { kind: "number"; minimum?: number; maximum?: number; step?: number }
+    | {
+        kind: "select";
+        options: readonly { label: string; value: PropPrimitive }[];
+      }
+  );
+```
+
+Text length uses nonnegative safe integers and UTF-16 code units. Number bounds
+are finite, ordered, and not negative zero; step is finite and positive with
+base `minimum ?? 0`. Step is a UI increment, not floating-point divisibility
+validation. Select options are nonempty, have nonempty labels, and unique
+primitive values accepted by the field schema; numeric options reject negative
+zero for lossless schema JSON. Every saved value must satisfy its prop schema
+and control limits/options. A number control still sends negative-zero inputs
+losslessly through the tagged wire codec.
 
 Reset restores the selected saved variant's complete props. Changing the saved
 variant discards temporary edits. Viewport/theme changes preserve validated edits
@@ -56,22 +77,52 @@ Users can browse, inspect, and compare the saved variants normally.
 
 Serve exposes a private POST endpoint at `/__mokabook/components/render`.
 The request carries a component id, variant id, viewport, color scheme,
-catalogue generation, and a data object containing only declared control
+catalogue generation, page id, and a data object containing only declared control
 overrides. It does not accept a module path, source code, arbitrary component
 name, callback, resource path, or renderer selection.
 
-Request keys are `componentId`, `variantId`, `viewport`, `colorScheme`,
-`generation`, and `overrides`. Each overrides value is either
-`{ kind: "set", value: <declared primitive> }` or `{ kind: "unset" }`.
-The server compares the opaque generation string with its active catalogue;
-the request token is sent in the `X-Mokabook-Render-Token` header.
+The exact request and success-response shapes are below. The response's `view`
+uses [manifest usage records](./mokabook-component-manifest.md). Errors retain
+the HTTP/code contract below. The token is a separate
+`X-Mokabook-Render-Token` header and is never stored in generated metadata.
+
+```ts
+interface ComponentRenderRequest {
+  componentId: string;
+  variantId: string;
+  viewport: Viewport;
+  colorScheme: ColorScheme;
+  generation: string;
+  pageId: string;
+  overrides: Readonly<
+    Record<
+      string,
+      { kind: "set"; value: ComponentWirePrimitive } | { kind: "unset" }
+    >
+  >;
+}
+
+interface ComponentRenderSuccess {
+  renderId: string;
+  generation: string;
+  previewUrl: string;
+  props: ComponentWireProps;
+  view: ComponentViewRecord;
+}
+```
+
+The parent creates one random 32-hex `pageId` per mounted component page and
+retains it until navigation/reload. It is a queue-coalescing key, not authority.
+The opaque generation must match the active catalogue. Decode overrides through
+the shared primitive codec; validate the complete merged props against the
+registration schema and control constraints, including uneditable props.
 
 The server resolves the request against the current validated registry,
 merges overrides into that variant's props, validates types/constraints, then
 calls the same consumer render adapter, theme, stylesheet selection, marker,
 link, resource, and ownership validation as Build. Server-supplied context and
 uneditable props cannot be overridden. Optional values use an explicit unset
-operation; JSON null remains an actual value, not an unset sentinel.
+operation; the tagged null value remains an actual value, not an unset sentinel.
 
 A successful response returns a typed result with an opaque render id, the
 matching catalogue generation, a sandboxed preview URL, and validated usage
@@ -117,12 +168,21 @@ worker before accepting more work. This makes synchronous consumer render
 failures unable to hang Browse or shutdown. No second independently configured
 renderer or React resolution graph is permitted.
 
-Keep transient render artifacts outside committed output, with at most sixteen
-render documents and 32 MiB total retained bytes. A result exceeding that budget
-fails explicitly. Expire artifacts after five minutes and return 410 for expired
-URLs. Eviction never overwrites an existing render id; an expired visible frame
-can be regenerated from its current validated controls state. Retained documents
-and any generated style artifacts share one eviction lifetime.
+Keep transient HTML, usage/props metadata, and generated style/resource bytes
+only in a process-local memory store behind opaque render ids. Mokabook never
+spills these artifacts to disk, including `.context`, the OS temporary directory,
+or any source/output root. They never enter a manifest, Check/orphan transaction,
+Git changed-path calculation, watch event stream, or publication inventory.
+Reading existing validated public assets is allowed; generated asset bytes stay
+in the same memory bundle as their document and are served through its render id.
+
+Retain at most sixteen render bundles and 32 MiB total encoded document, metadata,
+and resource bytes. Reject a result exceeding the budget and expire bundles after
+five minutes. Ids are server-authenticated opaque tokens; a valid but no-longer
+retained id returns 410 without an unbounded expired-id table. Malformed/foreign
+ids return 404. Eviction never overwrites an id, and a page may rerender its
+current validated props after expiration. Every memory response uses no-store
+and nosniff headers and a fixed validated MIME type, preserving frame sandboxing.
 
 Watched registry/config replacement invalidates the old generation, stops or
 discards its queued work, and only swaps to a fully validated replacement graph.
@@ -137,7 +197,11 @@ Add contract tests for every control type, optional/unset values, unknown props,
 type/constraint errors, preset resolution, malformed bodies, request size,
 origin/Host/token validation, old generations, worker failure/timeout, and queue
 bounds. Prove repeat renders use the same consumer providers and React runtime
-resolution as saved variants and never mutate generated output.
+resolution as saved variants and never mutate generated output. Assert that
+control requests create no filesystem output, Git status change, watch event,
+rebuild/reload notification, Check orphan, or publication entry, including when
+a consumer explicitly watches its repository root. Test aggregate bundle byte
+accounting, expiration/eviction, MIME/headers, and memory release on shutdown.
 
 Browser tests cover actual prop changes, reset, variant switching, viewport/theme
 retention, rapid edits, stale responses, navigation, comparison selection,
