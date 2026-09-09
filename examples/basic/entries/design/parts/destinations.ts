@@ -1,0 +1,39 @@
+/** Stable catalogue destinations, independent of the depicted product ids. */
+export const DESTINATIONS = {
+  home: "design-browse-home",
+  page: "design-page-view",
+  pageDetails: "design-page-details",
+  pageNavigation: "design-page-navigation",
+  pageRemoved: "design-page-removed",
+  publication: "design-publication-catalogue",
+  publicationChanges: "design-publication-changes",
+  welcome: "design-browse-screen",
+  details: "design-browse-details-screen",
+  tour: "design-browse-use-case",
+  inspector: "design-browse-details",
+  missing: "design-browse-missing-route",
+  navigation: "design-browse-navigation",
+  tagPicker: "design-browse-tag-picker",
+  formsPicker: "design-browse-tag-filter",
+  forms: "design-browse-tag-forms",
+  onboarding: "design-browse-tag-onboarding",
+  onboardingPicker: "design-browse-tag-onboarding-picker",
+  darkWelcome: "design-browse-dark-scheme",
+  darkDetails: "design-browse-light-only",
+  current: "design-changes-current",
+  overlay: "design-changes-overlay",
+  changed: "design-review-changed",
+  added: "design-review-added",
+  removed: "design-review-removed",
+  difference: "design-review-difference",
+  darkChanged: "design-review-dark-scheme",
+  shared: "design-review-shared-impact",
+  ignored: "design-review-ignored-only",
+  empty: "design-review-empty",
+} as const;
+
+export type DesignDestination =
+  (typeof DESTINATIONS)[keyof typeof DESTINATIONS];
+export type ComparisonMode =
+  "current" | "side-by-side" | "overlay" | "difference";
+export type DepictedScheme = "light" | "dark";

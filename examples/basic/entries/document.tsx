@@ -1,7 +1,12 @@
+import { mockLink } from "mokabook";
 import { renderToStaticMarkup } from "react-dom/server";
 
 /** Complete example document shared by the page and its shell designs. */
-export function ExampleDocument() {
+export function ExampleDocument({
+  welcomeId = "example-welcome",
+}: {
+  welcomeId?: string;
+}) {
   return (
     <article
       style={{
@@ -26,7 +31,7 @@ export function ExampleDocument() {
         <li>Return to this handbook whenever you need it.</li>
       </ol>
       <p>
-        <a href="mock:example-welcome">Open Welcome</a>
+        <a href={mockLink(welcomeId)}>Open Welcome</a>
       </p>
     </article>
   );

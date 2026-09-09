@@ -1,10 +1,12 @@
 import { screen } from "mokabook";
 
 import { ComparisonStage } from "./parts/compare.js";
+import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
-import { NavTree } from "./parts/nav.js";
+import { MiniWelcome } from "./parts/mini_screens.js";
+import { ReviewNav } from "./parts/review.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
-import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
+import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
 
 function ChangesScreen({
   overlay,
@@ -33,8 +35,9 @@ function ChangesScreen({
     );
   return (
     <Shell
+      design={overlay ? DESTINATIONS.overlay : DESTINATIONS.current}
       viewport={viewport}
-      nav={<NavTree activeLabel="Welcome" changedOnly />}
+      nav={<ReviewNav activeTitle="Welcome" />}
     >
       <ScreenHead
         comparisonMode={overlay ? "overlay" : "current"}
@@ -50,7 +53,7 @@ function ChangesScreen({
       ) : (
         <Stage>{framed}</Stage>
       )}
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }

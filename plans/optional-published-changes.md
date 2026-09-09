@@ -14,8 +14,7 @@ previews enable that option; the main reference catalogue uses the default.
 owns the complete target, commands, failure behavior, and acceptance criteria.
 The package and runtime protocols now describe the implemented behavior.
 This applies to all entry kinds and can ship independently of
-[Unified Catalogue Pages](./unified-catalogue-pages.md). That plan supplies page
-impact and removed-page metadata when first-class page support lands.
+[Unified Catalogue Pages](./unified-catalogue-pages.md). That plan supplies the implemented page impact and removed-page metadata.
 
 This plan changes export behavior and its workflow invocations. Actual site
 deployment and npm publication are outside the implementation delivery gate.
@@ -121,6 +120,10 @@ The shell presents both completed options without altering local development.
 Deliver the completed behavior with documented commands and explicit workflow
 selection after the UI is ready.
 
+- [x] Preserve the newly merged design-link feature from main during final
+      integration; retain optional publication controls and explicitly opt the
+      imported comparison browser fixture into Changes. Recheck both exports.
+
 - [x] Activate the documented CLI options and default after the shell is ready.
       Set the main workflow to the default command and PR previews to
       `--include-changes --base origin/main`; preserve deployment safeguards.
@@ -148,7 +151,7 @@ selection after the UI is ready.
 
 ## Implementation Verification
 
-`cargo xtask check` passed on 2026-09-09: formatting, lint, TypeScript, 425
+The pre-integration `cargo xtask check` passed on 2026-09-09: formatting, lint, TypeScript, 425
 Node tests, example freshness, package contents, packed ESM/NodeNext/npx/Juno/
 Accounting consumers, 82 Chromium tests, Rust fmt/clippy, three Rust tests, and
 the Rust file-length audit. Both publication options were built and served.
@@ -158,6 +161,14 @@ screen comparisons, and absent live updates. All four publication design
 artifacts were opened from disk and visually inspected at mobile/desktop sizes. Live and exported views were also visually inspected
 with each publication capability.
 
-The main audit retained source tip `f7a1a36`; refreshed `origin/main` remained
-`e47524b`. No additional mainline changes required integration. Logs and visual
-evidence are under `.context`; commit/push/review records follow the final gate.
+The initial main audit retained source tip `f7a1a36`; refreshed `origin/main` remained
+`e47524b`. Main subsequently advanced to `93ac778` after the implementation
+push (`57eb59a`). The integration retains every existing design destination,
+extends the canonical page/publication links, and opts the imported comparison
+fixture into Changes. All 60 integrated design artifacts were visually inspected.
+The final integrated `cargo xtask check` passed: 453 Node tests, 102 Chromium
+tests, packed consumers, all three Rust tests, fmt/clippy, and file-length checks.
+The browser suite now waits for completed comparison responses and uses
+independent Wrangler inspector ports when workspaces run concurrently. All 151
+local Markdown targets resolve. Logs and visual evidence are under `.context`;
+final commit/push/review records follow below.

@@ -5,11 +5,13 @@ import { NavTree } from "./parts/nav.js";
 import {
   ScreenHead,
   Shell,
-  SchemeSwitch,
   ViewSwitch,
   type ArtboardViewport,
 } from "./parts/shell.js";
-import { BrowserFrame, MiniWelcome, PhoneFrame, Stage } from "./parts/stage.js";
+import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
+import { MiniWelcome } from "./parts/mini_screens.js";
+import { SchemeSwitch } from "./parts/top_bar.js";
+import { DESTINATIONS } from "./parts/destinations.js";
 
 function CatalogueView({
   viewport,
@@ -20,6 +22,9 @@ function CatalogueView({
 }) {
   return (
     <Shell
+      design={
+        changes ? DESTINATIONS.publicationChanges : DESTINATIONS.publication
+      }
       viewport={viewport}
       colorScheme="light"
       nav={<NavTree changes={changes} activeLabel="Welcome" />}
@@ -47,7 +52,7 @@ function CatalogueView({
           </PhoneFrame>
         )}
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }

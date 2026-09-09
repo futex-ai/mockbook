@@ -1,21 +1,21 @@
 import { screen } from "mokabook";
 
+import { useCaseScreen } from "./browse/views/use-case.js";
+import { DesignNavigation } from "./parts/design_navigation.js";
+import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
+import { MiniWelcome } from "./parts/mini_screens.js";
 import { NavDrawer, NavTree } from "./parts/nav.js";
-import { ScreenHead, Shell, TopBar, ViewSwitch } from "./parts/shell.js";
-import {
-  BrowserFrame,
-  EmptyState,
-  FlowStep,
-  MiniDetails,
-  MiniWelcome,
-  PhoneFrame,
-  Stage,
-} from "./parts/stage.js";
+import { WelcomeHead } from "./parts/screen_heads.js";
+import { Shell } from "./parts/shell.js";
+import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
+import { EmptyState } from "./parts/stage_content.js";
+import { TopBar } from "./parts/top_bar.js";
 
 function HomeBody() {
   return (
     <EmptyState
+      to={DESTINATIONS.welcome}
       title="Mokabook"
       body="Browse the mockup catalogue generated from this repository."
       linkLabel="Open the first screen"
@@ -25,7 +25,7 @@ function HomeBody() {
 
 function HomeDesktop() {
   return (
-    <Shell viewport="desktop" nav={<NavTree />}>
+    <Shell design={DESTINATIONS.home} viewport="desktop" nav={<NavTree />}>
       <HomeBody />
     </Shell>
   );
@@ -33,31 +33,20 @@ function HomeDesktop() {
 
 function HomeMobile() {
   return (
-    <Shell viewport="mobile" nav={null}>
+    <Shell design={DESTINATIONS.home} viewport="mobile" nav={null}>
       <HomeBody />
     </Shell>
   );
 }
 
-/** The head band of the example Welcome screen with its viewport control. */
-export function WelcomeHead({
-  active,
-}: {
-  active: "both" | "desktop" | "mobile";
-}) {
-  return (
-    <ScreenHead
-      action={<ViewSwitch active={active} />}
-      crumbs={["Example", "Screens"]}
-      idChip="example-welcome"
-      title="Welcome"
-    />
-  );
-}
-
 function SelectedScreenDesktop() {
   return (
-    <Shell viewport="desktop" nav={<NavTree activeLabel="Welcome" />}>
+    <Shell
+      design={DESTINATIONS.welcome}
+      colorScheme="light"
+      viewport="desktop"
+      nav={<NavTree activeLabel="Welcome" />}
+    >
       <WelcomeHead active="both" />
       <Stage>
         <PhoneFrame label="Mobile">
@@ -67,114 +56,53 @@ function SelectedScreenDesktop() {
           <MiniWelcome />
         </BrowserFrame>
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
 
 function SelectedScreenMobile() {
   return (
-    <Shell viewport="mobile" nav={null}>
-      <WelcomeHead active="mobile" />
+    <Shell
+      design={DESTINATIONS.welcome}
+      colorScheme="light"
+      viewport="mobile"
+      nav={null}
+    >
+      <WelcomeHead active="mobile" scheme="light" />
       <Stage>
         <PhoneFrame label="Mobile" small>
           <MiniWelcome compact />
         </PhoneFrame>
       </Stage>
-      <DetailsPanel />
-    </Shell>
-  );
-}
-
-function UseCaseSteps({ viewport }: { viewport: "desktop" | "mobile" }) {
-  return (
-    <div className="mbk-flow">
-      <div className="flow-track">
-        <FlowStep
-          number={1}
-          title="Welcome"
-          description="The tour starts on the landing screen."
-          screenId="example-welcome"
-        >
-          {viewport === "desktop" ? (
-            <BrowserFrame address="example.test/welcome">
-              <MiniWelcome />
-            </BrowserFrame>
-          ) : (
-            <PhoneFrame small>
-              <MiniWelcome compact />
-            </PhoneFrame>
-          )}
-        </FlowStep>
-        <FlowStep
-          number={2}
-          title="Details"
-          description="The tour ends on the details screen."
-          screenId="example-details"
-        >
-          {viewport === "desktop" ? (
-            <BrowserFrame address="example.test/details">
-              <MiniDetails />
-            </BrowserFrame>
-          ) : (
-            <PhoneFrame small>
-              <MiniDetails compact />
-            </PhoneFrame>
-          )}
-        </FlowStep>
-      </div>
-    </div>
-  );
-}
-
-function UseCaseHead() {
-  return (
-    <ScreenHead
-      comparisons={false}
-      crumbs={["Example"]}
-      idChip="example-tour"
-      title="Example tour"
-    />
-  );
-}
-
-function UseCaseDesktop() {
-  return (
-    <Shell viewport="desktop" nav={<NavTree activeLabel="Example tour" />}>
-      <UseCaseHead />
-      <UseCaseSteps viewport="desktop" />
-    </Shell>
-  );
-}
-
-function UseCaseMobile() {
-  return (
-    <Shell viewport="mobile" nav={null}>
-      <UseCaseHead />
-      <UseCaseSteps viewport="mobile" />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
 
 function DetailsOpenDesktop() {
   return (
-    <Shell viewport="desktop" nav={<NavTree activeLabel="Welcome" />}>
+    <Shell
+      design={DESTINATIONS.inspector}
+      viewport="desktop"
+      nav={<NavTree activeLabel="Welcome" />}
+    >
       <WelcomeHead active="desktop" />
       <Stage>
         <BrowserFrame address="example.test/welcome" label="Desktop">
           <MiniWelcome />
         </BrowserFrame>
       </Stage>
-      <DetailsPanel open />
+      <DetailsPanel subject="welcome" open />
     </Shell>
   );
 }
 
 function DetailsOpenMobile() {
   return (
-    <Shell viewport="mobile" nav={null}>
+    <Shell design={DESTINATIONS.inspector} viewport="mobile" nav={null}>
       <WelcomeHead active="mobile" />
-      <DetailsPanel open />
+      <DetailsPanel subject="welcome" open />
     </Shell>
   );
 }
@@ -182,6 +110,7 @@ function DetailsOpenMobile() {
 function MissingRouteBody() {
   return (
     <EmptyState
+      to={DESTINATIONS.home}
       title="Screen not found"
       body="Nothing in the catalogue matches"
       code="view/screens/unknown.html"
@@ -192,7 +121,7 @@ function MissingRouteBody() {
 
 function MissingRouteDesktop() {
   return (
-    <Shell viewport="desktop" nav={<NavTree />}>
+    <Shell design={DESTINATIONS.missing} viewport="desktop" nav={<NavTree />}>
       <MissingRouteBody />
     </Shell>
   );
@@ -200,7 +129,7 @@ function MissingRouteDesktop() {
 
 function MissingRouteMobile() {
   return (
-    <Shell viewport="mobile" nav={null}>
+    <Shell design={DESTINATIONS.missing} viewport="mobile" nav={null}>
       <MissingRouteBody />
     </Shell>
   );
@@ -208,19 +137,22 @@ function MissingRouteMobile() {
 
 function NarrowNavigationDesktop() {
   return (
-    <div className="mbk-shell mbk-shell--collapsed">
-      <TopBar viewport="mobile" />
-      <main className="mbk-main">
-        <HomeBody />
-      </main>
-      <NavDrawer activeLabel="Welcome" />
-    </div>
+    <DesignNavigation design={DESTINATIONS.navigation}>
+      <div className="mbk-shell mbk-shell--collapsed">
+        <TopBar viewport="mobile" drawerOpen />
+        <main className="mbk-main">
+          <HomeBody />
+        </main>
+        <NavDrawer activeLabel="Welcome" />
+      </div>
+    </DesignNavigation>
   );
 }
 
 function NarrowNavigationMobile() {
   return (
     <Shell
+      design={DESTINATIONS.navigation}
       viewport="mobile"
       nav={null}
       aside={<NavDrawer activeLabel="Welcome" />}
@@ -252,16 +184,7 @@ export const browseViewScreens = [
     slug: "screen",
     title: "Selected screen",
   }),
-  screen({
-    colorSchemes: ["light"],
-    description:
-      "A selected use case rendering ordered steps of existing screens.",
-    desktop: <UseCaseDesktop />,
-    id: "design-browse-use-case",
-    mobile: <UseCaseMobile />,
-    slug: "use-case",
-    title: "Selected use case",
-  }),
+  useCaseScreen,
 ];
 
 /** Browse shell design screens for secondary shell states. */

@@ -1,0 +1,198 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { test } from "node:test";
+
+import {
+  attribute,
+  byClass,
+  designCatalogue,
+  designDocument,
+  elements,
+  textContent,
+} from "./helpers/design_catalogue.js";
+import { repositoryRoot } from "./helpers/fixture.js";
+
+for (const viewport of ["mobile", "desktop"] as const) {
+  test(`${viewport}: design actions navigate to the subject's owning screen`, async () => {
+    for (const [source, className, targets] of [
+      ["design-browse-home", "mbk-empty-link", ["design-browse-screen"]],
+      ["design-browse-missing-route", "mbk-empty-link", ["design-browse-home"]],
+      [
+        "design-browse-screen",
+        "mbk-shot-link",
+        ["design-browse-details-screen"],
+      ],
+      [
+        "design-browse-details-screen",
+        "mbk-shot-link",
+        ["design-browse-screen"],
+      ],
+      [
+        "design-browse-dark-scheme",
+        "mbk-shot-link",
+        ["design-browse-light-only"],
+      ],
+      [
+        "design-browse-light-only",
+        "mbk-shot-link",
+        ["design-browse-dark-scheme"],
+      ],
+      ["design-review-removed", "mbk-shot-link", ["design-browse-screen"]],
+      [
+        "design-browse-use-case",
+        "flow-step-link",
+        ["design-browse-screen", "design-browse-details-screen"],
+      ],
+      ["design-browse-screen", "mbk-details-bar", ["design-browse-details"]],
+      ["design-browse-details", "mbk-details-bar", ["design-browse-screen"]],
+      ["design-browse-details", "flow", ["design-browse-use-case"]],
+    ] as const) {
+      const { document } = await designDocument(source, viewport);
+      const controls = byClass(document, className).filter(
+        (node) => className !== "flow" || byClass(node, "mbk-chip").length,
+      );
+      assert.ok(controls.length > 0, `${source}: missing ${className}`);
+      assert.deepEqual(
+        [
+          ...new Set(
+            controls.map((node) => attribute(node, "data-mokabook-link")),
+          ),
+        ],
+        targets,
+        `${source}: ${className}`,
+      );
+      for (const node of controls) assert.equal(node.tagName, "a");
+      if (className === "flow-step-link") {
+        for (const node of controls)
+          assert.ok(
+            textContent(node).includes(
+              attribute(node, "data-mokabook-link") ?? "missing",
+            ),
+          );
+      }
+    }
+  });
+
+  test(`${viewport}: navigation chrome uses explicit leaves and canonical recovery`, async () => {
+    const { document } = await designDocument(
+      "design-browse-navigation",
+      viewport,
+    );
+    assert.equal(
+      attribute(byClass(document, "mbk-brand")[0]!, "data-mokabook-link"),
+      "design-browse-home",
+    );
+    const links = byClass(document, "mbk-nav-row").filter(
+      (node) => node.tagName === "a",
+    );
+    assert.deepEqual(
+      links.map((node) => [
+        textContent(node).trim(),
+        attribute(node, "data-mokabook-link"),
+      ]),
+      [
+        ["Welcome", "design-browse-screen"],
+        ["Details", "design-browse-details-screen"],
+        ["Example tour", "design-browse-use-case"],
+      ],
+    );
+    assert.equal(
+      attribute(byClass(document, "mbk-menu-btn")[0]!, "data-mokabook-link"),
+      "design-browse-home",
+    );
+    assert.match(
+      attribute(byClass(document, "mbk-menu-btn")[0]!, "aria-label") ?? "",
+      /Close/,
+    );
+    if (viewport === "mobile") {
+      const home = await designDocument("design-browse-home", viewport);
+      assert.equal(
+        attribute(
+          byClass(home.document, "mbk-menu-btn")[0]!,
+          "data-mokabook-link",
+        ),
+        "design-browse-navigation",
+      );
+    }
+  });
+}
+
+test("every design link resolves to a real same-viewport design artifact without scripts or nested controls", async () => {
+  const { manifest } = await designCatalogue;
+  const designs = manifest.entries.filter(
+    (entry) => entry.kind === "screen" && entry.id.startsWith("design-"),
+  );
+  assert.equal(designs.length, 30);
+  for (const entry of designs) {
+    for (const viewport of ["mobile", "desktop"] as const) {
+      const { document, route } = await designDocument(entry.id, viewport);
+      const links = elements(document, (node) => node.tagName === "a");
+      assert.ok(links.length > 0, entry.id);
+      assert.equal(
+        elements(document, (node) => node.tagName === "script").length,
+        0,
+      );
+      for (const link of links) {
+        const id = attribute(link, "data-mokabook-link");
+        const target = designs.find((entry) => entry.id === id);
+        assert.ok(
+          target?.kind === "screen",
+          `${entry.id}: invalid target ${id}`,
+        );
+        const href = attribute(link, "href");
+        assert.ok(href);
+        assert.equal(
+          path.posix.normalize(
+            path.posix.join(path.posix.dirname(route), href),
+          ),
+          target.fragments[viewport],
+        );
+        assert.equal(attribute(link, "role"), undefined);
+        for (const child of link.childNodes) {
+          assert.equal(
+            elements(
+              child,
+              (node) =>
+                ["a", "button", "input", "select", "textarea"].includes(
+                  node.tagName,
+                ) || attribute(node, "tabindex") !== undefined,
+            ).length,
+            0,
+          );
+        }
+      }
+      assert.equal(
+        elements(
+          document,
+          (node) =>
+            node.tagName === "button" ||
+            (node.tagName !== "a" && attribute(node, "tabindex") !== undefined),
+        ).length,
+        0,
+        `${entry.id}: misleading keyboard control`,
+      );
+    }
+  }
+});
+
+test("the canonical documented inventory exactly matches the complete design registry", async () => {
+  const { manifest } = await designCatalogue;
+  const spec = await fs.readFile(
+    path.join(repositoryRoot, "docs/protocol/mokabook-shell-design.md"),
+    "utf8",
+  );
+  const documented = [
+    ...spec.matchAll(/\|\s*`(design-[^`]+)`\s*\|\s*`([^`]+)`/g),
+  ]
+    .map((match) => `${match[1]} ${match[2]}`)
+    .sort();
+  const actual = manifest.entries
+    .flatMap((entry) =>
+      entry.kind === "screen" && entry.id.startsWith("design-")
+        ? [`${entry.id} ${entry.route}`]
+        : [],
+    )
+    .sort();
+  assert.deepEqual(documented, actual);
+});

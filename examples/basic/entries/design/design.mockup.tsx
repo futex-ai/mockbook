@@ -2,12 +2,17 @@ import { collection, defineCollection, defineRoot } from "mokabook";
 
 import { pageScreens } from "./page_screens.js";
 import { publicationScreens } from "./publication_screens.js";
-import { changesScreens } from "./changes_screens.js";
+import { formsFilterScreen } from "./browse/states/tags/forms.js";
+import { onboardingPickerScreen } from "./browse/states/tags/onboarding-picker.js";
+import { onboardingFilterScreen } from "./browse/states/tags/onboarding.js";
+import { tagPickerScreen } from "./browse/states/tags/picker.js";
+import { detailsScreen } from "./browse/views/details-screen.js";
 import { browseSchemeScreens } from "./browse_scheme_screens.js";
 import { browseStateScreens, browseViewScreens } from "./browse_screens.js";
 import { browseTagScreens } from "./browse_tag_screens.js";
-import { reviewOutcomeScreens } from "./review_outcome_screens.js";
+import { changesScreens } from "./changes_screens.js";
 import { reviewImpactScreens } from "./review_impact_screens.js";
+import { reviewOutcomeScreens } from "./review_outcome_screens.js";
 
 const DESIGN_DEPENDENCIES = [
   "examples/basic/generated/design-stage.css",
@@ -19,7 +24,7 @@ const designMockups = defineRoot({
     collection({
       children: [
         collection({
-          children: browseViewScreens,
+          children: [...browseViewScreens, detailsScreen],
           description:
             "Canonical Browse destinations: home, a screen, and a use case.",
           id: "design-browse-views",
@@ -31,6 +36,18 @@ const designMockups = defineRoot({
             ...browseStateScreens,
             ...browseTagScreens,
             ...browseSchemeScreens,
+            collection({
+              children: [
+                tagPickerScreen,
+                formsFilterScreen,
+                onboardingFilterScreen,
+                onboardingPickerScreen,
+              ],
+              description: "Canonical Welcome tag selection and picker states.",
+              id: "design-browse-tags",
+              segment: "tags",
+              title: "Tag states",
+            }),
           ],
           description:
             "Browse states for details, missing routes, narrow layouts, tag filtering, and color schemes.",

@@ -269,6 +269,17 @@ The package has a verified migration and rehearsal; durable adoption follows sep
 Finish implementation delivery only after all required checks pass; keep the
 complete new source, tests, docs, and generated artifacts in the reviewed diff.
 
+- [x] Integrate main commit `93ac778` from captured source tip `57eb59a` without
+      removing its linked design catalogue. Reconcile shared controls, preserve
+      every existing destination, extend the canonical inventory and semantic
+      tests for page/publication states, regenerate outputs, visually inspect
+      the integrated designs, and rerun the full gate before commit/push/review.
+
+- [x] Make comparison browser tests await the real generation response before
+      checking the resulting UI; retain immediate loading/error assertions and
+      give publication setup its explicit build timeout and an ephemeral inspector
+      port so concurrent workspaces cannot race for Wrangler's default port.
+      Recheck the full gate.
 - [x] Run all relevant tests with a 100% pass rate, `npm run build`, lint,
       typechecking, example build/check, packed consumers, and browser tests. Run
       `cargo xtask check` as the authoritative full gate; fix failures before
@@ -295,7 +306,7 @@ complete new source, tests, docs, and generated artifacts in the reviewed diff.
 
 ## Implementation Verification
 
-`cargo xtask check` passed on 2026-09-09: 425 Node tests, 82 Chromium tests,
+The pre-integration `cargo xtask check` passed on 2026-09-09: 425 Node tests, 82 Chromium tests,
 packed ESM/NodeNext/npx/Juno/Accounting consumers, example freshness, formatting,
 lint, typechecking, Rust fmt/clippy, three Rust tests, and file-length checks.
 No Mokabook Rust implementation changed. Regression tests also preserve the
@@ -315,7 +326,7 @@ source GET/HEAD protection, and catalogue links passed real-server smoke tests
 at 390px and 1280px. The four existing incoming artifact links also passed;
 header/selection previously had none and is now reached through its collection.
 
-The main audit retained source tip `f7a1a36`; refreshed `origin/main` remained
+The initial main audit retained source tip `f7a1a36`; refreshed `origin/main` remained
 `e47524b`. The three removed files are the authorized legacy renderer and raw
 HTML fixture plus the removed-screen helper superseded by shared entry metadata.
 No unrelated mainline feature was removed. The full Accounting gate passed with
@@ -328,8 +339,20 @@ consumer. No consumer branch was committed or pushed. Evidence is recorded in
 [the consumer note](../docs/migration/accounting-page-entries.md).
 
 Sixteen live/published screen, page, flow, and missing-route views were also
-visually inspected at mobile/desktop sizes. Post-push review records follow the
-remaining delivery steps.
+visually inspected at mobile/desktop sizes.
+
+Main advanced to `93ac778` after the first implementation push (`57eb59a`).
+The path-by-path integration preserves all 24 existing design destinations and
+adds six page/publication states to the typed link inventory. All 60 resulting
+design artifacts were opened directly from disk and visually inspected.
+The final integrated `cargo xtask check` passed with 453 Node tests, 102
+Chromium tests, packed consumers, all three Rust tests, fmt/clippy, and the
+file-length audit. All 151 local Markdown targets resolve. Test failures under
+concurrent load led to explicit waits for completed comparison responses and
+ephemeral Wrangler inspector ports; loading/error assertions remain immediate.
+All 583 compiled package files are byte-identical to the Accounting candidate,
+so the verified consumer rehearsal covers the final runtime. No further files
+were removed. The final push and post-push review are recorded below.
 
 ## Consumer Follow-Up (Outside Package Completion)
 

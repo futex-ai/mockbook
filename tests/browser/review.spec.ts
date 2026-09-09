@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
 
 import { repositoryRoot } from "../helpers/fixture.js";
+import { generateComparison } from "./comparison_actions.js";
 import { comparisonFixture } from "./diffs_fixture.js";
 
 let fixture: Awaited<ReturnType<typeof comparisonFixture>>;
@@ -40,7 +41,7 @@ test("Changes and screen browsing stay lazy until a diff is selected", async ({
   await page.getByRole("button", { name: "Mobile", exact: true }).click();
   await page.getByRole("button", { name: "Dark", exact: true }).first().click();
   expect(requests).toEqual([]);
-  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await generateComparison(page, "Overlay");
   await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
     "data-compare-mode",
     "overlay",
@@ -63,7 +64,7 @@ test("any screen supports modes, viewport selection, and light-only fallback", a
   page,
 }) => {
   await page.goto(`${fixture.url}/view/screens/details.html`);
-  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await generateComparison(page, "Overlay");
   await expect(page.locator("[data-diff-stage]")).toContainText(
     "No changes to this screen",
   );
@@ -104,7 +105,8 @@ test("added and removed screens retain legible missing panes in every mode", asy
         "This screen was removed",
       );
     for (const mode of ["Overlay", "Difference", "Side by side"]) {
-      await page.getByRole("button", { name: mode, exact: true }).click();
+      if (mode === "Overlay") await generateComparison(page, mode);
+      else await page.getByRole("button", { name: mode, exact: true }).click();
       await expect(page.locator(".mb-pane-missing").first()).toContainText(
         `This screen was ${name}`,
       );
@@ -160,15 +162,13 @@ test("a failed comparison stays in the screen and retries explicitly", async ({
     page.getByRole("button", { name: "Try again", exact: true }),
   ).toBeVisible();
   await expect(page.locator("h2")).toHaveText("Home");
-  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await generateComparison(page, "Try again");
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(4);
   const oldSource = await page
     .locator("[data-diff-stage] iframe")
     .first()
     .getAttribute("src");
-  await page
-    .getByRole("button", { name: "Refresh comparison", exact: true })
-    .click();
+  await generateComparison(page, "Refresh comparison");
   await expect(
     page.locator("[data-diff-stage] iframe").first(),
   ).not.toHaveAttribute("src", oldSource ?? "");
@@ -178,7 +178,7 @@ test("snapshot panes keep marked links inside their sandbox", async ({
   page,
 }) => {
   await page.goto(`${fixture.url}/view/screens/home.html`);
-  await page.getByRole("button", { name: "Side by side", exact: true }).click();
+  await generateComparison(page, "Side by side");
   const iframe = page.locator("[data-diff-stage] iframe").first();
   await expect(iframe).toHaveAttribute("sandbox", "");
   const beforeUrl = page.url();
@@ -193,7 +193,7 @@ test("narrow diffs fit the shell and retain the catalogue drawer", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${fixture.url}/view/screens/home.html`);
   await page.getByRole("button", { name: "Mobile", exact: true }).click();
-  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await generateComparison(page, "Overlay");
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
@@ -230,7 +230,7 @@ test("mode switches keep frames and cannot expand one side alone", async ({
 }) => {
   await page.goto(`${fixture.url}/view/screens/home.html`);
   await page.getByRole("button", { name: "Desktop", exact: true }).click();
-  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await generateComparison(page, "Overlay");
   const frame = await page
     .locator("[data-diff-stage] iframe")
     .first()

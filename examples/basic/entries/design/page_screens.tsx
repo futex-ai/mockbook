@@ -3,35 +3,49 @@ import { screen } from "mokabook";
 import { ExampleDocument } from "../document.js";
 import { NavDrawer, NavTree, type NavNode } from "./parts/nav.js";
 import { ScreenHead, Shell, type ArtboardViewport } from "./parts/shell.js";
-import { EmptyState, Stage } from "./parts/stage.js";
+import { Stage } from "./parts/stage.js";
+import { EmptyState } from "./parts/stage_content.js";
+import { DesignLink, useDesignNavigation } from "./parts/design_navigation.js";
+import { DESTINATIONS } from "./parts/destinations.js";
 
 const nodes: readonly NavNode[] = [
   { kind: "collection", label: "Example", count: 3, depth: 0, open: true },
-  { kind: "screen", label: "Welcome", depth: 1 },
-  { kind: "flow", label: "Example tour", depth: 1 },
-  { kind: "page", label: "Getting started", depth: 1 },
+  { kind: "screen", label: "Welcome", depth: 1, to: DESTINATIONS.welcome },
+  { kind: "flow", label: "Example tour", depth: 1, to: DESTINATIONS.tour },
+  { kind: "page", label: "Getting started", depth: 1, to: DESTINATIONS.page },
 ];
 
-function PageDetails({ removed = false }: { removed?: boolean }) {
+function PageDetails({
+  removed = false,
+  open = false,
+}: {
+  removed?: boolean;
+  open?: boolean;
+}) {
+  const navigation = useDesignNavigation();
   return (
     <section className="mbk-details">
-      <div className="mbk-details-bar">Details</div>
-      <div className="mbk-details-body">
-        <div>
-          <p>A handbook to accompany the example screens.</p>
-          {removed ? <p>Location: Example › Handbook</p> : null}
+      <DesignLink to={navigation.inspector}>
+        <div className="mbk-details-bar">Details</div>
+      </DesignLink>
+      {open ? (
+        <div className="mbk-details-body">
+          <div>
+            <p>A handbook to accompany the example screens.</p>
+            {removed ? <p>Location: Example › Handbook</p> : null}
+          </div>
+          <div className="mbk-meta">
+            <p>
+              Source: <code>entries/catalogue.mockup.tsx</code>
+            </p>
+            <p>
+              Generated: <code>handbook.html</code>
+            </p>
+            <p>Tags: documents</p>
+            <p>Related docs: Example notes</p>
+          </div>
         </div>
-        <div className="mbk-meta">
-          <p>
-            Source: <code>entries/catalogue.mockup.tsx</code>
-          </p>
-          <p>
-            Generated: <code>handbook.html</code>
-          </p>
-          <p>Tags: documents</p>
-          <p>Related docs: Example notes</p>
-        </div>
-      </div>
+      ) : null}
     </section>
   );
 }
@@ -48,7 +62,9 @@ function PageView({
   drawer?: boolean;
 }) {
   const label = removed ? "Getting started · Removed" : "Getting started";
-  const tree = removed ? [{ kind: "page" as const, label, depth: 0 }] : nodes;
+  const tree = removed
+    ? [{ kind: "page" as const, label, depth: 0, to: DESTINATIONS.pageRemoved }]
+    : nodes;
   const nav = (
     <NavTree
       activeLabel={label}
@@ -59,6 +75,15 @@ function PageView({
   );
   return (
     <Shell
+      design={
+        removed
+          ? DESTINATIONS.pageRemoved
+          : drawer
+            ? DESTINATIONS.pageNavigation
+            : details
+              ? DESTINATIONS.pageDetails
+              : DESTINATIONS.page
+      }
       viewport={viewport}
       nav={nav}
       aside={
@@ -81,6 +106,7 @@ function PageView({
       />
       {removed ? (
         <EmptyState
+          to={DESTINATIONS.home}
           title="Page removed"
           body="This document is no longer in the catalogue."
           linkLabel="Go to the catalogue home"
@@ -95,11 +121,11 @@ function PageView({
               width: "100%",
             }}
           >
-            <ExampleDocument />
+            <ExampleDocument welcomeId={DESTINATIONS.welcome} />
           </div>
         </Stage>
       )}
-      {details || removed ? <PageDetails removed={removed} /> : null}
+      <PageDetails removed={removed} open={details || removed} />
     </Shell>
   );
 }

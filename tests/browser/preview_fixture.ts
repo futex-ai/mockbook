@@ -56,6 +56,8 @@ export async function servePreviewFixture(
       "127.0.0.1",
       "--port",
       String(port),
+      "--inspector-port",
+      "0",
     ],
     { cwd: repositoryRoot, stdio: ["ignore", "pipe", "pipe"] },
   );

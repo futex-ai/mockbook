@@ -11,10 +11,11 @@ let preview: PreviewFixture;
 
 test.describe.configure({ timeout: 90_000 });
 test.beforeAll(async () => {
+  test.setTimeout(90_000);
   preview = await startPreviewFixture(true);
 });
 test.afterAll(async () => {
-  await preview.close();
+  await preview?.close();
 });
 
 test("published Mokabook exposes lazy comparisons in the actual shell", async ({

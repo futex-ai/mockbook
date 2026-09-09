@@ -392,7 +392,10 @@ Use `npm run dev -- --port 0` to let the operating system choose a free port.
 Restart the command after changing Mokabook's own `src/` files ; the CLI is rebuilt on every start.
 
 `npm run test:browser` drives the catalogue shell and on-demand screen comparisons
-in Chromium via Playwright; it uses the installed Chrome channel by default and
+in Chromium via Playwright. Comparison tests await the real generation response
+before asserting the rendered UI. Static preview fixtures use ephemeral
+inspector ports to isolate concurrent workspaces. The suite uses the installed
+Chrome channel by default and
 honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 
@@ -466,6 +469,10 @@ proves the consumer contract against a real cross-platform component stack.
 Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
+The design mockups use `MockLink` for supported navigation and state transitions;
+the two example buttons demonstrate `MockLink asChild`. See the
+[design mockup links contract](./docs/protocol/mokabook-design-links.md) for
+canonical destinations and the controls that remain visual depictions.
 
 ### Key Code
 

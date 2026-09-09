@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 
+import { DesignLink, useDesignNavigation } from "./design_navigation.js";
+import { DESTINATIONS, type DesignDestination } from "./destinations.js";
 import {
   FlowIcon,
   FolderIcon,
@@ -17,6 +19,7 @@ export interface NavNode {
   depth: number;
   kind: "collection" | "flow" | "page" | "screen";
   label: string;
+  to?: DesignDestination;
   /** Whether a collection is expanded (screens and flows ignore this). */
   open?: boolean;
 }
@@ -24,9 +27,9 @@ export interface NavNode {
 const NAV_TREE: readonly NavNode[] = [
   { count: 3, depth: 0, kind: "collection", label: "Example", open: true },
   { count: 2, depth: 1, kind: "collection", label: "Screens", open: true },
-  { depth: 2, kind: "screen", label: "Welcome" },
-  { depth: 2, kind: "screen", label: "Details" },
-  { depth: 1, kind: "flow", label: "Example tour" },
+  { depth: 2, kind: "screen", label: "Welcome", to: DESTINATIONS.welcome },
+  { depth: 2, kind: "screen", label: "Details", to: DESTINATIONS.details },
+  { depth: 1, kind: "flow", label: "Example tour", to: DESTINATIONS.tour },
   { count: 2, depth: 0, kind: "collection", label: "Design", open: true },
   { depth: 1, kind: "collection", label: "Browse shell" },
   { depth: 1, kind: "collection", label: "Changes" },
@@ -89,31 +92,33 @@ function NavRow({
     );
   }
   return (
-    <span
-      className={className}
-      style={navRowStyle(node.depth)}
-      aria-current={isActive ? "page" : undefined}
-    >
+    <DesignLink to={node.to}>
       <span
-        className={node.kind === "flow" ? "mbk-nav-ico flow" : "mbk-nav-ico"}
-        aria-hidden="true"
+        className={className}
+        style={navRowStyle(node.depth)}
+        aria-current={isActive ? "page" : undefined}
       >
-        {node.kind === "flow" ? (
-          <FlowIcon />
-        ) : node.kind === "page" ? (
-          <PageIcon />
-        ) : (
-          <ScreenIcon />
-        )}
+        <span
+          className={node.kind === "flow" ? "mbk-nav-ico flow" : "mbk-nav-ico"}
+          aria-hidden="true"
+        >
+          {node.kind === "flow" ? (
+            <FlowIcon />
+          ) : node.kind === "page" ? (
+            <PageIcon />
+          ) : (
+            <ScreenIcon />
+          )}
+        </span>
+        {node.label}
       </span>
-      {node.label}
-    </span>
+    </DesignLink>
   );
 }
 
 interface NavTreeProps {
-  activeLabel?: string | undefined;
   changes?: boolean | undefined;
+  activeLabel?: string | undefined;
   changedCount?: number | undefined;
   changedOnly?: boolean | undefined;
   /** Rows to draw instead of the whole catalogue, as a filter leaves them. */
@@ -121,12 +126,13 @@ interface NavTreeProps {
 }
 
 function CatalogueBody({
-  activeLabel,
   changes = true,
+  activeLabel,
   changedCount = 3,
   changedOnly,
   nodes,
 }: NavTreeProps) {
+  const navigation = useDesignNavigation();
   return (
     <>
       <div className="mbk-nav-head">
@@ -138,20 +144,25 @@ function CatalogueBody({
           role="group"
           aria-label="Catalogue filter"
         >
-          <span
-            className={
-              changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
-            }
-          >
-            All
-          </span>
-          <span
-            className={
-              changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
-            }
-          >
-            Changes<span className="mbk-nav-filter-count">{changedCount}</span>
-          </span>
+          <DesignLink to={changedOnly ? navigation.all : undefined}>
+            <span
+              className={
+                changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
+              }
+            >
+              All
+            </span>
+          </DesignLink>
+          <DesignLink to={changedOnly ? undefined : navigation.changes}>
+            <span
+              className={
+                changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
+              }
+            >
+              Changes
+              <span className="mbk-nav-filter-count">{changedCount}</span>
+            </span>
+          </DesignLink>
         </div>
       ) : null}
       <div className="mbk-nav-scroll">
@@ -169,8 +180,8 @@ function CatalogueBody({
 
 /** Persistent desktop catalogue navigation. */
 export function NavTree({
-  activeLabel,
   changes,
+  activeLabel,
   changedCount,
   changedOnly,
   nodes,
@@ -178,8 +189,8 @@ export function NavTree({
   return (
     <nav className="mbk-nav" aria-label="Catalogue">
       <CatalogueBody
-        activeLabel={activeLabel}
         changes={changes}
+        activeLabel={activeLabel}
         changedCount={changedCount}
         changedOnly={changedOnly}
         nodes={nodes}
@@ -191,8 +202,8 @@ export function NavTree({
 
 /** Mobile catalogue navigation drawer, shown open. */
 export function NavDrawer({
-  activeLabel,
   changes,
+  activeLabel,
   changedCount,
   changedOnly,
   nodes,
@@ -200,8 +211,8 @@ export function NavDrawer({
   return (
     <nav className="mbk-nav mbk-drawer" aria-label="Catalogue">
       <CatalogueBody
-        activeLabel={activeLabel}
         changes={changes}
+        activeLabel={activeLabel}
         changedCount={changedCount}
         changedOnly={changedOnly}
         nodes={nodes}

@@ -73,3 +73,45 @@ for (const width of [390, 1280]) {
     await expect(frame).toHaveAttribute("src", /#next-steps$/);
   });
 }
+
+for (const viewport of ["mobile", "desktop"] as const) {
+  test(`${viewport}: document designs navigate through their own details and drawer`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await page.goto("/id/design-page-view");
+    await page.locator(`[data-viewport-option="${viewport}"]`).click();
+    const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
+    await frame.locator(".mbk-details-bar").click();
+    await expect(page).toHaveURL(
+      /\/view\/design\/browse\/pages\/details\.html$/,
+    );
+    await expect(frame.locator(".mbk-details-body")).toContainText(
+      "handbook.html",
+    );
+    await frame.locator(".mbk-details-bar").click();
+    await expect(page).toHaveURL(/\/view\/design\/browse\/pages\/view\.html$/);
+    if (viewport === "mobile") {
+      await frame
+        .getByRole("link", { name: "Open catalogue navigation" })
+        .click();
+      await expect(page).toHaveURL(
+        /\/view\/design\/browse\/pages\/navigation\.html$/,
+      );
+      await frame
+        .getByRole("link", { name: "Close catalogue navigation" })
+        .click();
+      await expect(page).toHaveURL(
+        /\/view\/design\/browse\/pages\/view\.html$/,
+      );
+    }
+    await frame
+      .getByRole("link", { name: "Open Welcome", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      /\/view\/design\/browse\/views\/screen\.html$/,
+    );
+    await page.goBack();
+    await expect(page).toHaveURL(/\/view\/design\/browse\/pages\/view\.html$/);
+  });
+}

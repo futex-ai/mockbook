@@ -30,38 +30,63 @@ while preserving the same navigation, search, tags, and screen variants.
 ## Design Mockups
 
 The approved screens are authored in `examples/basic/entries/design/` and
-generated under `examples/basic/generated/design/`:
+generated under `examples/basic/generated/design/`. This is the canonical
+inventory of existing design-screen ids and logical routes, matching the
+[committed manifest](../../examples/basic/generated/mokabook-manifest.json).
+Update this inventory when design entries change and verify exact id/route
+agreement with the manifest. Planned destinations stay in their feature
+contract until their standalone screens are implemented.
 
-| Route                                     | State                                  |
-| ----------------------------------------- | -------------------------------------- |
-| `design/browse/views/home.html`           | Catalogue home with navigation tree    |
-| `design/browse/views/screen.html`         | Selected screen with framed fragments  |
-| `design/browse/views/use-case.html`       | Selected use case with ordered steps   |
-| `design/browse/states/details.html`       | Expanded details inspector             |
-| `design/browse/states/missing-route.html` | Not-found view with navigation         |
-| `design/browse/states/navigation.html`    | Collapsed navigation drawer            |
-| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree        |
-| `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens     |
-| `design/browse/states/light-only.html`    | Light-only screen under dark           |
-| `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare   |
-| `design/review/outcomes/added.html`       | Added screen with missing base pane    |
-| `design/review/outcomes/removed.html`     | Removed screen with missing head pane  |
-| `design/review/outcomes/difference.html`  | Blend-mode difference comparison       |
-| `design/review/outcomes/dark-scheme.html` | Dark view compared side by side        |
-| `design/review/impact/shared-impact.html` | Summary with shared-impact card        |
-| `design/review/impact/ignored-only.html`  | Ignored-region-only classification     |
-| `design/review/impact/empty.html`         | Empty Changes filter retaining Current |
+| Entry id                              | Route                                              | State                                        |
+| ------------------------------------- | -------------------------------------------------- | -------------------------------------------- |
+| `design-browse-home`                  | `design/browse/views/home.html`                    | Catalogue home with navigation tree          |
+| `design-browse-screen`                | `design/browse/views/screen.html`                  | Selected screen with framed fragments        |
+| `design-browse-details-screen`        | `design/browse/views/details-screen.html`          | Normal Details screen, light selected        |
+| `design-browse-use-case`              | `design/browse/views/use-case.html`                | Selected use case with ordered steps         |
+| `design-browse-details`               | `design/browse/states/details.html`                | Expanded details inspector                   |
+| `design-browse-missing-route`         | `design/browse/states/missing-route.html`          | Not-found view with navigation               |
+| `design-browse-navigation`            | `design/browse/states/navigation.html`             | Collapsed navigation drawer                  |
+| `design-browse-tag-filter`            | `design/browse/states/tag-filter.html`             | Tag picker over a filtered tree              |
+| `design-browse-tag-picker`            | `design/browse/states/tags/picker.html`            | Empty query, tag picker open                 |
+| `design-browse-tag-forms`             | `design/browse/states/tags/forms.html`             | Forms filter, picker closed                  |
+| `design-browse-tag-onboarding`        | `design/browse/states/tags/onboarding.html`        | Onboarding filter, picker closed             |
+| `design-browse-tag-onboarding-picker` | `design/browse/states/tags/onboarding-picker.html` | Onboarding filter, picker open               |
+| `design-browse-dark-scheme`           | `design/browse/states/dark-scheme.html`            | Dark selected, dark device screens           |
+| `design-browse-light-only`            | `design/browse/states/light-only.html`             | Light-only screen under dark                 |
+| `design-changes-current`              | `design/review/controls/current.html`              | Current screen in Changes                    |
+| `design-changes-overlay`              | `design/review/controls/overlay.html`              | On-demand overlay comparison                 |
+| `design-review-changed`               | `design/review/outcomes/changed.html`              | Changed screen, side-by-side compare         |
+| `design-review-added`                 | `design/review/outcomes/added.html`                | Added screen with missing base pane          |
+| `design-review-removed`               | `design/review/outcomes/removed.html`              | Removed screen with missing head pane        |
+| `design-review-difference`            | `design/review/outcomes/difference.html`           | Blend-mode difference comparison             |
+| `design-review-dark-scheme`           | `design/review/outcomes/dark-scheme.html`          | Dark view compared side by side              |
+| `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Summary with shared-impact card              |
+| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-region-only classification           |
+| `design-review-empty`                 | `design/review/impact/empty.html`                  | Empty Changes filter retaining Current       |
+| `design-page-view`                    | `design/browse/pages/view.html`                    | Complete document in its declared collection |
+| `design-page-details`                 | `design/browse/pages/details.html`                 | Document metadata and close action           |
+| `design-page-navigation`              | `design/browse/pages/navigation.html`              | Document with its narrow drawer open         |
+| `design-page-removed`                 | `design/browse/pages/removed.html`                 | Removed document with baseline ancestry      |
+| `design-publication-catalogue`        | `design/browse/publication/catalogue.html`         | Current catalogue with review omitted        |
+| `design-publication-changes`          | `design/browse/publication/changes.html`           | Catalogue with optional comparisons          |
 
 Additional owning groups keep each new page at no more than five screens:
 
-- `design/browse/pages/view.html`, `details.html`, and `removed.html` specify
-  full documents, metadata/drawer, and deleted-parent behavior.
+- `design/browse/pages/view.html`, `details.html`, `navigation.html`, and
+  `removed.html` specify full documents, metadata, the drawer, and deleted-parent
+  behavior.
 - `design/browse/publication/catalogue.html` and `changes.html` specify review
   omitted and included, using the existing Welcome stage.
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
 the rendered screen area.
+
+Navigation inside these design artboards uses native `MockLink` anchors. The
+[design mockup links contract](./mokabook-design-links.md) defines canonical
+destinations and the
+boundary between linked states and local runtime controls. Its delivery status
+is separate from the implemented outer shell described here.
 
 ## Consumer-Tunable Custom Properties
 
