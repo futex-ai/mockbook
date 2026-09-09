@@ -1,6 +1,10 @@
 import path from "node:path";
 
 import { errorMessage } from "../errors.js";
+import {
+  assertDestination,
+  type ExportDirectoryIdentity,
+} from "./destination.js";
 import { exportError } from "./error.js";
 import type { ExportOperations } from "./operations.js";
 import {
@@ -19,14 +23,15 @@ export class ExportBackup {
   ) {}
 
   /** Validate the tree actually moved, not only the destination observed earlier. */
-  async validate(): Promise<void> {
+  async validate(initial: ExportDirectoryIdentity): Promise<void> {
     if (!(await assertExportOwnership(this.backup, this.legacy)))
       throw exportError(
         `Export backup disappeared before installation: ${this.backup}.`,
       );
+    await assertDestination(this.backup, initial, this.operations);
   }
 
-  /** Restore real directories only into a destination still observed as absent. */
+  /** Restore real directories with OS-enforced exclusion of new destinations. */
   async restore(primary: unknown): Promise<never> {
     try {
       if (await this.operations.lstat(this.output))

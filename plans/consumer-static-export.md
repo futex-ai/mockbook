@@ -1,12 +1,14 @@
 # Consumer Static Export
 
-Current validation: all 578 unit/integration tests, 105 browser tests, and
-3 Rust tests pass locally on Node 24 and in GitHub CI on Node 22.14 and Node 24.
-The complete `cargo xtask check` gate, packed consumer checks, and preview
-deployment passed. The approved follow-ups are pushed as `38e0aaa`. The
-[follow-up review](../docs/reviews/consumer-export-followup.md) records a new
-High install-race finding and Low pre-existing release-doc drift. These are
-unapproved recommendations; the install race should be addressed before merging.
+Current validation: the complete `cargo xtask check` passes in a frozen Linux
+Node 22.14 checkout, including all 594 unit/integration tests, 105 browser tests,
+three Rust tests, and packed consumer smoke tests. All 112 focused export/release
+tests also pass locally on macOS Node 24. The two approved findings from the
+[follow-up review](../docs/reviews/consumer-export-followup.md) are implemented in
+milestones 14–16: exclusive directory transactions and current release guidance.
+The [exclusive-destination review record](../docs/reviews/consumer-export-exclusive.md)
+tracks verification and the pending commit, push, post-push review, and CI.
+Earlier milestones remain completed and retain their historical validation.
 
 ## Objective And Status
 
@@ -451,3 +453,43 @@ both are independently confirmed and recorded with options in the
 automatically fixed or added as implementation TODOs. Final documentation
 closeout records the completed approved scope without merging PR #49 or
 publishing a release.
+
+## Milestone 14: Preserve Concurrent Export Destinations
+
+Close the approved installation and rollback races without weakening complete,
+atomic directory installation or requiring a consumer compiler toolchain.
+
+- [x] Specify initial destination identity and exclusive rename in the recovery
+      contract; add failing regressions before changing production code.
+- [x] Retain typed initial state and exact directory identity, reject transitions,
+      and verify the actual captured backup before installation.
+- [x] Use one OS-enforced no-replace primitive for capture, install, and restore;
+      fail closed on unsupported native operations without replacing rename.
+- [x] Test initial absence, late owned/empty outputs, identity changes and
+      removal, capture substitutions, and install/restore check-to-call races.
+- [ ] Verify native semantics and packaged consumers, add focused macOS/Windows
+      CI alongside the existing complete Linux gates, and update relevant docs.
+
+## Milestone 15: Clarify Current Release Guidance — completed
+
+Apply the approved documentation finding without changing package versions or
+publication behavior.
+
+- [x] Document release-managed version sources and the current release/retry
+      workflow without hardcoding a current package version.
+- [x] Preserve bootstrap context as explicitly completed history, align README,
+      and validate Markdown plus the existing release-contract tests.
+
+## Milestone 16: Verify, Push, Review, And Update PR
+
+Deliver the approved findings through the existing PR, with no release or merge.
+
+- [x] Run relevant tests and `cargo xtask check` with all tests passing; audit
+      changes and deletions against `origin/main`.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push all changed
+      source/tests/docs before invoking `cargo xtask review`.
+- [ ] Run the post-push review; independently assess and report new findings with
+      severity, context, impact, lettered options, and a recommendation rather
+      than automatically implementing another unapproved cycle.
+- [ ] Confirm CI, update PR #49 and review records, then validate, commit, and
+      push the final documentation closeout.

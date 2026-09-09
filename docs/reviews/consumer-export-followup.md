@@ -1,5 +1,9 @@
 # Consumer Export: Approved Follow-Up Verification
 
+Historical handoff: the user subsequently approved both findings below. Their
+implementation and verification are tracked in the
+[exclusive-destination follow-up](./consumer-export-exclusive.md).
+
 ## Delivery
 
 The user approved the two code recommendations from the

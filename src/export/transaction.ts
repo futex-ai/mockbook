@@ -2,8 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { projectRealPath } from "../config/paths.js";
+import { errorMessage } from "../errors.js";
 import { ExportBackup } from "./backup.js";
 import { failAfterExportCleanup } from "./cleanup.js";
+import {
+  assertDestination,
+  captureDestination,
+  type ExportDestination,
+} from "./destination.js";
 import { assertExportActive, exportError } from "./error.js";
 import { fileExportOperations, type ExportOperations } from "./operations.js";
 import {
@@ -32,6 +38,7 @@ export class ExportTransaction {
     readonly reservation: string,
     private readonly operations: ExportOperations,
     private readonly legacy: LegacyExportOwnership | undefined,
+    private readonly initial: ExportDestination,
   ) {
     this.stage = path.join(reservation, "stage");
     this.backup = path.join(reservation, "backup");
@@ -44,8 +51,9 @@ export class ExportTransaction {
     legacy?: LegacyExportOwnership,
     operations = fileExportOperations,
   ): Promise<ExportTransaction> {
-    await assertExportOwnership(output, legacy);
+    const initial = await captureDestination(output, operations, legacy);
     const real = projectRealPath(output);
+    await assertDestination(real, initial, operations);
     await prepareReservation(real);
     const reservation = exportReservation(real);
     try {
@@ -61,6 +69,7 @@ export class ExportTransaction {
       reservation,
       operations,
       legacy,
+      initial,
     );
     try {
       await fs.promises.writeFile(
@@ -76,9 +85,11 @@ export class ExportTransaction {
 
   /** Replace validated owned output and restore its previous bytes on failure. */
   async install(signal?: AbortSignal): Promise<void> {
+    await assertDestination(this.output, this.initial, this.operations);
     await assertExportOwnership(this.output, this.legacy);
+    await assertDestination(this.output, this.initial, this.operations);
     assertExportActive(signal);
-    const existed = (await this.operations.lstat(this.output)) !== undefined;
+    const existed = this.initial.kind === "directory";
     const backup = new ExportBackup(
       this.output,
       this.backup,
@@ -87,13 +98,14 @@ export class ExportTransaction {
     );
     if (existed) await this.operations.rename(this.output, this.backup);
     try {
-      if (existed) await backup.validate();
+      if (this.initial.kind === "directory")
+        await backup.validate(this.initial);
       assertExportActive(signal);
       await this.operations.rename(this.stage, this.output);
     } catch (error) {
       if (existed) return backup.restore(error);
       throw exportError(
-        "Could not install export; no previous output was moved.",
+        `Could not install export; no previous output was moved. ${errorMessage(error)}`,
         error,
       );
     }

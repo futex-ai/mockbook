@@ -26,6 +26,7 @@ interface WorkflowJob {
   needs?: readonly string[];
   permissions?: Readonly<Record<string, string>>;
   steps: readonly WorkflowStep[];
+  strategy?: { matrix: { os: readonly string[] } };
 }
 
 interface Workflow {
@@ -76,7 +77,27 @@ test("CI pins actions and gates both supported Node runtimes", async () => {
   assert.ok(required);
   assert.ok(minimumRuntime);
   assert.ok(releaseRuntime);
-  assert.deepEqual(required.needs, ["minimum-runtime", "release-runtime"]);
+  assert.deepEqual(required.needs, [
+    "minimum-runtime",
+    "release-runtime",
+    "export-platforms",
+  ]);
+  const exportPlatforms = workflow.jobs["export-platforms"];
+  assert.ok(exportPlatforms);
+  assert.deepEqual(exportPlatforms.strategy?.matrix.os, [
+    "macos-latest",
+    "windows-latest",
+  ]);
+  assert.ok(
+    exportPlatforms.steps.some((step) =>
+      step.run?.includes("tests/export_rename.test.ts"),
+    ),
+  );
+  assert.ok(
+    exportPlatforms.steps.some((step) =>
+      step.run?.includes("tests/export_destination_races.test.ts"),
+    ),
+  );
   assertFullHistoryCheckout(minimumRuntime);
   assertFullHistoryCheckout(releaseRuntime);
   assertPinnedActions(workflow);

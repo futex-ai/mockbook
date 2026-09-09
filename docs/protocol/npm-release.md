@@ -2,10 +2,15 @@
 
 ## Package Metadata
 
-`package.json` describes an unscoped public ESM package named `mokabook` with an
-initial development version of `0.0.0`, MIT licensing, Firna authorship, exact
+`package.json` describes the published, unscoped public ESM package `mokabook`,
+with a release-managed version, MIT licensing, Firna authorship, exact
 repository/bugs/homepage metadata for `futex-ai/mokabook`, a Node engine floor,
 one `mokabook` bin, explicit exports/types, and a restrictive `files` allowlist.
+
+Read the checkout's version from `package.json`; `.release-please-manifest.json`
+tracks release-please's version state, and `package-lock.json` mirrors package
+metadata. Release PRs update these together. Neither this document nor consumer
+export instructions pin a current version or require another bootstrap publish.
 
 `publishConfig` targets the public npm registry with public access. The package
 contains compiled runtime code, declarations, package-owned shell assets,
@@ -17,6 +22,9 @@ Runtime dependencies are intentional and minimal. Mokabook does not take a
 runtime dependency on `@firna/ui`, Accounting, Juno, Playwright, or a consumer's
 component system. Development and browser-test packages remain development
 dependencies.
+The exporter's Koffi dependency supplies OS-enforced exclusive directory rename;
+its optional platform binaries must remain available for export. The native
+bridge is lazy and does not load for build/check/serve or help.
 
 ## Local Verification
 
@@ -55,9 +63,11 @@ gate on Ubuntu:
 - the minimum supported Node 22.14.0 with npm 11.7.0; and
 - release Node 24 with npm 11.7.0.
 
-Both install Rust 1.95.0, install Chromium, and run `cargo xtask check`. The
-`Required CI` aggregator fails unless both jobs succeed and is the branch-rule
-status to require. CI checks out complete Git history so the preview regression
+Both install Rust 1.95.0, install Chromium, and run `cargo xtask check`.
+Focused macOS and Windows jobs additionally run native export move and
+destination-race tests at the minimum Node version. The `Required CI` aggregator
+fails unless both complete gates and both platform jobs succeed and is the
+branch-rule status to require. CI checks out complete Git history so the preview regression
 can resolve `origin/main`, and uses `npm ci` with the committed lockfile. Action
 revisions are immutable commit hashes with reviewed version comments; runtime
 versions are explicit. Fork pull requests receive no release secrets or write
@@ -114,15 +124,17 @@ Cleanup failures retain the deployment and report why rather than hiding the
 failure. Superseded runs for the same main ref or pull request are cancelled.
 All workflow actions use immutable commit hashes, Wrangler is lockfile-pinned,
 and its vulnerable transitive `sharp` release is overridden with the fixed
-release so the installed dependency tree remains audit-clean.
+release targeted by that override. Re-run the dependency audit for current
+advisories; an earlier override is not evidence that the whole tree is audit-clean.
 
 ## Release Management
 
 Conventional Commits feed release-please's Node release strategy through
 `release-please-config.json` and `.release-please-manifest.json`. A push to
 `main` creates or updates a release PR; an ordinary push with no release does
-not publish. The release PR owns `CHANGELOG.md`, `package.json`, and
-`package-lock.json`. A maintainer reviews and merges it to create the immutable
+not publish. The release PR owns `CHANGELOG.md`, `package.json`,
+`package-lock.json`, and the release-please manifest. A maintainer reviews and
+merges it after required checks pass to create the immutable
 `vX.Y.Z` tag and GitHub release.
 
 The release workflow then:
@@ -163,41 +175,36 @@ workflow falls back to `GITHUB_TOKEN`; GitHub suppresses most follow-on workflow
 events created with that token, so maintainers must verify the release PR's
 required checks when using the fallback.
 
-## First Publication
+## First Publication — Completed History
 
-Trusted publishing can be configured only after the npm package exists. The
-bootstrap sequence is therefore explicit and maintainer-controlled:
+Package bootstrap is complete. This section preserves the original one-time
+sequence for historical context, not instructions for the next release. Current
+releases and failed-publication retries follow **Release Management** above.
 
-1. Complete the GitHub repository rename to `futex-ai/mokabook`, merge the
-   reviewed implementation to `main` at version `0.0.0`, and confirm `Required
-CI` passed. Do not merge the first release PR yet.
-2. Recheck that the unscoped `mokabook` name remains available. Pause for
-   explicit maintainer approval because the first public publish is
-   irreversible.
-3. From that exact clean `main` commit, rerun `cargo xtask check`, run the
-   release packer, inspect its report, and manually publish that exact tarball
-   as public under the non-consumer `bootstrap` dist-tag. Use an approved
-   maintainer's interactive npm authentication; do not add an npm token to
-   GitHub.
-4. Configure the npm trusted publisher for organization `futex-ai`, repository
-   `mokabook`, workflow filename `release.yml`, GitHub environment `npm`, and
-   the workflow's `npm publish` action.
-5. Verify the trusted relationship with the release workflow, then restrict
-   traditional token publishing and remove obsolete npm automation tokens.
-6. Merge the release-please PR for `0.1.0`; confirm the workflow creates the
-   immutable tag/release and publishes the first supported consumer version
-   with provenance. Release-please treats the `0.0.0` manifest as unreleased
-   and would otherwise default the first version to `1.0.0`, so the config
-   carried a one-time `release-as: 0.1.0` override, removed after the release
-   published. Tags must be bare `vX.Y.Z` (`include-component-in-tag: false`)
-   because the release workflow only publishes refs of that shape.
-7. From a clean directory, verify package visibility, metadata, README,
-   license, owners, provenance/signatures, dist tags, `npx mokabook --version`,
-   and a minimal build/serve fixture.
+1. The reviewed bootstrap started from the renamed `futex-ai/mokabook`
+   repository's clean `main` at `0.0.0`, with `Required CI` passing and the
+   first release PR still unmerged.
+2. The first public publish required checking availability of the unscoped name
+   and explicit maintainer approval because npm publication is irreversible.
+3. The checked commit's exact packed tarball was the bootstrap artifact, after
+   `cargo xtask check` and report inspection. The procedure used an approved
+   maintainer's interactive npm authentication and the non-consumer `bootstrap`
+   dist-tag, not a GitHub npm write token.
+4. Package creation enabled trusted-publisher configuration for organization
+   `futex-ai`, repository `mokabook`, workflow `release.yml`, environment `npm`,
+   and the workflow's `npm publish` action. Verification, token-publishing
+   restrictions, and obsolete-token removal were part of maintainer setup.
+5. A one-time `release-as: 0.1.0` override selected the first supported consumer
+   release instead of release-please's unreleased-manifest default. That
+   override was removed after publication; do not restore it for normal releases.
+   Bare `vX.Y.Z` tags (`include-component-in-tag: false`) remain the contract.
+6. Bootstrap verification covered visibility, metadata, README, license, owners,
+   provenance/signatures, dist tags, `npx mokabook --version`, and a minimal
+   build/serve fixture from a clean directory.
 
-The bootstrap publish is never documented as a consumer version. If npm offers
-a safer package-reservation mechanism before implementation, revalidate this
-sequence against current official docs before acting.
+The historical `0.0.0` bootstrap is not a supported consumer version. Do not
+repeat name reservation, reset package/manifest versions, or manually publish
+bootstrap artifacts when preparing a new release.
 
 ## Maintainer Setup
 

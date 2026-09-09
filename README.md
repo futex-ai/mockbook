@@ -150,7 +150,7 @@ npx mokabook export --out .context/mokabook-site
 Options follow the command, so an explicit config is
 `npx mokabook build --config path/to/mokabook.config.ts`. With a local
 development dependency, `npx --no-install mokabook` guarantees npm does not
-fall back to the registry. After the first release, a clean machine may use
+fall back to the registry. A clean machine may use
 `npx --package mokabook mokabook` without adding a dependency.
 
 | Command                        | Outcome                                                   |
@@ -444,6 +444,12 @@ fragments already written by the build step remain updated
 if the later export fails. See the [export contract](./docs/protocol/mokabook-export.md)
 and [hosting contract](./docs/protocol/mokabook-export-delivery.md).
 
+Output must retain the directory identity inspected before the build. Even an
+empty or correctly marked directory created later is left untouched. Capture,
+installation, and recovery use OS-enforced exclusive moves on Linux, macOS,
+and Windows. Keep optional platform dependencies installed for the native
+bridge; unsupported platforms or filesystems fail without a replacing fallback.
+
 Each complete export has its own content-derived deployment identity, separate
 from comparison generations. Navigation from an old tab performs a full reload
 when the deployed catalogue, assets, or host aliases change, even if the
@@ -521,8 +527,10 @@ already-published version, and publishes through npm trusted publishing. A
 bounded post-publish check tolerates npm metadata, tarball, dist-tag, and
 signature propagation before proving the registry artifact. A manual
 `publish_ref` retries only an existing tag. See the
-[release protocol](./docs/protocol/npm-release.md) for the one-time `0.0.0`
-bootstrap and maintainer settings; do not add an npm write token to GitHub.
+[release protocol](./docs/protocol/npm-release.md) for the current release/retry
+procedure and maintainer settings. Package versions are release-managed;
+bootstrap is completed history, not a step to repeat. Do not add an npm write
+token to GitHub.
 
 The synthetic fixture at [`examples/basic`](./examples/basic/README.md) proves
 custom rendering, stylesheets, id links, collections, use cases, and

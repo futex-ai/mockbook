@@ -20,7 +20,13 @@ Descriptor version 2 lets both old and current clients reload across incompatibl
 deployments. Comparison generation URLs retain their separate content identity.
 
 `paths.ts`, `ownership.ts`, and `transaction.ts` constrain replacement to a
-validated, exclusively reserved output. `inventory.ts` and `references.ts` use
+validated, exclusively reserved output. `destination.ts` retains initial absence
+or exact bigint directory identity and checks it before and after capture.
+`rename.ts` lazily binds OS-enforced no-replace moves through Koffi for Linux,
+macOS, and Windows; capture, installation, and recovery share this boundary.
+There is no check-then-replacing-rename or copy fallback. Preserve optional
+platform dependencies when installing the package.
+`inventory.ts` and `references.ts` use
 `path_index.ts` for one case-folded file/alias collision policy, including
 directory prefixes and the final ownership marker. Reference validation also
 proves local resource closure. `ignored.ts` keeps owned
