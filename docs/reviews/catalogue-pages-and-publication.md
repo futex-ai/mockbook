@@ -16,6 +16,10 @@ with regression tests and the recommended fixes are implemented. Verification
 and the subsequent post-push review are recorded below. The original review
 completed with findings.
 
+The post-fix review of `aa1c523` completed with three additional valid findings.
+Those remain open for user selection under the repository's no-automatic-fix
+rule and are recorded in the final section below.
+
 ## Findings
 
 1. **High — imports outside `repoRoot` escape the source inventory. Resolved.**
@@ -109,5 +113,67 @@ All 163 local Markdown link targets resolve. The fresh mainline audit found no
 additions beyond `93ac778`; no new deletions were introduced. Logs and visual
 evidence are retained under `.context/review-fixes-*`.
 
-The required post-push review follows the fix commit; its result is recorded
-after that review completes.
+Fix commit `aa1c523` was pushed to `calummoore/same-name-roots` before the next
+`cargo xtask review`, which completed against `93ac778`. This was invocation
+3 of 10 overall and the first for these fixes; two reviews completed and the
+first invocation was interrupted. The original findings were not re-raised.
+The reviewer performed read-only inspection and a clean committed whitespace
+check; its sandbox prevented a temporary-file smoke probe, so runtime evidence
+comes from the full gate and independent disposable probes.
+
+A separate documentation audit confirmed that the example's `theme.ts` appears
+in the real source inventory and receives automatic rebuilds. Final bookkeeping
+corrects the stale README instruction to restart after editing that helper.
+
+## Review After aa1c523
+
+All three new findings were independently checked. These are follow-ups for
+user selection, not a claim that the requested fixes remain unimplemented.
+
+1. **Medium — public manifests expose the source-file inventory. Open.**
+   The [public asset classifier](../../src/config/public_files.ts) permits
+   `mokabook-manifest.json`, and publication copies it into `static/`.
+   A disposable probe confirmed a live HTTP 200 and published JSON containing
+   an imported `mockups/private/renderer-helper.ts` path. Its source contents
+   remained protected: the helper returned 404 and was not copied. The issue
+   exposes internal file names and structure, without exposing file contents.
+   Options: **A.** Keep the on-disk manifest for builds and Git comparisons but
+   classify it as internal across public HTTP, export, and Review resource reads;
+   cover direct requests, aliases, and both publication options. **B.** Publish a
+   separate sanitized catalogue manifest. **C.** Explicitly support the complete
+   inventory as public metadata. **Recommend A:** browsers already receive their
+   needed catalogue data through the shell, and one shared classification rule
+   avoids inconsistent exclusions. Choose B if a public metadata consumer needs it.
+
+2. **Medium — publication fingerprints miss an earlier manifest change. Open.**
+   [The publisher](../../scripts/preview/catalogue.mjs) reads a manifest before
+   its initial fingerprint; [the server](../../src/server/http.ts) reads it again.
+   A probe added a page after the first manifest read but before the fingerprint
+   read its inputs. Publication succeeded with matching fingerprints and a new
+   navigation link, but without that page's captured view or ID redirect.
+   Leaving this unchanged permits a mixed snapshot with broken navigation.
+   Options: **A.** Begin fingerprinting before reading the manifest and add an
+   ordering regression. **B.** Use one validated publication snapshot for the
+   server, capture loop, change metadata, and redirects, with fingerprint checks
+   bracketing its reads and capture. **C.** Lock builds and publication together.
+   **Recommend B, including A's ordering correction:** removing the second
+   independent manifest read prevents future divergence between these consumers;
+   A alone repairs the demonstrated race with less API work.
+
+3. **Low — the package protocol retains obsolete legacy guidance and omits pages. Open.**
+   The [package contract](../protocol/mokabook-package.md) still describes legacy
+   `exclude` values, although config validation rejects the `legacy` key. Its
+   public API and tags summaries omit page helpers even though `PageInput` accepts
+   tags and both page authoring forms are supported. This gives upgrading consumers
+   contradictory configuration guidance and an incomplete feature reference.
+   Options: **A.** Remove obsolete config guidance and audit the public API/tags
+   summaries against current exports, linking page-specific detail to its owning
+   spec. **B.** Consolidate the duplicated authoring reference into dedicated
+   entry-kind docs and keep historical behavior only in migration guidance.
+   **Recommend A:** one complete contract audit addresses the related omissions
+   without requiring a broader documentation reorganization.
+
+The snapshot-race and manifest probes use disposable fixtures and clean them up.
+Their script and results are retained as `.context/review-fixes-validate-new-findings.mjs`
+and `.context/review-fixes-new-findings-validation.json`. They changed no tracked
+implementation files and do not replace regression tests for future fixes.
