@@ -1,13 +1,13 @@
 # Consumer Static Export
 
-Validation: all 465 unit/integration tests and 104 browser tests passed after integration.
+Validation: all 485 unit/integration tests and 104 browser tests passed after the transaction fixes.
 Packed local ESM, NodeNext, clean-cache npx, Accounting, and Juno consumers
 passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
-Milestones 1–7 completed. The approved fixes and main integration are checked,
-committed, pushed, and reviewed; newly reported follow-ups await the user's decision.
+Milestones 1–7 completed. The user approved both transaction follow-ups;
+Milestone 8 tracks their regression-first implementation and delivery.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
 The user approved fixing all four review findings, followed by merging latest main.
@@ -301,3 +301,23 @@ The full gate passed 465 unit/integration and 104 browser tests; five additional
 post-commit browser smoke tests passed against the new merge baseline.
 The successful post-push review reported one new High and one new Medium finding;
 both remain unchanged with options and recommendations in the review record.
+
+## Milestone 8: Preserve Destination Data And Primary Failures
+
+Resolve both approved follow-up findings at shared transaction/cleanup boundaries.
+
+- [x] Reproduce destination races and masked errors with failing regressions.
+- [x] Validate captured backups, restore only when safe, and delete only validated
+      files with non-recursive directory cleanup; retain unexpected contents.
+- [x] Protect final reservation cleanup against late recovery entries and
+      dangling backup symlinks; reproduce those gaps before fixing them.
+- [x] Preserve retry-safe cleanup when the reservation is already absent,
+      including a regression for the non-recursive cleanup transition.
+- [x] Preserve primary and cleanup errors through setup, export, and the CLI;
+      cover recovery conflicts, cancellation, and single/combined failures.
+- [x] Update ownership/recovery protocols and READMEs; pass focused tests and
+      smoke tests, followed by the complete `cargo xtask check` gate.
+- [ ] Audit mainline preservation and deletions, run `git add -A`, commit using
+      Conventional Commits, and push before running `cargo xtask review`.
+- [ ] Report new findings without automatic fixes, complete the index/status,
+      and validate, commit, and push final documentation bookkeeping.

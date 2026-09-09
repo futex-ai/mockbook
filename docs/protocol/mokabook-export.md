@@ -105,15 +105,15 @@ broad rules, without ignoring unrelated authored files with similar names.
    stage. Replace owned output with rollback protection, then clean owned
    temporary resources and release the writer reservation.
 
-Failure or SIGINT/SIGTERM before successful installation retains the previous
-export directory byte-for-byte. Build outputs already committed by step 2 keep
-the normal `build` transaction's changes; only the export directory has the
-later all-or-nothing guarantee. Document this distinction to consumers.
-Installation failure restores the previous export. A cleanup failure after
-successful installation must identify remaining owned temporary paths and
-report it accurately without deleting the installed site or a rollback copy
-still required for recovery. Do not claim cross-process atomicity for arbitrary
-changes to the entire consumer repository.
+Failure or SIGINT/SIGTERM before installation restores the captured previous
+export when recovery is safe. A concurrently recreated destination is preserved
+alongside the retained backup instead of being overwritten. Build outputs already
+committed by step 2 keep the normal build transaction's changes. A post-install
+cleanup failure retains the installed site and identifies remaining recovery
+paths. The [export recovery contract](./mokabook-export-recovery.md) defines
+captured-backup validation, bounded deletion, restoration conflicts, and primary
+versus cleanup error propagation. There is no cross-process atomicity guarantee
+for arbitrary edits to the repository or private reservation namespace.
 
 Cancellation is checked again after ownership validation and after the old
 directory moves to backup. The final stage-to-output rename is the commit point;

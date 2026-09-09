@@ -24,6 +24,12 @@ historical copies. Build and export share HTML anchor validation through
 `html_link_validation.ts`. Watch traverses owned output directories to discover
 unlisted authored files while ignoring the recorded generated files.
 
+`backup.ts` revalidates captured output and centralizes safe restoration and
+allowlisted, non-recursive cleanup. `operations.ts` is the injectable filesystem
+boundary; recursive removal is reserved for the private generated stage.
+`cleanup.ts` preserves primary and secondary failures through setup, orchestration,
+and CLI output. See the [recovery contract](../../docs/protocol/mokabook-export-recovery.md).
+
 Focused verification:
 
 ```bash

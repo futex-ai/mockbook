@@ -2,7 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { projectRealPath } from "../config/paths.js";
+import { ExportBackup } from "./backup.js";
+import { failAfterExportCleanup } from "./cleanup.js";
 import { assertExportActive, exportError } from "./error.js";
+import { fileExportOperations, type ExportOperations } from "./operations.js";
 import {
   assertExportOwnership,
   type LegacyExportOwnership,
@@ -11,19 +14,6 @@ import { prepareReservation, reservationPath } from "./reservation.js";
 
 /** Marker proving ownership of an active export reservation. */
 export const TRANSACTION_MARKER = ".mokabook-export-transaction";
-
-/** Injectable replacement/cleanup boundary for transaction failure tests. */
-export interface ExportOperations {
-  rename(from: string, to: string): Promise<void>;
-  remove(candidate: string): Promise<void>;
-}
-
-/** Real filesystem replacement operations. */
-export const fileExportOperations: ExportOperations = {
-  rename: (from, to) => fs.promises.rename(from, to),
-  remove: (candidate) =>
-    fs.promises.rm(candidate, { recursive: true, force: true }),
-};
 
 /** Deterministic reservation shared by aliases of the same output. */
 export function exportReservation(output: string): string {
@@ -80,8 +70,7 @@ export class ExportTransaction {
       await fs.promises.mkdir(transaction.stage);
       return transaction;
     } catch (error) {
-      await transaction.close();
-      throw error;
+      return failAfterExportCleanup(error, () => transaction.close());
     }
   }
 
@@ -89,51 +78,45 @@ export class ExportTransaction {
   async install(signal?: AbortSignal): Promise<void> {
     await assertExportOwnership(this.output, this.legacy);
     assertExportActive(signal);
-    const existed = fs.existsSync(this.output);
+    const existed = (await this.operations.lstat(this.output)) !== undefined;
+    const backup = new ExportBackup(
+      this.output,
+      this.backup,
+      this.operations,
+      this.legacy,
+    );
     if (existed) await this.operations.rename(this.output, this.backup);
     try {
+      if (existed) await backup.validate();
       assertExportActive(signal);
       await this.operations.rename(this.stage, this.output);
     } catch (error) {
-      if (existed) {
-        try {
-          await this.operations.rename(this.backup, this.output);
-        } catch (rollback) {
-          throw exportError(
-            `Export rollback failed; recover the previous site from ${this.backup}.`,
-            new AggregateError([error, rollback]),
-          );
-        }
-      }
+      if (existed) return backup.restore(error);
       throw exportError(
-        "Could not install export; the previous output was restored.",
+        "Could not install export; no previous output was moved.",
         error,
       );
     }
     this.installed = true;
-    if (existed) {
-      try {
-        await this.operations.remove(this.backup);
-      } catch (error) {
-        throw exportError(
-          `Export installed, but backup cleanup failed at ${this.backup}.`,
-          error,
-        );
-      }
-    }
+    if (existed) await backup.discard();
   }
 
   /** Remove only this operation's temporary files, retaining a recovery backup. */
   async close(): Promise<void> {
-    if (fs.existsSync(this.backup))
+    if (!(await this.operations.lstat(this.reservation))) return;
+    if (await this.operations.lstat(this.backup))
       throw exportError(
         `${this.installed ? "Export installed, but recovery files" : "Export recovery files"} retained at ${this.reservation}; the backup was not deleted.`,
       );
     try {
-      await this.operations.remove(this.reservation);
+      await this.operations.remove(this.stage);
+      const marker = path.join(this.reservation, TRANSACTION_MARKER);
+      if (await this.operations.lstat(marker))
+        await this.operations.unlink(marker);
+      await this.operations.rmdir(this.reservation);
     } catch (error) {
       throw exportError(
-        `Export cleanup failed; owned temporary files remain at ${this.reservation}.`,
+        `${this.installed ? "Export installed, but cleanup failed" : "Export cleanup failed"}; owned temporary files remain at ${this.reservation}.`,
         error,
       );
     }

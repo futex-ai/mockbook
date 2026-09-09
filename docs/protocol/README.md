@@ -15,6 +15,8 @@ delivery steps.
   transactional artifact-generation contract.
 - [Static export delivery](./mokabook-export-delivery.md) — portable
   hosting, navigation, and comparison behavior.
+- [Export recovery](./mokabook-export-recovery.md) — backup ownership,
+  concurrent destination changes, bounded cleanup, and failure reporting.
 - [Watched development](./mokabook-watch.md)
 - [Catalogue navigation contract](./mokabook-navigation.md)
 - [Styled catalogue link controls](./mokabook-link-controls.md)

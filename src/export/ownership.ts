@@ -13,6 +13,12 @@ export interface ExportOwnership {
   files: readonly string[];
 }
 
+/** Existing names captured during inspection, never authority for recursive deletion. */
+export interface ExportEntries {
+  files: string[];
+  directories: string[];
+}
+
 /** Explicit repository-adapter migration; never accepted by the public CLI. */
 export interface LegacyExportOwnership {
   marker: string;
@@ -57,7 +63,7 @@ export function parseExportOwnership(
 export async function ownedEntries(
   root: string,
   prefix = "",
-): Promise<{ files: string[]; directories: string[] }> {
+): Promise<ExportEntries> {
   const files: string[] = [];
   const directories: string[] = [];
   for (const entry of await fs.promises.readdir(root, {
@@ -81,11 +87,11 @@ export async function ownedEntries(
   return { files: files.sort(), directories: directories.sort() };
 }
 
-/** Validate replacement ownership, including unexpected files and empty folders. */
+/** Validate ownership and return the exact existing names authorized for cleanup. */
 export async function assertExportOwnership(
   output: string,
   legacy?: LegacyExportOwnership,
-): Promise<void> {
+): Promise<ExportEntries | undefined> {
   const stat = await fs.promises
     .lstat(output)
     .catch((error: NodeJS.ErrnoException) => {
@@ -96,7 +102,8 @@ export async function assertExportOwnership(
   if (!stat.isDirectory() || stat.isSymbolicLink())
     throw exportError("Export ownership requires a real directory.");
   const { files, directories } = await ownedEntries(output);
-  if (files.length === 0 && directories.length === 0) return;
+  if (files.length === 0 && directories.length === 0)
+    return { files, directories };
   if (
     legacy &&
     !files.includes(EXPORT_MARKER) &&
@@ -113,7 +120,7 @@ export async function assertExportOwnership(
         files.some((file) => file.startsWith(`${name}/`)),
       )
     )
-      return;
+      return { files, directories };
     throw exportError(
       "Invalid legacy export ownership or unowned preview contents.",
     );
@@ -136,4 +143,5 @@ export async function assertExportOwnership(
     throw exportError(
       "Export output contains unowned files or directories; move them before exporting.",
     );
+  return { files, directories };
 }

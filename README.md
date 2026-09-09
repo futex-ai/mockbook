@@ -412,8 +412,10 @@ not every catalogue is offline-capable.
 
 Comparisons load only after selection. Refresh reads the same exported
 generation; deploy a new export and reload the page for new results. Re-export
-replaces only owned output and preserves the previous site on pre-install
-failure. Generated fragments already written by the build step remain updated
+replaces only owned output and restores the previous site on pre-install
+failure when recovery is safe. If another process recreates the destination,
+both it and the captured backup are preserved for manual recovery. Generated
+fragments already written by the build step remain updated
 if the later export fails. See the [export contract](./docs/protocol/mokabook-export.md)
 and [hosting contract](./docs/protocol/mokabook-export-delivery.md).
 
@@ -423,6 +425,12 @@ small ownership metadata after cleanup; keep authored files out of it. Old
 hashed reservations require explicit recovery after confirming no writer is
 active. Unlisted files inside an exported site remain eligible for configured
 watch rules and prevent replacement until moved elsewhere.
+
+Backup cleanup deletes only validated files. Unexpected additions stop cleanup
+and remain available for recovery; the newly installed site stays in place.
+Errors report both the original failure and any cleanup failure, including the
+remaining paths. A partially cleaned backup may no longer contain every old
+generated file. See the [recovery contract](./docs/protocol/mokabook-export-recovery.md).
 
 ## Preview Deployments
 

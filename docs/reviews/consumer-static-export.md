@@ -162,6 +162,10 @@ were not automatically fixed. Final plan/index/report edits are documentation-on
 
 ## Follow-Up Review: New Findings
 
+The user subsequently approved both findings. Milestone 8 implements the
+transaction safeguards and shared cleanup-error policy; the original findings
+remain below as historical context. These were not fixed automatically by review.
+
 ### 1. High: A Destination Race Can Delete Unowned Files
 
 In [transaction.ts](../../src/export/transaction.ts), `install()` checks output
@@ -216,3 +220,21 @@ masking across cancellation, rollback, install, and cleanup paths.
 Verification: JavaScript `finally` semantics and the existing retained-backup
 branches confirm the masking path. The independent reviewer did not rerun tests;
 the implementation gate and post-merge smoke results above were run separately.
+
+## Approved Transaction Follow-Up
+
+Both findings and related recovery gaps were reproduced before fixes. Captured
+backups are revalidated before installation and deletion. Backup cleanup unlinks
+only validated files and removes directories non-recursively; final reservation
+cleanup also preserves late recovery entries and dangling links. Restoration
+leaves observed recreated destinations untouched and retains unsafe backups.
+
+One cleanup policy retains primary and secondary failures, ordered cause objects,
+and visible CLI diagnostics through partial setup, cancellation, rollback, and
+post-install cleanup. Twenty new tests cover these boundaries, including four
+real subprocess CLI failure cases. All 59 focused export/static-delivery tests
+passed. `MOKABOOK_PLAYWRIGHT_PORT=54861 cargo xtask check` passed all 485
+unit/integration tests, 104 browser tests, packed consumers, package/license
+checks, example verification, formatting, lint, typechecking, Rust formatting
+and Clippy, three Rust tests, and the Rust file-length audit. The required
+post-push review is pending delivery.

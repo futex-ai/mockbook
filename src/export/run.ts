@@ -10,6 +10,7 @@ import { readBaseManifest } from "../review/base_manifest.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import { compareReview } from "../review/compare.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import { withExportCleanup } from "./cleanup.js";
 import { assertExportActive, exportError } from "./error.js";
 import { assertInputsUnchanged, pinnedGit } from "./inputs.js";
 import { ExportInventory } from "./inventory.js";
@@ -32,6 +33,18 @@ export async function exportCatalogue(
     output,
     options.adapter?.legacyOwnership,
   );
+  return withExportCleanup(
+    () => generateExport(config, options, output, transaction),
+    () => transaction.close(),
+  );
+}
+
+async function generateExport(
+  config: ResolvedConfig,
+  options: ExportOptions,
+  output: string,
+  transaction: ExportTransaction,
+): Promise<ExportResult> {
   try {
     const git = new RepositoryGitClient(
       new NodeGitCommandRunner(config.repoRoot),
@@ -121,7 +134,5 @@ export async function exportCatalogue(
       `Could not export catalogue: ${errorMessage(error)}`,
       error,
     );
-  } finally {
-    await transaction.close();
   }
 }

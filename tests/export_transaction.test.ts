@@ -3,10 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
-import {
-  ExportTransaction,
-  fileExportOperations,
-} from "../dist/export/transaction.js";
+import { ExportTransaction } from "../dist/export/transaction.js";
+import { fileExportOperations } from "../dist/export/operations.js";
 import { EXPORT_MARKER } from "../dist/export/ownership.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
@@ -69,7 +67,7 @@ test("cleanup failures accurately identify an installed site and retained backup
   await fs.promises.mkdir(output);
   const transaction = await ExportTransaction.open(output, undefined, {
     ...fileExportOperations,
-    remove: async () => {
+    rmdir: async () => {
       throw new Error("injected cleanup failure");
     },
   });
