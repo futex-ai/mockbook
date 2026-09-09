@@ -82,6 +82,8 @@ continue to work. Standalone generated fixtures prove the component renders.
       single consumer graph without inferring usage from import lists.
 - [ ] Capture actual per-view instances, input material, caller-owned slots,
       parent/owner relationships, order, and layout-neutral DOM ranges.
+- [ ] Verify deterministic fixed-size instance/slot keys through deep nesting
+      and forwarding; reject invalid digests and conflicting duplicate records.
 - [ ] Extend the existing renderer for components and optional style/resource
       ownership, retaining plain-string renderers and consumer theme providers.
 - [ ] Generate variant fragments and manifest v4; retain v3 output bytes for

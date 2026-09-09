@@ -122,12 +122,17 @@ interface ComponentViewRecord {
 
 All references in one view are local to that document except component ids,
 which reference registered entries. `id` is the local `mokabookInstance` value
-or its component-id default. The stable instance `key` is exactly
-`JSON.stringify([owner.kind, owner.kind === "instance" ? owner.instanceKey : null, slotKey ?? null, id])`.
-An entry owner means the containing screen or component variant. A slot key is
-`JSON.stringify([instanceKey, name])` using its receiving instance and declared
-slot name. Neither key is a
-filesystem path, DOM selector, catalogue id, or route segment.
+or its component-id default. Instance and slot keys are lowercase 64-hex SHA-256
+digests of UTF-8 JSON preimages, without a trailing newline. For an instance,
+the preimage is the array
+`["mokabook-instance-v1", owner.kind, owner.kind === "instance" ? owner.instanceKey : null, slotKey ?? null, id]`.
+For a slot it is `["mokabook-slot-v1", instanceKey, name]`, using its receiving
+instance and declared slot name. Serialize those arrays with `JSON.stringify`.
+An entry owner means the containing screen or component variant. Parent/slot
+references are their fixed-size digests, never recursively embedded JSON keys.
+Readers recompute keys from the record fields and reject mismatches or conflicting
+duplicate keys. Neither key is a filesystem path, selector, catalogue id, or
+route segment. This bounds key length independently of nesting depth.
 
 `owner` identifies the caller whose inputs are compared. `slotKey`, when present,
 identifies the original slot scope in which the instance was supplied. The slot
