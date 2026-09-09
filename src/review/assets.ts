@@ -20,6 +20,12 @@ export interface OptionalReviewAssetReader extends ReviewAssetReader {
   readIfExists(route: string): Promise<Uint8Array | undefined>;
 }
 
+/** Validated public location, including a confined location for a missing file. */
+export interface LocatedReviewAsset {
+  content?: Uint8Array;
+  physicalPath: string;
+}
+
 /** Confined filesystem implementation for current-worktree Review assets. */
 export class FileSystemReviewAssetReader implements OptionalReviewAssetReader {
   constructor(private readonly config: ResolvedConfig) {}
@@ -31,6 +37,11 @@ export class FileSystemReviewAssetReader implements OptionalReviewAssetReader {
   }
 
   async readIfExists(route: string): Promise<Uint8Array | undefined> {
+    return (await this.readLocated(route)).content;
+  }
+
+  /** Retain the validated physical location so watchers can observe local aliases. */
+  async readLocated(route: string): Promise<LocatedReviewAsset> {
     const candidate = assertPublicStaticRoute(route, this.config);
     try {
       const existing = await closestExistingPath(candidate);
@@ -51,10 +62,20 @@ export class FileSystemReviewAssetReader implements OptionalReviewAssetReader {
         throw assetError(route, "not a public static file");
       }
       const stat = await fs.promises.stat(realCandidate);
-      if (existing !== candidate && stat.isDirectory()) return undefined;
+      if (existing !== candidate && stat.isDirectory()) {
+        return {
+          physicalPath: path.resolve(
+            realCandidate,
+            path.relative(existing, candidate),
+          ),
+        };
+      }
       if (existing !== candidate || !stat.isFile())
         throw assetError(route, "not a public static file");
-      return await fs.promises.readFile(realCandidate);
+      return {
+        content: await fs.promises.readFile(realCandidate),
+        physicalPath: realCandidate,
+      };
     } catch (error) {
       if (error instanceof MokabookError) throw error;
       throw assetError(route, errorMessage(error), error);

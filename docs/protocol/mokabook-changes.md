@@ -153,13 +153,14 @@ is calculated.
 The private output contains `review.json`, `summary.md`, an ownership marker,
 and the isolated snapshots. No HTML report or navigation payload is written.
 The summary's `output changes` count includes only screens classified as added,
-removed, or changed. Ignored-only screens remain a separate diagnostic count.
+removed, or changed, counting each screen once across all viewports and color
+schemes. Ignored-only screens remain a separate diagnostic count.
 `impact evidence` independently counts screens with shared-impact or dependency
 evidence, including screens with output changes; `impact-only` is the subset
 without output changes and can overlap ignored-only. Neither evidence nor
-ignored-only edits inflate output changes. These are fragment-comparison counts,
-not the catalogue Changes total, which also considers rendered resources,
-reviewable metadata, and flows. The JSON retains every screen and its evidence.
+ignored-only edits inflate output changes. These counts aggregate fragment
+comparisons per screen; the catalogue Changes total also considers rendered
+resources, reviewable metadata, and flows. The JSON retains every screen and its evidence.
 
 Base and head panes live under separate route-preserving snapshot roots. Local
 resources referenced by pane HTML or CSS are copied transitively, including

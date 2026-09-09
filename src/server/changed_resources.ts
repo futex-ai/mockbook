@@ -9,10 +9,13 @@ import type {
   ReviewAssetReader,
 } from "../review/assets.js";
 import { normalizeReviewPair } from "../review/ignore.js";
+import { ResourceGraph } from "../review/resource_graph.js";
 
 /** Cache shared resource edges for one immutable changed-route calculation. */
 export class ChangedResourceGraph {
-  readonly #references = new Map<string, Promise<readonly string[]>>();
+  readonly #graph = new ResourceGraph({
+    readReferences: (route) => this.references(route),
+  });
 
   constructor(
     private readonly reader: OptionalReviewAssetReader,
@@ -23,24 +26,11 @@ export class ChangedResourceGraph {
 
   /** Inspect transitive local references, terminating even for cyclic imports. */
   async affects(source: string, document: string): Promise<boolean> {
-    const pending = referencedRoutes(source, document, {
+    const seeds = referencedRoutes(source, document, {
       resourceHints: false,
     });
-    const seen = new Set<string>();
-    let affected = false;
-    for (let index = 0; index < pending.length; index += 1) {
-      const route = pending[index];
-      if (route === undefined || seen.has(route)) continue;
-      seen.add(route);
-      let references = this.#references.get(route);
-      if (!references) {
-        references = this.references(route);
-        this.#references.set(route, references);
-      }
-      pending.push(...(await references));
-      if (this.changed.has(route)) affected = true;
-    }
-    return affected;
+    const resources = await this.#graph.collect(seeds);
+    return [...resources].some((route) => this.changed.has(route));
   }
 
   private async references(route: string): Promise<readonly string[]> {

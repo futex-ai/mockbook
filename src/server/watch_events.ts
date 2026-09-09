@@ -154,10 +154,11 @@ export class WatchActionQueue {
   }
 }
 
-/** Classify one absolute consumer path using only resolved host config. */
+/** Classify one consumer path using configured inputs and reachable resources. */
 export function classifyWatchPath(
   candidate: string,
   config: ResolvedConfig,
+  resources: ReadonlySet<string> = new Set(),
 ): RuntimeWatchAction {
   const absolute = path.resolve(candidate);
   if (absolute === config.configPath) return "reconfigure";
@@ -168,6 +169,8 @@ export function classifyWatchPath(
     return "rebuild";
   const relative = toPosixPath(path.relative(config.repoRoot, absolute));
   if (isPackageOwnedIgnoredWatchPath(absolute, config)) return "ignore";
+  if ([...resources].some((resource) => isInside(absolute, resource)))
+    return "reload";
   const stylesheetPaths = configuredStylesheetPaths(config);
   if (
     stylesheetPaths.some(
@@ -258,7 +261,8 @@ function isRequiredWatchPath(
   );
 }
 
-function configuredStylesheetPaths(config: ResolvedConfig): string[] {
+/** Configured stylesheet roots whose imports are also consumer resources. */
+export function configuredStylesheetPaths(config: ResolvedConfig): string[] {
   return config.stylesheets.flatMap((rule) => [
     ...rule.stylesheets,
     ...(rule.lightStylesheets ?? []),

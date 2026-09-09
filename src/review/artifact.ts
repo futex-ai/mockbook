@@ -40,7 +40,7 @@ export function summaryMarkdown(result: ReviewResult): string {
     "",
     `Screens: ${result.screens.length}; output changes: ${outputChanges}; changed: ${counts.get("changed") ?? 0}; added: ${counts.get("added") ?? 0}; removed: ${counts.get("removed") ?? 0}; ignored-only: ${counts.get("ignored-only") ?? 0}; impact evidence: ${impactEvidence}; impact-only: ${impactOnly}.`,
     "",
-    "Output changes count screen fragments; catalogue Changes also considers rendered resources, metadata, and flows. Impact evidence is counted independently; impact-only screens have no output change and can also be ignored-only.",
+    "Output changes count screens with output changes, once per screen across all viewports and color schemes; catalogue Changes also considers rendered resources, metadata, and flows. Impact evidence is counted independently; impact-only screens have no output change and can also be ignored-only.",
   ];
   if (result.sharedImpact.length > 0) {
     lines.push(

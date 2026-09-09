@@ -98,3 +98,23 @@ test("ignored-only output without dependencies is not impact evidence", () => {
   assert.match(summary, /ignored-only: 1;/);
   assert.match(summary, /impact evidence: 0; impact-only: 0\./);
 });
+
+test("summary counts a screen once when several viewport and scheme views change", () => {
+  const summary = summaryMarkdown({
+    ...result,
+    screens: result.screens.map((screen) => ({
+      ...screen,
+      state: "changed",
+      views: (["mobile", "desktop"] as const).flatMap((viewport) =>
+        (["light", "dark"] as const).map((colorScheme) => ({
+          viewport,
+          colorScheme,
+          state: "changed" as const,
+          ignoredIds: [],
+        })),
+      ),
+    })),
+  });
+  assert.match(summary, /Screens: 1; output changes: 1;/);
+  assert.match(summary, /Output changes count screens with output changes/);
+});
