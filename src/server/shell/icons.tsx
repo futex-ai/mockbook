@@ -1,10 +1,10 @@
 // Shared Mokabook shell glyphs: the disclosure chevron, the closed / open
 // folder icons for collapsible collections, the screen / page / use-case leaf
-// icons, and the top bar's search and tag controls. All icons are stroke-based on a 24-unit viewBox and inherit
-// `currentColor`. The navigation tree drops the chevron in favour of the
-// folder icon, swapping the closed folder for the open one while a group is
-// expanded (see `.mbk-nav-ico.folder` in the shell stylesheet); the chevron is
-// used by the details inspector bar.
+// icons, and the top bar's search and tag controls. All icons are stroke-based
+// on a 24-unit viewBox and inherit `currentColor`. The navigation tree drops
+// the chevron in favour of the folder icon, swapping the closed folder for the
+// open one while a group is expanded (see `.mbk-nav-ico.folder` in the shell
+// stylesheet); the chevron is used by the details inspector bar.
 
 import type { ReactNode } from "react";
 
