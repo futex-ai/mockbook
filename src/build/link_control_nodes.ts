@@ -8,6 +8,7 @@ export type ControlNode = DefaultTreeAdapterMap["node"];
 export type ControlElement = DefaultTreeAdapterMap["element"];
 
 export const CHILD_MARKER = "data-mokabook-link-child-";
+export const CONTROL_MARKER = "data-mokabook-link-control";
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 const INTERACTIVE_TAGS = new Set([
   "a",
@@ -68,13 +69,10 @@ export function isElement(node: ControlNode): node is ControlElement {
   return "tagName" in node;
 }
 
-export function isInteractive(
-  node: ControlElement,
-  includeFocus = true,
-): boolean {
+export function isInteractive(node: ControlElement): boolean {
   return (
     INTERACTIVE_TAGS.has(node.tagName) ||
-    (includeFocus && attribute(node, "tabindex") !== undefined) ||
+    attribute(node, "tabindex") !== undefined ||
     (attribute(node, "contenteditable") !== undefined &&
       attribute(node, "contenteditable") !== "false") ||
     (attribute(node, "role") ?? "")

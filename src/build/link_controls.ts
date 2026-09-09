@@ -1,8 +1,10 @@
 /** Adapt explicitly marked React controls before catalogue-link resolution. */
 
-import { parse } from "parse5";
-
 import { parseLogicalTarget } from "../navigation/logical.js";
+import {
+  assertNoChildLinkMarkers,
+  parseControlMetadata,
+} from "./link_control_metadata.js";
 import {
   CHILD_MARKER,
   controlError,
@@ -28,19 +30,15 @@ interface Boundary {
 
 /** Transform only marked controls, leaving documents without markers untouched. */
 export function adaptLinkControls(html: string, route: string): string {
-  if (!html.includes(CHILD_MARKER)) return html;
-  const duplicateOffsets: number[] = [];
-  const document = parse(html, {
-    sourceCodeLocationInfo: true,
-    onParseError: (error) => {
-      if (error.code === "duplicate-attribute")
-        duplicateOffsets.push(error.startOffset);
-    },
-  });
+  const metadata = parseControlMetadata(html, route);
+  if (metadata?.owners.length)
+    throw controlError(route, "contains reserved adaptation metadata");
+  if (!metadata?.markers.length) return html;
+  const { document, duplicateOffsets } = metadata;
   const patches: ControlPatch[] = [];
   let open: Boundary | undefined;
   let styled = false;
-  const root = document.childNodes.find(
+  const root = ("childNodes" in document ? document.childNodes : []).find(
     (node) => isElement(node) && node.tagName === "html",
   );
   const children =
@@ -124,7 +122,7 @@ export function adaptLinkControls(html: string, route: string): string {
         ) {
           throw controlError(route, "contains duplicate attributes");
         }
-        if (open.ancestors.some((ancestor) => isInteractive(ancestor, false)))
+        if (open.ancestors.some(isInteractive))
           throw controlError(route, "has an interactive ancestor");
         validateControl(control, open.target, route);
         const inactive =
@@ -160,10 +158,4 @@ export function adaptLinkControls(html: string, route: string): string {
   const result = applyControlPatches(html, patches);
   assertNoChildLinkMarkers(result, route);
   return result;
-}
-
-/** Compatibility output must not reintroduce unresolved authoring markers. */
-export function assertNoChildLinkMarkers(html: string, route: string): void {
-  if (html.includes(CHILD_MARKER))
-    throw controlError(route, "has unconsumed markers");
 }

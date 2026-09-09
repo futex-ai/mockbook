@@ -70,8 +70,9 @@ tests, and three Rust tests. The working diff contained no mainline deletions.
 
 ## Review outcome
 
-Items 1–4 below are recorded for the user to decide; the implementation and
-README were not changed in response to review. Item 5 described the expected
+The initial delivery recorded items 1–4 for the user's decision without changing
+the reviewed implementation or README. The user has now authorized all four
+fixes, tracked in Milestones 5 and 6 below. Item 5 described the expected
 pre-review delivery state: this final record and index update complete the
 already-planned post-review bookkeeping.
 
@@ -138,5 +139,48 @@ protects future reserved attributes and avoids treating ordinary text as HTML
 metadata. For item 3, decide the ancestor-focus contract explicitly and test
 both positive tab order and programmatic-focus containers before broadening
 rejection. For item 4, retain the migration content in a linked consumer guide
-and keep the public README example generic. No new implementation milestones
-are opened until the user chooses which review recommendations to address.
+and keep the public README example generic.
+
+## Milestone 5: Address approved review findings — completed
+
+Enforce one parsed metadata policy at both renderer and compatibility boundaries,
+align focus validation with the contract, and separate consumer migration docs.
+
+- [x] Add failing regressions for mixed-case markers, reserved metadata on
+      unrelated elements, compatibility ownership changes, and focusable parents.
+- [x] Share parsed attribute validation, preserving literal text and legitimate
+      generated metadata while rejecting authored or altered reserved metadata.
+- [x] Reject ancestor `tabindex`, including programmatic focus, and document the
+      same rule for ancestors and descendants.
+- [x] Move Accounting/Firna instructions into a linked migration guide and keep
+      the package README generic.
+- [x] Run relevant tests, browser smoke tests, and `cargo xtask check`.
+
+## Milestone 6: Deliver and review the fixes
+
+Complete the required delivery sequence after the approved fixes pass validation.
+
+- [x] Audit the diff against `origin/main`, stage all files with `git add -A`,
+      commit using Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after the push and report any new findings without
+      automatically fixing them.
+- [ ] Record the review result, complete the plan/index, validate Markdown, and
+      commit/push the final delivery record if needed.
+
+Approved fixes: items 1 and 2 now share parsed metadata validation, including
+mixed-case names, global reservation, duplicate attributes, logical-owner
+records, and stylesheet preservation. Item 3 rejects ancestor focus attributes,
+including negative `tabindex`. Item 4 is documented in the linked
+[Accounting migration guide](../docs/migration/accounting-link-controls.md).
+Item 5 was completed in the initial post-review record.
+
+Validation after the fixes: all 97 focused tests and `cargo xtask check` passed.
+The full gate passed 401 unit/integration tests, 70 Chromium tests (including
+real Firna navigation smoke tests), and three Rust tests, plus formatting,
+lint, typechecking, example validation, and packed-consumer checks. The known
+port-allocation test race occurred on the first run; the isolated test and
+full rerun passed. No production or test changes were made for that race.
+
+This delivery commit includes the approved implementation fixes. Its mandatory
+post-push review is pending at commit time; the remaining Milestone 6 items are
+completed in a separate documentation commit after that review returns.

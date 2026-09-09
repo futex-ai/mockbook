@@ -1,7 +1,7 @@
 /** Source-preserving HTML patches and static focus styling for child links. */
 
 import {
-  attribute,
+  CONTROL_MARKER,
   controlError,
   type ControlElement,
 } from "./link_control_nodes.js";
@@ -13,11 +13,11 @@ export interface ControlPatch {
 }
 
 export const CONTROL_STYLES =
-  '<style data-mokabook-link-control-styles="">' +
-  ":where(a[data-mokabook-link-control]){color:inherit;text-decoration:none;display:inline}" +
-  ':where(a[data-mokabook-link-control="button"]){display:inline-block;width:fit-content}' +
-  ':where(a[data-mokabook-link-control="div"]){display:block}' +
-  ":where(a[data-mokabook-link-control]):focus-visible{outline:2px solid currentColor!important;outline-offset:2px!important}" +
+  `<style ${CONTROL_MARKER}-styles="">` +
+  `:where(a[${CONTROL_MARKER}]){color:inherit;text-decoration:none;display:inline}` +
+  `:where(a[${CONTROL_MARKER}="button"]){display:inline-block;width:fit-content}` +
+  `:where(a[${CONTROL_MARKER}="div"]){display:block}` +
+  `:where(a[${CONTROL_MARKER}]):focus-visible{outline:2px solid currentColor!important;outline-offset:2px!important}` +
   "</style>";
 
 const BUTTON_ATTRIBUTES = new Set([
@@ -83,11 +83,8 @@ export function controlPatches(
   const destination = target.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
   const extra = inactive
     ? ` data-nav-href="${destination}"${node.tagName === "button" ? ' type="button"' : ""}`
-    : ` href="${destination}" data-mokabook-link-control="${node.tagName}"`;
+    : ` href="${destination}" ${CONTROL_MARKER}="${node.tagName}"`;
   opening = opening.replace(/>$/, `${extra}>`);
-  if (attribute(node, "data-mokabook-link-control") !== undefined) {
-    throw controlError(route, "contains reserved adaptation metadata");
-  }
   return [
     { start: tagStart, end: tagEnd, text: opening },
     ...(!inactive

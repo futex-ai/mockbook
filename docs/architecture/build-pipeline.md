@@ -98,7 +98,10 @@ It validates one supported root with no independent descendant interactions,
 retains inactive destinations as metadata, and adds default link/focus CSS only
 to documents with active adapted controls. Custom and legacy renderers use the
 same adapter before logical records are captured. Compatibility output cannot
-reintroduce unresolved child markers. Unmarked document bytes stay unchanged.
+reintroduce unresolved child markers or change package-owned control metadata
+and its logical owners. One parsed attribute policy enforces case-insensitive
+reserved names at both boundaries, including inert template contents, without
+mistaking ordinary text for metadata. Unmarked document bytes stay unchanged.
 
 The [catalogue navigation contract](../protocol/mokabook-navigation.md) retains
 the stable id and optional fragment in a reserved `data-mokabook-link`

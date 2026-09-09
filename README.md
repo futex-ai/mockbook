@@ -115,11 +115,8 @@ default `MockLink` behavior and documents without child links keep their bytes.
 Navigation works in Browse, use-case frames, standalone files, and Review
 snapshots through the existing link mechanism, without a consumer click script.
 
-For Accounting's Firna `Button`, retain `onPress={noop}` when needed to render
-an enabled control; it does not handle navigation. Replace the custom `Nav`
-usage with `MockLink asChild`, then remove the custom navigation HTML converter
-and navigation click script. Keep theme wrapping and React Native Web style
-collection in the consumer renderer. Native browser button chrome and
+Keep any props your component requires to render enabled; Mokabook handles the
+destination through the generated link. Native browser button chrome and
 JavaScript-driven hover/pressed effects are not reproduced by static adaptation.
 See the [styled link controls contract](./docs/protocol/mokabook-link-controls.md)
 for supported markup, inactive states, and validation rules.
@@ -445,4 +442,5 @@ recorded by the
 - [Protocol index](./docs/protocol/README.md)
 - [Package ownership boundary](./docs/architecture/package-boundary.md)
 - [Accounting migration inventory](./docs/migration/accounting-framework-inventory.md)
+- [Styled control migration guide](./docs/migration/accounting-link-controls.md)
 - [Implementation plans](./plans/README.md)

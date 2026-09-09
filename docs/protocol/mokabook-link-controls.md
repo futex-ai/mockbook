@@ -42,6 +42,9 @@ the build. Descendant anchors, controls, focus targets, interactive ARIA roles,
 embedded browsing contexts, and media with controls count as interactive even
 when disabled. An outer anchor/button or other interactive ancestor also makes
 the placement invalid. This prevents nested links and multiple keyboard targets.
+Any ancestor or descendant with `tabindex` is a focus target, including negative
+values used for programmatic focus; put intended focus attributes on the child
+root itself instead of a surrounding container.
 Inert template contents cannot contain child-mode markers.
 
 A root's existing `href` or `data-nav-href` must either be absent or equal the
@@ -59,6 +62,21 @@ documents. It validates the parsed HTML structure and patches only marked
 boundaries and control tags/attributes using their original source offsets.
 It does not reserialize the whole document. Markers are an internal reserved
 format; malformed, unmatched, nested, or unconsumed markers fail the build.
+Attribute names follow HTML's case-insensitive parsing rules. Validation reads
+actual attributes, so literal marker names in text, comments, scripts, styles,
+or unrelated attribute values remain ordinary consumer content.
+
+The `data-mokabook-link-control` attribute namespace, including the stylesheet
+marker, is reserved throughout the document and inert template contents.
+Consumer renderers cannot supply these attributes, even without child links.
+Only the adapter can create them. Duplicate attributes on reserved-metadata
+elements fail even when HTML parsing would collapse them. Compatibility output
+must preserve their
+records: element namespace and tag, control metadata, id, navigation attributes,
+and whether the element is inside a template. The package stylesheet's text
+must also remain intact. Reordering attributes or independent controls is
+allowed; adding, removing, moving metadata to a different logical owner, or
+changing owned records fails the build.
 
 An active control becomes one native HTML anchor. Child content, classes,
 inline styles, ids, labels, and other applicable attributes remain intact.
