@@ -2,11 +2,11 @@
 
 ## Delivery Status
 
-Milestones 4, 4a, 4b, and 7 of the [component explorer plan](../../plans/component-explorer.md)
+Milestones 4, 4a, 4b, 4c, and 7 of the [component explorer plan](../../plans/component-explorer.md)
 deliver the complete mobile/desktop mockup set for sign-off. The
 [icon inspector revision](./mokabook-component-inspector-design.md) and
 [prop controls designs](./mokabook-component-controls-design.md) extend the
-original pages and inspection states. Runtime registration, attribution,
+original pages and inspection states. The [workspace revision](./mokabook-component-workspace-design.md) owns the grouped view controls, bounded panes, resizable inspector, and comparison eligibility. Runtime registration, attribution,
 inspection, and editable preview rendering remain unimplemented. These designs
 extend the [shell design](./mokabook-shell-design.md) and depict the
 [component explorer contract](./mokabook-component-explorer.md).
@@ -48,7 +48,7 @@ mobile component and desktop component; there are no new user-flow pages.
 
 Standalone files insert `.mobile` or `.desktop` before `.html`. All thirty-one component
 screens opt into light documents, matching the existing shell mockups. They
-depict the Light context and retain the shell's Light/Dark selection. Links use
+start in the Light context and expose a native preview theme toggle. Links use
 the existing logical-id navigation contract so they work both directly from
 disk and in Browse. State links demonstrate navigation between mockups; static
 depictions of shell controls do not implement the future runtime inspector.
@@ -56,8 +56,7 @@ depictions of shell controls do not implement the future runtime inspector.
 The shared shell retains the [existing design navigation](./mokabook-design-links.md)
 for brand, home breadcrumb, and the canonical mobile drawer. Component artboards
 select their own typed navigation state; they never inherit Welcome's tag,
-scheme, inspector, or comparison transitions. Their viewport, scheme, comparison,
-and highlight depictions retain native button focus and pressed/disabled states.
+scheme, inspector, or comparison transitions. Their viewport dropdown and theme/highlight switches work through native form state and CSS. Comparison depictions retain native button focus and pressed states only in eligible change scenarios.
 The shared selection control preserves native anchor semantics when an authored
 transition exists. Existing Browse and Changes artboards retain their non-link
 spans for unsupported controls.
@@ -65,23 +64,21 @@ spans for unsupported controls.
 ## Component Pages
 
 Reuse the existing top bar, navigation tree, screen heading, comparison band,
-stage, and segmented controls, adding the shared icon inspector. Components use a small cube
+stage, and comparison controls, adding the shared icon inspector and compact view toolbar. Components use a small cube
 icon in an authored Components collection. Desktop keeps the resizable navigation;
 mobile keeps the compact header and adds short Screen/Components/Changes links
 above the heading so the relevant destinations and change count remain visible.
 
-The saved-variant strip follows the comparison band. The selected variant uses
+The saved-variant strip follows the title and, for changed examples, the comparison band. Known unchanged examples show Unmodified beside the title, with no comparison row. The selected variant uses
 a pale sage surface, border, and explicit current-link state. Default and
 Disabled are one component's variants; neither creates a separate Changes row.
-One canvas shows the selected variant. Mobile context is capped at 390px;
-desktop context uses the available width. Canvases have a 10px radius, a light
+The viewport dropdown shows the mobile canvas, desktop canvas, or both for the selected variant. Mobile context is capped at 390px; desktop context uses the available width with a 720px minimum inside the scrolling preview pane. Canvases have a 10px radius, a light
 border, a small context caption, and a centered component, without device chrome.
 The same `ActionExample` and `ToolbarExample` are reused in consuming screens.
 
-The inspector separates Info (description/source/references), Components (nested
-instances), Props/Controls (supplied values or declared editable fields), and
+The inspector separates Info (description/source/references), Nested components (present only when the component has children), Props/Controls (supplied values or declared editable fields), and
 Usage (Used by plus Affected screens). Only one panel is open at a time. Click
-its icon again or its close affordance to collapse it; no icon is then selected.
+its icon again or its close affordance to collapse it; no icon is then selected. Its content scrolls below a fixed icon strip, and the native grip at the preview’s lower-right corner resizes the split. The outer page does not scroll.
 Props use a definition list and monospace values. Usage rows show screen or
 component titles, direct/transitive relationships, instance counts, and view
 counts derived from the synthetic usage fixture. Source paths are explicit
@@ -110,12 +107,10 @@ has an inspection entry and component page, without an invented visible region.
 Toolbar and Help hint usage links lead to their own selected-instance artboards,
 with the correct prompt or visibility props and Open component destination.
 
-Highlight components is a focusable button with `aria-pressed`. The enabled
-artboards show a light mask at 78% coverage with cutouts over the visible
+Highlight components is a native switch grouped with viewport and theme beside the title. It toggles the overlay without navigation. The enabled artboards show a light mask at 78% coverage with cutouts over the visible
 components. Sage outlines and named labels expose the selected regions; a
 nested selection cuts out only the Toolbar action and dims the parent again.
-The same consumer DOM is used with highlighting off and on. The design adds
-an SVG overlay, not ancestor opacity or a cloned consumer tree.
+The same consumer DOM is used with highlighting off and on. Welcome uses an SVG overlay; Details uses a clipped scrim around its single Action. Neither sets ancestor opacity. Each viewport uses its own overlay, with unique SVG mask ids when Both is selected.
 
 Mask geometry is fixed to the synthetic artboard's layout and tested against
 its actual DOM bounds. Runtime geometry collection, selection, Escape handling,
@@ -126,10 +121,9 @@ example and an explicit empty Used by list.
 
 ## Verification And Maintenance
 
-Use the real generator; never hand-edit generated HTML. Four shared component
+Use the real generator; never hand-edit generated HTML. Six shared component
 stylesheets are hand-authored public inputs, confined to `design/components/**`.
-The component collection declares them as inherited entry dependencies, so edits
-affect only its thirty-one design routes. The controls stylesheet is scoped
+Route-scoped stylesheet matching links them only from the thirty-one component design routes; Changes follows those rendered resource references. The collection also declares inherited dependencies for comparison evidence. The controls stylesheet is scoped
 further to its eleven owning routes, with a matching dependency and watch rule. Keep them out of the global
 `review.sharedImpact` list; watched stylesheet rules still reload their edits.
 Child collection dependency lists replace inherited lists; Controls explicitly
@@ -137,12 +131,12 @@ spreads the shared stylesheet dependency set before adding its own stylesheet.
 Shared fixtures and reusable screen parts live beside the owning screen modules.
 
 `tests/component_design_attribution.test.ts` exercises each component stylesheet
-against the real example configuration and committed manifest. It requires exact
+against the real example configuration and committed manifest through the rendered-resource graph and changed-route projection. It requires exact
 Changes membership for the component routes, excluding unrelated design screens,
 product screens, and their use case.
 
 Run `npm run example:build`, `npm run example:check`, and
-`npx playwright test tests/browser/component_design*.spec.ts`. The browser suite
+`npx playwright test tests/browser/component*.spec.ts`. The browser suite
 opens every artboard directly from disk, checks links, selection semantics,
 counts, missing states, responsive overflow, and mask geometry. Visually inspect
 all generated mobile and desktop pages, including both selected-instance states.

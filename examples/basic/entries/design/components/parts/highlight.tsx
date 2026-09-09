@@ -1,4 +1,5 @@
 import { MockLink } from "mokabook";
+import { useId } from "react";
 
 export type InspectionSelection = "off" | "outer" | "nested";
 
@@ -9,12 +10,13 @@ export function HighlightMask({
   selection: Exclude<InspectionSelection, "off">;
 }) {
   const nested = selection === "nested";
+  const maskId = useId();
   return (
     <div className="ce-highlight-layer" data-selection={selection}>
       <svg className="ce-mask" aria-hidden="true" width="100%" height="100%">
         <defs>
           <mask
-            id="ce-component-cutouts"
+            id={maskId}
             maskUnits="userSpaceOnUse"
             x="0"
             y="0"
@@ -58,9 +60,9 @@ export function HighlightMask({
         <rect
           width="100%"
           height="100%"
-          fill="#f4f4f1"
+          fill="var(--ce-mask, #f4f4f1)"
           fillOpacity="0.78"
-          mask="url(#ce-component-cutouts)"
+          mask={"url(#" + maskId + ")"}
         />
       </svg>
       {nested ? (

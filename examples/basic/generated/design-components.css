@@ -25,9 +25,6 @@
 .ce-design .mbk-nav-row.active {
   color: white;
 }
-.ce-design .mbk-main {
-  overflow: auto;
-}
 .ce-design .mbk-stage {
   min-height: 225px;
   padding: 24px;
@@ -88,7 +85,7 @@
   border: 1px solid var(--chrome-border-strong);
   border-radius: 10px;
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
   width: 100%;
 }
 .ce-canvas--mobile {
@@ -198,23 +195,18 @@
   font-size: 12px;
   padding: 4px 12px;
 }
-.ce-design .mbk-shell--mobile .ce-view-controls {
-  width: 100%;
-}
-.ce-design .mbk-shell--mobile .ce-view-controls .mbk-seg {
-  flex: 1;
-  justify-content: center;
-}
 .ce-design .mbk-shell--mobile .ce-variants {
   padding: 10px 16px;
 }
 .ce-design .mbk-shell--mobile .mbk-stage {
   padding: 18px 14px;
 }
-.ce-design .mbk-shell--mobile .ce-component-comparison .mbk-compare {
+.ce-preview-view[data-preview-viewport="mobile"]
+  .ce-component-comparison
+  .mbk-compare {
   grid-template-columns: 1fr;
 }
-.ce-design .mbk-shell--mobile .ce-canvas-content {
+.ce-preview-view[data-preview-viewport="mobile"] .ce-canvas-content {
   min-height: 180px;
   padding: 18px;
 }

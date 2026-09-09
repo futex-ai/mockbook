@@ -1,14 +1,4 @@
 /* Inspection artboards: shared consumer examples and a mask with real cutouts. */
-.ce-inspection-toolbar {
-  align-items: center;
-  background: white;
-  border-bottom: 1px solid var(--chrome-border);
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 8px 24px;
-}
 .ce-button {
   align-items: center;
   background: white;
@@ -88,6 +78,10 @@
   padding: 0 10px;
 }
 .ce-other-example {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   padding: 24px;
 }
 .ce-other-example h2 {
@@ -181,17 +175,18 @@
   height: 390px;
   min-height: 390px;
 }
-.ce-design .mbk-shell--mobile .ce-inspection-toolbar {
-  padding: 8px 16px;
-}
-.ce-design .mbk-shell--mobile .ce-demo-toolbar .ce-toolbar-example {
+.ce-preview-view[data-preview-viewport="mobile"]
+  .ce-demo-toolbar
+  .ce-toolbar-example {
   font-size: 11px;
   gap: 8px;
   padding: 16px;
 }
-.ce-design .mbk-shell--mobile .ce-demo-content h3 {
+.ce-preview-view[data-preview-viewport="mobile"] .ce-demo-content h3 {
   font-size: 12px;
 }
-.ce-design .mbk-shell--mobile .ce-removed-screen .mbk-compare {
+.ce-preview-view[data-preview-viewport="mobile"]
+  .ce-removed-screen
+  .mbk-compare {
   grid-template-columns: 1fr;
 }

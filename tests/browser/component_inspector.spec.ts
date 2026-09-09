@@ -11,13 +11,13 @@ for (const viewport of ["desktop", "mobile"] as const) {
         ? { width: 1440, height: 1000 }
         : { width: 390, height: 844 },
     );
-    await page.goto(componentDesignUrl("overview", viewport));
+    await page.goto(componentDesignUrl("pages/toolbar", viewport));
     const inspector = page.getByRole("region", {
       name: "Inspector",
       exact: true,
     });
     await expect(inspector.locator(":scope > details[open]")).toHaveCount(1);
-    for (const name of ["Components", "Props", "Usage", "Info"]) {
+    for (const name of ["Nested components", "Props", "Usage", "Info"]) {
       const icon = inspector.getByRole("button", { name, exact: true });
       await icon.focus();
       await expect(icon).toBeFocused();

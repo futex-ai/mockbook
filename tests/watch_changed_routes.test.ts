@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
+import { changedFixture } from "./helpers/changed_fixture.js";
 import {
   createFixture,
   removeFixture,
@@ -63,6 +64,74 @@ test(
       );
     });
     await reader.cancel();
+  },
+);
+
+test(
+  "stylesheet reloads disable invalid Changes input and recover after repair",
+  { timeout: 60_000 },
+  async (context) => {
+    const fixture = await changedFixture(
+      context,
+      validEntrySource(),
+      {
+        extraConfig:
+          'stylesheets: [{ match: "screens/home.html", stylesheets: ["home.css"] }],',
+      },
+      async ({ mockupsDir }) => {
+        await fs.promises.writeFile(
+          path.join(mockupsDir, "home.css"),
+          "body {}",
+        );
+      },
+    );
+    const child = spawn(
+      process.execPath,
+      [cli, "--config", fixture.configPath, "--base", "main", "--port", "0"],
+      { cwd: fixture.root, stdio: ["ignore", "pipe", "pipe"] },
+    );
+    try {
+      const url = await listeningUrl(child);
+      assert.match(
+        await (await fetch(url)).text(),
+        /class="mbk-nav-filter-count">0</,
+      );
+      const events = await fetch(`${url}/__mokabook/events`);
+      const reader = events.body?.getReader();
+      assert.ok(reader);
+      try {
+        assert.match(await readEvent(reader), /event: ready/);
+        await fs.promises.writeFile(
+          path.join(fixture.mockupsDir, "home.css"),
+          '@import "/invalid.css";',
+        );
+        assert.match(await readEvent(reader), /event: update/);
+        await waitFor(async () => {
+          const html = await (await fetch(url)).text();
+          return !html.includes('class="mbk-nav-filter-count"');
+        });
+        assert.equal(
+          (await fetch(`${url}/view/screens/home.html`)).status,
+          200,
+        );
+        await fs.promises.writeFile(
+          path.join(fixture.mockupsDir, "home.css"),
+          "body { color: red; }",
+        );
+        assert.match(await readEvent(reader), /event: update/);
+        await waitFor(async () => {
+          const html = await (await fetch(url)).text();
+          return html.includes('class="mbk-nav-filter-count">2');
+        });
+        await assert.rejects(fs.promises.access(fixture.config.review.outDir), {
+          code: "ENOENT",
+        });
+      } finally {
+        await reader.cancel();
+      }
+    } finally {
+      await stopChild(child);
+    }
   },
 );
 

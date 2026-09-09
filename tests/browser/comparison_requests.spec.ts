@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 
 import { expect, test } from "@playwright/test";
 
-import { requestComparison } from "./comparison_test_helpers.js";
+import { loadComparison } from "./comparison_actions.js";
 
 function gate() {
   let release = (): void => undefined;
@@ -70,7 +70,7 @@ for (const refresh of [false, true]) {
         await (await fetch(endpoint)).text();
       }, stale);
       await arrivedStale.promise;
-      const outcome = requestComparison(page, action).then(
+      const outcome = loadComparison(page, action).then(
         () => true,
         () => false,
       );

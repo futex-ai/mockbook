@@ -29,16 +29,34 @@ for (const viewport of ["mobile", "desktop"] as const) {
         id,
       );
       const toolbar = byClass(document, "mbk-cmp-toolbar")[0];
-      assert.ok(toolbar, id);
-      assert.equal(elements(toolbar, (node) => node.tagName === "a").length, 0);
-      const buttons = elements(toolbar, (node) => node.tagName === "button");
-      assert.equal(buttons.length, 4, id);
+      const comparable = new Set<string>([
+        COMPONENT_PAGES.affected,
+        COMPONENT_PAGES.comparison,
+        COMPONENT_PAGES.removed,
+        CONTROLS_PAGES.comparison,
+        INSPECTION_PAGES["direct-change"],
+        INSPECTION_PAGES["removed-consumer"],
+      ]).has(id);
       assert.equal(
-        buttons.filter((node) => attribute(node, "aria-pressed") === "true")
-          .length,
-        1,
+        byClass(document, "ce-unmodified").length,
+        comparable ? 0 : 1,
         id,
       );
+      if (comparable) {
+        assert.ok(toolbar, id);
+        assert.equal(
+          elements(toolbar, (node) => node.tagName === "a").length,
+          0,
+        );
+        const buttons = elements(toolbar, (node) => node.tagName === "button");
+        assert.equal(buttons.length, 4, id);
+        assert.equal(
+          buttons.filter((node) => attribute(node, "aria-pressed") === "true")
+            .length,
+          1,
+          id,
+        );
+      } else assert.equal(toolbar, undefined, id);
       assert.equal(
         attribute(byClass(document, "mbk-search-tag")[0]!, "href"),
         undefined,

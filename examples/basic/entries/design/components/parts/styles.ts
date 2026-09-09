@@ -7,6 +7,8 @@ export const componentStyles = [
   "design-component-inspection.css",
   "design-component-details.css",
   "design-component-inspector.css",
+  "design-component-workspace.css",
+  "design-component-view.css",
 ];
 
 export const componentStyleDependencies = componentStyles.map(

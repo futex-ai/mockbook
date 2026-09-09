@@ -29,8 +29,10 @@ enabled controls; generated anchors handle the navigation without scripts.
 
 The design screens use the same API for their brand, screen rows, miniature
 content, flow references, inspector, and supported scheme, comparison, and tag
-transitions. These links open canonical design states. Viewport, copy, refresh,
-resize, collapse-all, and unsupported combinations remain visual depictions.
+transitions. These links open canonical design states. Component designs also
+support native viewport/theme/highlight controls and inspector resizing. Other
+viewport/resize controls, copy, refresh, collapse-all, and unsupported combinations
+remain visual depictions.
 The actual outer shell provides its normal runtime controls. See the
 [design mockup links contract](../../docs/protocol/mokabook-design-links.md)
 and the [complete design inventory](../../docs/protocol/mokabook-shell-design.md#design-mockups).
@@ -67,6 +69,13 @@ screen has distinct mobile and desktop components. The component designs are
 static mockups; the component runtime and live preview rendering are later milestones. Native
 fields can be edited, and authored state links show the planned outcomes.
 
+A grouped icon toolbar switches Mobile/Desktop/Both previews, light/dark, and
+screen highlighting without navigation. Leaf components omit Nested components;
+Toolbar demonstrates composition. Unchanged fixtures show Unmodified and omit
+comparison modes. The fixed shell contains separate preview and inspector panes;
+drag the native grip at the preview’s lower-right corner to resize the inspector.
+Its icon strip stays visible while the active content scrolls.
+
 Open `design/components/overview.html` in Browse, or open
 [`generated/design/components/overview.desktop.html`](./generated/design/components/overview.desktop.html)
 and [`overview.mobile.html`](./generated/design/components/overview.mobile.html)
@@ -87,18 +96,25 @@ grip; mobile keeps its fixed drawer. The component designs reuse the existing sh
 and a shared icon inspector, with synthetic usage fixtures under
 `entries/design/components/parts`. No component feature is added to the public API.
 
-Component design stylesheets are dependencies of the component collection,
-scoped to its thirty-one routes. They remain watched for reloads, but are excluded
-from global `review.sharedImpact` so edits do not flag unrelated screens or the
-example tour as changed. A regression suite checks all four shared stylesheets and the further-scoped controls stylesheet against
-the real configuration and generated manifest.
+Component design stylesheets are linked only from the collection’s thirty-one
+routes and declared as its dependencies for comparison evidence. Changes follows
+the actual rendered CSS references. The styles remain watched for reloads;
+excluding them from global `review.sharedImpact` avoids unrelated dependency
+evidence. A regression suite checks all six shared stylesheets and the
+further-scoped controls stylesheet against the real configuration, generated
+manifest, and rendered resource graph.
 
 The recorded tokens and responsive rules live in the
 [shell design contract](../../docs/protocol/mokabook-shell-design.md); component
 routes, fixture relationships, mask geometry, and delivery status live in the
 [component design contract](../../docs/protocol/mokabook-component-design.md),
-[inspector design](../../docs/protocol/mokabook-component-inspector-design.md), and
-[controls design](../../docs/protocol/mokabook-component-controls-design.md).
+[inspector design](../../docs/protocol/mokabook-component-inspector-design.md),
+[controls design](../../docs/protocol/mokabook-component-controls-design.md), and
+[workspace design](../../docs/protocol/mokabook-component-workspace-design.md).
+
+The shared-impact and ignored-only comparison examples open from All with zero
+Changes. Dependency evidence remains available in comparison details, while
+unchanged output and paired ignored-only edits do not fill the review list.
 
 From the repository root:
 

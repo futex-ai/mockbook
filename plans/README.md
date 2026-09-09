@@ -2,8 +2,8 @@
 
 ## Active
 
-- [Component Explorer](./component-explorer.md) — all mockups ready for sign-off;
-  runtime implementation pending.
+- [Component Explorer](./component-explorer.md) — workspace mockup refinements
+  in progress; runtime implementation pending.
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 

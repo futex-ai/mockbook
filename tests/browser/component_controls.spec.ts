@@ -12,9 +12,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
         : { width: 390, height: 844 },
     );
     await page.goto(componentDesignUrl("overview", viewport));
-    const saved = await page.locator(".ce-canvas").boundingBox();
+    const saved = await page.locator(".ce-canvas:visible").boundingBox();
     await page.goto(componentDesignUrl("controls/overview", viewport));
-    const editable = await page.locator(".ce-canvas").boundingBox();
+    const editable = await page.locator(".ce-canvas:visible").boundingBox();
     expect(editable?.width).toBe(saved?.width);
   });
 
@@ -31,7 +31,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(page).toHaveURL(
       componentDesignUrl("controls/editing/variant", viewport),
     );
-    await expect(page.locator(".ce-canvas .ce-action")).toBeDisabled();
+    await expect(page.locator(".ce-canvas:visible .ce-action")).toBeDisabled();
     await page.goto(componentDesignUrl("controls/overview", viewport));
     const controls = page.getByRole("region", {
       name: "Controls",
@@ -59,7 +59,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
       controls.getByRole("textbox", { name: "label", exact: true }),
     ).toHaveValue("Next");
     await page.goto(componentDesignUrl("controls/editing/edited", viewport));
-    await expect(page.locator(".ce-canvas .ce-action")).toHaveText(
+    await expect(page.locator(".ce-canvas:visible .ce-action")).toHaveText(
       "Get started",
     );
     await expect(
@@ -71,12 +71,14 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(page).toHaveURL(
       componentDesignUrl("controls/editing/reset", viewport),
     );
-    await expect(page.locator(".ce-canvas .ce-action")).toHaveText("Continue");
+    await expect(page.locator(".ce-canvas:visible .ce-action")).toHaveText(
+      "Continue",
+    );
     await expect(
       controls.getByRole("textbox", { name: "label", exact: true }),
     ).toHaveValue("Continue");
     await page.getByRole("link", { name: "Disabled", exact: true }).click();
-    await expect(page.locator(".ce-canvas .ce-action")).toBeDisabled();
+    await expect(page.locator(".ce-canvas:visible .ce-action")).toBeDisabled();
     await expect(
       controls.getByRole("checkbox", { name: "disabled", exact: true }),
     ).toBeChecked();
@@ -89,7 +91,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(radius).toHaveAccessibleDescription(
       "Enter a number from 0 to 24.",
     );
-    await expect(page.locator(".ce-canvas .ce-action")).toHaveCSS(
+    await expect(page.locator(".ce-canvas:visible .ce-action")).toHaveCSS(
       "border-radius",
       "8px",
     );
@@ -150,6 +152,6 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(
       page.locator(".ce-inspector input, .ce-inspector select"),
     ).toHaveCount(0);
-    await expect(page.locator(".ce-canvas .ce-action")).toBeDisabled();
+    await expect(page.locator(".ce-canvas:visible .ce-action")).toBeDisabled();
   });
 }

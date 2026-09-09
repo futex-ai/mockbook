@@ -19,24 +19,14 @@ export type ComponentPageState =
   | "removed"
   | "closed";
 
-export function ComponentChildren({ toolbar = false }: { toolbar?: boolean }) {
+function ComponentChildren() {
   return (
     <section>
       <h3>
-        Components <span>{toolbar ? "1 instance" : "0"}</span>
+        Nested components <span>1 instance</span>
       </h3>
-      {toolbar ? (
-        <>
-          <MockLink to="design-component-overview">
-            Action · Main action ↗
-          </MockLink>
-          <p className="ce-muted">1 instance · Default variant</p>
-        </>
-      ) : (
-        <p className="ce-empty-copy">
-          No registered components are used in this view.
-        </p>
-      )}
+      <MockLink to="design-component-overview">Action · Main action ↗</MockLink>
+      <p className="ce-muted">1 instance · Default variant</p>
     </section>
   );
 }
@@ -108,11 +98,15 @@ export function ComponentDetails({ state }: { state: ComponentPageState }) {
           label: "Info",
           content: <ComponentInfo identity={COMPONENT_BY_STATE[state]} />,
         },
-        {
-          id: "components",
-          label: "Components",
-          content: <ComponentChildren toolbar={state === "toolbar"} />,
-        },
+        ...(state === "toolbar"
+          ? [
+              {
+                id: "components" as const,
+                label: "Nested components",
+                content: <ComponentChildren />,
+              },
+            ]
+          : []),
         {
           id: "props",
           label: "Props",

@@ -4,6 +4,7 @@ import { CompareGrid, MissingPane, Pane } from "../../parts/compare.js";
 import type { ArtboardViewport } from "../../parts/shell.js";
 import type { ActionProps } from "./action_props.js";
 import { toolbarPrompt } from "./fixtures.js";
+import { PreviewScheme } from "./view_controls.js";
 
 /** The same synthetic Action is composed by component and consuming-screen designs. */
 export function ActionExample({
@@ -53,7 +54,9 @@ export function ComponentCanvas({
       className={`ce-canvas ce-canvas--${viewport}`}
       aria-label={`${viewport === "mobile" ? "Mobile" : "Desktop"} component preview`}
     >
-      <span className="ce-canvas-label">{viewport} · Light</span>
+      <span className="ce-canvas-label">
+        {viewport} · <PreviewScheme />
+      </span>
       <div className="ce-canvas-content">{children}</div>
     </section>
   );

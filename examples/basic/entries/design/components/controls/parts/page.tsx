@@ -1,7 +1,6 @@
 import { MockLink } from "mokabook";
 
 import type { ArtboardViewport } from "../../../parts/shell.js";
-import { ComponentChildren } from "../../parts/component_details.js";
 import { ComponentInfo } from "../../parts/component_info.js";
 import { ComponentLayout } from "../../parts/component_layout.js";
 import { UsedBy } from "../../parts/component_usage.js";
@@ -65,6 +64,7 @@ export function ControlsPage({
     <ComponentLayout
       design={CONTROLS_PAGES[state]}
       comparison={state === "comparison"}
+      scenario={state === "comparison" ? "component" : "all"}
       viewport={viewport}
       variants={<ControlsVariants state={state} />}
       inspector={
@@ -75,11 +75,6 @@ export function ControlsPage({
               id: "info",
               label: "Info",
               content: <ComponentInfo identity="action" />,
-            },
-            {
-              id: "components",
-              label: "Components",
-              content: <ComponentChildren />,
             },
             {
               id: "props",
@@ -95,21 +90,23 @@ export function ControlsPage({
         />
       }
     >
-      {state === "comparison" ? (
-        <ComponentComparison viewport={viewport} />
-      ) : (
-        <div className="ce-controls-preview" aria-busy={state === "pending"}>
-          <ComponentCanvas viewport={viewport}>
-            <ActionExample {...fixture.preview} />
-          </ComponentCanvas>
-          {state === "pending" ? (
-            <p className="ce-preview-status" role="status">
-              <span aria-hidden="true" className="ce-pending-dot" />
-              Updating preview…
-            </p>
-          ) : null}
-        </div>
-      )}
+      {(previewViewport) =>
+        state === "comparison" ? (
+          <ComponentComparison viewport={previewViewport} />
+        ) : (
+          <div className="ce-controls-preview" aria-busy={state === "pending"}>
+            <ComponentCanvas viewport={previewViewport}>
+              <ActionExample {...fixture.preview} />
+            </ComponentCanvas>
+            {state === "pending" ? (
+              <p className="ce-preview-status" role="status">
+                <span aria-hidden="true" className="ce-pending-dot" />
+                Updating preview…
+              </p>
+            ) : null}
+          </div>
+        )
+      }
     </ComponentLayout>
   );
 }

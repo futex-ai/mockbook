@@ -3,11 +3,8 @@
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
-import { minimatch } from "minimatch";
-
 import { projectRealPath, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
-import { dependencyContainsChangedPath } from "../registry/dependency_paths.js";
 import {
   analyzeHierarchy,
   type CatalogueHierarchy,
@@ -18,6 +15,7 @@ import { readBaseManifest } from "../review/base_manifest.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import type { GitClient } from "../review/git.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import { changedContentPaths } from "./changed_content.js";
 
 /** Compute routes affected since the base branch point, if available. */
 export async function computeChangedRoutes(
@@ -45,13 +43,26 @@ export async function computeChangedRoutes(
     );
     const manifest = readManifest(config);
     const baseManifest = await readBaseManifest(client, commit, config);
-    return changedManifestRoutes(manifest, baseManifest, config, changed);
+    const contentChanges = await changedContentPaths(
+      manifest,
+      baseManifest,
+      config,
+      client,
+      commit,
+      changed,
+    );
+    return changedManifestRoutes(
+      manifest,
+      baseManifest,
+      config,
+      contentChanges,
+    );
   } catch {
     return undefined;
   }
 }
 
-/** Match manifest entries against repository-relative changed paths. */
+/** Match reviewable metadata and repository-relative material fragment paths. */
 export function changedManifestRoutes(
   manifest: ManifestV3,
   baseManifest: ManifestV3,
@@ -60,11 +71,6 @@ export function changedManifestRoutes(
 ): readonly string[] {
   const mockupsPrefix = toPosixPath(
     path.relative(config.repoRoot, config.mockupsDir),
-  );
-  const sharedImpact = changedPaths.some((changed) =>
-    config.review.sharedImpact.some((glob) =>
-      minimatch(changed, glob, { dot: true }),
-    ),
   );
   const routes = new Set<string>();
   const changedScreenIds = new Set<string>();
@@ -78,15 +84,12 @@ export function changedManifestRoutes(
     const baseEntry = baseEntries.get(entry.id);
     const candidates = changedPathCandidates(entry, baseEntry, mockupsPrefix);
     if (
-      !sharedImpact &&
       isDeepStrictEqual(
         routeChangeProjection(entry, hierarchy),
         routeChangeProjection(baseEntry, baseHierarchy),
       ) &&
       !candidates.some((candidate) =>
-        changedPaths.some((changedPath) =>
-          dependencyContainsChangedPath(candidate, changedPath),
-        ),
+        changedPaths.some((changedPath) => candidate === changedPath),
       )
     ) {
       continue;
@@ -115,13 +118,11 @@ function routeChangeProjection(
     ancestorCollections: (hierarchy.ancestorsById.get(entry.id) ?? []).map(
       ({ id, title }) => ({ id, title }),
     ),
-    dependencies: entry.dependencies,
     description: entry.description,
     id: entry.id,
     kind: entry.kind,
     rationale: entry.rationale,
     relatedDocs: entry.relatedDocs,
-    sourcePath: entry.sourcePath,
     tags: entry.kind === "collection" ? undefined : entry.tags,
     title: entry.title,
   };
@@ -147,28 +148,20 @@ function changedPathCandidates(
   baseEntry: ManifestEntry | undefined,
   mockupsPrefix: string,
 ): string[] {
-  const candidates = [
-    ...declaredDependencies(entry),
-    ...(baseEntry ? declaredDependencies(baseEntry) : []),
-  ];
+  const candidates: string[] = [];
+  const prefix = mockupsPrefix ? `${mockupsPrefix}/` : "";
   for (const candidate of [entry, baseEntry]) {
     if (candidate?.kind !== "screen") continue;
     candidates.push(
-      `${mockupsPrefix}/${candidate.fragments.mobile}`,
-      `${mockupsPrefix}/${candidate.fragments.desktop}`,
+      `${prefix}${candidate.fragments.mobile}`,
+      `${prefix}${candidate.fragments.desktop}`,
     );
     if (candidate.darkFragments) {
       candidates.push(
-        `${mockupsPrefix}/${candidate.darkFragments.mobile}`,
-        `${mockupsPrefix}/${candidate.darkFragments.desktop}`,
+        `${prefix}${candidate.darkFragments.mobile}`,
+        `${prefix}${candidate.darkFragments.desktop}`,
       );
     }
   }
   return [...new Set(candidates)];
-}
-
-function declaredDependencies(entry: ManifestEntry): readonly string[] {
-  return entry.dependencies.filter(
-    (dependency) => dependency !== entry.sourcePath,
-  );
 }

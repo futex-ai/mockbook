@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
 import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
-import { Stage } from "../../parts/stage.js";
-import { ViewControls } from "./controls.js";
+import { ViewControls } from "./view_controls.js";
+import { PreviewWorkspace } from "./workspace.js";
 import type { ComponentDesignDestination } from "./destinations.js";
 import { COMPONENTS, type ComponentId } from "./metadata.js";
 import { ExplorerShell, type ChangeScenario } from "./navigation.js";
@@ -11,6 +11,7 @@ import { ExplorerShell, type ChangeScenario } from "./navigation.js";
 export function ComponentLayout({
   children,
   comparison = false,
+  changed = false,
   design,
   identity = "action",
   inspector,
@@ -18,8 +19,9 @@ export function ComponentLayout({
   variants,
   viewport,
 }: {
-  children: ReactNode;
+  children: (viewport: ArtboardViewport) => ReactNode;
   comparison?: boolean;
+  changed?: boolean;
   design: ComponentDesignDestination;
   identity?: ComponentId;
   inspector: ReactNode;
@@ -41,11 +43,16 @@ export function ComponentLayout({
         crumbs={["Example", "Components"]}
         idChip={id}
         action={<ViewControls viewport={viewport} />}
+        comparisons={changed || comparison}
+        status={
+          !changed && !comparison ? (
+            <span className="ce-unmodified">Unmodified</span>
+          ) : undefined
+        }
         comparisonMode={comparison ? "side-by-side" : "current"}
       />
       {variants}
-      <Stage>{children}</Stage>
-      {inspector}
+      <PreviewWorkspace inspector={inspector} render={children} />
     </ExplorerShell>
   );
 }

@@ -1,0 +1,119 @@
+/* Fixed shell with independently scrolling preview and inspector contents. */
+.ce-design .mbk-shell {
+  height: 100dvh;
+  min-height: 0;
+}
+.ce-design .mbk-main {
+  overflow: hidden;
+}
+.ce-design .mbk-topbar,
+.ce-design .mbk-screen-head {
+  flex-shrink: 0;
+}
+.ce-workspace {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.ce-preview-pane {
+  flex: 1 1 0;
+  min-height: 80px;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ce-workspace:has(.ce-inspector > details[open]) > .ce-preview-pane {
+  border-bottom: 5px solid #dce3dd;
+  flex: 0 0 auto;
+  height: 50%;
+  max-height: calc(100% - 120px);
+  resize: vertical;
+}
+.ce-workspace:not(:has(.ce-inspector > details[open])) > .ce-preview-pane {
+  height: auto !important;
+  resize: none;
+}
+.ce-preview-pane::-webkit-resizer {
+  background: linear-gradient(
+    135deg,
+    transparent 45%,
+    #6b8172 46%,
+    #6b8172 53%,
+    transparent 54%
+  );
+}
+.ce-design .ce-preview-pane > .mbk-stage {
+  display: block;
+  min-height: 100%;
+  overflow: visible;
+}
+.ce-workspace .ce-inspector {
+  flex: 0 0 49px;
+  grid-template-rows: 48px 0;
+  min-height: 49px;
+  overflow: hidden;
+}
+.ce-workspace .ce-inspector:has(> details[open]) {
+  flex: 1 1 0;
+  grid-template-rows: 48px minmax(0, 1fr);
+  min-height: 120px;
+}
+.ce-design .ce-workspace .ce-inspector-panel {
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ce-preview-set {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+}
+.ce-preview-view {
+  display: none;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+.ce-preview-view[data-preview-viewport="desktop"] {
+  min-width: 720px;
+}
+.ce-design:has(.ce-viewport-select option[value="mobile"]:checked)
+  [data-preview-viewport="mobile"],
+.ce-design:has(.ce-viewport-select option[value="desktop"]:checked)
+  [data-preview-viewport="desktop"],
+.ce-design:has(.ce-viewport-select option[value="both"]:checked)
+  .ce-preview-view {
+  display: block;
+}
+.ce-design:has(.ce-viewport-select option[value="both"]:checked)
+  [data-preview-viewport="mobile"] {
+  flex: 0 1 320px;
+}
+.ce-design:has(.ce-viewport-select option[value="both"]:checked)
+  [data-preview-viewport="desktop"] {
+  flex: 1 1 720px;
+}
+.ce-preview-view .ce-canvas--mobile {
+  margin-inline: auto;
+}
+.ce-preview-view > .mbk-frame-mobile {
+  margin-inline: auto;
+}
+.ce-preview-view .mbk-frame-desktop {
+  max-width: none;
+  min-width: 0;
+}
+.ce-unmodified {
+  border: 1px solid var(--chrome-border);
+  border-radius: 999px;
+  color: var(--chrome-muted);
+  font-size: 11px;
+  font-weight: 400;
+  padding: 3px 9px;
+}

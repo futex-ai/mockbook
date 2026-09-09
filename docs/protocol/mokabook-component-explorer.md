@@ -20,11 +20,19 @@ a separate explorer application or automatically invented Components folder is
 not required. The example catalogue should provide an authored Components group.
 
 A component page contains its title, description, selected saved variant,
-preview canvas, viewport/theme selectors, comparison controls, and an icon inspector.
+preview canvas, grouped view controls, eligible comparison controls, and an icon inspector.
 The canvas uses the consumer renderer and gives a small component suitable
 space without implying it is a whole phone screen. Mobile/desktop still select
 distinct viewport contexts; controls must not fake scaling or modify consumer
 props to fit. Long or full-width components remain inspectable by scrolling.
+
+One icon toolbar beside the title groups a Mobile/Desktop/Both dropdown and a
+light/dark toggle. Screen views add the Highlight components toggle there. Both
+renders both real viewport contexts. The shell and title stay fixed; the preview
+and vertically resizable inspector are sibling panes whose contents scroll.
+The inspector tabs stay outside its scrolling content. Runtime resizing supports
+pointer and keyboard input, clamps both pane sizes, and restores usable bounds
+after closing/reopening or changing the available viewport.
 
 Saved variants are selectable by name. One component page shows one selected
 variant at a time; variants are not independent Changes rows. A validated
@@ -40,13 +48,23 @@ variants have explicit missing sides. Page navigation and reload start in
 Current, as screens do today. Saved variant selection and comparison are fully
 usable in served and published catalogues.
 
+Only expose comparison modes when actual evidence makes the saved selection
+eligible. A known unmodified selection shows Unmodified beside its title and
+only its current preview. Unknown evidence does not imply Unmodified. Affected
+consumers can remain eligible without entering Changes; temporary control edits
+never establish comparison eligibility. Do not eagerly generate screenshots to
+decide whether the mode row is available.
+
 `MockLink` and id redirects can target a component's default variant using the
 existing logical-id contract. Generated standalone links resolve to the default
 variant's viewport/theme fragment. Variant selectors and Used by links are
 shell-owned URLs; do not overload the existing logical fragment grammar with
 component prop JSON or variant suffixes.
 
-The shared inspector has Info, Components, Props/Controls, and Usage icons.
+The shared inspector has Info, Props/Controls, and Usage icons. Composed
+components also have Nested components, listing their rendered registered
+children and excluding themselves; leaves omit that tab. Screens retain the
+Components tab, including empty and unavailable states.
 Clicking an icon opens its panel or switches the open panel; clicking the active
 icon or Close collapses it. With no panel open, no icon is selected. Info contains
 source/docs/tags/dependencies, Props contains the supplied values, and Usage

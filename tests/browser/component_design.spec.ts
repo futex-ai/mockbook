@@ -53,13 +53,13 @@ for (const viewport of ["desktop", "mobile"] as const) {
       page,
     }) => {
       await page.goto(componentDesignUrl("overview", viewport));
-      await expect(page.locator(".ce-canvas")).toHaveCount(1);
+      await expect(page.locator(".ce-canvas:visible")).toHaveCount(1);
       await expect(page.locator(".phone-frame, .browser-frame")).toHaveCount(0);
       await page.getByRole("link", { name: "Disabled", exact: true }).click();
       await expect(page).toHaveURL(
         componentDesignUrl("pages/variants", viewport),
       );
-      await expect(page.locator(".ce-canvas button")).toBeDisabled();
+      await expect(page.locator(".ce-canvas:visible button")).toBeDisabled();
       await expect(page.getByLabel("Supplied props")).toContainText("true");
       await page.getByRole("button", { name: "Usage", exact: true }).click();
       const welcome = page
@@ -76,24 +76,20 @@ for (const viewport of ["desktop", "mobile"] as const) {
       ).toContainText("Footer action");
     });
 
-    test("depicted view and comparison controls expose keyboard focus and selected state", async ({
+    test("view and comparison controls expose keyboard focus and selected state", async ({
       page,
     }) => {
       await page.goto(componentDesignUrl("overview", viewport));
-      const selectedView = page
-        .getByRole("group", { name: "Viewport", exact: true })
-        .getByRole("button", {
-          name: viewport === "desktop" ? "Desktop" : "Mobile",
-          exact: true,
-        });
+      const selectedView = page.getByRole("combobox", {
+        name: "Preview viewport",
+      });
       await selectedView.focus();
       await expect(selectedView).toBeFocused();
-      await expect(selectedView).toHaveAttribute("aria-pressed", "true");
+      await expect(selectedView).toHaveValue(viewport);
       await expect(
-        page
-          .getByRole("group", { name: "Color scheme" })
-          .getByRole("button", { name: "Light", exact: true }),
-      ).toHaveAttribute("aria-pressed", "true");
+        page.getByRole("switch", { name: "Dark mode" }),
+      ).not.toBeChecked();
+      await page.goto(componentDesignUrl("pages/affected", viewport));
       await expect(
         page
           .getByRole("group", { name: "Comparison mode" })
@@ -144,19 +140,22 @@ for (const viewport of ["desktop", "mobile"] as const) {
       ] as const) {
         await page.goto(componentDesignUrl(`inspection/${route}`, viewport));
         await expect(
-          page.getByRole("button", { name: "Highlight components" }),
-        ).toHaveAttribute("aria-pressed", "true");
+          page.getByRole("switch", { name: "Highlight components" }),
+        ).toBeChecked();
         for (const [mask, component] of matches) {
           const geometry = await page.evaluate(
-            ({ mask, component }) => {
-              const shape = document.querySelector<SVGGraphicsElement>(mask)!;
+            ({ mask, component, viewport }) => {
+              const preview = document.querySelector(
+                `[data-preview-viewport="${viewport}"]`,
+              )!;
+              const shape = preview.querySelector<SVGGraphicsElement>(mask)!;
               const cutout = shape.getBBox();
               const origin = shape.ownerSVGElement!.getBoundingClientRect();
-              const bounds = document
+              const bounds = preview
                 .querySelector(component)!
                 .getBoundingClientRect();
               const ancestors: string[] = [];
-              let element: Element | null = document.querySelector(component);
+              let element: Element | null = preview.querySelector(component);
               while (element) {
                 ancestors.push(getComputedStyle(element).opacity);
                 element = element.parentElement;
@@ -172,7 +171,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
                 ancestors,
               };
             },
-            { mask, component },
+            { mask, component, viewport },
           );
           geometry.bounds.forEach((value, index) =>
             expect(geometry.cutout[index]).toBeCloseTo(value, 0),
@@ -188,8 +187,8 @@ for (const viewport of ["desktop", "mobile"] as const) {
           await expect(
             page.getByRole("region", { name: "Selected instance" }),
           ).toContainText("Toolbar action");
-          await expect(page.locator(".ce-region")).toHaveCount(1);
-        } else await expect(page.locator(".ce-region")).toHaveCount(2);
+          await expect(page.locator(".ce-region:visible")).toHaveCount(1);
+        } else await expect(page.locator(".ce-region:visible")).toHaveCount(2);
       }
     });
 
@@ -205,7 +204,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
         page.getByText("Component inspection is unavailable for this screen."),
       ).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "Highlight components" }),
+        page.getByRole("switch", { name: "Highlight components" }),
       ).toBeDisabled();
       await page.goto(componentDesignUrl("inspection/details", viewport));
       await page
@@ -224,7 +223,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
       ).toBeVisible();
       await page.goto(componentDesignUrl("states/removed", viewport));
       await expect(
-        page.getByText("This variant has been removed.", { exact: true }),
+        page
+          .locator(".ce-preview-view:visible")
+          .getByText("This variant has been removed.", { exact: true }),
       ).toBeVisible();
       await page
         .getByRole("region", { name: "Affected screens", exact: true })
@@ -234,10 +235,12 @@ for (const viewport of ["desktop", "mobile"] as const) {
         componentDesignUrl("states/removed-consumer", viewport),
       );
       await expect(
-        page.getByText("Farewell has been removed.", { exact: true }),
+        page
+          .locator(".ce-preview-view:visible")
+          .getByText("Farewell has been removed.", { exact: true }),
       ).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "Highlight components" }),
+        page.getByRole("switch", { name: "Highlight components" }),
       ).toBeDisabled();
     });
   });
@@ -253,7 +256,7 @@ test("the served catalogue reaches component designs and follows their variant l
     ),
   ).toHaveAttribute("aria-current", "page");
   const desktop = page.frameLocator(".mbk-frame-desktop iframe");
-  await expect(desktop.locator(".ce-canvas")).toBeVisible();
+  await expect(desktop.locator(".ce-canvas:visible")).toBeVisible();
   await desktop.getByRole("link", { name: "Disabled", exact: true }).click();
   await expect(page).toHaveURL(/\/design\/components\/pages\/variants.html$/);
   await expect(
@@ -262,6 +265,8 @@ test("the served catalogue reaches component designs and follows their variant l
     ),
   ).toHaveAttribute("aria-current", "page");
   await expect(
-    page.frameLocator(".mbk-frame-desktop iframe").locator(".ce-canvas button"),
+    page
+      .frameLocator(".mbk-frame-desktop iframe")
+      .locator(".ce-canvas:visible button"),
   ).toBeDisabled();
 });

@@ -1,7 +1,7 @@
 import { expect, type Page, type Request } from "@playwright/test";
 
 /** Await on-demand snapshot generation before applying UI assertion deadlines. */
-export async function requestComparison(
+export async function loadComparison(
   page: Page,
   action: "Overlay" | "Side by side" | "Try again" | "Refresh comparison",
 ): Promise<void> {
@@ -40,4 +40,5 @@ export async function requestComparison(
     page.getByRole("button", { name: action, exact: true }).click(),
   ]);
   expect(response.ok()).toBe(true);
+  expect(await response.finished()).toBeNull();
 }

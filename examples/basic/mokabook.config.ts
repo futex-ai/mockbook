@@ -60,6 +60,8 @@ export default defineConfig({
           "examples/basic/generated/design-component-details.css",
           "examples/basic/generated/design-component-inspector.css",
           "examples/basic/generated/design-component-controls.css",
+          "examples/basic/generated/design-component-workspace.css",
+          "examples/basic/generated/design-component-view.css",
           "examples/basic/generated/design-review.css",
           "examples/basic/generated/design-stage.css",
           "examples/basic/generated/design.css",

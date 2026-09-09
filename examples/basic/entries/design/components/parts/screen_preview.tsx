@@ -1,7 +1,10 @@
+import { MockLink } from "mokabook";
+
 import { BrowserFrame, PhoneFrame } from "../../parts/stage.js";
 import type { ArtboardViewport } from "../../parts/shell.js";
 import { ActionExample, ToolbarExample } from "./preview.js";
 import { HighlightMask, type InspectionSelection } from "./highlight.js";
+import { PreviewScheme } from "./view_controls.js";
 
 export type ScreenPageState =
   | "closed"
@@ -37,7 +40,7 @@ export function WelcomeExample({
       <div className="ce-demo-footer">
         <ActionExample label={directChange ? "Get started" : "Continue"} />
       </div>
-      {selection !== "off" ? <HighlightMask selection={selection} /> : null}
+      <HighlightMask selection={selection === "off" ? "outer" : selection} />
     </div>
   );
 }
@@ -54,7 +57,16 @@ export function ConsumerFrame({
       <div className="ce-other-example">
         <h2>Details</h2>
         <p>Everything you need for your next step.</p>
-        <ActionExample />
+        <div className="ce-single-action">
+          <ActionExample />
+          <MockLink
+            className="ce-single-highlight ce-highlight-layer"
+            to="design-component-inspection-consumer"
+            aria-label="Inspect Action, Continue"
+          >
+            <span>Action · Continue</span>
+          </MockLink>
+        </div>
       </div>
     ) : state === "empty" || state === "unavailable" ? (
       <div className="ce-other-example">
@@ -79,16 +91,20 @@ export function ConsumerFrame({
         }
       />
     );
-  return viewport === "mobile" ? (
-    <PhoneFrame label="Mobile · Light" small>
-      {content}
-    </PhoneFrame>
-  ) : (
-    <BrowserFrame
-      address={`example.test/${state === "consumer" ? "details" : state === "removed-consumer" ? "farewell" : state === "empty" || state === "unavailable" ? "reading-room" : "welcome"}`}
-      label="Desktop · Light"
-    >
-      {content}
-    </BrowserFrame>
+  return (
+    <>
+      <p className="mbk-frame-label">
+        {viewport === "mobile" ? "Mobile" : "Desktop"} · <PreviewScheme />
+      </p>
+      {viewport === "mobile" ? (
+        <PhoneFrame small>{content}</PhoneFrame>
+      ) : (
+        <BrowserFrame
+          address={`example.test/${state === "consumer" ? "details" : state === "removed-consumer" ? "farewell" : state === "empty" || state === "unavailable" ? "reading-room" : "welcome"}`}
+        >
+          {content}
+        </BrowserFrame>
+      )}
+    </>
   );
 }

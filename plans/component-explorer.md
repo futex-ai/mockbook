@@ -1,8 +1,9 @@
 # Component Explorer
 
-Status: active; all mockup milestones (4, 4a, 4b, and 7) are completed and ready
-for joint sign-off. Component runtime implementation remains pending. At the
-user's request, 4b and 7 were delivered ahead of the runtime/backend milestones.
+Status: active; mockup milestones 4, 4a, 4b, and 7 are completed. Milestone 4c
+applies the subsequent design feedback before sign-off. Component runtime
+implementation remains pending. At the user's request, the mockups precede
+the runtime/backend milestones.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -228,6 +229,42 @@ The controls table formatting was corrected independently during handoff;
 no other new review fixes were applied. Published-preview checks passed for
 inspector open/close, controls navigation, and read-only saved variants.
 
+## Milestone 4c: Refine view controls and inspector layout
+
+Tags: mockup
+
+Apply the [workspace design revision](../docs/protocol/mokabook-component-workspace-design.md)
+without reopening completed mockup milestones or implementing the runtime.
+
+- [x] Inspect the supplied screenshots and specify nested-component tab scope,
+      grouped view controls, comparison eligibility, scrolling, and resizing.
+- [x] Capture failing regressions for inactive viewport controls, comparison
+      controls on unchanged examples, and enclosing page/panel scrolling.
+- [x] Group icon controls beside the title; make viewport, scheme, and fixture
+      highlighting work natively, retaining inputs while switching contexts.
+- [x] Hide Nested components for leaves; retain it for composed components and
+      preserve the screen inspector's empty/unavailable states.
+- [x] Bound the shell and pane contents, add an inspector resize grip, and verify
+      that resizing, scrolling, and closing keep headers and tabs reachable.
+- [x] Keep comparison controls on changed/affected examples and show Unmodified
+      for unchanged examples without treating temporary prop edits as Changes.
+- [x] Update owning docs and README, regenerate all artboards, preserve mainline
+      output, and visually inspect mobile/desktop plus Both/Dark interactions.
+- [x] Integrate main’s Changes/resource-watch update, preserve its source and
+      generated screens, and adapt stylesheet attribution tests to rendered resources.
+- [x] Run focused tests and `cargo xtask check`; inspect the diff and deletions.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after pushing; report new findings for user decision.
+- [ ] Update PR #48 with the revised sign-off scope and validation.
+
+Validation: all 493 TypeScript unit/integration tests, 133 Chromium tests, and
+3 Rust tests passed through `cargo xtask check`, including package smokes and
+format/lint/type/generated-output checks. All 62 component artboards and the
+Both/Dark/resized states were visually checked. Main at `a5ecbc0` is integrated
+with its runtime source and 56 artboards preserved. The local check used Xcode’s
+Git executable directly to avoid launcher delays; test deadlines are unchanged.
+Commit/push, post-push review, and final PR handoff are recorded after they finish.
+
 ## Milestone 5: Implement component pages and inspection
 
 Tags: ui
@@ -238,6 +275,14 @@ or rendering-contract changes belong in this milestone.
 - [ ] Reuse shell navigation, search/tags, Details, preview, and comparison
       components; add component entries, saved-variant selection, and suitable
       canvases with viewport/theme and URL/history behavior.
+- [ ] Implement the grouped viewport/theme/highlight icon controls with working
+      Mobile/Desktop/Both contexts and comparison eligibility from real evidence;
+      show Unmodified only for known unchanged saved examples.
+- [ ] Keep shell headers and inspector icons fixed around sibling scrolling
+      panes; implement the full-width draggable, keyboard-accessible divider,
+      bounded sizing, and close/reopen behavior from the workspace design.
+- [ ] Show Nested components only for component pages with recorded children;
+      preserve explicit empty/unavailable inspection on screen pages.
 - [ ] Render Used by/Affected screens from actual current/baseline evidence,
       including removed consumers and links into the correct screen instance.
 - [ ] Add the screen Details component tree, counts, props/slots, instance

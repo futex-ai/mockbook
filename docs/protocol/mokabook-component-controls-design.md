@@ -11,9 +11,11 @@ rendering service, and editable runtime controls remain unimplemented.
 ## Controls Panel
 
 Reuse the component page, saved-variant strip, canvas, comparison band, and
-shared icon inspector. Controls occupies the Props/Controls tab; Info,
-Components, and Usage remain independently available. Keep one preview above
-one inspector instead of placing every kind of data in a wide Details panel.
+shared icon inspector. Controls occupies the Props/Controls tab; Info and Usage
+remain independently available. The leaf Action component has no Nested
+components tab. The [workspace design](./mokabook-component-workspace-design.md)
+groups view controls, shows both selected preview contexts, and gives the
+inspector a resizable pane beneath the preview.
 
 The Action fixture demonstrates text (label), boolean (disabled), numeric
 (corner radius), select (emphasis), and optional text (hint). Its typed saved

@@ -136,7 +136,12 @@ export function ExplorerShell({
 }) {
   const navProps = {
     activeDestination: design,
-    changedCount: scenario === "screen" || scenario === "removed" ? 2 : 1,
+    changedCount:
+      scenario === "all"
+        ? 0
+        : scenario === "screen" || scenario === "removed"
+          ? 2
+          : 1,
     changedOnly: scenario !== "all",
     nodes: nodes(scenario, active, design),
   };
@@ -147,7 +152,6 @@ export function ExplorerShell({
         accessibleControls
         searchPlaceholder="Search catalogue…"
         viewport={viewport}
-        colorScheme="light"
         nav={<NavTree {...navProps} />}
       >
         {viewport === "mobile" ? (
@@ -156,18 +160,24 @@ export function ExplorerShell({
               Screens
             </MockLink>
             <MockLink to="design-component-overview">Components</MockLink>
-            <MockLink
-              to={
-                scenario === "removed"
-                  ? "design-component-removed"
-                  : scenario === "screen"
-                    ? "design-component-inspection-direct-change"
-                    : "design-component-affected"
-              }
-            >
-              Changes{" "}
-              <span className="ce-change-count">{navProps.changedCount}</span>
-            </MockLink>
+            {scenario === "all" ? (
+              <span>
+                Changes <span className="ce-change-count">0</span>
+              </span>
+            ) : (
+              <MockLink
+                to={
+                  scenario === "removed"
+                    ? "design-component-removed"
+                    : scenario === "screen"
+                      ? "design-component-inspection-direct-change"
+                      : "design-component-affected"
+                }
+              >
+                Changes{" "}
+                <span className="ce-change-count">{navProps.changedCount}</span>
+              </MockLink>
+            )}
           </nav>
         ) : null}
         {children}

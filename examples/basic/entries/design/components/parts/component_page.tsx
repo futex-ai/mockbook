@@ -30,34 +30,38 @@ export function ComponentPage({
       design={COMPONENT_PAGES[state]}
       identity={COMPONENT_BY_STATE[state]}
       comparison={comparison}
+      changed={changed}
       scenario={state === "removed" ? "removed" : changed ? "component" : "all"}
       viewport={viewport}
       variants={<VariantPicker state={state} />}
       inspector={<ComponentDetails state={state} />}
     >
-      {comparison ? (
-        <ComponentComparison
-          removed={state === "removed"}
-          viewport={viewport}
-        />
-      ) : (
-        <ComponentCanvas viewport={viewport}>
-          {state === "toolbar" ? (
-            <ToolbarExample />
-          ) : state === "hidden" ? (
-            <p className="ce-empty-copy">
-              This variant has no visible content.
-            </p>
-          ) : state === "unused" ? (
-            <span className="ce-badge">New</span>
-          ) : (
-            <ActionExample
-              {...actionVariants[state === "disabled" ? "disabled" : "default"]
-                .props}
-            />
-          )}
-        </ComponentCanvas>
-      )}
+      {(previewViewport) =>
+        comparison ? (
+          <ComponentComparison
+            removed={state === "removed"}
+            viewport={previewViewport}
+          />
+        ) : (
+          <ComponentCanvas viewport={previewViewport}>
+            {state === "toolbar" ? (
+              <ToolbarExample />
+            ) : state === "hidden" ? (
+              <p className="ce-empty-copy">
+                This variant has no visible content.
+              </p>
+            ) : state === "unused" ? (
+              <span className="ce-badge">New</span>
+            ) : (
+              <ActionExample
+                {...actionVariants[
+                  state === "disabled" ? "disabled" : "default"
+                ].props}
+              />
+            )}
+          </ComponentCanvas>
+        )
+      }
     </ComponentLayout>
   );
 }

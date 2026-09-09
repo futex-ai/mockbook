@@ -1,3 +1,5 @@
+import { generatedSource } from "../build/ownership.js";
+
 const ID = "[a-z0-9]+(?:-[a-z0-9]+)*";
 const KEY = "[a-f0-9]{64}";
 const MARKER_SCAN = /<!--mokabook-review-ignore:[\s\S]*?-->/g;
@@ -82,6 +84,8 @@ export function normalizeSingleDocument(html: string, route: string): string {
 }
 
 function parseDocument(content: string, route: string): ParsedDocument {
+  if (generatedSource(content))
+    content = content.slice(content.indexOf("\n") + 1);
   const materials = parseMaterials(content, route);
   const matches = [...content.matchAll(MARKER_SCAN)];
   if (
