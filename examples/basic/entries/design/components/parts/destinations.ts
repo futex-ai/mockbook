@@ -12,6 +12,7 @@ export const COMPONENT_PAGES = {
   toolbar: "design-component-toolbar",
   hidden: "design-component-help",
   unused: "design-component-unused",
+  added: "design-component-added",
   removed: "design-component-removed",
 } as const satisfies Record<ComponentPageState, string>;
 

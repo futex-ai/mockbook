@@ -5,6 +5,7 @@ import type { ArtboardViewport } from "../../parts/shell.js";
 import { ActionExample, ToolbarExample } from "./preview.js";
 import { HighlightMask, type InspectionSelection } from "./highlight.js";
 import { PreviewScheme } from "./view_controls.js";
+import { footerLabelChange } from "./comparison_fixtures.js";
 
 export type ScreenPageState =
   | "closed"
@@ -38,7 +39,11 @@ export function WelcomeExample({
         <p>Choose an action to continue.</p>
       </div>
       <div className="ce-demo-footer">
-        <ActionExample label={directChange ? "Get started" : "Continue"} />
+        <ActionExample
+          label={
+            directChange ? footerLabelChange.after : footerLabelChange.before
+          }
+        />
       </div>
       <HighlightMask selection={selection === "off" ? "outer" : selection} />
     </div>

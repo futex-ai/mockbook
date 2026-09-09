@@ -2,7 +2,7 @@
 
 ## Delivery Status
 
-Milestones 4, 4a, 4b, 4c, and 7 of the [component explorer plan](../../plans/component-explorer.md)
+Milestones 4, 4a, 4b, 4c, 4f, and 7 of the [component explorer plan](../../plans/component-explorer.md)
 deliver the complete mobile/desktop mockup set for sign-off. The
 [icon inspector revision](./mokabook-component-inspector-design.md) and
 [prop controls designs](./mokabook-component-controls-design.md) extend the
@@ -45,8 +45,9 @@ mobile component and desktop component; there are no new user-flow pages.
 | `design-component-unused`                   | `design/components/states/unused.html`                | Saved component with no consumers                |
 | `design-component-removed`                  | `design/components/states/removed.html`               | Removed saved variant and former consumer        |
 | `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Retained removed-screen comparison               |
+| `design-component-added`                    | `design/components/states/additions/added.html`       | Added Badge with a missing Before side           |
 
-Standalone files insert `.mobile` or `.desktop` before `.html`. All thirty-one component
+Standalone files insert `.mobile` or `.desktop` before `.html`. All thirty-two component
 screens opt into light documents, matching the existing shell mockups. They
 start in the Light context and expose a native preview theme toggle. Links use
 the existing logical-id navigation contract so they work both directly from
@@ -76,7 +77,7 @@ The viewport dropdown shows the mobile canvas, desktop canvas, or both for the s
 border, a small context caption, and a centered component, without device chrome.
 The same `ActionExample` and `ToolbarExample` are reused in consuming screens.
 
-The inspector separates Info (description/source/references), Nested components (present only when the component has children), Props/Controls (supplied values or declared editable fields), and
+The inspector separates Details (description/source/references), Nested components (present only when the component has children), Props/Controls (supplied values or declared editable fields), and
 Usage (Used by plus Affected screens). Only one panel is open at a time. Click
 its icon again or its close affordance to collapse it; no icon is then selected. Its content scrolls below a fixed icon strip, and the native grip at the preview’s lower-right corner resizes the split. The outer page does not scroll.
 Props use a definition list and monospace values. Usage rows show screen or
@@ -95,12 +96,21 @@ it to its before/current comparison. Farewell is independently removed, so
 that scenario has two Changes rows: Action and Farewell. The missing current
 side is explicit.
 
+Every known entry carries an Added, Changed, Removed, or Unmodified badge beside
+its title. Action stays Changed when only Compact is removed; Farewell is Removed.
+States links an Additions child gallery with one new Badge example and one Changes
+entry, preserving the five-screen limit in its parent and the existing unused state.
+Comparison evidence appears only in the Details panel. Its typed fixture records
+show output/variant changes, paired prop values, and related changed components;
+they do not generate visual-analysis prose or a separate banner. See the
+[workspace evidence contract](./mokabook-component-workspace-design.md#comparison-details).
+
 ## Screen Inspection
 
 The shared inspector puts component groups in Components, with native
 disclosures, counts, and repeated-instance links. Selecting an instance opens
 Props with its supplied values, slot/ownership details, and an Open component
-link. Info and Usage remain available without crowding the selected instance. Welcome has four
+link. Details and Usage remain available without crowding the selected instance. Welcome has four
 instances: Toolbar, two Actions, and an invisible Help hint. Nested Toolbar
 contents start collapsed and expand in the nested-selection artboard. Help hint
 has an inspection entry and component page, without an invented visible region.
@@ -119,11 +129,15 @@ An empty usage list says no registered components are used in this view;
 unavailable inspection never claims a zero count. Badge has a visible saved
 example and an explicit empty Used by list.
 
+Disabled highlight controls explain whether there are no registered components,
+inspection is unavailable, or a comparison is selected. Highlight chips have a
+small gap above an intact rounded outline, shared by all three region layouts.
+
 ## Verification And Maintenance
 
 Use the real generator; never hand-edit generated HTML. Six shared component
 stylesheets are hand-authored public inputs, confined to `design/components/**`.
-Route-scoped stylesheet matching links them only from the thirty-one component design routes; Changes follows those rendered resource references. The collection also declares inherited dependencies for comparison evidence. The controls stylesheet is scoped
+Route-scoped stylesheet matching links them only from the thirty-two component design routes; Changes follows those rendered resource references. The collection also declares inherited dependencies for comparison evidence. The controls stylesheet is scoped
 further to its eleven owning routes, with a matching dependency and watch rule. Keep them out of the global
 `review.sharedImpact` list; watched stylesheet rules still reload their edits.
 Child collection dependency lists replace inherited lists; Controls explicitly

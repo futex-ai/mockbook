@@ -48,6 +48,17 @@
   outline: 2px solid var(--mbk-sage-deep);
   outline-offset: 3px;
 }
+.ce-control-description {
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+.ce-icon-control input:disabled {
+  pointer-events: none;
+}
 .ce-viewport-control [data-view-icon],
 .ce-theme-control [data-view-icon="dark"],
 .ce-scheme-dark {
@@ -122,17 +133,6 @@
   inset: 0;
   pointer-events: auto;
   position: absolute;
-}
-.ce-single-highlight > span {
-  background: var(--mbk-sage-deep);
-  border-radius: 3px;
-  color: white;
-  font-size: 10px;
-  left: -2px;
-  padding: 2px 5px;
-  position: absolute;
-  top: -24px;
-  white-space: nowrap;
 }
 .ce-design .mbk-shell--mobile .ce-view-controls {
   width: auto;

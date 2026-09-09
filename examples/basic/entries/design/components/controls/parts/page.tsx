@@ -2,6 +2,8 @@ import { MockLink } from "mokabook";
 
 import type { ArtboardViewport } from "../../../parts/shell.js";
 import { ComponentInfo } from "../../parts/component_info.js";
+import { ComparisonDetails } from "../../parts/comparison_details.js";
+import { actionComparison } from "../../parts/comparison_fixtures.js";
 import { ComponentLayout } from "../../parts/component_layout.js";
 import { UsedBy } from "../../parts/component_usage.js";
 import { CONTROLS_PAGES } from "../../parts/destinations.js";
@@ -64,6 +66,7 @@ export function ControlsPage({
     <ComponentLayout
       design={CONTROLS_PAGES[state]}
       comparison={state === "comparison"}
+      status={state === "comparison" ? actionComparison.status : "unmodified"}
       scenario={state === "comparison" ? "component" : "all"}
       viewport={viewport}
       variants={<ControlsVariants state={state} />}
@@ -73,8 +76,17 @@ export function ControlsPage({
           panels={[
             {
               id: "info",
-              label: "Info",
-              content: <ComponentInfo identity="action" />,
+              label: "Details",
+              content: (
+                <>
+                  <ComponentInfo identity="action" />
+                  <ComparisonDetails
+                    comparison={
+                      state === "comparison" ? actionComparison : undefined
+                    }
+                  />
+                </>
+              ),
             },
             {
               id: "props",

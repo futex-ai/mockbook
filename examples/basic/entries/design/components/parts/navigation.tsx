@@ -11,13 +11,30 @@ import {
 
 import type { CatalogueIdentity } from "./metadata.js";
 
-export type ChangeScenario = "all" | "component" | "screen" | "removed";
+export type ChangeScenario =
+  "all" | "component" | "screen" | "removed" | "added";
 
 function nodes(
   scenario: ChangeScenario,
   active: CatalogueIdentity,
   design: ComponentDesignDestination,
 ): NavNode[] {
+  if (scenario === "added")
+    return [
+      {
+        depth: 0,
+        kind: "collection",
+        label: "Components",
+        count: 1,
+        open: true,
+      },
+      {
+        depth: 1,
+        kind: "component",
+        label: "Badge",
+        to: COMPONENT_PAGES.added,
+      },
+    ];
   const reading = active === "reading-room";
   const destination = (
     identity: CatalogueIdentity,
@@ -167,11 +184,13 @@ export function ExplorerShell({
             ) : (
               <MockLink
                 to={
-                  scenario === "removed"
-                    ? "design-component-removed"
-                    : scenario === "screen"
-                      ? "design-component-inspection-direct-change"
-                      : "design-component-affected"
+                  scenario === "added"
+                    ? COMPONENT_PAGES.added
+                    : scenario === "removed"
+                      ? "design-component-removed"
+                      : scenario === "screen"
+                        ? "design-component-inspection-direct-change"
+                        : "design-component-affected"
                 }
               >
                 Changes{" "}

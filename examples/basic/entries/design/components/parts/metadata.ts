@@ -51,6 +51,7 @@ export const COMPONENT_BY_STATE = {
   toolbar: "toolbar",
   hidden: "help-hint",
   unused: "badge",
+  added: "badge",
   removed: "action",
   closed: "action",
 } as const satisfies Record<ComponentPageState, ComponentId>;

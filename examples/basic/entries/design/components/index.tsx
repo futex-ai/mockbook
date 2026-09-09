@@ -6,6 +6,7 @@ import { pageScreens } from "./pages/screens.js";
 import { inspectionScreens } from "./inspection/screens.js";
 import { selectionScreens } from "./inspection/selection/screens.js";
 import { stateScreens } from "./states/screens.js";
+import { additionDesigns } from "./states/additions/screens.js";
 import { ComponentPage } from "./parts/component_page.js";
 import { componentStyleDependencies } from "./parts/styles.js";
 import { componentDesignDocs } from "./parts/fixtures.js";
@@ -75,10 +76,10 @@ export const componentDesign = collection({
     collection({
       id: "design-component-states",
       segment: "states",
-      title: "Empty and removed states",
+      title: "Empty and change states",
       description:
         "Empty usage, unavailable inspection, unused components, and retained comparisons.",
-      children: stateScreens,
+      children: [...stateScreens, additionDesigns],
     }),
   ],
 });

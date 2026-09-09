@@ -162,6 +162,41 @@
     },
     {
       "dependencies": [
+        "examples/basic/entries/design/components/states/additions/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-component-inspector.css",
+        "examples/basic/generated/design-component-view.css",
+        "examples/basic/generated/design-component-workspace.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "New components with an explicit missing Before side.",
+      "id": "design-component-additions",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and change states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md",
+        "docs/protocol/mokabook-component-inspector-design.md",
+        "docs/protocol/mokabook-component-controls-design.md",
+        "docs/protocol/mokabook-component-workspace-design.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/additions/screens.tsx",
+      "title": "Additions",
+      "childIds": [
+        "design-component-added"
+      ]
+    },
+    {
+      "dependencies": [
         "examples/basic/entries/design/components/controls/index.tsx",
         "examples/basic/generated/design-component-controls.css",
         "examples/basic/generated/design-component-details.css",
@@ -478,13 +513,14 @@
         "docs/protocol/mokabook-component-workspace-design.md"
       ],
       "sourcePath": "examples/basic/entries/design/components/index.tsx",
-      "title": "Empty and removed states",
+      "title": "Empty and change states",
       "childIds": [
         "design-component-empty",
         "design-component-unavailable",
         "design-component-unused",
         "design-component-removed",
-        "design-component-removed-consumer"
+        "design-component-removed-consumer",
+        "design-component-additions"
       ]
     },
     {
@@ -2204,6 +2240,49 @@
     },
     {
       "dependencies": [
+        "examples/basic/entries/design/components/states/additions/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-component-inspector.css",
+        "examples/basic/generated/design-component-view.css",
+        "examples/basic/generated/design-component-workspace.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "A newly added Badge component with one Changes entry and its current saved preview.",
+      "id": "design-component-added",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and change states",
+        "Additions"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md",
+        "docs/protocol/mokabook-component-inspector-design.md",
+        "docs/protocol/mokabook-component-controls-design.md",
+        "docs/protocol/mokabook-component-workspace-design.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/additions/screens.tsx",
+      "title": "Added component",
+      "fragments": {
+        "desktop": "design/components/states/additions/added.desktop.html",
+        "mobile": "design/components/states/additions/added.mobile.html"
+      },
+      "route": "design/components/states/additions/added.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
         "examples/basic/entries/design/components/states/screens.tsx",
         "examples/basic/generated/design-component-details.css",
         "examples/basic/generated/design-component-inspection.css",
@@ -2222,7 +2301,7 @@
         "Design",
         "Mokabook design",
         "Component explorer",
-        "Empty and removed states"
+        "Empty and change states"
       ],
       "relatedDocs": [
         "docs/protocol/mokabook-component-design.md",
@@ -2264,7 +2343,7 @@
         "Design",
         "Mokabook design",
         "Component explorer",
-        "Empty and removed states"
+        "Empty and change states"
       ],
       "relatedDocs": [
         "docs/protocol/mokabook-component-design.md",
@@ -2306,7 +2385,7 @@
         "Design",
         "Mokabook design",
         "Component explorer",
-        "Empty and removed states"
+        "Empty and change states"
       ],
       "relatedDocs": [
         "docs/protocol/mokabook-component-design.md",
@@ -2348,7 +2427,7 @@
         "Design",
         "Mokabook design",
         "Component explorer",
-        "Empty and removed states"
+        "Empty and change states"
       ],
       "relatedDocs": [
         "docs/protocol/mokabook-component-design.md",
@@ -2390,7 +2469,7 @@
         "Design",
         "Mokabook design",
         "Component explorer",
-        "Empty and removed states"
+        "Empty and change states"
       ],
       "relatedDocs": [
         "docs/protocol/mokabook-component-design.md",

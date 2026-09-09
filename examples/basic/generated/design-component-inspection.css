@@ -113,16 +113,17 @@
   pointer-events: auto;
   position: absolute;
 }
-.ce-region > span {
+.ce-region > span,
+.ce-single-highlight > span {
   background: var(--mbk-sage-deep);
-  border-radius: 4px 4px 0 0;
+  border-radius: 4px;
+  bottom: calc(100% + 8px);
   color: white;
   font-size: 10px;
-  left: -2px;
+  left: 2px;
   line-height: 20px;
   padding: 0 6px;
   position: absolute;
-  top: -22px;
   white-space: nowrap;
 }
 .ce-region--toolbar {
@@ -132,12 +133,14 @@
   top: 76px;
 }
 .ce-region--footer {
+  border-radius: 8px;
   height: 36px;
   left: 24px;
   top: 258px;
   width: 116px;
 }
 .ce-region--nested {
+  border-radius: 8px;
   height: 36px;
   right: 41px;
   top: 99px;
@@ -150,19 +153,6 @@
 .ce-design .phone-frame--sm:has(.ce-welcome-example),
 .ce-design .phone-frame--sm:has(.ce-other-example) {
   height: 430px;
-}
-.ce-change-context {
-  background: #f4f7f4;
-  border-bottom: 1px solid #dce5de;
-  color: var(--chrome-ink-2);
-  font-size: 12px;
-  padding: 8px 24px;
-}
-.ce-prop-change {
-  background: #f4f7f4;
-  border-left: 2px solid var(--mbk-sage);
-  font-size: 12px;
-  padding: 8px;
 }
 .ce-removed-screen {
   width: 100%;

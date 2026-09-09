@@ -8,6 +8,8 @@ import { SCREENS, screenIdentity } from "./metadata.js";
 import { INSPECTION_PAGES } from "./destinations.js";
 import { ExplorerShell } from "./navigation.js";
 import { ScreenDetails } from "./screen_details.js";
+import { ChangeStatusBadge } from "./comparison_details.js";
+import { screenComparison } from "./comparison_fixtures.js";
 import { ConsumerFrame, type ScreenPageState } from "./screen_preview.js";
 
 export function ScreenPage({
@@ -18,6 +20,7 @@ export function ScreenPage({
   viewport: ArtboardViewport;
 }) {
   const removed = state === "removed-consumer";
+  const comparison = screenComparison(state);
   const identity = screenIdentity(state);
   const { title, id } = SCREENS[identity];
   const highlighting = state === "highlight" || state === "nested";
@@ -37,33 +40,26 @@ export function ScreenPage({
           crumbs={["Example", "Screens"]}
           idChip={id}
           comparisonMode={removed ? "side-by-side" : "current"}
-          comparisons={removed || state === "direct-change"}
+          comparisons={comparison !== undefined}
           status={
-            !removed && state !== "direct-change" ? (
-              <span className="ce-unmodified">Unmodified</span>
-            ) : undefined
+            <ChangeStatusBadge status={comparison?.status ?? "unmodified"} />
           }
           action={
             <ViewControls
               viewport={viewport}
               highlight={{
                 active: highlighting,
-                unavailable:
-                  removed || state === "unavailable" || state === "empty",
+                unavailable: removed
+                  ? "comparison"
+                  : state === "unavailable" || state === "empty"
+                    ? state
+                    : undefined,
               }}
             />
           }
         />
-        {state === "direct-change" ? (
-          <div className="ce-change-context">
-            Welcome’s action label changed.{" "}
-            <MockLink to="design-component-affected">
-              Action also changed ↗
-            </MockLink>
-          </div>
-        ) : null}
         <PreviewWorkspace
-          inspector={!removed ? <ScreenDetails state={state} /> : null}
+          inspector={<ScreenDetails state={state} />}
           render={(previewViewport) =>
             removed ? (
               <div className="ce-removed-screen">

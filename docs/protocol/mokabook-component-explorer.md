@@ -49,8 +49,10 @@ Current, as screens do today. Saved variant selection and comparison are fully
 usable in served and published catalogues.
 
 Only expose comparison modes when actual evidence makes the saved selection
-eligible. A known unmodified selection shows Unmodified beside its title and
-only its current preview. Unknown evidence does not imply Unmodified. Affected
+eligible. A known selection shows Added, Changed, Removed, or Unmodified beside
+its title from the entry's comparison state; a removed variant does not mark its
+surviving component Removed. Unmodified shows only its current preview.
+Unknown evidence does not imply Unmodified. Affected
 consumers can remain eligible without entering Changes; temporary control edits
 never establish comparison eligibility. Do not eagerly generate screenshots to
 decide whether the mode row is available.
@@ -61,13 +63,16 @@ variant's viewport/theme fragment. Variant selectors and Used by links are
 shell-owned URLs; do not overload the existing logical fragment grammar with
 component prop JSON or variant suffixes.
 
-The shared inspector has Info, Props/Controls, and Usage icons. Composed
+The shared inspector has Details, Props/Controls, and Usage icons. Composed
 components also have Nested components, listing their rendered registered
 children and excluding themselves; leaves omit that tab. Screens retain the
 Components tab, including empty and unavailable states.
 Clicking an icon opens its panel or switches the open panel; clicking the active
-icon or Close collapses it. With no panel open, no icon is selected. Info contains
-source/docs/tags/dependencies, Props contains the supplied values, and Usage
+icon or Close collapses it. With no panel open, no icon is selected. Details contains
+source/docs/tags/dependencies and any comparison evidence. Comparison details
+use validated reasons, paired prop values, and related changed components; they
+never infer visual explanations from pixels or add a banner above the canvas.
+Props contains the supplied values, and Usage
 contains Used by screens/components derived from current usage. A changed
 component also exposes Affected screens from baseline/current evidence. Removed
 consumers link to their retained comparison view. Lists distinguish direct and

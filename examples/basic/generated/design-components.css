@@ -165,11 +165,22 @@
   min-height: 225px;
 }
 .ce-comparison-evidence {
-  font-size: 12px;
-  margin-top: 16px;
+  border-top: 1px solid var(--chrome-border);
+  margin-top: 20px;
+  padding-top: 16px;
 }
-.ce-comparison-evidence summary {
-  cursor: pointer;
+.ce-prop-comparison {
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: fixed;
+  text-align: left;
+  width: 100%;
+}
+.ce-prop-comparison th,
+.ce-prop-comparison td {
+  border-bottom: 1px solid var(--chrome-border);
+  overflow-wrap: anywhere;
+  padding: 8px 4px;
 }
 .ce-mobile-location {
   background: white;

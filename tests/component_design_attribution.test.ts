@@ -47,7 +47,7 @@ for (const stylesheet of [
           : [],
       )
       .sort();
-    assert.equal(componentRoutes.length, 31);
+    assert.equal(componentRoutes.length, 32);
 
     assert.deepEqual(
       await changedStylesheetRoutes(stylesheet),

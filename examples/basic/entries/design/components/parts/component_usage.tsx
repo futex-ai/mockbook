@@ -4,6 +4,7 @@ import type { ComponentPageState } from "./component_details.js";
 import { componentUses, usageViews } from "./fixtures.js";
 
 export function UsedBy({ state }: { state: ComponentPageState }) {
+  const unused = state === "unused" || state === "added";
   const uses =
     state === "toolbar" || state === "hidden"
       ? componentUses.slice(0, 1)
@@ -15,12 +16,12 @@ export function UsedBy({ state }: { state: ComponentPageState }) {
       <h3>
         Used by{" "}
         <span>
-          {state === "unused"
+          {unused
             ? "0"
             : `${screens.length} ${screens.length === 1 ? "screen" : "screens"}${components.length ? ` · ${components.length} component` : ""}`}
         </span>
       </h3>
-      {state === "unused" ? (
+      {unused ? (
         <p className="ce-empty-copy">No screens or components use Badge yet.</p>
       ) : (
         <ul className="ce-usage-list">

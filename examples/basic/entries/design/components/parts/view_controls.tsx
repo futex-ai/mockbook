@@ -1,10 +1,18 @@
+import { useId } from "react";
+
 import type { ArtboardViewport } from "../../parts/shell.js";
 import { ViewIcon } from "./view_icons.js";
 
 export interface HighlightOption {
   active: boolean;
-  unavailable: boolean;
+  unavailable: "empty" | "unavailable" | "comparison" | undefined;
 }
+
+const highlightReasons = {
+  empty: "No registered components in this view",
+  unavailable: "Component inspection is unavailable",
+  comparison: "Highlighting is unavailable in comparisons",
+} as const;
 
 /** Native form state controls the authored previews without consumer scripts. */
 export function ViewControls({
@@ -14,6 +22,10 @@ export function ViewControls({
   viewport: ArtboardViewport;
   highlight?: HighlightOption;
 }) {
+  const reasonId = useId();
+  const reason = highlight?.unavailable
+    ? highlightReasons[highlight.unavailable]
+    : undefined;
   return (
     <div
       className="ce-view-controls"
@@ -56,21 +68,23 @@ export function ViewControls({
       {highlight ? (
         <label
           className="ce-icon-control ce-highlight-control"
-          title={
-            highlight.unavailable
-              ? "Component highlighting unavailable"
-              : "Highlight components"
-          }
+          title={reason ?? "Highlight components"}
         >
           <input
             type="checkbox"
             role="switch"
             className="ce-highlight-toggle"
             aria-label="Highlight components"
+            aria-describedby={reason ? reasonId : undefined}
             defaultChecked={highlight.active}
-            disabled={highlight.unavailable}
+            disabled={reason !== undefined}
           />
           <ViewIcon kind="highlight" />
+          {reason ? (
+            <span id={reasonId} className="ce-control-description">
+              {reason}
+            </span>
+          ) : null}
         </label>
       ) : null}
     </div>

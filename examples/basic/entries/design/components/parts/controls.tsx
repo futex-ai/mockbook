@@ -12,8 +12,8 @@ export function VariantPicker({ state }: { state: ComponentPageState }) {
       ? "design-component-toolbar"
       : state === "hidden"
         ? "design-component-help"
-        : state === "unused"
-          ? "design-component-unused"
+        : state === "unused" || state === "added"
+          ? COMPONENT_PAGES[state]
           : "design-component-overview";
   return (
     <nav className="ce-variants" aria-label="Saved variants">

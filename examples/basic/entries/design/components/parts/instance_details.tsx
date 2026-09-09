@@ -2,6 +2,7 @@ import { MockLink } from "mokabook";
 
 import { PropValues } from "./prop_values.js";
 import { toolbarPrompt } from "./fixtures.js";
+import { footerLabelChange } from "./comparison_fixtures.js";
 import type { ScreenPageState } from "./screen_preview.js";
 
 /** Selected instance data follows the component reached from the usage link. */
@@ -36,14 +37,13 @@ export function InstanceDetails({ state }: { state: ScreenPageState }) {
         </dl>
       ) : (
         <PropValues
-          label={state === "direct-change" ? "Get started" : "Continue"}
+          label={
+            state === "direct-change"
+              ? footerLabelChange.after
+              : footerLabelChange.before
+          }
         />
       )}
-      {state === "direct-change" ? (
-        <p className="ce-prop-change">
-          <code>label</code> changed from <s>Continue</s> to Get started.
-        </p>
-      ) : null}
       <div className="ce-detail-links">
         <MockLink
           to={

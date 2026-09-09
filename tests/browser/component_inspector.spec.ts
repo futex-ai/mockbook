@@ -17,7 +17,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
       exact: true,
     });
     await expect(inspector.locator(":scope > details[open]")).toHaveCount(1);
-    for (const name of ["Nested components", "Props", "Usage", "Info"]) {
+    for (const name of ["Nested components", "Props", "Usage", "Details"]) {
       const icon = inspector.getByRole("button", { name, exact: true });
       await icon.focus();
       await expect(icon).toBeFocused();
@@ -30,7 +30,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
         inspector.getByRole("region", { name, exact: true }),
       ).toBeVisible();
     }
-    await inspector.getByRole("button", { name: "Info", exact: true }).click();
+    await inspector
+      .getByRole("button", { name: "Details", exact: true })
+      .click();
     await expect(inspector.locator(":scope > details[open]")).toHaveCount(0);
     await expect(inspector).toHaveCSS("height", "49px");
     await inspector.getByRole("button", { name: "Props", exact: true }).click();

@@ -60,7 +60,7 @@ render plain React DOM need none of this and can keep a plain
 
 The `Design` navigation group is the owning design catalogue for Mokabook's
 Browse and Changes views. Its twenty-four Browse and Changes screens cover navigation,
-Details, tags, color schemes, and comparison outcomes. Thirty-one component
+Details, tags, color schemes, and comparison outcomes. Thirty-two component
 explorer screens add component pages, saved variants, affected screens,
 repeated/nested inspection, highlighting, and empty or removed states. The shared icon inspector and complete controls
 mockups include edited/reset, optional, loading, validation, retry, comparison,
@@ -74,7 +74,13 @@ screen highlighting without navigation. Leaf components omit Nested components;
 Toolbar demonstrates composition. Unchanged fixtures show Unmodified and omit
 comparison modes. The fixed shell contains separate preview and inspector panes;
 drag the native grip at the preview’s lower-right corner to resize the inspector.
-Its icon strip stays visible while the active content scrolls.
+Its icon strip stays visible while the active content scrolls. Known entries show
+Added, Changed, Removed, or Unmodified; removing a variant marks its surviving
+component Changed. The States → Additions gallery demonstrates a newly added Badge.
+Comparison facts live in Details, using shared fixture values for prop differences
+and linked component changes. These rows do not generate descriptions of visual
+changes. Disabled highlighting explains its specific reason, and outline labels
+use separate rounded chips with a gap above the highlighted region.
 
 Open `design/components/overview.html` in Browse, or open
 [`generated/design/components/overview.desktop.html`](./generated/design/components/overview.desktop.html)
@@ -87,7 +93,7 @@ galleries; `inspector` shows both closed-panel layouts.
 Each child gallery lists at most five owning screens; inspection also links
 two selected-instance screens in a nested gallery.
 
-All fifty-five design screens use `colorSchemes: ["light"]`: they draw the
+All fifty-six design screens use `colorSchemes: ["light"]`: they draw the
 Mokabook shell, including the existing dark-selection examples. The two product
 screens inherit the catalogue's light/dark settings and prove dark generation.
 Design headers retain the approved screen-stack logo: 17px overlapping mobile
@@ -96,7 +102,7 @@ grip; mobile keeps its fixed drawer. The component designs reuse the existing sh
 and a shared icon inspector, with synthetic usage fixtures under
 `entries/design/components/parts`. No component feature is added to the public API.
 
-Component design stylesheets are linked only from the collection’s thirty-one
+Component design stylesheets are linked only from the collection’s thirty-two
 routes and declared as its dependencies for comparison evidence. Changes follows
 the actual rendered CSS references. The styles remain watched for reloads;
 excluding them from global `review.sharedImpact` avoids unrelated dependency

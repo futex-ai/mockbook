@@ -1,7 +1,9 @@
 import { MockLink } from "mokabook";
 
 import { welcomeInstances } from "./fixtures.js";
-import { Inspector } from "./inspector.js";
+import { Inspector, type InspectorPanel } from "./inspector.js";
+import { ComparisonDetails } from "./comparison_details.js";
+import { screenComparison } from "./comparison_fixtures.js";
 import { InstanceDetails } from "./instance_details.js";
 import { InstanceTree } from "./instance_tree.js";
 import { SCREENS, screenIdentity } from "./metadata.js";
@@ -73,9 +75,10 @@ function ScreenUsage({ state }: { state: ScreenPageState }) {
 
 export function ScreenDetails({ state }: { state: ScreenPageState }) {
   const screen = SCREENS[screenIdentity(state)];
+  const removed = state === "removed-consumer";
   const noInstances = state === "empty" || state === "unavailable";
   const initial =
-    state === "closed"
+    state === "closed" || removed
       ? "closed"
       : noInstances || state === "highlight"
         ? "components"
@@ -86,48 +89,55 @@ export function ScreenDetails({ state }: { state: ScreenPageState }) {
       panels={[
         {
           id: "info",
-          label: "Info",
+          label: "Details",
           content: (
-            <section>
-              <h3>About {screen.title}</h3>
-              <p>{screen.description}</p>
-              <p className="ce-muted">
-                Source <code>{screen.source}</code>
-              </p>
-            </section>
+            <>
+              <section>
+                <h3>About {screen.title}</h3>
+                <p>{screen.description}</p>
+                <p className="ce-muted">
+                  Source <code>{screen.source}</code>
+                </p>
+              </section>
+              <ComparisonDetails comparison={screenComparison(state)} />
+            </>
           ),
         },
-        {
-          id: "components",
-          label: "Components",
-          content: <ScreenComponents state={state} />,
-        },
-        {
-          id: "props",
-          label: "Props",
-          content: noInstances ? (
-            <p className="ce-empty-copy">
-              {state === "unavailable"
-                ? "Props are unavailable for this screen."
-                : "Select a component to see its supplied props."}
-            </p>
-          ) : (
-            <InstanceDetails state={state} />
-          ),
-        },
-        {
-          id: "usage",
-          label: "Usage",
-          content: noInstances ? (
-            <p className="ce-empty-copy">
-              {state === "unavailable"
-                ? "Usage is unavailable for this screen."
-                : "This screen uses no registered components."}
-            </p>
-          ) : (
-            <ScreenUsage state={state} />
-          ),
-        },
+        ...(removed
+          ? []
+          : ([
+              {
+                id: "components",
+                label: "Components",
+                content: <ScreenComponents state={state} />,
+              },
+              {
+                id: "props",
+                label: "Props",
+                content: noInstances ? (
+                  <p className="ce-empty-copy">
+                    {state === "unavailable"
+                      ? "Props are unavailable for this screen."
+                      : "Select a component to see its supplied props."}
+                  </p>
+                ) : (
+                  <InstanceDetails state={state} />
+                ),
+              },
+              {
+                id: "usage",
+                label: "Usage",
+                content: noInstances ? (
+                  <p className="ce-empty-copy">
+                    {state === "unavailable"
+                      ? "Usage is unavailable for this screen."
+                      : "This screen uses no registered components."}
+                  </p>
+                ) : (
+                  <ScreenUsage state={state} />
+                ),
+              },
+            ] satisfies InspectorPanel[])),
       ]}
     />
   );

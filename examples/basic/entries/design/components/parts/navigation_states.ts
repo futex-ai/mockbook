@@ -28,6 +28,7 @@ export const COMPONENT_NAVIGATION_STATES = {
   [COMPONENT_PAGES.toolbar]: {},
   [COMPONENT_PAGES.hidden]: {},
   [COMPONENT_PAGES.unused]: {},
+  [COMPONENT_PAGES.added]: {},
   [COMPONENT_PAGES.removed]: {},
   [INSPECTION_PAGES.details]: {},
   [INSPECTION_PAGES.highlight]: {},

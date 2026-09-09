@@ -96,14 +96,6 @@ export function ComponentComparison({
           </Pane>
         )}
       </CompareGrid>
-      <details className="ce-comparison-evidence">
-        <summary>Comparison details</summary>
-        <p>
-          {removed
-            ? "The saved Compact variant was removed. Default and Disabled are still available."
-            : "The corners and spacing changed. The label and disabled value are unchanged."}
-        </p>
-      </details>
     </div>
   );
 }

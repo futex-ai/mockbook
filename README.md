@@ -457,12 +457,12 @@ Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
 The [component design catalogue](./docs/protocol/mokabook-component-design.md)
-adds thirty-one mobile and desktop references for component pages, screen
+adds thirty-two mobile and desktop references for component pages, screen
 inspection, a collapsible icon inspector, and the complete prop-controls states.
 The [controls designs](./docs/protocol/mokabook-component-controls-design.md) show
 saved variants and temporary edits; live preview rendering remains a later
 implementation milestone. The catalogue hierarchy reaches each design without
-adding navigation footers to the artboards. The [workspace designs](./docs/protocol/mokabook-component-workspace-design.md) add working viewport/theme/highlight controls, a fixed shell with a resizable inspector, and an Unmodified state without comparison tabs.
+adding navigation footers to the artboards. The [workspace designs](./docs/protocol/mokabook-component-workspace-design.md) add working viewport/theme/highlight controls, a fixed shell with a resizable inspector, entry change-status badges, and comparison evidence inside Details. Unmodified examples omit comparison tabs.
 
 The design mockups use `MockLink` for supported navigation and state transitions;
 the two example buttons demonstrate `MockLink asChild`. See the

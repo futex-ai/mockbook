@@ -33,6 +33,7 @@ export const componentDesignRoutes = [
   "states/empty",
   "states/unavailable",
   "states/unused",
+  "states/additions/added",
   "states/removed",
   "states/removed-consumer",
 ];

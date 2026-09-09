@@ -11,7 +11,7 @@ rendering service, and editable runtime controls remain unimplemented.
 ## Controls Panel
 
 Reuse the component page, saved-variant strip, canvas, comparison band, and
-shared icon inspector. Controls occupies the Props/Controls tab; Info and Usage
+shared icon inspector. Controls occupies the Props/Controls tab; Details and Usage
 remain independently available. The leaf Action component has no Nested
 components tab. The [workspace design](./mokabook-component-workspace-design.md)
 groups view controls, shows both selected preview contexts, and gives the

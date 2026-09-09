@@ -20,7 +20,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       ...Object.values(CONTROLS_PAGES),
       ...Object.values(INSPECTION_PAGES),
     ];
-    assert.equal(new Set(destinations).size, 31);
+    assert.equal(new Set(destinations).size, 32);
     for (const id of destinations) {
       const { document } = await designDocument(id, viewport);
       assert.equal(
@@ -31,6 +31,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       const toolbar = byClass(document, "mbk-cmp-toolbar")[0];
       const comparable = new Set<string>([
         COMPONENT_PAGES.affected,
+        COMPONENT_PAGES.added,
         COMPONENT_PAGES.comparison,
         COMPONENT_PAGES.removed,
         CONTROLS_PAGES.comparison,

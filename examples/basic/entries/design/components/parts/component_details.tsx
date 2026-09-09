@@ -1,6 +1,8 @@
 import { MockLink } from "mokabook";
 
 import { ComponentInfo } from "./component_info.js";
+import { ComparisonDetails } from "./comparison_details.js";
+import { componentComparison } from "./comparison_fixtures.js";
 import { UsedBy, AffectedScreens } from "./component_usage.js";
 import { toolbarPrompt } from "./fixtures.js";
 import { Inspector } from "./inspector.js";
@@ -16,6 +18,7 @@ export type ComponentPageState =
   | "toolbar"
   | "hidden"
   | "unused"
+  | "added"
   | "removed"
   | "closed";
 
@@ -35,7 +38,10 @@ function ComponentProps({ state }: { state: ComponentPageState }) {
   return (
     <section>
       <h3>Supplied props</h3>
-      {state === "toolbar" || state === "hidden" || state === "unused" ? (
+      {state === "toolbar" ||
+      state === "hidden" ||
+      state === "unused" ||
+      state === "added" ? (
         <dl className="ce-props" aria-label="Supplied props">
           <div>
             <dt>
@@ -95,8 +101,13 @@ export function ComponentDetails({ state }: { state: ComponentPageState }) {
       panels={[
         {
           id: "info",
-          label: "Info",
-          content: <ComponentInfo identity={COMPONENT_BY_STATE[state]} />,
+          label: "Details",
+          content: (
+            <>
+              <ComponentInfo identity={COMPONENT_BY_STATE[state]} />
+              <ComparisonDetails comparison={componentComparison(state)} />
+            </>
+          ),
         },
         ...(state === "toolbar"
           ? [

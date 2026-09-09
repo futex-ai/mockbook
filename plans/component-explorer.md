@@ -338,6 +338,37 @@ is closed by this delivery record. Findings and recommendations are recorded in
 [PR #48](https://github.com/futex-ai/mokabook/pull/48); no new review fixes were
 automatically applied.
 
+## Milestone 4f: Clarify comparison and highlight mockups
+
+Tags: mockup
+
+Apply the next design feedback to comparison evidence, status labels, disabled
+highlight explanations, and outline geometry. Runtime work stays in later milestones.
+
+- [x] Capture failing regressions for comparison placement, status scope,
+      disabled highlight descriptions, and label/outline geometry.
+- [x] Replace authored change prose with structured fixture evidence in Details;
+      remove the extra banner and canvas disclosure.
+- [x] Show Added, Changed, Removed, and Unmodified entry badges, including a
+      linked mobile/desktop Added example with an explicit missing Before side.
+- [x] Explain each disabled highlight state and share clean chip/outline styling
+      across outer, nested, and single-instance regions.
+- [x] Align protocols, README, generated artboards, and focused tests; visually
+      inspect every changed mobile/desktop page and interaction.
+- [x] Run `cargo xtask check`, inspect the diff and mainline preservation.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
+- [ ] Record verification and update the PR handoff.
+
+Validation: all 10 new browser regressions failed against the previous mockups
+and pass with this revision. All 47 focused browser and 21 catalogue tests pass.
+All 64 mobile/desktop artboards were opened from disk and visually inspected,
+including Details and highlight outlines. `cargo xtask check` passed all 493
+TypeScript, 143 Chromium, and 3 Rust tests, along with format/lint/type checks,
+121-file generated-output verification, package smokes, and Rust checks. All 56
+mainline HTML artboards remain byte-identical; no runtime code or mainline file
+was removed.
+
 ## Milestone 5: Implement component pages and inspection
 
 Tags: ui

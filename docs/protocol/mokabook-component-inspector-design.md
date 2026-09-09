@@ -11,12 +11,14 @@ artboards continue to document the currently implemented shell.
 ## One Inspector
 
 Component pages and consuming-screen designs share one inspector beneath the
-preview. Its icon strip contains Info, Props (Controls on editable component
+preview. Its icon strip contains Details, Props (Controls on editable component
 designs), and Usage. Screens also have Components; composed components have
 Nested components, while leaves omit it. Each icon has an accessible name, visible focus
 style, and a tooltip. Only the active icon has the sage selected treatment.
 
-Info contains the description and secondary source/reference metadata.
+Details contains the description, secondary source/reference metadata, and any
+comparison evidence. Comparison facts never occupy a separate canvas disclosure
+or header banner. The panel remains available on removed-screen comparisons.
 Components contains the nested instance tree and explicit empty/unavailable
 states. Props contains the selected variant or instance's supplied values,
 slot ownership, and Open component/Highlight actions. Controls replaces the
@@ -42,7 +44,7 @@ strip remains separate from scrolling panel content. The
 resize, and grouped view-control behavior.
 Each owning artboard declares its initial panel explicitly; instance links open
 the supplied-props panel for that instance. Empty/unavailable screens open the
-Components panel. The canonical component page opens Info.
+Components panel. The canonical component page opens Details.
 
 ## Navigation And Metadata
 
@@ -56,7 +58,7 @@ Selection within a component or tree can use non-page current-item semantics.
 Use stable fixture identities for catalogue selection. Display labels never
 identify the current destination or synthesize a filename. Component fixtures
 explicitly declare display name, id, source path, description, and dependencies;
-render the same metadata in Info and source references.
+render the same metadata in Details and source references.
 
 ## Owning Closed States
 

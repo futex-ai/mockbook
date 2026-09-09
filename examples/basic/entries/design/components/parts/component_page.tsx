@@ -1,10 +1,12 @@
 import type { ArtboardViewport } from "../../parts/shell.js";
+import { CompareGrid, MissingPane, Pane } from "../../parts/compare.js";
 import { actionVariants } from "./action_props.js";
 import {
   ComponentDetails,
   type ComponentPageState,
 } from "./component_details.js";
 import { ComponentLayout } from "./component_layout.js";
+import { componentComparison } from "./comparison_fixtures.js";
 import { VariantPicker } from "./controls.js";
 import { COMPONENT_PAGES } from "./destinations.js";
 import { COMPONENT_BY_STATE } from "./metadata.js";
@@ -24,20 +26,43 @@ export function ComponentPage({
   viewport: ArtboardViewport;
 }) {
   const comparison = state === "comparison" || state === "removed";
-  const changed = comparison || state === "affected";
+  const evidence = componentComparison(state);
   return (
     <ComponentLayout
       design={COMPONENT_PAGES[state]}
       identity={COMPONENT_BY_STATE[state]}
-      comparison={comparison}
-      changed={changed}
-      scenario={state === "removed" ? "removed" : changed ? "component" : "all"}
+      comparison={comparison || state === "added"}
+      status={evidence?.status ?? "unmodified"}
+      scenario={
+        state === "removed"
+          ? "removed"
+          : state === "added"
+            ? "added"
+            : evidence
+              ? "component"
+              : "all"
+      }
       viewport={viewport}
       variants={<VariantPicker state={state} />}
       inspector={<ComponentDetails state={state} />}
     >
       {(previewViewport) =>
-        comparison ? (
+        state === "added" ? (
+          <div className="ce-component-comparison">
+            <CompareGrid>
+              <MissingPane
+                side="before"
+                label="Before"
+                message="This component did not exist before."
+              />
+              <Pane side="after" label="Current">
+                <ComponentCanvas viewport={previewViewport}>
+                  <span className="ce-badge">New</span>
+                </ComponentCanvas>
+              </Pane>
+            </CompareGrid>
+          </div>
+        ) : comparison ? (
           <ComponentComparison
             removed={state === "removed"}
             viewport={previewViewport}
