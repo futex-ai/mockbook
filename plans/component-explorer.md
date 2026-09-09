@@ -1,6 +1,6 @@
 # Component Explorer
 
-Status: active; Milestone 4 mockups completed. Component runtime implementation
+Status: active; Milestones 4 and 4a completed. Component runtime implementation
 remains pending; the earlier documentation change delivered the target contract.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
@@ -159,7 +159,7 @@ format/lint/type, generated-output, package, and Rust checks. An existing watche
 test timed out on the first run; its isolated retry and the full rerun passed
 without changing the test or runtime.
 
-## Milestone 4a: Scope design stylesheet impact and integrate main
+## Milestone 4a: Scope design stylesheet impact and integrate main — completed
 
 Tags: mockup
 
@@ -177,10 +177,17 @@ the latest mainline design catalogue and its working navigation links.
       after reproducing cold-generation timeouts; retain all behavior checks.
 - [x] Regenerate affected mockups, run focused tests and visual smoke checks,
       then pass `cargo xtask check` and inspect the diff against `origin/main`.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch;
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch;
       run `cargo xtask review` after the push and report any new findings.
-- [ ] Create a pull request against `main` describing the complete branch scope,
+- [x] Create a pull request against `main` describing the complete branch scope,
       validation, and any remaining review findings.
+
+Delivered in `231a451`, merging main at `93ac778`, with all 56 mainline artboards
+preserved byte for byte. [PR #48](https://github.com/futex-ai/mokabook/pull/48)
+records the completed post-push review and its four findings for user decision;
+no review-driven code fixes were applied. The pending delivery checklist observed
+during review is now complete. `cargo xtask check` passed with 431 TypeScript,
+111 browser, and 3 Rust tests; Node 22.14/24 CI and the PR preview also passed.
 
 ## Milestone 5: Implement component pages and inspection
 
