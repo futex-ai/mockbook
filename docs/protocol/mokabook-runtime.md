@@ -136,6 +136,12 @@ missing-current state. Both watched and non-watched serving compute the filter.
 When a screen is directly affected, every use case that embeds that screen's
 fragments is affected too and remains visible in the changed-only filter.
 
+Git-ref-only updates currently need a server restart to refresh this complete
+catalogue state. The approved, not-yet-implemented
+[comparison-state contract](./mokabook-comparison-state.md) and
+[refresh lifecycle](./mokabook-comparison-refresh.md) define automatic Git
+reconciliation and a shared explicit Refresh path for navigation and snapshots.
+
 A screen embeds its generated mobile and desktop fragments inside package-owned
 device frames. A use case renders ordered steps that reference those same
 fragments and link back to their standalone screens. A legacy page embeds the

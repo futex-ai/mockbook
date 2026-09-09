@@ -66,6 +66,14 @@ configured comparison directory.
 
 ## Design references
 
+The [comparison-state contract](./mokabook-comparison-state.md) and
+[refresh lifecycle](./mokabook-comparison-refresh.md) specify an approved target
+for coordinated Git updates, tracked by an active plan. Today explicit Refresh
+regenerates comparisons but does not recompute the server's Changes list or
+removed-screen catalogue, and ref-only changes are not watched. The target
+updates these together and permits one continuation of an explicit Refresh
+after its automatic catalogue reload; ordinary reloads still return to Current.
+
 The synthetic design catalogue owns distinct mobile and desktop examples at
 `design/review/controls/current.html` and `design/review/controls/overlay.html`.
 Existing outcome and impact examples now depict the same catalogue shell.

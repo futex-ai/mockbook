@@ -192,6 +192,12 @@ changed merely because the module's imports or composition changed.
 Lightweight watched updates recompute this route snapshot before notifying the
 browser, so the Changes rows and count match the files that triggered each
 reload without restarting the server child.
+Git-reference-only changes currently require a server restart to refresh the
+complete Changes catalogue; the diff's Refresh updates comparison snapshots
+alone. Coordinated automatic and explicit refresh is specified in the
+[comparison-state contract](./docs/protocol/mokabook-comparison-state.md) and
+[refresh lifecycle](./docs/protocol/mokabook-comparison-refresh.md), both approved
+targets tracked in the [implementation plans](./plans/README.md).
 Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
 Every structured screen has a compact Current / Side by side / Overlay /

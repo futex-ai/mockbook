@@ -106,4 +106,15 @@ shutdown first requests graceful IPC closure, then sends SIGTERM and SIGKILL at
 bounded intervals when necessary; the supervisor does not finish closing until
 the child exit notification arrives.
 
+## Approved Follow-Up
+
+The current watcher does not observe Git refs. A ref-only update, including a
+merge's final commit after a watched rebuild, can leave the Changes list and
+comparison cache stale. [Git comparison state](./mokabook-comparison-state.md)
+specifies an approved, not-yet-implemented observer and coordinated update path.
+It retains the authored watcher's `.git` exclusion and replaces independent
+baseline reads with complete versioned catalogue state. The
+[refresh lifecycle](./mokabook-comparison-refresh.md) specifies the narrow
+explicit-Refresh continuation exception to ordinary Current-mode reloads.
+
 See [the catalogue runtime](./mokabook-runtime.md) and [Changes](./mokabook-changes.md).
