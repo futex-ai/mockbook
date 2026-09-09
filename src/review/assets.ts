@@ -4,10 +4,7 @@ import path from "node:path";
 import { isInside, isSafeRepositoryPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
-import {
-  extractCssReferences,
-  extractHtmlReferences,
-} from "../html_references.js";
+import { referencedRoutes } from "./asset_references.js";
 import type { GitClient, GitFile } from "./git.js";
 import { addArtifactFile, snapshotPath } from "./paths.js";
 import type { ReviewArtifactContent } from "./types.js";
@@ -176,77 +173,6 @@ async function readGitFilesIndividually(
     );
   }
   return files;
-}
-
-function referencedRoutes(
-  sourceRoute: string,
-  content: ReviewArtifactContent,
-): string[] {
-  const extension = path.posix.extname(sourceRoute).toLowerCase();
-  const text =
-    typeof content === "string"
-      ? content
-      : Buffer.from(content).toString("utf8");
-  const references =
-    extension === ".css"
-      ? extractCssReferences(text)
-      : extension === ".html" || extension === ".htm"
-        ? extractHtmlReferences(text).resources
-        : [];
-  return [
-    ...new Set(
-      references.flatMap((reference) => {
-        const resolved = resolveReference(sourceRoute, reference);
-        return resolved ? [resolved] : [];
-      }),
-    ),
-  ].sort();
-}
-
-function resolveReference(
-  sourceRoute: string,
-  rawReference: string,
-): string | undefined {
-  const reference = rawReference.trim();
-  if (reference.startsWith("//")) {
-    throw assetError(
-      sourceRoute,
-      `non-portable asset URL ${reference} (protocol-relative)`,
-    );
-  }
-  if (reference.startsWith("/")) {
-    throw assetError(
-      sourceRoute,
-      `non-portable asset URL ${reference} (root-absolute)`,
-    );
-  }
-  if (
-    reference === "" ||
-    reference.startsWith("#") ||
-    /^(?:https?:|data:)/i.test(reference)
-  ) {
-    return undefined;
-  }
-  if (/^[a-z][a-z0-9+.-]*:/i.test(reference)) {
-    throw assetError(
-      sourceRoute,
-      `non-portable asset URL ${reference} (unsupported scheme)`,
-    );
-  }
-  const encodedPath = reference.split(/[?#]/, 1)[0] ?? "";
-  let decodedPath: string;
-  try {
-    decodedPath = decodeURIComponent(encodedPath);
-  } catch (error) {
-    throw assetError(sourceRoute, `invalid asset URL ${reference}`, error);
-  }
-  const resolved = path.posix.normalize(
-    path.posix.join(path.posix.dirname(sourceRoute), decodedPath),
-  );
-  if (!isSafeRepositoryPath(resolved)) {
-    throw assetError(sourceRoute, `asset URL escapes mockupsDir: ${reference}`);
-  }
-  return resolved;
 }
 
 function assertPublicStaticRoute(

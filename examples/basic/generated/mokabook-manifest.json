@@ -700,7 +700,7 @@
         "examples/basic/generated/design-stage.css",
         "examples/basic/generated/design.css"
       ],
-      "description": "A screen comparison with secondary evidence from changed shared inputs.",
+      "description": "An unchanged screen opened from All retains secondary evidence from changed shared inputs.",
       "id": "design-review-shared-impact",
       "kind": "screen",
       "navPath": [

@@ -121,16 +121,20 @@ unstaged, and untracked workspace changes remain eligible. When the repository,
 base ref, or common ancestor cannot be resolved, Browse omits the filter and
 shows the full catalogue.
 Route attribution compares each current manifest entry with its base entry and
-matches changed generated fragments plus explicitly declared dependencies. The
-automatically recorded registry source module is attribution metadata, not a
-route dependency: changing a shared registry module alone must not mark its
-unchanged sibling routes.
+matches material fragment changes and changes to rendered local resources.
+Source modules, declared dependencies, and configured shared-impact globs alone
+must not mark unchanged screens or propagate unchanged screens into use cases.
 Entry comparison uses an explicit projection of route-affecting fields plus
 the ordered ancestor collection ids and titles derived from `childIds`.
 Serialized `navPath` labels are compatibility output and cannot independently
 mark a screen or use case as changed. Reparenting an entry or renaming one of
 its ancestor collections marks the routed entry as changed.
-Configured shared-impact inputs also keep affected screens in Changes. Removed
+The projection excludes source locations and dependency declarations; changes
+to those implementation details remain secondary comparison evidence. Fragment
+comparison applies the same paired ignore rules and material keys as screen
+comparisons. Ignored-only edits stay out of Changes. Referenced CSS, images,
+fonts, and transitive local resources remain eligible even when HTML bytes are
+unchanged. Removed
 screens remain accessible using their baseline metadata, with an explicit
 missing-current state. Both watched and non-watched serving compute the filter.
 When a screen is directly affected, every use case that embeds that screen's

@@ -182,13 +182,18 @@ use-case flows, a collapsed-by-default details inspector that remembers its
 disclosure across routes and reloads, id redirects, and watched updates. The
 Changes filter compares
 an explicit projection of route-level manifest metadata, collection ancestry,
-generated fragments, and explicitly declared dependencies with the branch
+generated fragments, and their rendered local resources with the branch
 point shared by `HEAD` and the configured Git base. Collection ancestry comes
 from real `childIds` relationships; compatibility-only `navPath` labels are
 excluded. Commits added only to the base branch after divergence do not appear
-as branch changes; staged, unstaged, and untracked workspace edits still do. A
-registry module that defines many routes does not make every route appear
-changed merely because the module's imports or composition changed.
+as branch changes; staged, unstaged, and untracked workspace edits still do.
+A source or dependency edit does not add screens whose output and reviewable
+metadata remain unchanged. Source locations and dependency declarations are
+evidence, so reorganizing them alone does not fill Changes. Generated fragments
+use the comparison engine's paired ignore rules: excluded chrome-only edits
+stay out, while material keys and changes to screen content remain reviewable.
+Linked CSS, fonts, images, and transitive local resources still mark the screens
+that reference them; unrelated shared files do not mark the whole catalogue.
 Lightweight watched updates recompute this route snapshot before notifying the
 browser, so the Changes rows and count match the files that triggered each
 reload without restarting the server child.
@@ -204,8 +209,8 @@ stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
 catalogue available and offer a retry. Navigation and reload return to Current.
 Added and removed screens show explicit missing sides, and unchanged screens
-can still be compared from All. Shared-impact files keep affected screens in
-Changes even if their generated fragments are unchanged.
+can still be compared from All. Shared-impact and declared-dependency evidence
+remains in comparison details, including for unchanged screens opened from All.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
 rules, and isolated snapshot dependencies. Overlays use 50% opacity; Difference

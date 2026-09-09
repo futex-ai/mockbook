@@ -2,11 +2,10 @@ import { screen } from "mokabook";
 
 import { CompareGrid, ComparisonStage, Pane } from "./parts/compare.js";
 import { DetailsPanel } from "./parts/details.js";
-import { NavDrawer } from "./parts/nav.js";
+import { NavDrawer, NavTree } from "./parts/nav.js";
 import {
   EmptyReviewNav,
   IgnoredImpactCard,
-  ReviewNav,
   SharedImpactCard,
 } from "./parts/review.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
@@ -34,7 +33,10 @@ function WelcomeShot({
 
 function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
   return (
-    <Shell viewport={viewport} nav={<ReviewNav activeTitle="Welcome" />}>
+    <Shell
+      viewport={viewport}
+      nav={<NavTree activeLabel="Welcome" changedCount={0} />}
+    >
       <ScreenHead
         crumbs={["Example", "Screens"]}
         idChip="example-welcome"
@@ -63,7 +65,10 @@ function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
 
 function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
   return (
-    <Shell viewport={viewport} nav={<ReviewNav activeTitle="Welcome" />}>
+    <Shell
+      viewport={viewport}
+      nav={<NavTree activeLabel="Welcome" changedCount={0} />}
+    >
       <ScreenHead
         action={<ViewSwitch active={viewport} />}
         comparisonMode="side-by-side"
@@ -120,7 +125,7 @@ export const reviewImpactScreens = [
   screen({
     colorSchemes: ["light"],
     description:
-      "A screen comparison with secondary evidence from changed shared inputs.",
+      "An unchanged screen opened from All retains secondary evidence from changed shared inputs.",
     desktop: <SharedImpactSummary viewport="desktop" />,
     id: "design-review-shared-impact",
     mobile: <SharedImpactSummary viewport="mobile" />,

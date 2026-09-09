@@ -25,25 +25,25 @@ implemented.
 The approved screens are authored in `examples/basic/entries/design/` and
 generated under `examples/basic/generated/design/`:
 
-| Route                                     | State                                  |
-| ----------------------------------------- | -------------------------------------- |
-| `design/browse/views/home.html`           | Catalogue home with navigation tree    |
-| `design/browse/views/screen.html`         | Selected screen with framed fragments  |
-| `design/browse/views/use-case.html`       | Selected use case with ordered steps   |
-| `design/browse/states/details.html`       | Expanded details inspector             |
-| `design/browse/states/missing-route.html` | Not-found view with navigation         |
-| `design/browse/states/navigation.html`    | Collapsed navigation drawer            |
-| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree        |
-| `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens     |
-| `design/browse/states/light-only.html`    | Light-only screen under dark           |
-| `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare   |
-| `design/review/outcomes/added.html`       | Added screen with missing base pane    |
-| `design/review/outcomes/removed.html`     | Removed screen with missing head pane  |
-| `design/review/outcomes/difference.html`  | Blend-mode difference comparison       |
-| `design/review/outcomes/dark-scheme.html` | Dark view compared side by side        |
-| `design/review/impact/shared-impact.html` | Summary with shared-impact card        |
-| `design/review/impact/ignored-only.html`  | Ignored-region-only classification     |
-| `design/review/impact/empty.html`         | Empty Changes filter retaining Current |
+| Route                                     | State                                   |
+| ----------------------------------------- | --------------------------------------- |
+| `design/browse/views/home.html`           | Catalogue home with navigation tree     |
+| `design/browse/views/screen.html`         | Selected screen with framed fragments   |
+| `design/browse/views/use-case.html`       | Selected use case with ordered steps    |
+| `design/browse/states/details.html`       | Expanded details inspector              |
+| `design/browse/states/missing-route.html` | Not-found view with navigation          |
+| `design/browse/states/navigation.html`    | Collapsed navigation drawer             |
+| `design/browse/states/tag-filter.html`    | Tag picker over a filtered tree         |
+| `design/browse/states/dark-scheme.html`   | Dark selected, dark device screens      |
+| `design/browse/states/light-only.html`    | Light-only screen under dark            |
+| `design/review/outcomes/changed.html`     | Changed screen, side-by-side compare    |
+| `design/review/outcomes/added.html`       | Added screen with missing base pane     |
+| `design/review/outcomes/removed.html`     | Removed screen with missing head pane   |
+| `design/review/outcomes/difference.html`  | Blend-mode difference comparison        |
+| `design/review/outcomes/dark-scheme.html` | Dark view compared side by side         |
+| `design/review/impact/shared-impact.html` | Unchanged screen from All with evidence |
+| `design/review/impact/ignored-only.html`  | Ignored-only comparison opened from All |
+| `design/review/impact/empty.html`         | Empty Changes filter retaining Current  |
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside

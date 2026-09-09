@@ -24,7 +24,7 @@ test("review command and artifact output option are removed", () => {
   assert.equal(parseArguments(["serve", "--base", "HEAD"]).base, "HEAD");
 });
 
-test("Changes includes screens affected by configured shared inputs", async (t) => {
+test("shared inputs require rendered impact to include screens in Changes", async (t) => {
   const fixture = await createFixture();
   t.after(() => removeFixture(fixture));
   const config = await loadConfig(fixture.root);
@@ -35,7 +35,7 @@ test("Changes includes screens affected by configured shared inputs", async (t) 
   };
   assert.deepEqual(
     changedManifestRoutes(manifest, manifest, withShared, ["theme/colors.css"]),
-    ["screens/details.html", "screens/home.html", "user-flows/tour.html"],
+    [],
   );
 });
 
