@@ -110,6 +110,19 @@ test("free text still matches rows that declare no tags", () => {
   assert.equal(nav.screens.hidden, true);
 });
 
+test("free text filters structured rows by their page id", () => {
+  const nav = navFixture();
+  nav.search.value = "transactions-list-transfer-ready";
+
+  applyNavVisibility(asDocument(nav.root), "reveal-matches");
+
+  assert.equal(nav.details.hidden, false);
+  assert.equal(nav.welcome.hidden, true);
+  assert.equal(nav.glossary.hidden, true);
+  assert.equal(nav.screens.hidden, false);
+  assert.equal(nav.docs.hidden, true);
+});
+
 test("navigation clears only a query that hides its destination", () => {
   const nav = navFixture();
   nav.search.value = "tag:onboarding";
@@ -156,8 +169,18 @@ interface NavFixture {
 
 function navFixture(): NavFixture {
   const search = new FakeNode("input", { "data-mokabook-search": "" });
-  const welcome = navRow("screens/welcome.html", "Welcome", "forms onboarding");
-  const details = navRow("screens/details.html", "Details", "forms");
+  const welcome = navRow(
+    "screens/welcome.html",
+    "Welcome",
+    "forms onboarding",
+    "welcome",
+  );
+  const details = navRow(
+    "screens/details.html",
+    "Details",
+    "forms",
+    "transactions-list-transfer-ready",
+  );
   const glossary = navRow("docs/glossary.html", "Glossary");
   const screens = navGroup("collection:screens", welcome, details);
   const docs = navGroup("collection:docs", glossary);
@@ -172,13 +195,19 @@ function navFixture(): NavFixture {
   return { changed, details, docs, glossary, root, screens, search, welcome };
 }
 
-function navRow(route: string, label: string, tags?: string): FakeNode {
+function navRow(
+  route: string,
+  label: string,
+  tags?: string,
+  id?: string,
+): FakeNode {
   return new FakeNode(
     "a",
     {
       "data-nav-row": "",
       "data-route": route,
       href: `/view/${route}`,
+      ...(id === undefined ? {} : { "data-entry-id": id }),
       ...(tags === undefined ? {} : { "data-tags": tags }),
     },
     label,

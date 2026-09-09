@@ -10,6 +10,7 @@ import {
 export interface NavigationConstraintFacts {
   changed: boolean;
   changedOnly: boolean;
+  id?: string;
   query: string;
   route: string;
   tags: readonly string[];
@@ -32,11 +33,7 @@ export type NavigationRevealCause = "navigation" | "recovery";
 export function navigationConstraintChanges(
   facts: NavigationConstraintFacts,
 ): NavigationConstraintChanges {
-  const matchesQuery = rowMatchesQuery(parseSearchQuery(facts.query), {
-    route: facts.route,
-    tags: facts.tags,
-    text: facts.text,
-  });
+  const matchesQuery = rowMatchesQuery(parseSearchQuery(facts.query), facts);
   return {
     clearQuery: !matchesQuery,
     showAll: facts.changedOnly && !facts.changed,
@@ -127,11 +124,14 @@ export function selectAndRevealRoute(
 }
 
 function navRowFacts(row: Element): {
+  id?: string;
   route: string;
   tags: readonly string[];
   text: string;
 } {
+  const id = row.getAttribute("data-entry-id");
   return {
+    ...(id === null ? {} : { id }),
     route: row.getAttribute("data-route") ?? "",
     tags: (row.getAttribute("data-tags") ?? "")
       .split(/\s+/)

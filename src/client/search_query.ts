@@ -20,10 +20,10 @@ export function parseSearchQuery(raw: string): SearchQuery {
   return { freeText: freeTerms.join(" "), tags };
 }
 
-/** Every tag term ∈ row tags AND free text ⊆ row text/route (lowercased). */
+/** Every tag term ∈ row tags AND free text ⊆ row id/text/route. */
 export function rowMatchesQuery(
   query: SearchQuery,
-  row: { route: string; tags: readonly string[]; text: string },
+  row: { id?: string; route: string; tags: readonly string[]; text: string },
 ): boolean {
   const matchesTags = query.tags.every((tag) =>
     row.tags.some((rowTag) => rowTag.toLowerCase() === tag),
@@ -32,6 +32,7 @@ export function rowMatchesQuery(
   const freeText = query.freeText.toLowerCase();
   return (
     freeText === "" ||
+    (row.id ?? "").toLowerCase().includes(freeText) ||
     row.text.toLowerCase().includes(freeText) ||
     row.route.toLowerCase().includes(freeText)
   );
