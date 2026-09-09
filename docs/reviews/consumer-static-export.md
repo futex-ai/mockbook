@@ -106,14 +106,14 @@ while preserving the distinct build and static URL-resolution policies.
 Verification: an in-memory export inventory containing `other.html#missing`
 passed validation when `other.html` contained no matching anchor.
 
-## Validation And Limits
+## Initial Review Validation And Limits
 
 Before commit and push, `cargo xtask check` passed all 429 unit/integration tests,
 86 browser tests, packed-consumer and package/license checks, formatting, lint,
 typechecking, committed example verification, Rust formatting/Clippy, three Rust
 tests, and the Rust file-length audit. The independent reviewer did not rerun
-tests because its process was read-only. Passing tests do not cover the four
-gaps above; the recommended follow-up includes targeted regression coverage.
+tests because its process was read-only. Those original tests did not cover the
+four gaps above; the approved remediation below adds targeted regressions.
 
 Empty registries retain existing Build/Check/Serve validation rather than gaining
 new support. No npm release or hosting deployment was performed.
@@ -153,4 +153,66 @@ verified free port without disturbing that server. Two existing CLI startup
 tests timed out under an earlier parallel load; both passed in isolation and in
 two subsequent full suites without changing their timeouts or test concurrency.
 
-The required post-push review will be recorded here after delivery.
+Delivery: merge/fix commit `fd543db5a59b8889807f0818b710e769a42786ba` was pushed
+before `cargo xtask review`. Five additional browser smoke tests passed after
+the commit changed the merge baseline to `93ac778`; mobile and desktop exported
+screens were also visually checked. The second read-only review completed
+successfully on 2026-09-09. It reported the following two new findings, which
+were not automatically fixed. Final plan/index/report edits are documentation-only.
+
+## Follow-Up Review: New Findings
+
+### 1. High: A Destination Race Can Delete Unowned Files
+
+In [transaction.ts](../../src/export/transaction.ts), `install()` checks output
+ownership before separately moving the destination to `backup/`, installing the
+stage, and deleting the backup. The reservation excludes other Mokabook writers,
+but an unrelated editor or process can introduce unowned destination contents
+after validation and before that move. Those contents can reach the backup and
+then be recursively deleted. Doing nothing retains a potential user-data-loss
+path despite the documented refusal to replace unowned output.
+
+Options:
+
+- A. Require consumers to keep all other writers away from output while exporting.
+  This narrows the guarantee and relies on consumer coordination.
+- B. Revalidate the captured backup after the move and preserve unexpected
+  contents. Restore only when safe, otherwise retain a clearly identified
+  recovery directory. Add injected-operation regressions for late unowned
+  additions, mixed backups, and concurrent destination replacements.
+- C. Broaden the parent-directory lock. This can coordinate more cooperative
+  writers but cannot exclude unrelated editors or processes by itself.
+
+Recommended: B. Keep validation, safe restoration, and deletion eligibility
+together at the transaction boundary instead of adding an isolated check at one
+call site. This costs additional state/error handling but protects the whole
+destructive-cleanup path. Document the residual limits of non-cooperating writers;
+a parent lock alone does not remove that risk.
+
+Verification: code inspection confirms there is no backup ownership check
+between the move and removal. No user files were changed to reproduce the race.
+
+### 2. Medium: Cleanup Can Hide The Original Export Failure
+
+[run.ts](../../src/export/run.ts) awaits `transaction.close()` in `finally`.
+When installation already failed with a rollback or backup-cleanup error,
+`close()` can throw its retained-backup error and replace the original exception.
+Existing transaction-level tests assert each error separately, not propagation
+through `exportCatalogue()` and the CLI. Doing nothing can hide the original
+failure and make recovery instructions less actionable.
+
+Options:
+
+- A. Keep only the retained-path diagnostic and accept the lost primary cause.
+- B. Preserve the original failure while aggregating cleanup diagnostics and
+  recovery paths; add export-orchestrator and CLI-boundary regression coverage.
+- C. Suppress `close()` failures, losing cleanup information instead.
+
+Recommended: B. Use one consistent error-composition policy at the orchestration
+boundary, including non-install failures, and test what the CLI actually reports.
+This is broader than catching one `finally` exception, but prevents failure
+masking across cancellation, rollback, install, and cleanup paths.
+
+Verification: JavaScript `finally` semantics and the existing retained-backup
+branches confirm the masking path. The independent reviewer did not rerun tests;
+the implementation gate and post-merge smoke results above were run separately.

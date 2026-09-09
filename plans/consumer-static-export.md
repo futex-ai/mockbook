@@ -6,8 +6,8 @@ passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
-Milestones 1–6 completed; Milestone 7 fixes and main integration are verified,
-pending delivery and the required post-push review.
+Milestones 1–7 completed. The approved fixes and main integration are checked,
+committed, pushed, and reviewed; newly reported follow-ups await the user's decision.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
 The user approved fixing all four review findings, followed by merging latest main.
@@ -280,7 +280,7 @@ Medium findings and one Low finding. See the
 impact, solution options, verification notes, and recommended preventive scope.
 The final plan/index/review-record changes are documentation-only bookkeeping.
 
-## Milestone 7: Resolve Review Findings And Merge Main
+## Milestone 7: Resolve Review Findings And Merge Main — completed
 
 Deliver the requested review follow-up without reopening completed milestones.
 
@@ -291,7 +291,13 @@ Deliver the requested review follow-up without reopening completed milestones.
 - [x] Checkpoint the fixes, fetch main, capture the source tip, and audit main's
       additions before merging. Preserve features path-by-path.
 - [x] Merge latest `origin/main`, resolve any conflicts, and rerun the full gate.
-- [ ] Audit diff/deletions, run `git add -A`, commit with Conventional Commits,
+- [x] Audit diff/deletions, run `git add -A`, commit with Conventional Commits,
       and push the existing branch before `cargo xtask review`.
-- [ ] Report new review findings without automatic fixes; record final outcomes
+- [x] Report new review findings without automatic fixes; record final outcomes
       and commit/push documentation bookkeeping separately.
+
+Delivered `fd543db`, merging main `93ac778` without deleting mainline files.
+The full gate passed 465 unit/integration and 104 browser tests; five additional
+post-commit browser smoke tests passed against the new merge baseline.
+The successful post-push review reported one new High and one new Medium finding;
+both remain unchanged with options and recommendations in the review record.
