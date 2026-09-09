@@ -6,7 +6,7 @@ passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
-Implementation delivered; final verification and review in progress. Add a supported consumer CLI
+Implementation delivered and verified; post-push review in progress. Add a supported consumer CLI
 that exports the complete Mokabook catalogue and comparisons into a directory
 the consumer can deploy through their own hosting workflow.
 
@@ -202,31 +202,31 @@ Validation: CLI, migration, safety, and comparison cases passed; the packed
 Accounting/Juno fixtures cover custom renderers, module resolution, and legacy
 pages. All 8 existing Cloudflare browser checks and preview builds passed.
 
-## Milestone 5: Prove Consumer Publishing And Document It
+## Milestone 5: Prove Consumer Publishing And Document It — completed
 
 Verify the npm boundary and deployment artifact, and publish accurate usage
 documentation without actually uploading a site or releasing a package.
 
-- [ ] Add a clean packed-consumer export case using the installed CLI only.
+- [x] Add a clean packed-consumer export case using the installed CLI only.
       Cover local dependency and clean-cache npx execution, an explicit custom
       config/base, and absence of this repository's scripts or example files.
-- [ ] Inspect the tarball for the new compiled modules/assets and the existing
+- [x] Inspect the tarball for the new compiled modules/assets and the existing
       package/license allowlist; export must need no consumer deep imports.
-- [ ] Copy just the completed site to an isolated serving directory and remove
+- [x] Copy just the completed site to an isolated serving directory and remove
       the fixture's source/Git access before browser checks. Crawl local route,
       module, CSS, image/font, alias, and snapshot references and require success.
-- [ ] Assert no comparison requests in Current and no live-update/network
+- [x] Assert no comparison requests in Current and no live-update/network
       dependency on a Mokabook server. Exercise comparisons after source removal,
       refresh, interrupted navigation, failure/retry, and all schemes/viewports.
-- [ ] Retain real Cloudflare compatibility checks as a second serving mode;
+- [x] Retain real Cloudflare compatibility checks as a second serving mode;
       do not replace portable-host checks with provider-only success.
-- [ ] Update the root README's command table, consumer export/deploy recipe,
+- [x] Update the root README's command table, consumer export/deploy recipe,
       config-relative output example, Git-history requirement, root-hosting
       limitation, external-resource caveat, and troubleshooting.
-- [ ] Update example/preview docs, package/runtime/navigation/Changes protocols,
+- [x] Update example/preview docs, package/runtime/navigation/Changes protocols,
       package architecture boundaries, and release/CI docs together. Mark the
       planned contracts implemented only once the command and tests are complete.
-- [ ] Run relevant package, consumer, static/browser, and preview tests with a
+- [x] Run relevant package, consumer, static/browser, and preview tests with a
       100% pass rate and include them in `cargo xtask check`'s existing suites.
 
 Exit: the shipped package exports real independent consumers, and a separately
@@ -243,7 +243,7 @@ required repository workflow; no deployment or npm release is part of this plan.
       integration. Resolve paths individually; preserve mainline features.
 - [x] Inspect the complete diff and deletions against `origin/main`; confirm
       every new source/test/generated file belongs to the intended change.
-- [ ] After checks pass, run `git add -A`, commit all completed work using
+- [x] After checks pass, run `git add -A`, commit all completed work using
       Conventional Commits with a title of at most 50 characters and a body,
       then push the existing branch. Do not rename the branch.
 - [ ] Inspect committed paths/deletions against `origin/main` and run
