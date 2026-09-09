@@ -14,16 +14,29 @@ export interface ReviewAssetReader {
   read(route: string): Promise<Uint8Array>;
 }
 
+/** A worktree reader that distinguishes absent files from invalid resources. */
+export interface OptionalReviewAssetReader extends ReviewAssetReader {
+  /** Missing paths still require a confined, existing public ancestor. */
+  readIfExists(route: string): Promise<Uint8Array | undefined>;
+}
+
 /** Confined filesystem implementation for current-worktree Review assets. */
-export class FileSystemReviewAssetReader implements ReviewAssetReader {
+export class FileSystemReviewAssetReader implements OptionalReviewAssetReader {
   constructor(private readonly config: ResolvedConfig) {}
 
   async read(route: string): Promise<Uint8Array> {
+    const content = await this.readIfExists(route);
+    if (content === undefined) throw assetError(route, "file is missing");
+    return content;
+  }
+
+  async readIfExists(route: string): Promise<Uint8Array | undefined> {
     const candidate = assertPublicStaticRoute(route, this.config);
     try {
+      const existing = await closestExistingPath(candidate);
       const [realRoot, realCandidate] = await Promise.all([
         fs.promises.realpath(this.config.mockupsDir),
-        fs.promises.realpath(candidate),
+        fs.promises.realpath(existing),
       ]);
       const sourceRoots = await Promise.all([
         fs.promises.realpath(this.config.entriesDir),
@@ -33,16 +46,35 @@ export class FileSystemReviewAssetReader implements ReviewAssetReader {
       ]);
       if (
         !isInside(realRoot, realCandidate) ||
-        sourceRoots.some((root) => isInside(root, realCandidate)) ||
-        !(await fs.promises.stat(realCandidate)).isFile()
+        sourceRoots.some((root) => isInside(root, realCandidate))
       ) {
         throw assetError(route, "not a public static file");
       }
+      const stat = await fs.promises.stat(realCandidate);
+      if (existing !== candidate && stat.isDirectory()) return undefined;
+      if (existing !== candidate || !stat.isFile())
+        throw assetError(route, "not a public static file");
       return await fs.promises.readFile(realCandidate);
     } catch (error) {
       if (error instanceof MokabookError) throw error;
       throw assetError(route, errorMessage(error), error);
     }
+  }
+}
+
+/** Stop at symlinks so dangling or escaping links cannot masquerade as deletions. */
+async function closestExistingPath(candidate: string): Promise<string> {
+  try {
+    await fs.promises.lstat(candidate);
+    return candidate;
+  } catch (error) {
+    const parent = path.dirname(candidate);
+    if (
+      (error as NodeJS.ErrnoException).code !== "ENOENT" ||
+      parent === candidate
+    )
+      throw error;
+    return closestExistingPath(parent);
   }
 }
 

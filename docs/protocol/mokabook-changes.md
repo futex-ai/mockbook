@@ -31,11 +31,22 @@ Only references outside paired ignored regions participate; speculative
 preload/prefetch hints alone do not establish rendered impact. A linked resource
 edit is conservative evidence of a rendering change, not a pixel measurement.
 Unreferenced public files never add entries through a broad shared-impact glob.
+Every reachable existing resource is validated, including images and fonts;
+finding a changed resource does not skip its CSS/HTML references or later graph
+edges. Added screens, newly available views, and existing material fragment
+changes do not bypass resource validation.
+A deleted resource still marks its consumers only when its closest existing
+ancestor is a confined public directory and its baseline is a regular Git file.
+Dangling symlinks, escaping symlinks, source-root references, and newly missing
+resources fail validation rather than being treated as deletions. Snapshot
+generation still requires current references to resolve, including resources
+whose verified deletion made their consumers eligible for Changes.
 
 This detection reads files without rebuilding the baseline, writing snapshots,
 or generating a comparison. Baseline reads are batched; shared resource edges
-are cached within one calculation and cycles terminate. An unavailable or
-invalid comparison input disables the filter, preserving access through All.
+are cached within one calculation and cycles terminate. Apart from verified
+resource deletions, an unavailable or invalid input disables the filter,
+preserving access through All.
 Watched updates and static publishing use this same membership calculation.
 
 ## Screen controls
@@ -141,6 +152,14 @@ is calculated.
 
 The private output contains `review.json`, `summary.md`, an ownership marker,
 and the isolated snapshots. No HTML report or navigation payload is written.
+The summary's `output changes` count includes only screens classified as added,
+removed, or changed. Ignored-only screens remain a separate diagnostic count.
+`impact evidence` independently counts screens with shared-impact or dependency
+evidence, including screens with output changes; `impact-only` is the subset
+without output changes and can overlap ignored-only. Neither evidence nor
+ignored-only edits inflate output changes. These are fragment-comparison counts,
+not the catalogue Changes total, which also considers rendered resources,
+reviewable metadata, and flows. The JSON retains every screen and its evidence.
 
 Base and head panes live under separate route-preserving snapshot roots. Local
 resources referenced by pane HTML or CSS are copied transitively, including

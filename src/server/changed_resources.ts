@@ -2,8 +2,12 @@
 
 import path from "node:path";
 
+import { MokabookError } from "../errors.js";
 import { referencedRoutes } from "../review/asset_references.js";
-import type { ReviewAssetReader } from "../review/assets.js";
+import type {
+  OptionalReviewAssetReader,
+  ReviewAssetReader,
+} from "../review/assets.js";
 import { normalizeReviewPair } from "../review/ignore.js";
 
 /** Cache shared resource edges for one immutable changed-route calculation. */
@@ -11,7 +15,8 @@ export class ChangedResourceGraph {
   readonly #references = new Map<string, Promise<readonly string[]>>();
 
   constructor(
-    private readonly reader: ReviewAssetReader,
+    private readonly reader: OptionalReviewAssetReader,
+    private readonly baseline: ReviewAssetReader,
     private readonly changed: ReadonlySet<string>,
     private readonly documents: ReadonlyMap<string, string>,
   ) {}
@@ -22,30 +27,38 @@ export class ChangedResourceGraph {
       resourceHints: false,
     });
     const seen = new Set<string>();
+    let affected = false;
     for (let index = 0; index < pending.length; index += 1) {
       const route = pending[index];
       if (route === undefined || seen.has(route)) continue;
-      if (this.changed.has(route)) return true;
       seen.add(route);
-      const extension = path.posix.extname(route).toLowerCase();
-      if (![".css", ".html", ".htm"].includes(extension)) continue;
       let references = this.#references.get(route);
       if (!references) {
-        references = this.references(route, extension);
+        references = this.references(route);
         this.#references.set(route, references);
       }
       pending.push(...(await references));
+      if (this.changed.has(route)) affected = true;
     }
-    return false;
+    return affected;
   }
 
-  private async references(
-    route: string,
-    extension: string,
-  ): Promise<readonly string[]> {
+  private async references(route: string): Promise<readonly string[]> {
     let content = this.documents.get(route);
     if (content === undefined) {
-      content = Buffer.from(await this.reader.read(route)).toString("utf8");
+      const bytes = await this.reader.readIfExists(route);
+      if (bytes === undefined) {
+        if (!this.changed.has(route))
+          throw new MokabookError(
+            "review-invalid",
+            `referenced resource is missing: ${route}`,
+          );
+        await this.baseline.read(route);
+        return [];
+      }
+      const extension = path.posix.extname(route).toLowerCase();
+      if (![".css", ".html", ".htm"].includes(extension)) return [];
+      content = Buffer.from(bytes).toString("utf8");
       if (extension !== ".css")
         content = normalizeReviewPair(content, content, route).head;
     }

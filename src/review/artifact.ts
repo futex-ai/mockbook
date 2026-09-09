@@ -5,7 +5,7 @@ import type {
   ReviewArtifactContent,
   ReviewResult,
 } from "./types.js";
-import { isImpactOnly, isMaterial } from "./materiality.js";
+import { hasOutputChange, isImpactOnly } from "./materiality.js";
 import { addArtifactFile } from "./paths.js";
 
 /** Add comparison metadata to isolated snapshot files. */
@@ -25,8 +25,11 @@ export function renderReviewArtifact(
 
 /** Create a concise deterministic CI summary. */
 export function summaryMarkdown(result: ReviewResult): string {
-  const material = result.screens.filter(isMaterial);
-  const impacted = result.screens.filter(isImpactOnly).length;
+  const outputChanges = result.screens.filter(hasOutputChange).length;
+  const impactEvidence = result.screens.filter(
+    (screen) => screen.sharedImpact.length > 0,
+  ).length;
+  const impactOnly = result.screens.filter(isImpactOnly).length;
   const counts = new Map<string, number>();
   for (const screen of result.screens)
     counts.set(screen.state, (counts.get(screen.state) ?? 0) + 1);
@@ -35,7 +38,9 @@ export function summaryMarkdown(result: ReviewResult): string {
     "",
     `Base: \`${result.baseRef}\` (\`${result.baseCommit.slice(0, 12)}\`)`,
     "",
-    `Screens: ${result.screens.length}; material: ${material.length}; changed: ${counts.get("changed") ?? 0}; added: ${counts.get("added") ?? 0}; removed: ${counts.get("removed") ?? 0}; ignored-only: ${counts.get("ignored-only") ?? 0}; impacted: ${impacted}.`,
+    `Screens: ${result.screens.length}; output changes: ${outputChanges}; changed: ${counts.get("changed") ?? 0}; added: ${counts.get("added") ?? 0}; removed: ${counts.get("removed") ?? 0}; ignored-only: ${counts.get("ignored-only") ?? 0}; impact evidence: ${impactEvidence}; impact-only: ${impactOnly}.`,
+    "",
+    "Output changes count screen fragments; catalogue Changes also considers rendered resources, metadata, and flows. Impact evidence is counted independently; impact-only screens have no output change and can also be ignored-only.",
   ];
   if (result.sharedImpact.length > 0) {
     lines.push(

@@ -13,12 +13,15 @@ import {
   GitReviewAssetReader,
 } from "../review/assets.js";
 import type { GitClient } from "../review/git.js";
-import { normalizeReviewPair } from "../review/ignore.js";
+import {
+  normalizeReviewPair,
+  normalizeSingleDocument,
+} from "../review/ignore.js";
 import { fragmentForView, unionColorSchemes } from "../review/screen_views.js";
 import { ChangedResourceGraph } from "./changed_resources.js";
 
 interface FragmentPair {
-  base: string;
+  base?: string;
   head: string;
   context: string;
   changed: boolean;
@@ -56,7 +59,10 @@ export async function changedContentPaths(
   const baseReader = new GitReviewAssetReader(config, git, commit, prefix);
   const result = new Set<string>();
   const documents = new Map<string, string>();
-  const changedPairs = pairs.filter((pair) => pair.changed);
+  const changedPairs = pairs.filter(
+    (pair): pair is FragmentPair & { base: string } =>
+      pair.changed && pair.base !== undefined,
+  );
   for (let offset = 0; offset < changedPairs.length; offset += 32) {
     const batch = changedPairs.slice(offset, offset + 32);
     const bases = await baseReader.readMany(batch.map((pair) => pair.base));
@@ -77,7 +83,6 @@ export async function changedContentPaths(
       if (normalized.base !== normalized.head) {
         result.add(repoPath(pair.head));
       } else if (pair.base === pair.head) {
-        publicChanges.delete(pair.base);
         publicChanges.delete(pair.head);
       }
     }
@@ -85,17 +90,19 @@ export async function changedContentPaths(
   if (publicChanges.size === 0) return [...result].sort();
   const resources = new ChangedResourceGraph(
     headReader,
+    baseReader,
     publicChanges,
     documents,
   );
   for (const pair of pairs) {
-    if (result.has(repoPath(pair.head))) continue;
     let document = documents.get(pair.head);
     if (document === undefined) {
       const after = Buffer.from(await headReader.read(pair.head)).toString(
         "utf8",
       );
-      document = normalizeReviewPair(after, after, pair.context).head;
+      document = pair.base
+        ? normalizeReviewPair(after, after, pair.context).head
+        : normalizeSingleDocument(after, pair.context);
     }
     if (await resources.affects(pair.head, document))
       result.add(repoPath(pair.head));
@@ -111,19 +118,21 @@ function fragmentPairs(
   const bases = new Map(baseline.entries.map((entry) => [entry.id, entry]));
   const pairs: FragmentPair[] = [];
   for (const screen of manifest.entries) {
-    const base = bases.get(screen.id);
-    if (screen.kind !== "screen" || base?.kind !== "screen") continue;
+    if (screen.kind !== "screen") continue;
+    const baseEntry = bases.get(screen.id);
+    const base = baseEntry?.kind === "screen" ? baseEntry : undefined;
     for (const viewport of VIEWPORTS) {
       for (const scheme of unionColorSchemes(base, screen)) {
-        const before = fragmentForView(base, viewport, scheme);
+        const before = base
+          ? fragmentForView(base, viewport, scheme)
+          : undefined;
         const after = fragmentForView(screen, viewport, scheme);
-        if (!before || !after) continue;
+        if (!after) continue;
         pairs.push({
-          base: before,
+          ...(before ? { base: before } : {}),
           head: after,
           context: `${screen.route} (${viewport}, ${scheme})`,
-          changed:
-            before !== after || changed.has(before) || changed.has(after),
+          changed: before !== after || changed.has(after),
         });
       }
     }

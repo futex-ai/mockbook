@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { renderReviewArtifact } from "../dist/review/artifact.js";
-import type { ReviewResult } from "../dist/review/types.js";
+import {
+  renderReviewArtifact,
+  summaryMarkdown,
+} from "../dist/review/artifact.js";
+import type { ReviewResult, ReviewState } from "../dist/review/types.js";
 
 const result: ReviewResult = {
   baseCommit: "a".repeat(40),
@@ -51,7 +54,7 @@ test("comparison artifacts contain data and snapshots without a separate UI", ()
     "snapshots/head/home.html",
     "summary.md",
   ]);
-  assert.match(String(files.get("summary.md")), /impacted: 1/);
+  assert.match(String(files.get("summary.md")), /impact-only: 1/);
 });
 
 test("empty comparisons still return a valid result", () => {
@@ -59,4 +62,39 @@ test("empty comparisons still return a valid result", () => {
   const files = renderReviewArtifact({ files: new Map(), result: empty });
   assert.deepEqual(JSON.parse(String(files.get("review.json"))), empty);
   assert.match(String(files.get("summary.md")), /Screens: 0/);
+});
+
+for (const [state, outputChanges, impactOnly] of [
+  ["unchanged", 0, 1],
+  ["ignored-only", 0, 1],
+  ["changed", 1, 0],
+  ["added", 1, 0],
+  ["removed", 1, 0],
+] satisfies [ReviewState, number, number][]) {
+  test(`summary separates ${state} output from impact evidence`, () => {
+    const summary = summaryMarkdown({
+      ...result,
+      screens: result.screens.map((screen) => ({ ...screen, state })),
+    });
+    assert.match(summary, new RegExp(`output changes: ${outputChanges};`));
+    assert.match(summary, /impact evidence: 1;/);
+    assert.match(summary, new RegExp(`impact-only: ${impactOnly}\\.`));
+    assert.doesNotMatch(summary, /material:/);
+    assert.match(summary, /`styles.css`/);
+  });
+}
+
+test("ignored-only output without dependencies is not impact evidence", () => {
+  const summary = summaryMarkdown({
+    ...result,
+    sharedImpact: [],
+    screens: result.screens.map((screen) => ({
+      ...screen,
+      state: "ignored-only",
+      sharedImpact: [],
+    })),
+  });
+  assert.match(summary, /output changes: 0;/);
+  assert.match(summary, /ignored-only: 1;/);
+  assert.match(summary, /impact evidence: 0; impact-only: 0\./);
 });

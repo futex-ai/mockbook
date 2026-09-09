@@ -194,6 +194,9 @@ use the comparison engine's paired ignore rules: excluded chrome-only edits
 stay out, while material keys and changes to screen content remain reviewable.
 Linked CSS, fonts, images, and transitive local resources still mark the screens
 that reference them; unrelated shared files do not mark the whole catalogue.
+The filter validates referenced public files, including changed stylesheets and
+their imports. Invalid resources make Changes unavailable until repaired;
+verified deletions still identify affected screens, while All remains accessible.
 Lightweight watched updates recompute this route snapshot before notifying the
 browser, so the Changes rows and count match the files that triggered each
 reload without restarting the server child.
@@ -213,7 +216,10 @@ can still be compared from All. Shared-impact and declared-dependency evidence
 remains in comparison details, including for unchanged screens opened from All.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
-rules, and isolated snapshot dependencies. Overlays use 50% opacity; Difference
+rules, and isolated snapshot dependencies. Its private diagnostic summary counts
+fragment output changes separately from dependency evidence and ignored-only
+edits; these screen counts differ from the catalogue's screen-and-flow count.
+Overlays use 50% opacity; Difference
 uses CSS blending, without inventing pixel measurements. Immutable generations
 keep snapshots coherent during refresh, retain replaced resources briefly, and
 drain generation work before shutdown. The former Review tab, standalone report,
