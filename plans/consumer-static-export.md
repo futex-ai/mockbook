@@ -6,9 +6,10 @@ passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
-Implementation delivered and verified; post-push review in progress. Add a supported consumer CLI
-that exports the complete Mokabook catalogue and comparisons into a directory
-the consumer can deploy through their own hosting workflow.
+Completed: implementation, verification, commit/push, and post-push review.
+The supported consumer CLI exports the complete Mokabook catalogue and comparisons
+into a directory the consumer can deploy through their own hosting workflow.
+Four review findings remain for the user's decision; no fixes were applied.
 
 Implement the [consumer export protocol](../docs/protocol/mokabook-export.md)
 and [static delivery protocol](../docs/protocol/mokabook-export-delivery.md).
@@ -232,7 +233,7 @@ documentation without actually uploading a site or releasing a package.
 Exit: the shipped package exports real independent consumers, and a separately
 served artifact demonstrates the documented publishing workflow.
 
-## Milestone 6: Final Checks, Commit, Push, And Review
+## Milestone 6: Final Checks, Commit, Push, And Review — completed
 
 Deliver all implementation, generated fixtures, and documentation through the
 required repository workflow; no deployment or npm release is part of this plan.
@@ -246,13 +247,13 @@ required repository workflow; no deployment or npm release is part of this plan.
 - [x] After checks pass, run `git add -A`, commit all completed work using
       Conventional Commits with a title of at most 50 characters and a body,
       then push the existing branch. Do not rename the branch.
-- [ ] Inspect committed paths/deletions against `origin/main` and run
+- [x] Inspect committed paths/deletions against `origin/main` and run
       `cargo xtask review` only after the push so new files enter the review.
-- [ ] Report every finding without automatically fixing it: number, severity,
+- [x] Report every finding without automatically fixing it: number, severity,
       feature/code context, impact of doing nothing, lettered options, and a
       clear recommendation, considering broader prevention as well as a direct
       fix. Record review execution blockers accurately if it cannot finish.
-- [ ] Record validation/review outcomes, mark completed milestones, and move
+- [x] Record validation/review outcomes, mark completed milestones, and move
       this plan to Completed in `plans/README.md` once delivery is complete.
       Validate and commit/push any final documentation bookkeeping separately.
 
@@ -269,3 +270,11 @@ Final gate: `cargo xtask check` passed formatting, lint, typechecking, all 429
 unit/integration tests, committed example verification, package/license checks,
 packed consumers, all 86 browser tests, Rust formatting/Clippy, 3 Rust tests,
 and the Rust file-length audit. No npm release or deployment was performed.
+
+Delivery: implementation commit `638b848` and checklist commit `d8c7a13` were
+pushed to `calummoore/publish-export` before `cargo xtask review`. The review
+completed successfully against `origin/main` on 2026-09-09 and reported three
+Medium findings and one Low finding. See the
+[post-push review](../docs/reviews/consumer-static-export.md) for every finding,
+impact, solution options, verification notes, and recommended preventive scope.
+The final plan/index/review-record changes are documentation-only bookkeeping.
