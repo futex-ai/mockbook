@@ -89,10 +89,16 @@ Copy eligible public file and directory aliases as regular files at their
 logical routes. Every copied target must also stay inside the real `mockupsDir`
 and pass the shared source/internal-metadata policy. Apply generated-artifact
 and staging/destination exclusions to both identities. After copying, validate
-every exported HTML/CSS resource reference against confined regular files in
+the presence of every current page and light/dark screen fragment named by the
+manifest, independently of the enumerated file list. Validate every exported
+HTML/CSS resource reference against confined regular files in
 the staged static tree, including transitive references. An unavailable resource,
 including a reference through a skipped cycle or excluded alias, fails before
 installation and preserves the previous artifact.
+Repository discovery may skip dependency/build directories, but the public walk
+must retain valid catalogue routes under names such as `target` and
+`node_modules`. Git administrative directories, generated artifacts, protected
+inputs, and confined staging/destination paths remain excluded.
 
 ## Consistent Publication Snapshot
 

@@ -91,7 +91,7 @@ The package CLI and nested-child documentation now match their implemented APIs.
 The new regression run reproduced 17 failures with two passing controls before
 production edits. After the fixes, all 22 focused tests and all 74 existing/new
 boundary tests passed, including a live watched-server asset-import smoke test.
-Final `cargo xtask check` passed: 564 Node tests, 104 Chromium tests, 3 Rust
+The initial `cargo xtask check` passed: 564 Node tests, 104 Chromium tests, 3 Rust
 tests, formatting, lint, typechecking, example freshness (70 files), package
 checks and packed consumers, clippy, and the Rust file-length audit (10 files).
 The real example also published successfully. All 184 local Markdown targets
@@ -104,5 +104,18 @@ clicks. Adding the missing intermediate URL assertion fixed the scenario; it
 passed five repetitions per viewport and the complete browser suite. Runtime
 timeouts, retries, and navigation behavior remain unchanged.
 
-The implementation and checks are complete. The required review follows the
-commit and push; its result will be recorded here.
+Fix commit `984cb6a` was pushed before review invocation 5. That review was
+interrupted before final findings when an independent probe found that the new
+shared enumeration also applied repository dependency/build exclusions to public
+catalogue routes. A page under `target/` could have a captured shell with no
+exported document. Eight regression cases reproduced this for pages/fragments
+under `target` and `node_modules`, and for wholly omitted documents, in both modes.
+
+The public walk now preserves these valid directory names. Export validation
+starts from every current page and light/dark screen fragment in the manifest,
+so an omitted document cannot escape validation merely by being absent from the
+copied set. All 45 publication boundary tests pass. The final full gate passed
+with 572 Node tests, 104 Chromium tests, and 3 Rust tests, plus all formatting,
+lint, typechecking, example/package/packed-consumer, clippy, and file-length
+checks. The real example publication smoke passed again. Review invocation 6
+will follow this correction's commit and push.

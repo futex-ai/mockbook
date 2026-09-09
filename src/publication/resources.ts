@@ -41,6 +41,9 @@ export async function copyPublicFiles(
     await fs.promises.writeFile(target, adapted);
     copied.add(relative);
   }
+  for (const route of catalogueDocuments(catalogue)) {
+    if (!copied.has(route)) throw resourceError(route, "catalogue");
+  }
   for (const route of copied) {
     const file = await exportedFile(root, stage, route);
     if (!/\.(?:html?|css)$/i.test(route)) continue;
@@ -50,6 +53,20 @@ export async function copyPublicFiles(
       await exportedFile(root, stage, resource, route);
     }
   }
+}
+
+/** Require current documents independently of the filesystem enumeration result. */
+function catalogueDocuments(catalogue: Catalogue): readonly string[] {
+  return catalogue.manifest.entries.flatMap((entry) =>
+    entry.kind === "page"
+      ? [entry.route]
+      : entry.kind === "screen"
+        ? [
+            ...Object.values(entry.fragments),
+            ...Object.values(entry.darkFragments ?? {}),
+          ]
+        : [],
+  );
 }
 
 async function exportedFile(

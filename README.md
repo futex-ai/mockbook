@@ -458,7 +458,8 @@ parent, or output symlinks are rejected before any publication writes.
 Input capture hashes link text without reading outside or unresolved targets.
 Safe public file and directory aliases are exported as regular files at their
 logical routes; source and internal-metadata aliases remain private. The builder
-checks exported resource references before replacing the previous artifact.
+requires every current page and screen fragment and checks exported resource
+references before replacing the previous artifact.
 
 To include Changes, removed-entry states, and frozen screen comparisons:
 

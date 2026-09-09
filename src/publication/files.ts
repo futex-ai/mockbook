@@ -27,8 +27,11 @@ export async function publicationFiles(
     const parts = path.relative(config.repoRoot, file).split(path.sep);
     return (
       excluded.some((directory) => isInside(directory, file)) ||
-      parts.some((part) => [".git", "node_modules", "target"].includes(part)) ||
-      (!publicRoot && parts.includes(".context")) ||
+      parts.includes(".git") ||
+      (!publicRoot &&
+        parts.some((part) =>
+          [".context", "node_modules", "target"].includes(part),
+        )) ||
       isComparisonPath(file, config)
     );
   }
