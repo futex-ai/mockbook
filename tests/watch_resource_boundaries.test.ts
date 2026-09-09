@@ -46,7 +46,11 @@ test(
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
         await action();
-        html = await waitForUpdate(running.url, previous);
+        html = await waitForUpdate(running.url, previous, (candidate) =>
+          count === undefined
+            ? !/mbk-nav-filter-count/.test(candidate)
+            : candidate.includes(`class="mbk-nav-filter-count">${count}<`),
+        );
         if (count === undefined)
           assert.doesNotMatch(html, /mbk-nav-filter-count/);
         else assert.ok(html.includes(`class="mbk-nav-filter-count">${count}<`));
@@ -83,6 +87,7 @@ test(
       assert.ok(!invalid.paths.has(path.join(fixture.root, "notes.md")));
       await edit(async () => {
         await fs.rm(image);
+        await waitForUpdate(running.url, version(html));
         await fs.writeFile(image, "<svg/>");
       }, 0);
       await edit(() => link("missing.svg"));

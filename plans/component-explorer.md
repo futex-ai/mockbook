@@ -1,7 +1,8 @@
 # Component Explorer
 
 Status: active; mockup milestones 4, 4a, 4b, 4c, and 7 are completed and ready
-for joint design sign-off. Verification follow-up 4d is completed. Component runtime
+for joint design sign-off. Verification follow-up 4d is completed; 4e addresses
+the recurring integrated watcher-test race. Component runtime
 implementation remains pending. At the user's request, the mockups precede
 the runtime/backend milestones.
 
@@ -304,6 +305,27 @@ watcher test intermittently observed a replacement's temporary missing-file stat
 on Node 22 and was retried; CI history and current status are recorded in
 [PR #48](https://github.com/futex-ai/mokabook/pull/48). The published artboards are
 unchanged from the verified Milestone 4c preview.
+
+## Milestone 4e: Await completed resource replacements in tests
+
+The unchanged mainline watcher test repeatedly fails on CI when a multi-event
+file replacement publishes its temporary missing-file state before the final
+resource. Verify the intended final state without changing runtime watch behavior.
+
+- [x] Reproduce the failure by explicitly observing the intermediate removal
+      update before restoring the resource.
+- [x] Extend the bounded watch-test wait to accept the expected catalogue state,
+      keeping existing assertions and timeout budgets intact.
+- [x] Run focused resource-watch tests and `cargo xtask check`; inspect the diff.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
+- [ ] Record verification and PR handoff after the checks finish.
+
+Validation: observing the intermediate removal reproduced the original count
+assertion failure before the correction. All 10 focused resource-watch tests
+then passed, followed by `cargo xtask check` with all 493 TypeScript, 133 Chromium,
+and 3 Rust tests, package smokes, and format/lint/type/generated-output checks.
+The 20-second wait deadline, final assertions, runtime, and artboards are intact.
 
 ## Milestone 5: Implement component pages and inspection
 

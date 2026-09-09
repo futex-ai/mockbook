@@ -14,16 +14,17 @@ export function version(html: string): number {
   return Number(value);
 }
 
-/** Wait for a fully published watch action to reach the current catalogue. */
+/** Wait for a newer published catalogue satisfying the expected final state. */
 export async function waitForUpdate(
   url: string,
   previous: number,
+  matches: (html: string) => boolean = () => true,
 ): Promise<string> {
   const deadline = performance.now() + 20_000;
   while (performance.now() < deadline) {
     try {
       const html = await catalogue(url);
-      if (version(html) > previous) return html;
+      if (version(html) > previous && matches(html)) return html;
     } catch (error) {
       const code = (error as { cause?: NodeJS.ErrnoException }).cause?.code;
       if (

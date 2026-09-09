@@ -386,6 +386,9 @@ redirect chain; stale/background responses cannot satisfy it. The existing UI
 assertions retain their default deadlines.
 Pages preview setup timeouts belong in the setup hook, so build time is
 separate from browser assertions.
+Resource-watch tests that replace a file in multiple steps can pass an expected
+catalogue-state predicate to `waitForUpdate`. A newer version alone may describe
+the temporary removal; the helper keeps its existing bounded wait for recovery.
 
 `cargo xtask check` is the authoritative local gate. It includes formatting,
 lint, typechecking, unit/integration tests, the committed example, package
