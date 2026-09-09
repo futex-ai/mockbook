@@ -1,7 +1,8 @@
 # Component Explorer
 
-Status: active; mockup milestones 4, 4a, 4b, and 7 are completed. Milestone 4c
-applies the subsequent design feedback before sign-off. Component runtime
+Status: active; mockup milestones 4, 4a, 4b, 4c, and 7 are completed and ready
+for joint design sign-off. Milestone 4d stabilizes integrated browser verification.
+Component runtime
 implementation remains pending. At the user's request, the mockups precede
 the runtime/backend milestones.
 
@@ -229,7 +230,7 @@ The controls table formatting was corrected independently during handoff;
 no other new review fixes were applied. Published-preview checks passed for
 inspector open/close, controls navigation, and read-only saved variants.
 
-## Milestone 4c: Refine view controls and inspector layout
+## Milestone 4c: Refine view controls and inspector layout — completed
 
 Tags: mockup
 
@@ -253,9 +254,9 @@ without reopening completed mockup milestones or implementing the runtime.
 - [x] Integrate main’s Changes/resource-watch update, preserve its source and
       generated screens, and adapt stylesheet attribution tests to rendered resources.
 - [x] Run focused tests and `cargo xtask check`; inspect the diff and deletions.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after pushing; report new findings for user decision.
-- [ ] Update PR #48 with the revised sign-off scope and validation.
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [x] Run `cargo xtask review` after pushing; report new findings for user decision.
+- [x] Update PR #48 with the revised sign-off scope and validation.
 
 Validation: all 493 TypeScript unit/integration tests, 133 Chromium tests, and
 3 Rust tests passed through `cargo xtask check`, including package smokes and
@@ -263,7 +264,37 @@ format/lint/type/generated-output checks. All 62 component artboards and the
 Both/Dark/resized states were visually checked. Main at `a5ecbc0` is integrated
 with its runtime source and 56 artboards preserved. The local check used Xcode’s
 Git executable directly to avoid launcher delays; test deadlines are unchanged.
-Commit/push, post-push review, and final PR handoff are recorded after they finish.
+Implementation commit `80195d6` is pushed and its post-push `cargo xtask review`
+completed. [PR #48](https://github.com/futex-ai/mokabook/pull/48) contains the full
+sign-off inventory, validation, and review findings. The review found stale
+inventory counts in two neighboring protocol summaries; those remain unchanged
+for user decision. Its pending-handoff observation is closed by this delivery
+record. Published mobile/desktop checks passed for view controls, field retention,
+nested-component tabs, highlights, and closing; resize checks also passed when
+opening the deployed artboards directly. The mockup uses a native resize grip;
+the full-width, keyboard-accessible runtime divider remains in Milestone 5.
+
+## Milestone 4d: Stabilize integrated design navigation checks
+
+CI exposed an existing test sequence that clicks controls in the previous frame
+before the preceding catalogue navigation finishes. Keep real navigation and
+assertions intact while making the test wait for each intended destination.
+
+- [x] Reproduce the CI failure with a delayed real navigation response before
+      changing the browser sequence.
+- [x] Assert the intermediate destinations before activating their controls;
+      document the sequencing rule for in-frame navigation checks.
+- [x] Run focused browser checks and `cargo xtask check`; inspect the diff.
+- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
+- [ ] Record CI and PR handoff after verification finishes.
+
+Validation: both viewport sequences failed with a delayed real response before
+the correction, then all five design-link checks passed with that delay retained.
+`cargo xtask check` passed all 493 TypeScript, 133 Chromium, and 3 Rust tests,
+including package smokes and all formatting/lint/type/generated-output checks.
+Only test sequencing and its documentation changed; runtime source and generated
+artboards remain unchanged from the reviewed implementation.
 
 ## Milestone 5: Implement component pages and inspection
 

@@ -1,3 +1,5 @@
+import { setTimeout } from "node:timers/promises";
+
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 async function tabTo(page: Page, link: Locator): Promise<void> {
@@ -61,6 +63,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
   test(`${viewport} scheme, comparison, tags, and flow links use canonical designs`, async ({
     page,
   }) => {
+    await page.route("**/id/design-browse-screen", async (route) => {
+      await setTimeout(200);
+      await route.continue();
+    });
     await page.setViewportSize({ width: 1600, height: 1000 });
     await page.goto("/view/design/browse/views/screen.html");
     await page.locator(`[data-viewport-option="${viewport}"]`).click();
@@ -82,6 +88,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       /\/design\/browse\/views\/details-screen\.html$/,
     );
     await frame.locator(".mbk-shot-link").first().click();
+    await expect(page).toHaveURL(/\/design\/browse\/views\/screen\.html$/);
     await frame.locator(".mbk-search-tag").click();
     await expect(page).toHaveURL(
       /\/design\/browse\/states\/tags\/picker\.html$/,
@@ -134,6 +141,7 @@ test("narrow design menu and drawer close return through canonical home", async 
   await frame.getByRole("link", { name: "Close catalogue navigation" }).click();
   await expect(page).toHaveURL(/\/design\/browse\/views\/home\.html$/);
   await frame.getByRole("link", { name: "Open catalogue navigation" }).click();
+  await expect(page).toHaveURL(/\/design\/browse\/states\/navigation\.html$/);
   await frame
     .locator(".mbk-nav-row")
     .filter({ hasText: /^Details$/ })

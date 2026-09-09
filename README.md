@@ -376,6 +376,9 @@ inputs such as `examples/basic/theme.ts`; the CLI is rebuilt on every start.
 in Chromium via Playwright; it uses the installed Chrome channel by default and
 honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
+After activating an in-frame design link, assert the outer catalogue URL before
+using the destination's controls. Frame-link enhancement updates the outer shell
+asynchronously; the click alone can return while the previous frame is visible.
 Tests using the real Git-backed comparison fixture await its final JSON response
 before applying UI assertion deadlines. Cold snapshot generation has a bounded
 30-second wait tied to the newly triggered request, refresh intent, and its
