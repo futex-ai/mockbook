@@ -227,5 +227,46 @@ real no-watch servers and exercise removed/current routes; the CLI lifecycle
 smoke and watched/published browser coverage also passed. Documentation checks
 validated 191 local links across 25 changed Markdown files. The mainline audit
 found only the three previously approved deletions and no new removals.
-Verification is logged in `.context/review-followup-4-check.log`. Post-push review
-invocation 7/10 is the remaining delivery step.
+Verification is logged in `.context/review-followup-4-check.log`. The fixes were
+committed and pushed as `bdded01` before review invocation 7/10.
+
+## Review After bdded01
+
+`cargo xtask review` completed successfully against `a5ecbc0..bdded01`, with two
+findings. The reviewer checked the committed diff read-only and passed
+`git diff --check`; the full gate above verifies the reviewed code. Each finding
+was then independently checked without changing product code.
+
+1. **High — failed-child cleanup can lose a running process. Valid, pre-existing.**
+   [The supervisor](../../src/server/supervisor.ts) clears its child handle on
+   readiness failure or a post-ready error, sends SIGTERM, and does not await
+   exit or escalate. A child that ignores termination can outlive `close()`;
+   recovery can start another child before the old one releases its port. Three
+   boundary probes simulated readiness timeout, pre-ready error, and post-ready
+   error: each observed one termination, no shutdown message or force-kill,
+   completed `close()`, and a replacement while the original remained alive.
+   These probes used test doubles, not an intentionally orphaned OS process.
+   The file is byte-identical to `origin/main` (Git blob `52be113ceea7fc2e125b35602f21b7c881f2c482`),
+   so this is an existing lifecycle gap, not a regression from these changes.
+   Options: **A.** Reuse `stopChild()` on failure paths. **B.** Track terminal state
+   and one shared cleanup promise for each child, and require every failure,
+   close, and replacement path to await that cleanup, with regression coverage.
+   **Recommended: B.** A alone risks waiting for an exit event that already
+   occurred. B addresses the ownership and ordering rule across the lifecycle.
+   Left open under the user's instruction to report new final-review findings.
+
+2. **Medium — nested pages lose helper attribution. Invalid, repeated.**
+   [Page flattening](../../src/authoring/definitions.ts) retains `definedIn` in
+   the rest object and spreads it into `definePage`; it does not discard that
+   field. A fresh compiled consumer importing a nested page from `entries/shared.ts`
+   produced that exact manifest source path and matching ownership header.
+   Keeping the implementation preserves correct source metadata; the claimed
+   impact does not occur. Options: **A.** Retain the implementation. **B.** Add
+   redundant attribution copying or a cross-kind refactor. **Recommended: A**;
+   the repeated claim supplies no new evidence or correctness benefit for B.
+
+All four independent validation probes passed; their script, log, and JSON are
+`.context/review-followup-4-validation.{ts,log,json}`. The final review output is
+`.context/review-followup-4-final-review.md`. The remaining valid concern is child
+process ownership during failure recovery. Only this review record changed
+after review; no completed milestone was reopened or new plan created.
