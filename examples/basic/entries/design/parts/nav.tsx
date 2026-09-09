@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { MockLink } from "mokabook";
 
 import { FlowIcon, FolderIcon, FolderOpenIcon, ScreenIcon } from "./icons.js";
 import { NavResizeHandle } from "./nav_resize.js";
@@ -9,8 +10,10 @@ export interface NavNode {
   count?: number;
   /** Nesting depth (0 = top level), used for indentation. */
   depth: number;
-  kind: "collection" | "flow" | "screen";
+  kind: "collection" | "component" | "flow" | "screen";
   label: string;
+  /** Optional destination in the owning design catalogue. */
+  to?: string;
   /** Whether a collection is expanded (screens and flows ignore this). */
   open?: boolean;
 }
@@ -82,20 +85,42 @@ function NavRow({
       </span>
     );
   }
-  return (
-    <span
-      className={className}
-      style={navRowStyle(node.depth)}
-      aria-current={isActive ? "page" : undefined}
-    >
+  const content = (
+    <>
       <span
         className={node.kind === "flow" ? "mbk-nav-ico flow" : "mbk-nav-ico"}
         aria-hidden="true"
       >
-        {node.kind === "flow" ? <FlowIcon /> : <ScreenIcon />}
+        {node.kind === "component" ? (
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 16 16"
+            width="15"
+            height="15"
+          >
+            <path d="m8 1 6 3.5v7L8 15l-6-3.5v-7L8 1Zm0 7 6-3.5M8 8v7M8 8 2 4.5" />
+          </svg>
+        ) : node.kind === "flow" ? (
+          <FlowIcon />
+        ) : (
+          <ScreenIcon />
+        )}
       </span>
       {node.label}
-    </span>
+    </>
+  );
+  const attributes = {
+    className,
+    style: navRowStyle(node.depth),
+    "aria-current": isActive ? ("page" as const) : undefined,
+  };
+  return node.to === undefined ? (
+    <span {...attributes}>{content}</span>
+  ) : (
+    <MockLink to={node.to} {...attributes}>
+      {content}
+    </MockLink>
   );
 }
 

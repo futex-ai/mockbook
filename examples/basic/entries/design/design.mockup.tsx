@@ -6,6 +6,7 @@ import { browseStateScreens, browseViewScreens } from "./browse_screens.js";
 import { browseTagScreens } from "./browse_tag_screens.js";
 import { reviewOutcomeScreens } from "./review_outcome_screens.js";
 import { reviewImpactScreens } from "./review_impact_screens.js";
+import { componentDesign } from "./components/index.js";
 
 const DESIGN_DEPENDENCIES = [
   "examples/basic/generated/design-stage.css",
@@ -14,6 +15,7 @@ const DESIGN_DEPENDENCIES = [
 
 const designMockups = defineRoot({
   children: [
+    componentDesign,
     collection({
       children: [
         collection({

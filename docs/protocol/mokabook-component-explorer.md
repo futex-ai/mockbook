@@ -8,6 +8,9 @@ tracks delivery. This extends the package-owned
 specified in the [component contract](./mokabook-components.md) and
 [component changes contract](./mokabook-component-changes.md).
 
+The [Milestone 4 design catalogue](./mokabook-component-design.md) supplies the
+mobile and desktop visual contract; the runtime behavior below remains a target.
+
 ## Catalogue And Component Pages
 
 Components are a distinct entry kind in the existing navigation tree, with a

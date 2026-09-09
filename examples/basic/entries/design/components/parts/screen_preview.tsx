@@ -1,0 +1,93 @@
+import { BrowserFrame, PhoneFrame } from "../../parts/stage.js";
+import type { ArtboardViewport } from "../../parts/shell.js";
+import { ActionExample, ToolbarExample } from "./preview.js";
+import { HighlightMask, type InspectionSelection } from "./highlight.js";
+
+export type ScreenPageState =
+  | "toolbar-selection"
+  | "help-selection"
+  | "details"
+  | "highlight"
+  | "nested"
+  | "direct-change"
+  | "consumer"
+  | "empty"
+  | "unavailable"
+  | "removed-consumer";
+
+/** A single consumer screen reused by Current, inspection, and comparison mockups. */
+export function WelcomeExample({
+  directChange = false,
+  selection = "off",
+}: {
+  directChange?: boolean;
+  selection?: InspectionSelection;
+}) {
+  return (
+    <div className="ce-welcome-example">
+      <h2>Welcome</h2>
+      <div className="ce-demo-toolbar">
+        <ToolbarExample />
+      </div>
+      <div className="ce-demo-content">
+        <h3>Your next step starts here</h3>
+        <p>Choose an action to continue.</p>
+      </div>
+      <div className="ce-demo-footer">
+        <ActionExample label={directChange ? "Get started" : "Continue"} />
+      </div>
+      {selection !== "off" ? <HighlightMask selection={selection} /> : null}
+    </div>
+  );
+}
+
+export function ConsumerFrame({
+  state,
+  viewport,
+}: {
+  state: ScreenPageState;
+  viewport: ArtboardViewport;
+}) {
+  const content =
+    state === "consumer" ? (
+      <div className="ce-other-example">
+        <h2>Details</h2>
+        <p>Everything you need for your next step.</p>
+        <ActionExample />
+      </div>
+    ) : state === "empty" || state === "unavailable" ? (
+      <div className="ce-other-example">
+        <h2>Reading room</h2>
+        <p>A quiet place to pick up where you left off.</p>
+      </div>
+    ) : state === "removed-consumer" ? (
+      <div className="ce-other-example">
+        <h2>Farewell</h2>
+        <p>Come back whenever you are ready.</p>
+        <ActionExample before />
+      </div>
+    ) : (
+      <WelcomeExample
+        directChange={state === "direct-change"}
+        selection={
+          state === "highlight"
+            ? "outer"
+            : state === "nested"
+              ? "nested"
+              : "off"
+        }
+      />
+    );
+  return viewport === "mobile" ? (
+    <PhoneFrame label="Mobile · Light" small>
+      {content}
+    </PhoneFrame>
+  ) : (
+    <BrowserFrame
+      address={`example.test/${state === "consumer" ? "details" : state === "removed-consumer" ? "farewell" : state === "empty" || state === "unavailable" ? "reading-room" : "welcome"}`}
+      label="Desktop · Light"
+    >
+      {content}
+    </BrowserFrame>
+  );
+}

@@ -53,13 +53,22 @@ function DetailsBody({ activeTag }: { activeTag?: string | undefined }) {
 }
 
 interface DetailsPanelProps {
+  children?: ReactNode;
   /** Tag drawn as the selected chip because it is the current search term. */
   activeTag?: string | undefined;
   open?: boolean;
 }
 
 /** The collapsible details inspector at the foot of the stage. */
-export function DetailsPanel({ activeTag, open }: DetailsPanelProps) {
+export function DetailsPanel({ activeTag, children, open }: DetailsPanelProps) {
+  if (children !== undefined) {
+    return (
+      <details className="mbk-details" open={open}>
+        <summary className="mbk-details-bar">Details</summary>
+        {children}
+      </details>
+    );
+  }
   return (
     <section className="mbk-details">
       <div className="mbk-details-bar">

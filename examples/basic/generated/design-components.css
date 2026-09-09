@@ -1,0 +1,257 @@
+/* Component-page artboards in the basic example's owning design catalogue. */
+.ce-design a {
+  color: var(--mbk-sage-deep);
+  text-decoration: none;
+}
+.ce-design a:hover {
+  text-decoration: underline;
+}
+.ce-design a:focus-visible,
+.ce-design button:focus-visible,
+.ce-design summary:focus-visible {
+  outline: 2px solid var(--mbk-sage-deep);
+  outline-offset: 3px;
+}
+.ce-design summary {
+  font: inherit;
+}
+.ce-button,
+.ce-action,
+.ce-design .mbk-seg button {
+  font-family: var(--sans);
+}
+.ce-design .mbk-nav-row.active {
+  color: white;
+}
+.ce-design .mbk-main {
+  overflow: auto;
+}
+.ce-design .mbk-stage {
+  min-height: 225px;
+  padding: 24px;
+}
+.ce-design .mbk-details {
+  max-height: 340px;
+  overflow: auto;
+}
+.ce-design .mbk-details-bar {
+  cursor: pointer;
+  display: list-item;
+  margin-left: 20px;
+  padding-left: 4px;
+}
+.ce-design .mbk-details h3 {
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+.ce-design .mbk-details h3 > span {
+  color: var(--chrome-muted);
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: 6px;
+}
+.ce-design .mbk-details p {
+  margin: 0 0 12px;
+}
+.ce-design .mbk-cmp-toolbar {
+  flex-shrink: 0;
+}
+.ce-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ce-design .mbk-seg button {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--chrome-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+.ce-design .mbk-seg button.active {
+  background: white;
+  box-shadow: 0 1px 2px rgba(20, 28, 22, 0.1);
+  color: var(--chrome-ink);
+}
+.ce-variants {
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid var(--chrome-border);
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 24px;
+}
+.ce-variants > span {
+  color: var(--chrome-muted);
+  font-size: 12px;
+  margin-right: 10px;
+}
+.ce-variants a {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--chrome-ink-2);
+  padding: 5px 10px;
+}
+.ce-variants a[aria-current] {
+  background: #edf3ef;
+  border-color: #b9cfc2;
+  color: var(--mbk-sage-deep);
+  font-weight: 600;
+}
+.ce-canvas {
+  background: white;
+  border: 1px solid var(--chrome-border-strong);
+  border-radius: 10px;
+  min-width: 0;
+  overflow: auto;
+  width: 100%;
+}
+.ce-canvas--mobile {
+  max-width: 390px;
+}
+.ce-canvas-label {
+  border-bottom: 1px solid var(--chrome-border);
+  color: var(--chrome-muted);
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 9px 14px;
+  text-transform: uppercase;
+}
+.ce-canvas-content {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 190px;
+  padding: 28px;
+}
+.ce-action {
+  background: var(--mbk-sage);
+  border: 1px solid var(--mbk-sage);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  height: 36px;
+  padding: 0 18px;
+  white-space: nowrap;
+}
+.ce-action:disabled {
+  background: #e6ebe7;
+  border-color: #d7dfd9;
+  color: #5d6f63;
+  cursor: default;
+}
+.ce-action--before {
+  border-radius: 3px;
+  padding: 0 12px;
+}
+.ce-toolbar-example {
+  align-items: center;
+  background: #f3f6f3;
+  border: 1px solid #dce5de;
+  border-radius: 10px;
+  display: flex;
+  font-size: 12px;
+  gap: 14px;
+  justify-content: space-between;
+  max-width: 560px;
+  min-height: 82px;
+  padding: 16px;
+  width: 100%;
+}
+.ce-toolbar-example > span {
+  max-width: 170px;
+}
+.ce-component-comparison {
+  width: 100%;
+}
+.ce-caption {
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+.ce-component-comparison .mbk-compare {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.ce-component-comparison .mbk-compare-side {
+  min-width: 0;
+}
+.ce-component-comparison .mbk-pane-missing {
+  height: 225px;
+  min-height: 225px;
+}
+.ce-comparison-evidence {
+  font-size: 12px;
+  margin-top: 16px;
+}
+.ce-comparison-evidence summary {
+  cursor: pointer;
+}
+.ce-design-links {
+  background: white;
+  border-top: 1px solid var(--chrome-border);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--sans);
+  font-size: 12px;
+  gap: 12px 20px;
+  padding: 20px 24px;
+}
+.ce-design-links a {
+  color: var(--mbk-sage-deep);
+}
+.ce-mobile-location {
+  background: white;
+  border-bottom: 1px solid var(--chrome-border);
+  display: flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  gap: 16px;
+  padding: 9px 16px;
+}
+.ce-change-count {
+  background: var(--chrome-bg);
+  border-radius: 4px;
+  color: var(--chrome-ink-2);
+  margin-left: 3px;
+  padding: 1px 5px;
+}
+.ce-badge {
+  background: #edf3ef;
+  border: 1px solid #b9cfc2;
+  border-radius: 999px;
+  color: var(--mbk-sage-deep);
+  font-size: 12px;
+  padding: 4px 12px;
+}
+.ce-design .mbk-shell--mobile .mbk-details {
+  max-height: none;
+}
+.ce-design .mbk-shell--mobile .ce-view-controls {
+  width: 100%;
+}
+.ce-design .mbk-shell--mobile .ce-view-controls .mbk-seg {
+  flex: 1;
+  justify-content: center;
+}
+.ce-design .mbk-shell--mobile .ce-variants {
+  padding: 10px 16px;
+}
+.ce-design .mbk-shell--mobile .mbk-stage {
+  padding: 18px 14px;
+}
+.ce-design .mbk-shell--mobile .ce-component-comparison .mbk-compare {
+  grid-template-columns: 1fr;
+}
+.ce-design .mbk-shell--mobile .ce-canvas-content {
+  min-height: 180px;
+  padding: 18px;
+}

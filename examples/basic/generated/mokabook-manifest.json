@@ -20,6 +20,7 @@
       "sourcePath": "examples/basic/entries/design/design.mockup.tsx",
       "title": "Mokabook design",
       "childIds": [
+        "design-components",
         "design-browse",
         "design-review"
       ]
@@ -127,6 +128,153 @@
       "childIds": [
         "design-changes-current",
         "design-changes-overlay"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/index.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Repeated and nested components, highlighting, and independent screen changes.",
+      "id": "design-component-inspection",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/index.tsx",
+      "title": "Screen inspection",
+      "childIds": [
+        "design-component-inspection-details",
+        "design-component-inspection-highlight",
+        "design-component-inspection-nested",
+        "design-component-inspection-direct-change",
+        "design-component-inspection-consumer",
+        "design-component-selection"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/index.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Saved variants, component comparisons, and usage relationships.",
+      "id": "design-component-pages",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/index.tsx",
+      "title": "Pages and comparisons",
+      "childIds": [
+        "design-component-help",
+        "design-component-variants",
+        "design-component-comparison",
+        "design-component-affected",
+        "design-component-toolbar"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/index.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Container and hidden instances reached from component usage links.",
+      "id": "design-component-selection",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/index.tsx",
+      "title": "Selected instances",
+      "childIds": [
+        "design-component-inspection-toolbar",
+        "design-component-inspection-help"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/index.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Empty usage, unavailable inspection, unused components, and retained comparisons.",
+      "id": "design-component-states",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/index.tsx",
+      "title": "Empty and removed states",
+      "childIds": [
+        "design-component-empty",
+        "design-component-unavailable",
+        "design-component-unused",
+        "design-component-removed",
+        "design-component-removed-consumer"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/index.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Component pages, saved examples, change attribution, and screen inspection.",
+      "id": "design-components",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/index.tsx",
+      "title": "Component explorer",
+      "childIds": [
+        "design-component-overview",
+        "design-component-pages",
+        "design-component-inspection",
+        "design-component-states"
       ]
     },
     {
@@ -555,6 +703,619 @@
         "mobile": "design/browse/views/use-case.mobile.html"
       },
       "route": "design/browse/views/use-case.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "The Details screen reached from Action's Used by list, with its own one-instance usage and props.",
+      "id": "design-component-inspection-consumer",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/screens.tsx",
+      "title": "Open a consuming screen",
+      "fragments": {
+        "desktop": "design/components/inspection/consumer.desktop.html",
+        "mobile": "design/components/inspection/consumer.mobile.html"
+      },
+      "route": "design/components/inspection/consumer.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Actual-view instances grouped by component, repeated selection, supplied props, and a hidden instance.",
+      "id": "design-component-inspection-details",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/screens.tsx",
+      "title": "Screen component details",
+      "fragments": {
+        "desktop": "design/components/inspection/details.desktop.html",
+        "mobile": "design/components/inspection/details.mobile.html"
+      },
+      "route": "design/components/inspection/details.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Action and Welcome both appear in Changes: Welcome independently changed the label it supplies. The total is two, including one screen and one component.",
+      "id": "design-component-inspection-direct-change",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/screens.tsx",
+      "title": "Independent screen prop change",
+      "fragments": {
+        "desktop": "design/components/inspection/direct-change.desktop.html",
+        "mobile": "design/components/inspection/direct-change.mobile.html"
+      },
+      "route": "design/components/inspection/direct-change.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "A mask dims the surrounding screen and leaves the outer Toolbar and Footer action unchanged.",
+      "id": "design-component-inspection-highlight",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/screens.tsx",
+      "title": "Highlight components",
+      "fragments": {
+        "desktop": "design/components/inspection/highlight.desktop.html",
+        "mobile": "design/components/inspection/highlight.mobile.html"
+      },
+      "route": "design/components/inspection/highlight.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "The Toolbar action is selected in Details and in the screen, with its parent content dimmed.",
+      "id": "design-component-inspection-nested",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/screens.tsx",
+      "title": "Select a nested component",
+      "fragments": {
+        "desktop": "design/components/inspection/nested.desktop.html",
+        "mobile": "design/components/inspection/nested.mobile.html"
+      },
+      "route": "design/components/inspection/nested.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/selection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Help hint's usage link opens its actual instance, with visibility false and no invented bounds.",
+      "id": "design-component-inspection-help",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection",
+        "Selected instances"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/selection/screens.tsx",
+      "title": "Select an invisible instance",
+      "fragments": {
+        "desktop": "design/components/inspection/selection/help.desktop.html",
+        "mobile": "design/components/inspection/selection/help.mobile.html"
+      },
+      "route": "design/components/inspection/selection/help.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/inspection/selection/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Toolbar's usage link opens Welcome with the Main toolbar selected and its supplied prompt visible.",
+      "id": "design-component-inspection-toolbar",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Screen inspection",
+        "Selected instances"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/inspection/selection/screens.tsx",
+      "title": "Select a container instance",
+      "fragments": {
+        "desktop": "design/components/inspection/selection/toolbar.desktop.html",
+        "mobile": "design/components/inspection/selection/toolbar.mobile.html"
+      },
+      "route": "design/components/inspection/selection/toolbar.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/index.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Canonical component page with a compact canvas, saved variants, supplied props, and usage links.",
+      "id": "design-component-overview",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/index.tsx",
+      "title": "Component page",
+      "fragments": {
+        "desktop": "design/components/overview.desktop.html",
+        "mobile": "design/components/overview.mobile.html"
+      },
+      "route": "design/components/overview.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/pages/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Only Action is in Changes. Welcome and Details are linked under Affected screens without increasing the Changes count.",
+      "id": "design-component-affected",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Pages and comparisons"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/pages/screens.tsx",
+      "title": "Changed component and affected screens",
+      "fragments": {
+        "desktop": "design/components/pages/affected.desktop.html",
+        "mobile": "design/components/pages/affected.mobile.html"
+      },
+      "route": "design/components/pages/affected.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/pages/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Before and current component canvases for one saved variant; affected screens remain separate from Changes.",
+      "id": "design-component-comparison",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Pages and comparisons"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/pages/screens.tsx",
+      "title": "Compare a component",
+      "fragments": {
+        "desktop": "design/components/pages/comparison.desktop.html",
+        "mobile": "design/components/pages/comparison.mobile.html"
+      },
+      "route": "design/components/pages/comparison.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/pages/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "An invoked Help hint has no visible bounds, with its visibility prop and real consumer still shown in Details.",
+      "id": "design-component-help",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Pages and comparisons"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/pages/screens.tsx",
+      "title": "Component without a visible region",
+      "fragments": {
+        "desktop": "design/components/pages/help.desktop.html",
+        "mobile": "design/components/pages/help.mobile.html"
+      },
+      "route": "design/components/pages/help.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/pages/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Toolbar composes the same Action preview and links back to its owning component page.",
+      "id": "design-component-toolbar",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Pages and comparisons"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/pages/screens.tsx",
+      "title": "Component consuming a component",
+      "fragments": {
+        "desktop": "design/components/pages/toolbar.desktop.html",
+        "mobile": "design/components/pages/toolbar.mobile.html"
+      },
+      "route": "design/components/pages/toolbar.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/pages/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Disabled selected, with the actual saved prop value visible in Details.",
+      "id": "design-component-variants",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Pages and comparisons"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/pages/screens.tsx",
+      "title": "Saved variant",
+      "fragments": {
+        "desktop": "design/components/pages/variants.desktop.html",
+        "mobile": "design/components/pages/variants.mobile.html"
+      },
+      "route": "design/components/pages/variants.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/states/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "A validated empty usage list, with highlighting disabled and a clear zero count.",
+      "id": "design-component-empty",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and removed states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/screens.tsx",
+      "title": "No components in this view",
+      "fragments": {
+        "desktop": "design/components/states/empty.desktop.html",
+        "mobile": "design/components/states/empty.mobile.html"
+      },
+      "route": "design/components/states/empty.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/states/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "The former Farewell consumer remains reachable from Action's affected list, with an explicit missing Current side.",
+      "id": "design-component-removed-consumer",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and removed states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/screens.tsx",
+      "title": "Retained removed screen",
+      "fragments": {
+        "desktop": "design/components/states/removed-consumer.desktop.html",
+        "mobile": "design/components/states/removed-consumer.mobile.html"
+      },
+      "route": "design/components/states/removed-consumer.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/states/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "The removed Compact variant retains its Before canvas and links a removed affected screen to its retained comparison.",
+      "id": "design-component-removed",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and removed states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/screens.tsx",
+      "title": "Removed variant and former consumer",
+      "fragments": {
+        "desktop": "design/components/states/removed.desktop.html",
+        "mobile": "design/components/states/removed.mobile.html"
+      },
+      "route": "design/components/states/removed.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/states/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "Missing inspection metadata is not presented as an empty component list.",
+      "id": "design-component-unavailable",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and removed states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/screens.tsx",
+      "title": "Inspection unavailable",
+      "fragments": {
+        "desktop": "design/components/states/unavailable.desktop.html",
+        "mobile": "design/components/states/unavailable.mobile.html"
+      },
+      "route": "design/components/states/unavailable.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/components/states/screens.tsx",
+        "examples/basic/generated/design-component-details.css",
+        "examples/basic/generated/design-component-inspection.css",
+        "examples/basic/generated/design-components.css",
+        "examples/basic/generated/design-review.css"
+      ],
+      "description": "A component with a saved preview and an explicit empty Used by list.",
+      "id": "design-component-unused",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Component explorer",
+        "Empty and removed states"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-explorer.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/components/states/screens.tsx",
+      "title": "Component with no consumers",
+      "fragments": {
+        "desktop": "design/components/states/unused.desktop.html",
+        "mobile": "design/components/states/unused.mobile.html"
+      },
+      "route": "design/components/states/unused.html",
       "useCaseIds": [],
       "viewports": [
         "mobile",

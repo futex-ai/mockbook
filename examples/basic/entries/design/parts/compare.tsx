@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { ReviewState } from "./review.js";
 
 interface CompareToolbarProps {
+  accessible?: boolean | undefined;
   mode: "current" | "difference" | "overlay" | "side-by-side";
 }
 
@@ -17,17 +18,23 @@ const MODE_LABELS: readonly {
 ];
 
 /** Compact display options inside the normal screen. */
-export function CompareToolbar({ mode }: CompareToolbarProps) {
+export function CompareToolbar({
+  mode,
+  accessible = false,
+}: CompareToolbarProps) {
+  const Control = accessible ? "button" : "span";
   return (
     <div className="mbk-cmp-toolbar">
       <span className="mbk-seg" role="group" aria-label="Comparison mode">
         {MODE_LABELS.map((option) => (
-          <span
+          <Control
             key={option.key}
+            type={accessible ? "button" : undefined}
+            aria-pressed={accessible ? option.key === mode : undefined}
             className={option.key === mode ? "active" : undefined}
           >
             {option.label}
-          </span>
+          </Control>
         ))}
       </span>
       {mode !== "current" ? (

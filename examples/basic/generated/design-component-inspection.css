@@ -1,0 +1,197 @@
+/* Inspection artboards: shared consumer examples and a mask with real cutouts. */
+.ce-inspection-toolbar {
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid var(--chrome-border);
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 24px;
+}
+.ce-button {
+  align-items: center;
+  background: white;
+  border: 1px solid var(--chrome-border-strong);
+  border-radius: 6px;
+  color: var(--chrome-ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  gap: 7px;
+  min-height: 32px;
+  padding: 5px 10px;
+}
+.ce-button[aria-pressed="true"] {
+  background: #edf3ef;
+  border-color: var(--mbk-sage);
+  color: var(--mbk-sage-deep);
+}
+.ce-button:disabled {
+  background: var(--chrome-bg);
+  color: #6b736e;
+  cursor: default;
+}
+.ce-welcome-example {
+  background: white;
+  flex: 1;
+  height: 350px;
+  min-height: 350px;
+  overflow: hidden;
+  position: relative;
+}
+.ce-welcome-example > h2 {
+  font-size: 20px;
+  left: 24px;
+  margin: 0;
+  position: absolute;
+  top: 23px;
+}
+.ce-demo-toolbar {
+  height: 82px;
+  left: 24px;
+  position: absolute;
+  right: 24px;
+  top: 76px;
+}
+.ce-demo-toolbar .ce-toolbar-example {
+  height: 82px;
+  max-width: none;
+}
+.ce-demo-toolbar .ce-action {
+  flex: 0 0 104px;
+  padding: 0 10px;
+  width: 104px;
+}
+.ce-demo-content {
+  left: 24px;
+  position: absolute;
+  right: 24px;
+  top: 181px;
+}
+.ce-demo-content h3 {
+  font-size: 14px;
+  margin: 0 0 5px;
+}
+.ce-demo-content p {
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+  margin: 0;
+}
+.ce-demo-footer {
+  left: 24px;
+  position: absolute;
+  top: 258px;
+}
+.ce-demo-footer .ce-action {
+  width: 116px;
+  padding: 0 10px;
+}
+.ce-other-example {
+  padding: 24px;
+}
+.ce-other-example h2 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+.ce-other-example p {
+  color: var(--chrome-ink-2);
+  font-size: 13px;
+}
+.ce-highlight-layer {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+.ce-mask {
+  display: block;
+  position: absolute;
+}
+.ce-toolbar-cutout {
+  width: calc(100% - 48px);
+}
+.ce-nested-cutout {
+  x: calc(100% - 145px);
+}
+.ce-region {
+  border: 2px solid var(--mbk-sage);
+  border-radius: 10px;
+  pointer-events: auto;
+  position: absolute;
+}
+.ce-region > span {
+  background: var(--mbk-sage-deep);
+  border-radius: 4px 4px 0 0;
+  color: white;
+  font-size: 10px;
+  left: -2px;
+  line-height: 20px;
+  padding: 0 6px;
+  position: absolute;
+  top: -22px;
+  white-space: nowrap;
+}
+.ce-region--toolbar {
+  height: 82px;
+  left: 24px;
+  right: 24px;
+  top: 76px;
+}
+.ce-region--footer {
+  height: 36px;
+  left: 24px;
+  top: 258px;
+  width: 116px;
+}
+.ce-region--nested {
+  height: 36px;
+  right: 41px;
+  top: 99px;
+  width: 104px;
+}
+.ce-design .browser-frame:has(.ce-welcome-example),
+.ce-design .browser-frame:has(.ce-other-example) {
+  height: 390px;
+}
+.ce-design .phone-frame--sm:has(.ce-welcome-example),
+.ce-design .phone-frame--sm:has(.ce-other-example) {
+  height: 430px;
+}
+.ce-change-context {
+  background: #f4f7f4;
+  border-bottom: 1px solid #dce5de;
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+  padding: 8px 24px;
+}
+.ce-prop-change {
+  background: #f4f7f4;
+  border-left: 2px solid var(--mbk-sage);
+  font-size: 12px;
+  padding: 8px;
+}
+.ce-removed-screen {
+  width: 100%;
+}
+.ce-removed-screen > p {
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+}
+.ce-removed-screen .mbk-pane-missing {
+  height: 390px;
+  min-height: 390px;
+}
+.ce-design .mbk-shell--mobile .ce-inspection-toolbar {
+  padding: 8px 16px;
+}
+.ce-design .mbk-shell--mobile .ce-demo-toolbar .ce-toolbar-example {
+  font-size: 11px;
+  gap: 8px;
+  padding: 16px;
+}
+.ce-design .mbk-shell--mobile .ce-demo-content h3 {
+  font-size: 12px;
+}
+.ce-design .mbk-shell--mobile .ce-removed-screen .mbk-compare {
+  grid-template-columns: 1fr;
+}

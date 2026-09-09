@@ -18,7 +18,8 @@ ancestor disclosure, conditional filter clearing, nearest-row scrolling, the
 `tag:` search term, the details inspector's tag chips, the search field's tag
 control with its picker panel, the mark-only narrow brand, and the top bar's
 stacking above the navigation drawer scrim. Every state recorded here is
-implemented.
+implemented. The separate [component explorer designs](./mokabook-component-design.md)
+are target mockups delivered before their runtime implementation.
 
 ## Design Mockups
 
@@ -48,6 +49,11 @@ generated under `examples/basic/generated/design/`:
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
 the rendered screen area.
+
+The component explorer extends this catalogue under `design/components/` with
+eighteen owning screens for component pages, comparisons, affected screens,
+inspection, and edge states. Its route index and target visual rules live in
+the [component design contract](./mokabook-component-design.md).
 
 ## Consumer-Tunable Custom Properties
 

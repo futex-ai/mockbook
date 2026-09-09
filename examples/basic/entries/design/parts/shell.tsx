@@ -11,6 +11,8 @@ export type ArtboardViewport = "desktop" | "mobile";
 export type ShellColorScheme = "dark" | "light";
 
 interface TopBarProps {
+  accessibleControls?: boolean | undefined;
+  searchPlaceholder?: string | undefined;
   /** Tag the entered query names, drawn as the accent chip in the picker. */
   activeTag?: string | undefined;
   /**
@@ -37,17 +39,23 @@ function Brand({ markOnly }: { markOnly: boolean }) {
 }
 
 interface SearchFieldProps {
+  placeholder?: string | undefined;
   activeTag?: string | undefined;
   pickerOpen?: boolean | undefined;
   value?: string | undefined;
 }
 
-function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
+function SearchField({
+  activeTag,
+  pickerOpen,
+  placeholder,
+  value,
+}: SearchFieldProps) {
   return (
     <div className="mbk-search">
       <SearchIcon />
       {value === undefined ? (
-        "Search screens…"
+        (placeholder ?? "Search screens…")
       ) : (
         <span className="mbk-search-value">{value}</span>
       )}
@@ -58,7 +66,14 @@ function SearchField({ activeTag, pickerOpen, value }: SearchFieldProps) {
 }
 
 /** Color scheme selection shown once a catalogue has dark fragments. */
-export function SchemeSwitch({ active }: { active: ShellColorScheme }) {
+export function SchemeSwitch({
+  active,
+  accessible = false,
+}: {
+  active: ShellColorScheme;
+  accessible?: boolean | undefined;
+}) {
+  const Control = accessible ? "button" : "span";
   const options: readonly { key: ShellColorScheme; label: string }[] = [
     { key: "light", label: "Light" },
     { key: "dark", label: "Dark" },
@@ -66,12 +81,14 @@ export function SchemeSwitch({ active }: { active: ShellColorScheme }) {
   return (
     <span className="mbk-seg" role="group" aria-label="Color scheme">
       {options.map((option) => (
-        <span
+        <Control
           key={option.key}
+          type={accessible ? "button" : undefined}
+          aria-pressed={accessible ? option.key === active : undefined}
           className={option.key === active ? "active" : undefined}
         >
           {option.label}
-        </span>
+        </Control>
       ))}
     </span>
   );
@@ -79,9 +96,11 @@ export function SchemeSwitch({ active }: { active: ShellColorScheme }) {
 
 /** The 48px shell header: brand mark, search, and color scheme. */
 export function TopBar({
+  accessibleControls,
   activeTag,
   colorScheme,
   searchValue,
+  searchPlaceholder,
   tagPickerOpen,
   viewport,
 }: TopBarProps) {
@@ -101,15 +120,18 @@ export function TopBar({
         activeTag={activeTag}
         pickerOpen={tagPickerOpen}
         value={searchValue}
+        placeholder={searchPlaceholder}
       />
       {colorScheme !== undefined && viewport === "desktop" ? (
-        <SchemeSwitch active={colorScheme} />
+        <SchemeSwitch active={colorScheme} accessible={accessibleControls} />
       ) : null}
     </header>
   );
 }
 
 interface ShellProps {
+  accessibleControls?: boolean | undefined;
+  searchPlaceholder?: string | undefined;
   activeTag?: string | undefined;
   aside?: ReactNode;
   children: ReactNode;
@@ -122,12 +144,14 @@ interface ShellProps {
 
 /** The Mokabook shell scaffold for one design mockup. */
 export function Shell({
+  accessibleControls,
   activeTag,
   aside,
   children,
   colorScheme,
   nav,
   searchValue,
+  searchPlaceholder,
   tagPickerOpen,
   viewport,
 }: ShellProps) {
@@ -135,6 +159,8 @@ export function Shell({
     return (
       <div className="mbk-shell mbk-shell--desktop">
         <TopBar
+          accessibleControls={accessibleControls}
+          searchPlaceholder={searchPlaceholder}
           activeTag={activeTag}
           colorScheme={colorScheme}
           searchValue={searchValue}
@@ -151,6 +177,8 @@ export function Shell({
   return (
     <div className="mbk-shell mbk-shell--mobile">
       <TopBar
+        accessibleControls={accessibleControls}
+        searchPlaceholder={searchPlaceholder}
         activeTag={activeTag}
         colorScheme={colorScheme}
         searchValue={searchValue}
@@ -182,6 +210,7 @@ export function Crumbs({ items }: CrumbsProps) {
 }
 
 interface ScreenHeadProps {
+  accessibleControls?: boolean;
   action?: ReactNode;
   crumbs: readonly string[];
   idChip?: string;
@@ -193,6 +222,7 @@ interface ScreenHeadProps {
 
 /** The white head band: breadcrumbs, title, id chip, and status. */
 export function ScreenHead({
+  accessibleControls,
   action,
   crumbs,
   idChip,
@@ -223,18 +253,23 @@ export function ScreenHead({
         {action}
       </div>
       {idChip && comparisons ? (
-        <CompareToolbar mode={comparisonMode ?? "current"} />
+        <CompareToolbar
+          mode={comparisonMode ?? "current"}
+          accessible={accessibleControls}
+        />
       ) : null}
     </>
   );
 }
 
 interface ViewSwitchProps {
+  accessible?: boolean;
   active: "both" | "desktop" | "mobile";
 }
 
 /** Viewport selection control shown in a selected screen header. */
-export function ViewSwitch({ active }: ViewSwitchProps) {
+export function ViewSwitch({ active, accessible = false }: ViewSwitchProps) {
+  const Control = accessible ? "button" : "span";
   const options: readonly { key: ViewSwitchProps["active"]; label: string }[] =
     [
       { key: "mobile", label: "Mobile" },
@@ -244,12 +279,14 @@ export function ViewSwitch({ active }: ViewSwitchProps) {
   return (
     <span className="mbk-seg" role="group" aria-label="Viewport">
       {options.map((option) => (
-        <span
+        <Control
           key={option.key}
+          type={accessible ? "button" : undefined}
+          aria-pressed={accessible ? option.key === active : undefined}
           className={option.key === active ? "active" : undefined}
         >
           {option.label}
-        </span>
+        </Control>
       ))}
     </span>
   );

@@ -1,7 +1,7 @@
 # Component Explorer
 
-Status: active; planning only. No component feature code is implemented by the
-initial documentation change.
+Status: active; Milestone 4 mockups completed. Component runtime implementation
+remains pending; the earlier documentation change delivered the target contract.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -127,27 +127,37 @@ with lightweight Browse detection and no eagerly generated snapshots.
 - [ ] Run focused suites and comparison/build smoke checks; prove published
       component data and isolated resources agree with local classification.
 
-## Milestone 4: Design component pages and screen inspection
+## Milestone 4: Design component pages and screen inspection — completed
 
 Tags: mockup
 
-Approve the visual contract in the existing generated design catalogue before
+Establish the visual contract in the existing generated design catalogue before
 implementing the shell UI. No backend work belongs in this milestone.
 
-- [ ] Reuse the owning components in `examples/basic/entries/design/parts`;
+- [x] Reuse the owning components in `examples/basic/entries/design/parts`;
       create distinct mobile and desktop screens for component browsing, saved
       variants, comparisons, Used by, and changed-component Affected screens.
-- [ ] Design screen Details usage/props, nested and repeated selection,
+- [x] Design screen Details usage/props, nested and repeated selection,
       highlighting, and empty/unavailable/removed states with accessible controls.
-- [ ] Show component-only versus direct-screen Changes membership and counts.
+- [x] Give Toolbar and hidden Help hint usage links their own selected-instance
+      artboards; keep a removed consumer's independent Changes membership explicit.
+- [x] Show component-only versus direct-screen Changes membership and counts.
       Link component and screen views through the existing catalogue navigation.
-- [ ] Split owning screen-spec pages at five screens; give nonterminal pages
+- [x] Split owning screen-spec pages at five screens; give nonterminal pages
       a canonical representation and linked child pages. Keep screen components
       reusable, flow links correct, and engineering notes outside the screens.
-- [ ] Update the shell design contract and example README; run
+- [x] Update the shell design contract and example README; run
       `npm run example:build`, `npm run example:check`, and relevant design tests.
       Open every changed generated page directly from disk in both variants and
       inspect its layout. Commit matching generated HTML with its source.
+
+Delivered eighteen owning screens and thirty-six mobile/desktop artboards.
+All seventeen focused browser tests pass, including served navigation, and all
+artboards were visually inspected from disk. `cargo xtask check` passes with
+402 TypeScript tests, 93 browser tests, and 3 Rust tests, plus the build,
+format/lint/type, generated-output, package, and Rust checks. An existing watcher
+test timed out on the first run; its isolated retry and the full rerun passed
+without changing the test or runtime.
 
 ## Milestone 5: Implement component pages and inspection
 

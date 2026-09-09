@@ -1,0 +1,159 @@
+/* Component props, usage, and screen instance details in the design catalogue. */
+.ce-component-details {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr 1fr;
+  padding: 6px 24px 22px;
+}
+.ce-component-details:has(.ce-affected) {
+  grid-template-columns: 1fr 1fr 1.1fr;
+}
+.ce-component-details > section {
+  min-width: 0;
+}
+.ce-props {
+  font-size: 12px;
+  margin: 0 0 14px;
+}
+.ce-props > div {
+  border-bottom: 1px solid var(--chrome-border);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(60px, 0.7fr) minmax(0, 1fr);
+  padding: 7px 0;
+}
+.ce-props dt {
+  color: var(--chrome-muted);
+}
+.ce-props dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ce-design code {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.ce-usage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ce-usage-list li {
+  border-bottom: 1px solid var(--chrome-border);
+  padding: 8px 0;
+}
+.ce-usage-list li:first-child {
+  padding-top: 0;
+}
+.ce-usage-list a {
+  align-items: center;
+  display: flex;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: space-between;
+}
+.ce-usage-list li > span {
+  color: var(--chrome-muted);
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.ce-affected > p {
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+}
+.ce-muted {
+  color: var(--chrome-muted);
+  font-size: 11px;
+}
+.ce-empty-copy {
+  color: var(--chrome-ink-2);
+  font-size: 12px;
+  max-width: 310px;
+}
+.ce-design .mbk-shell--mobile .ce-component-details {
+  grid-template-columns: 1fr;
+  gap: 22px;
+  padding: 4px 16px 22px;
+}
+.ce-screen-details {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: 1fr 1fr;
+  padding: 6px 24px 20px;
+}
+.ce-screen-details > section {
+  min-width: 0;
+}
+.ce-instance-tree details {
+  border-bottom: 1px solid var(--chrome-border);
+  padding: 6px 0;
+}
+.ce-instance-tree summary {
+  color: var(--chrome-ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.ce-instance-tree summary > span {
+  color: var(--chrome-muted);
+  float: right;
+  font-size: 11px;
+  font-weight: 400;
+}
+.ce-instance-tree a {
+  border-radius: 5px;
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 5px 8px 5px 16px;
+}
+.ce-instance-tree a[aria-current] {
+  background: #edf3ef;
+  color: var(--mbk-sage-deep);
+  font-weight: 600;
+}
+.ce-instance-tree small {
+  color: var(--chrome-muted);
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+}
+.ce-nested-instance {
+  border-left: 1px solid #c5d6ca;
+  margin-left: 16px;
+}
+.ce-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 10px 16px;
+}
+.ce-text-button {
+  background: none;
+  border: 0;
+  color: var(--mbk-sage-deep);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.ce-text-button:disabled {
+  color: var(--chrome-muted);
+  cursor: default;
+}
+.ce-slot-details {
+  color: var(--chrome-muted);
+  font-size: 11px;
+  margin-top: 14px;
+}
+.ce-slot-details summary {
+  cursor: pointer;
+}
+.ce-slot-details p {
+  margin-top: 8px !important;
+}
+.ce-design .mbk-shell--mobile .ce-screen-details {
+  gap: 22px;
+  grid-template-columns: 1fr;
+  padding: 6px 16px 20px;
+}

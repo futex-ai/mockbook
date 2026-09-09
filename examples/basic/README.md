@@ -38,22 +38,34 @@ plain HTML outside Firna components.
 render plain React DOM need none of this and can keep a plain
 `renderToStaticMarkup` adapter.
 
-The `Design` navigation group is the approved design catalogue for Mokabook's
-own catalogue and Changes views: nineteen screens covering the Browse home,
-selected screen and use case, details panel, missing route, narrow navigation,
-tag filtering, the dark-scheme and light-only stage states, and the changed,
-added, removed, difference, dark-view, shared-impact, ignored-only, and empty
-comparison states plus Current and Overlay controls, plus Current and Overlay controls, each with distinct mobile and desktop variants. The nineteen
-design screens explicitly opt out with `colorSchemes: ["light"]` because they
-are light documents that draw the Mokabook shell, including the three that
-depict the shell with dark selected; the two product screens inherit the
-catalogue default and prove dark generation. All design headers use the approved
-screen-stack logo: 17px overlapping mobile and desktop outlines in a 24px
-sage square.
-Desktop variants depict the
-shared resize grip on the catalogue navigation in Current and comparison views; narrow variants
-keep the drawer fixed. The recorded tokens and responsive rules live in
-[`docs/protocol/mokabook-shell-design.md`](../../docs/protocol/mokabook-shell-design.md).
+The `Design` navigation group is the owning design catalogue for Mokabook's
+Browse and Changes views. Its nineteen existing screens cover navigation,
+Details, tags, color schemes, and comparison outcomes. Eighteen component
+explorer screens add component pages, saved variants, affected screens,
+repeated/nested inspection, highlighting, and empty or removed states. Every
+screen has distinct mobile and desktop components. The component designs are
+static mockups; the component runtime and editable controls are later milestones.
+
+Open `design/components/overview.html` in Browse, or open
+[`generated/design/components/overview.desktop.html`](./generated/design/components/overview.desktop.html)
+and [`overview.mobile.html`](./generated/design/components/overview.mobile.html)
+directly from disk. Links beneath each artboard connect the owning design pages;
+links inside the designs connect component pages, variants, and consuming screens.
+Each child gallery lists at most five owning screens; inspection also links
+two selected-instance screens in a nested gallery.
+
+All thirty-seven design screens use `colorSchemes: ["light"]`: they draw the
+Mokabook shell, including the existing dark-selection examples. The two product
+screens inherit the catalogue's light/dark settings and prove dark generation.
+Design headers retain the approved screen-stack logo and desktop navigation
+resize grip. The component designs reuse the existing shell, frames, controls,
+and Details panel, with synthetic usage fixtures under
+`entries/design/components/parts`. No component feature is added to the public API.
+
+The recorded tokens and responsive rules live in the
+[shell design contract](../../docs/protocol/mokabook-shell-design.md); component
+routes, fixture relationships, mask geometry, and delivery status live in the
+[component design contract](../../docs/protocol/mokabook-component-design.md).
 
 From the repository root:
 
@@ -78,7 +90,7 @@ npm run preview:build
 Generated HTML and the schema-v3 manifest are committed under `generated/` so
 the fixture also exercises stale and deterministic-output checks. The
 hand-authored stylesheets (`styles.css`, `design.css`, `design-stage.css`,
-`design-review.css`) also live under `generated/` because it doubles as the
+`design-review.css`, and the component design stylesheets) also live under `generated/` because it doubles as the
 public static root. `preview:build` snapshots this catalogue through the real
 server into `.context/mokabook-preview` for Cloudflare Pages; it is the same
 artifact used by the main and pull-request preview workflow. The snapshot

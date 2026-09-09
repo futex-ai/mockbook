@@ -428,6 +428,8 @@ proves the consumer contract against a real cross-platform component stack.
 Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
+The [component design catalogue](./docs/protocol/mokabook-component-design.md)
+adds mobile and desktop references for component pages and screen inspection.
 
 ### Key Code
 
