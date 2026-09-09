@@ -287,11 +287,11 @@ test("catalogue nav marks active, changed, and iconed rows", () => {
   assert.match(html, /data-changed="true"/);
   assert.match(
     html,
-    /data-route="screens\/welcome\.html"[^>]*data-tags="forms onboarding"/,
+    /data-entry-id="welcome"[^>]*data-route="screens\/welcome\.html"[^>]*data-tags="forms onboarding"/,
   );
   assert.match(
     html,
-    /data-route="screens\/details\.html"[^>]*data-tags="billing"/,
+    /data-entry-id="details"[^>]*data-route="screens\/details\.html"[^>]*data-tags="billing"/,
   );
   assert.equal(
     /data-route="user-flows\/tour\.html"[^>]*data-tags/.test(html),

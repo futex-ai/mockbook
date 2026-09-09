@@ -105,10 +105,10 @@ scrollable region scrolls internally:
   retains space; the brand link keeps its accessible name. There is no mode
   switch. A query splits into terms: every `tag:<tag>`
   term matches only rows whose entry declares that tag, and the remaining words
-  rejoin into one phrase that must appear in a row's title or route. A row stays
-  visible only when it matches every tag term and that phrase; tag terms hide
-  the groups they empty and open the groups they keep, and they compose with the
-  All/Changes filter.
+  rejoin into one phrase that must appear in a row's authored ID, title, or
+  route. A row stays visible only when it matches every tag term and that phrase;
+  tag terms hide the groups they empty and open the groups they keep, and they
+  compose with the All/Changes filter.
 - **Tag picker** — a tag-icon control at the trailing edge of the search
   field, muted like the leading `⌕` glyph and filling to a soft rounded square
   on hover. It opens a panel anchored under the field and aligned to its width

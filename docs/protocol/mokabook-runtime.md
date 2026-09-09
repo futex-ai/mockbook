@@ -204,10 +204,10 @@ sandbox, fragment, and active-tree behavior is defined by the
 Search, disclosure, filters, and catalogue scroll remain mounted. A search
 value splits into whitespace-separated terms: every `tag:<tag>` term
 (case-insensitive) keeps only rows whose entry declares that tag, and the
-remaining words rejoin into one phrase that must appear in a row's title or
-route. A row survives only when every tag term and that one phrase match, so
-tags compose with free text and with the All/Changes filter, and a term nothing
-matches hides those rows and the groups they empty. Selecting a tag chip enters
+remaining words rejoin into one phrase that must appear in a row's authored ID,
+title, or route. A row survives only when every tag term and that one phrase
+match, so tags compose with free text and with the All/Changes filter, and a term
+nothing matches hides those rows and the groups they empty. Selecting a tag chip enters
 `tag:<tag>` in the search field, replacing any tag term already entered;
 selecting the chip whose tag is entered clears that term. Chips are buttons that
 report the entered tag through `aria-pressed`, and they keep that mark through

@@ -72,21 +72,30 @@ receive Cloudflare credentials or write-capable execution.
 
 `npm run preview:build` first rebuilds Mokabook and its committed basic
 consumer. The repository-only preview builder starts the real Browse server on
-an ephemeral loopback port and snapshots the home, review launcher, not-found,
-and every manifest-backed route. It copies the shell stylesheet, browser and
+an ephemeral loopback port and snapshots the home, not-found, current catalogue
+routes, and removed-screen routes. It copies the shell stylesheet, browser and
 shared navigation modules, fonts, id redirects, and every validated public
 consumer asset into `.context/mokabook-preview`. HTML copies pass through the
 same manifest/header-aware logical-link adapter as served Browse; unowned
 reserved metadata is removed and invalid trusted output fails the build.
 Preview shell links use Cloudflare
-Pages' canonical extensionless HTML routes, and static deployments omit the
-watched server's live-update module. The parent client validates one optional
+Pages' canonical extensionless HTML routes, and static shell HTML omits the
+watched server's live-update entrypoint. The parent client validates one optional
 `fragment` query and applies its encoded hash to every applicable current and
 light/dark frame source, with first-step-only use-case scope. The builder
 computes route changes from the
 branch point shared with `origin/main`, and both deployment jobs fetch complete
 Git history so that common ancestor can be resolved and the static Browse shell
-always includes the All/Changed filter, including a zero count. Artifact
+always includes the All/Changes filter, including a zero count. Every structured
+screen includes Current / Side by side / Overlay / Difference in the actual
+shell. Publishing prepares the real comparison through the same Git engine as
+development, then exports its JSON, isolated snapshots, and their resources
+under one immutable generation path. The stable comparison URL redirects to that
+generation. Visitors fetch and render comparisons only after selecting a diff;
+refresh reloads the currently published result. Missing baselines and invalid
+comparison output fail the build instead of publishing unusable controls.
+The [Changes contract](./mokabook-changes.md) owns the shared interaction and
+snapshot rules. Artifact
 replacement is transactional and refuses to overwrite a directory without
 Mokabook's ownership marker.
 

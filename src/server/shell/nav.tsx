@@ -63,6 +63,7 @@ function LeafRow(props: {
       aria-current={active ? "page" : undefined}
       className="mbk-nav-row"
       data-changed={changed ? "true" : undefined}
+      data-entry-id={props.node.entryId}
       data-nav-row=""
       data-route={props.node.route}
       data-tags={tags.length > 0 ? tags.join(" ") : undefined}
@@ -182,6 +183,7 @@ export function CatalogueNav(props: {
     ...props.catalogue.removedScreens.map((screen): NavLeafNode => ({
       kind: "leaf",
       key: `removed:${screen.route}`,
+      entryId: screen.id,
       entryKind: "screen",
       label: `${screen.title} · Removed`,
       route: screen.route,

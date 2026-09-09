@@ -10,7 +10,9 @@ Every structured screen offers Current / Side by side / Overlay / Difference
 in a compact band beneath its heading. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
 viewport or color scheme, and receiving a watched update do not generate
-comparison snapshots. The first explicit diff selection requests the comparison.
+comparison snapshots in development. Published catalogues prepare snapshots at
+build time, but never fetch or render them while browsing in Current. The first
+explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
 Navigation must never let a late comparison response replace another screen.
 
@@ -42,13 +44,25 @@ The shell requests `/__mokabook/diffs/review.json` on demand. The response
 redirects to an immutable generation; snapshot URLs resolve relative to that
 response URL. No standalone HTML report or navigation payload is generated.
 Only comparison JSON and snapshot files are served through this private route.
-All responses disable caching. Refresh requests and watched invalidation reuse
+Development responses disable caching. Refresh requests and watched invalidation reuse
 the generation queue, retaining superseded snapshots briefly for in-flight
 requests and draining active work before shutdown.
 
-Static deployments retain All / Changes and normal screen browsing. Without a
-comparison server they omit the diff controls, rather than shipping a dead link
-or generating comparisons while publishing.
+Published catalogues retain the same All / Changes navigation and screen controls.
+Publishing generates one validated Git comparison in a private staging directory,
+then packages its JSON and complete before/after snapshot trees under the resolved
+generation path. The stable JSON request redirects to that generation, so the
+same client resolves relative snapshot and resource URLs without a live server.
+Snapshot HTTP responses disable caching and MIME sniffing. Diagnostic summaries
+and internal ownership markers are not published.
+
+No comparison data or snapshot document is requested until a user selects a diff.
+Refresh and retry fetch the currently published comparison; only publishing a new
+artifact updates the underlying snapshots. Removed screens retain their Changes
+rows, screen pages, and id redirects; a current entry takes precedence when an id
+has been reused. Comparison failure aborts publishing transactionally, preserving
+the previous artifact. Publishing never writes to a running development server's
+configured comparison directory.
 
 ## Design references
 
@@ -62,7 +76,7 @@ See [the shell design](./mokabook-shell-design.md) and
 
 ## Comparison engine
 
-An explicit screen diff request compares the workspace with a configured base ref, defaulting
+An explicit development diff request, or publishing a catalogue, compares the workspace with a configured base ref, defaulting
 to `origin/main`. It resolves the merge base shared by `HEAD` and that ref, then
 reads the committed `mockupsDir` tree at that branch point without checking it
 out or rebuilding it. Commits reachable only from the configured base do not

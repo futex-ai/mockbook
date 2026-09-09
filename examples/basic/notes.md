@@ -66,6 +66,8 @@ in each entry's description and rationale, never inside the rendered screens:
 - The comparison band contains Current, Side by side, Overlay, and Difference.
   Viewport and scheme selections remain in the normal screen header and top bar.
   Every screen starts in Current, and diff snapshots load only after a click.
+  The same band belongs to the actual shell in both development and published
+  catalogues; it is independent of the design pictures rendered inside frames.
 - The approved tokens, consumer-tunable accent properties, and responsive
   breakpoints are recorded in `docs/protocol/mokabook-shell-design.md`.
 

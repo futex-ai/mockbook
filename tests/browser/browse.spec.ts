@@ -210,6 +210,15 @@ test("search state is retained across in-shell navigation", async ({
   expect(await hasMarker(page)).toBe(true);
 });
 
+test("search matches authored page ids", async ({ page }) => {
+  await page.goto("/");
+  await page.fill("[data-mokabook-search]", "example-details");
+
+  await expect(page.locator(detailsRow)).toBeVisible();
+  await expect(page.locator(welcomeRow)).toBeHidden();
+  await expect(page.locator(tourRow)).toBeHidden();
+});
+
 test("details disclosure is remembered across routes and reloads", async ({
   page,
 }) => {

@@ -149,14 +149,14 @@ stays stable.
 without writing and reports missing, stale, or orphan generated files. Browse
 serves the package-owned Mokabook shell — resizable desktop catalogue
 navigation with folder/screen/flow icons and an All/Changes filter, search that
-narrows the tree by title, route, and `tag:` terms that the field's tag picker
-and the details inspector's chips enter for you, hierarchy-derived breadcrumbs
-with hash-prefixed copyable ID chips, realistic browser chrome with an
-expand-to-overlay toggle, phone chrome whose screen reserves a clock, signal,
-Wi-Fi, and battery status band above the mobile fragment, header viewport
-controls, a Light/Dark switch when the catalogue has dark fragments, use-case
-flows, a details inspector that remembers its disclosure across routes and
-reloads, id redirects, and watched updates. The Changes filter compares
+narrows the tree by page ID, title, route, and `tag:` terms that the field's tag
+picker and the details inspector's chips enter for you, hierarchy-derived
+breadcrumbs with hash-prefixed copyable ID chips, realistic browser chrome with
+an expand-to-overlay toggle, phone chrome whose screen reserves a clock,
+signal, Wi-Fi, and battery status band above the mobile fragment, header
+viewport controls, a Light/Dark switch when the catalogue has dark fragments,
+use-case flows, a details inspector that remembers its disclosure across routes
+and reloads, id redirects, and watched updates. The Changes filter compares
 an explicit projection of route-level manifest metadata, collection ancestry,
 generated fragments, and explicitly declared dependencies with the branch
 point shared by `HEAD` and the configured Git base. Collection ancestry comes
@@ -172,8 +172,10 @@ Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
 Every structured screen has a compact Current / Side by side / Overlay /
 Difference control. It is available from All and Changes, and starts in Current.
-Mokabook generates comparison snapshots only after a diff option is selected;
-browsing, filtering, and watched reloads do not trigger generation. Comparisons
+During development, Mokabook generates comparison snapshots only after a diff
+option is selected; browsing, filtering, and watched reloads do not trigger
+generation. Published catalogues prepare snapshots during publishing, then load
+and render them only after a diff option is selected. Comparisons
 stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
 catalogue available and offer a retry. Navigation and reload return to Current.
@@ -338,8 +340,13 @@ generated link markers as served Browse, and a single validated `fragment`
 query is applied progressively to current and light/dark frame sources. The
 snapshot compares the catalogue with `origin/main`, so Browse includes its
 All/Changes filter even when the changed count is zero. The artifact is not
-part of the npm package. Static deployments keep the Changes filter but omit
-diff controls because there is no comparison server.
+part of the npm package. Published screens include the same Current / Side by
+side / Overlay / Difference controls as development. Publishing packages the
+validated Git comparison and its isolated before/after resources; browsers fetch
+them only after a diff selection. Removed screens retain their Changes rows and
+comparison pages. Refresh reads the currently published comparison, and a new
+deployment publishes new snapshots. A failed comparison prevents deployment and
+preserves the previous local artifact.
 
 The Preview workflow deploys `main` to the Cloudflare Pages project `mokabook`
 at `https://mokabook.pages.dev`. Same-repository, non-release pull requests use

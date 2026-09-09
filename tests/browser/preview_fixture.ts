@@ -16,6 +16,15 @@ export interface PreviewFixture {
 /** Build the static artifact and serve it with query-preserving Pages routes. */
 export async function startPreviewFixture(): Promise<PreviewFixture> {
   await execute("npm", ["run", "preview:build"], { cwd: repositoryRoot });
+  return await servePreviewFixture(
+    path.join(repositoryRoot, ".context/mokabook-preview"),
+  );
+}
+
+/** Serve an already-published fixture through the real Pages routing runtime. */
+export async function servePreviewFixture(
+  artifact: string,
+): Promise<PreviewFixture> {
   const port = await availablePort();
   const child = spawn(
     process.execPath,
@@ -23,7 +32,7 @@ export async function startPreviewFixture(): Promise<PreviewFixture> {
       path.join(repositoryRoot, "node_modules/wrangler/bin/wrangler.js"),
       "pages",
       "dev",
-      path.join(repositoryRoot, ".context/mokabook-preview"),
+      artifact,
       "--compatibility-date",
       "2026-07-28",
       "--ip",

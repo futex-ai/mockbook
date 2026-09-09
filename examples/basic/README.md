@@ -73,5 +73,9 @@ the catalogue's All/Changes filter, Light/Dark switch, client assets, and light/
 fragment files, including when no routes changed. Public HTML copies pass
 through the same ownership-aware link adapter as served Browse; direct preview
 URLs apply one validated `fragment` query progressively in the parent shell.
-The static deployment omits diff controls; served screens offer comparisons on
-request without a separate Review section or CLI command.
+Published and served screens offer the same comparison controls in the actual
+Mokabook shell. Publishing prepares a validated Git comparison with isolated
+before/after resources, including removed-screen pages; browsers request those
+snapshots only after a comparison option is selected. The design screens inside
+the frames remain static pictures of that shell. There is no separate Review
+section or comparison CLI command.
