@@ -338,7 +338,7 @@ is closed by this delivery record. Findings and recommendations are recorded in
 [PR #48](https://github.com/futex-ai/mokabook/pull/48); no new review fixes were
 automatically applied.
 
-## Milestone 4f: Clarify comparison and highlight mockups
+## Milestone 4f: Clarify comparison and highlight mockups — completed
 
 Tags: mockup
 
@@ -356,9 +356,9 @@ highlight explanations, and outline geometry. Runtime work stays in later milest
 - [x] Align protocols, README, generated artboards, and focused tests; visually
       inspect every changed mobile/desktop page and interaction.
 - [x] Run `cargo xtask check`, inspect the diff and mainline preservation.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
-- [ ] Record verification and update the PR handoff.
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [x] Run `cargo xtask review` after pushing; report findings for user decision.
+- [x] Record verification and update the PR handoff.
 
 Validation: all 10 new browser regressions failed against the previous mockups
 and pass with this revision. All 47 focused browser and 21 catalogue tests pass.
@@ -368,6 +368,22 @@ TypeScript, 143 Chromium, and 3 Rust tests, along with format/lint/type checks,
 121-file generated-output verification, package smokes, and Rust checks. All 56
 mainline HTML artboards remain byte-identical; no runtime code or mainline file
 was removed.
+
+Commit `63d0634` is pushed and its required post-push review is complete.
+[CI](https://github.com/futex-ai/mokabook/actions/runs/34401740976) passed on Node
+22.14 and Node 24, including Required CI. The
+[preview](https://pr-48.mokabook.pages.dev/view/design/components/overview)
+deployed successfully; published checks verified comparison Details, status
+badges, empty highlighting, and Both/Dark highlighting in mobile/desktop frames.
+
+The review reported three findings: handoff bookkeeping (Medium), a duplicated
+browser route inventory (Medium), and stale secondary documentation counts (Low).
+This post-review delivery record closes the existing handoff task. Independent
+verification confirms all 32 routes are covered today; deriving that list from
+the manifest and replacing duplicate prose counts with a canonical inventory
+link remain recommendations for user decision. No new review fixes were applied.
+The complete findings and options are recorded in
+[PR #48](https://github.com/futex-ai/mokabook/pull/48).
 
 ## Milestone 5: Implement component pages and inspection
 
@@ -382,6 +398,9 @@ or rendering-contract changes belong in this milestone.
 - [ ] Implement the grouped viewport/theme/highlight icon controls with working
       Mobile/Desktop/Both contexts and comparison eligibility from real evidence;
       show Unmodified only for known unchanged saved examples.
+- [ ] Render Added/Changed/Removed/Unmodified entry badges and factual comparison
+      Details from validated records and paired props; keep entry/variant status
+      distinct and explain disabled highlighting with its specific reason.
 - [ ] Keep shell headers and inspector icons fixed around sibling scrolling
       panes; implement the full-width draggable, keyboard-accessible divider,
       bounded sizing, and close/reopen behavior from the workspace design.
