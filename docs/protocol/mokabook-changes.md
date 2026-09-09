@@ -40,6 +40,11 @@ The existing `review` configuration and authoring helpers are retained; the
 configuration selects the Git base, internal snapshot directory, and shared
 impact patterns. `serve --base` overrides the configured base.
 
+The planned [consumer static export](./mokabook-export.md) reuses this engine
+and schema. Its [static delivery contract](./mokabook-export-delivery.md)
+defines direct generation URLs without requiring a hosting-provider redirect;
+the implemented server and repository preview behavior below is unchanged.
+
 The shell requests `/__mokabook/diffs/review.json` on demand. The response
 redirects to an immutable generation; snapshot URLs resolve relative to that
 response URL. No standalone HTML report or navigation payload is generated.

@@ -62,6 +62,11 @@ permissions.
 
 ## Preview Deployments
 
+The planned [consumer static exporter](./mokabook-export.md) will provide a
+shared package implementation for this preview through a repository adapter.
+Until that plan is delivered, this section describes the implemented
+repository-only exporter; it is not an npm consumer publishing interface.
+
 `.github/workflows/preview.yml` deploys a browsable copy of the synthetic basic
 consumer to the direct-upload Cloudflare Pages project `mokabook`. A `main`
 push updates the production deployment at `https://mokabook.pages.dev`.

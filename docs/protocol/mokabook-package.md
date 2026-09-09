@@ -55,6 +55,10 @@ are rejected. Screen comparisons are requested from the catalogue. A flag after
 the package name belongs to Mokabook; docs must show npx arguments in a form
 that is unambiguous to current npm.
 
+The planned consumer `export` command and its export-only `--out` option are
+specified in the [static export contract](./mokabook-export.md). They are not
+part of the implemented command list above and do not restore `review`.
+
 Serve uses `4173` as its default starting port. An occupied concrete starting
 port advances one at a time through `65535` until binding succeeds; exhausting
 that range fails. Port `0` delegates free-port selection to the operating

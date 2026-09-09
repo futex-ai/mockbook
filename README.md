@@ -369,6 +369,13 @@ consumers, Chromium tests, and all Rust checks.
 
 ## Preview Deployments
 
+Consumer publishing is currently limited: `mokabook build` produces screen
+documents and a manifest, while exporting the full static catalogue is only
+available through this repository's example scripts. A public `mokabook export`
+command is planned in the [static export contract](./docs/protocol/mokabook-export.md)
+and tracked in the [implementation plans](./plans/README.md); it is not available
+in the current CLI. The commands below publish this repository's example only.
+
 `npm run preview:build` turns the real `examples/basic` Browse catalogue into a
 static Cloudflare Pages artifact at `.context/mokabook-preview`. It snapshots
 every catalogue route through Mokabook's HTTP server, copies the package shell

@@ -11,6 +11,10 @@ delivery steps.
 - [Package and authoring contract](./mokabook-package.md)
 - [Build and Browse runtime](./mokabook-runtime.md)
 - [Changes and screen comparisons](./mokabook-changes.md)
+- [Consumer static export](./mokabook-export.md) — planned consumer CLI and
+  artifact-generation contract; not implemented yet.
+- [Static export delivery](./mokabook-export-delivery.md) — planned portable
+  hosting, navigation, and comparison behavior.
 - [Watched development](./mokabook-watch.md)
 - [Catalogue navigation contract](./mokabook-navigation.md)
 - [Styled catalogue link controls](./mokabook-link-controls.md)
