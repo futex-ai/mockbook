@@ -1,15 +1,12 @@
 import { screen } from "mokabook";
 
+import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
+import { MiniDetails, MiniWelcome } from "./parts/mini_screens.js";
 import { NavTree } from "./parts/nav.js";
-import { SchemeSwitch, ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
-import {
-  BrowserFrame,
-  MiniDetails,
-  MiniWelcome,
-  PhoneFrame,
-  Stage,
-} from "./parts/stage.js";
+import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
+import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
+import { SchemeSwitch } from "./parts/top_bar.js";
 
 type SchemeViewport = "desktop" | "mobile";
 
@@ -44,6 +41,7 @@ function SchemeHead({
 function DarkSchemeDesktop() {
   return (
     <Shell
+      design={DESTINATIONS.darkWelcome}
       colorScheme="dark"
       viewport="desktop"
       nav={<NavTree activeLabel="Welcome" />}
@@ -57,21 +55,26 @@ function DarkSchemeDesktop() {
           <MiniWelcome />
         </BrowserFrame>
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
 
 function DarkSchemeMobile() {
   return (
-    <Shell colorScheme="dark" viewport="mobile" nav={null}>
+    <Shell
+      design={DESTINATIONS.darkWelcome}
+      colorScheme="dark"
+      viewport="mobile"
+      nav={null}
+    >
       <SchemeHead idChip="example-welcome" title="Welcome" viewport="mobile" />
       <Stage>
         <PhoneFrame dark label="Mobile" small>
           <MiniWelcome compact />
         </PhoneFrame>
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="welcome" />
     </Shell>
   );
 }
@@ -79,6 +82,7 @@ function DarkSchemeMobile() {
 function LightOnlyDesktop() {
   return (
     <Shell
+      design={DESTINATIONS.darkDetails}
       colorScheme="dark"
       viewport="desktop"
       nav={<NavTree activeLabel="Details" />}
@@ -92,21 +96,26 @@ function LightOnlyDesktop() {
           <MiniDetails />
         </BrowserFrame>
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="details" />
     </Shell>
   );
 }
 
 function LightOnlyMobile() {
   return (
-    <Shell colorScheme="dark" viewport="mobile" nav={null}>
+    <Shell
+      design={DESTINATIONS.darkDetails}
+      colorScheme="dark"
+      viewport="mobile"
+      nav={null}
+    >
       <SchemeHead idChip="example-details" title="Details" viewport="mobile" />
       <Stage>
         <PhoneFrame label="Mobile" lightOnly small>
           <MiniDetails compact />
         </PhoneFrame>
       </Stage>
-      <DetailsPanel />
+      <DetailsPanel subject="details" />
     </Shell>
   );
 }

@@ -16,9 +16,8 @@ const metadata = {
 };
 
 /**
- * No-op handler for the static screens: the controls are non-interactive
- * snapshots, but @firna/ui renders a Button without `onPress` as disabled and
- * warns on a value-without-onChange input, so pass this to keep them enabled.
+ * Firna needs handlers to render enabled controls without warnings. The
+ * generated MockLink anchors navigate natively; these callbacks never run.
  */
 const noop = (): void => undefined;
 
@@ -41,9 +40,11 @@ function Welcome({ compact }: { compact: boolean }) {
         placeholder="Name this workspace"
         value=""
       />
-      <Button onPress={noop} tone="primary">
-        Create workspace
-      </Button>
+      <MockLink asChild fragment="details" to="example-details">
+        <Button onPress={noop} tone="primary">
+          View details
+        </Button>
+      </MockLink>
       <MockLink fragment="details" to="example-details">
         Open the details screen
       </MockLink>
@@ -64,9 +65,11 @@ function Details({ compact }: { compact: boolean }) {
         <Badge tone="neutral">Synthetic</Badge>
       </header>
       <p>This screen is synthetic and belongs only to the package example.</p>
-      <Button onPress={noop} tone="secondary">
-        A styled secondary action
-      </Button>
+      <MockLink asChild to="example-welcome">
+        <Button onPress={noop} tone="secondary">
+          Return to welcome
+        </Button>
+      </MockLink>
       <MockLink to="example-welcome">Return to welcome</MockLink>
     </main>
   );
