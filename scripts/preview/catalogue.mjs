@@ -6,14 +6,9 @@ import {
   NodeGitCommandRunner,
   RepositoryGitClient,
 } from "../../dist/review/git.js";
-import { capturePublicationInputs, isComparisonPath } from "./inputs.mjs";
-import { adaptBrowseDocument } from "../../dist/browse/document_adapter.js";
-import {
-  isInside,
-  projectRealPath,
-  toPosixPath,
-} from "../../dist/config/paths.js";
-import { isPublicStaticFile } from "../../dist/config/public_files.js";
+import { capturePublicationInputs } from "./inputs.mjs";
+import { copyPublicFiles } from "../../dist/publication/resources.js";
+import { isInside, projectRealPath } from "../../dist/config/paths.js";
 import { loadCatalogueSnapshot } from "../../dist/server/catalogue_snapshot.js";
 import { computeCatalogueChanges } from "../../dist/server/changed.js";
 import {
@@ -109,7 +104,7 @@ export async function buildPreview(config, output, options = {}) {
     }
     if (review && comparison)
       await publishComparison(review, comparison, stage);
-    await copyPublicFiles(config, catalogue, stage);
+    await copyPublicFiles(config, catalogue, stage, excludedRoots);
     await writeText(
       stage,
       "_redirects",
@@ -191,40 +186,6 @@ async function capturePage(
     throw new Error(`preview page ${route} is missing its live-update script`);
   }
   await writeText(stage, relativePath, staticPage(html));
-}
-
-async function copyPublicFiles(config, catalogue, stage) {
-  for (const candidate of await regularFiles(config.mockupsDir)) {
-    if (
-      !isPublicStaticFile(candidate, config) ||
-      isComparisonPath(candidate, config)
-    )
-      continue;
-    const relative = toPosixPath(path.relative(config.mockupsDir, candidate));
-    const target = path.join(stage, "static", relative);
-    await fs.promises.mkdir(path.dirname(target), { recursive: true });
-    const content = await fs.promises.readFile(candidate);
-    const extension = path.extname(candidate).toLowerCase();
-    const adapted =
-      extension === ".html" || extension === ".htm"
-        ? Buffer.from(
-            adaptBrowseDocument(content.toString("utf8"), relative, catalogue),
-          )
-        : content;
-    await fs.promises.writeFile(target, adapted);
-  }
-}
-
-async function regularFiles(root) {
-  const files = [];
-  const entries = await fs.promises.readdir(root, { withFileTypes: true });
-  entries.sort((left, right) => left.name.localeCompare(right.name));
-  for (const entry of entries) {
-    const candidate = path.join(root, entry.name);
-    if (entry.isDirectory()) files.push(...(await regularFiles(candidate)));
-    else if (entry.isFile()) files.push(candidate);
-  }
-  return files;
 }
 
 function redirects(entries) {

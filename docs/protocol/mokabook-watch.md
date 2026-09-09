@@ -9,10 +9,11 @@ by generated output:
 
 - the config file and its transitive authoring imports reload configuration, generated
   output, watch targets, and the child;
-- entry/page/renderer/transformer imports rebuild generated output;
+- entry/page/renderer/transformer imports rebuild generated output, including
+  imported bytes handled by asset loaders;
 - an input shared with shell metadata rebuilds before restarting the child;
 - configured stylesheets and referenced local CSS, fonts, images, and other
-  resources reload the browser without rebuilding;
+  resources used only through public URLs reload the browser without rebuilding;
 - header-proven generated output plus `.git`, `.context`, `node_modules`,
   `dist`, `target`, coverage, browser-test output, comparison output, and Mokabook
   transaction trees are pruned from broad watches and classify as ignored;

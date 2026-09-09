@@ -76,6 +76,24 @@ with comparisons replaces the complete owned artifact transactionally, removing
 obsolete review files and redirects; never leave them reachable through a
 previous generation or stale asset copy.
 
+Use the shared confined file enumeration for input fingerprints and public
+copying. Resolve each logical path inside the real repository before reading
+target bytes or traversing a linked directory. Hash symlink text; unrelated
+escaping, dangling, and cyclic links contribute only that metadata and do not
+abort publication. Explicit manifest and authoring inputs must resolve to
+confined regular files before their bytes are read. Directory walks terminate
+when a target repeats in the current ancestor chain, while independent aliases
+to the same directory retain their own logical routes.
+
+Copy eligible public file and directory aliases as regular files at their
+logical routes. Every copied target must also stay inside the real `mockupsDir`
+and pass the shared source/internal-metadata policy. Apply generated-artifact
+and staging/destination exclusions to both identities. After copying, validate
+every exported HTML/CSS resource reference against confined regular files in
+the staged static tree, including transitive references. An unavailable resource,
+including a reference through a skipped cycle or excluded alias, fails before
+installation and preserves the previous artifact.
+
 ## Consistent Publication Snapshot
 
 Both options begin input capture before loading the current catalogue. Read
@@ -169,3 +187,7 @@ repository root still support publication.
 Test a rebuild immediately before the first input scan and a manifest mutation
 after its initial read. Verify navigation, captured routes, ID redirects, and
 opted-in change metadata agree, and failed capture preserves the previous output.
+Cover safe file/directory aliases in both options, target-only edits, private
+aliases, unrelated outside/dangling/cyclic links, and an escaping manifest before
+any target read. Remove a copied resource during staging to prove validation
+checks exported bytes and preserves the previous artifact.

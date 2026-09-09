@@ -69,11 +69,13 @@ Mokabook's package runtime and installed external dependencies. Include every
 entry's `sourcePath` and configured consumer module path. Preserve both the
 logical path and an in-repository realpath alias when they differ.
 
-Classify imports by their resolved loader and role. Executable modules and
-JSON/text/raw-template data consumed during authoring are source inputs. Public
-CSS, fonts, images, and other copied resource assets remain public unless another
-protection rule applies. If a file serves both roles, source protection wins;
-consumers must emit a separate public artifact instead of exposing the input.
+Every non-exempt bundler file input is an authoring source, regardless of its
+extension or loader, including `file`, `dataurl`, `base64`, `binary`, `css`, and
+`empty`. Imported images and other data can change authored metadata or output;
+they must participate in source watching and repository confinement. CSS, fonts,
+images, and other assets referenced only by public resource URLs remain public
+unless another protection rule applies. If a file serves both roles, source
+protection wins; consumers must emit a separate public artifact instead of exposing the input.
 Runtime file reads that the bundler cannot enumerate must use protected source
 locations or reserved names; a dependency string alone is not a public-asset
 permission or a substitute for complete static import discovery.
@@ -82,8 +84,8 @@ Reject absolute, escaping, malformed, duplicate, or unsorted inventory paths,
 unresolvable source aliases, source/output overlap, and missing entry/configured
 module paths. Source targets must remain regular files inside `repoRoot`.
 Reject a config or consumer graph containing an outside authoring input; never
-silently omit it from the inventory. Apply this after excluding runtime,
-installed-dependency, and public-asset inputs, so a consumer's transitive
+silently omit it from the inventory. Apply this after excluding runtime
+and installed-dependency inputs, so a consumer's transitive
 renderer, transformer, page, and template imports use the same boundary.
 The error names the offending input. Consumers must move their authoring code
 inside `repoRoot` or explicitly configure a common root containing it.
@@ -96,6 +98,9 @@ resolve the config and consumer input graphs and require the persisted inventory
 to match. This scan may bundle modules but must not run page render callbacks,
 rewrite generated output, or read Git history. A missing, malformed, or stale
 inventory rejects the candidate and directs the author to rebuild.
+Freshness compares input-path membership, not content hashes; normal edits to
+existing inputs are applied by build or watch. Publication additionally compares
+input bytes across its capture transaction.
 
 Watch consumes the same discovered input set. Config-graph changes use the
 existing transactional config reload; consumer-module changes rebuild. Recompute

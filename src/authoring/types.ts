@@ -162,7 +162,7 @@ export interface NestedCollectionMarker extends NestedCollectionInput {
   definedIn?: string;
 }
 
-/** A nested screen or collection. */
+/** A nested screen, page, or collection. */
 export type NestedChild =
   NestedScreenMarker | NestedPageMarker | NestedCollectionMarker;
 

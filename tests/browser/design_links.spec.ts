@@ -82,6 +82,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       /\/design\/browse\/views\/details-screen\.html$/,
     );
     await frame.locator(".mbk-shot-link").first().click();
+    await expect(page).toHaveURL(/\/design\/browse\/views\/screen\.html$/);
     await frame.locator(".mbk-search-tag").click();
     await expect(page).toHaveURL(
       /\/design\/browse\/states\/tags\/picker\.html$/,

@@ -47,7 +47,9 @@ export async function discoverWatchResources(
       try {
         if (content === undefined) {
           const asset = await reader.readLocated(route);
-          locations.set(route, [...new Set([logical, asset.physicalPath])]);
+          locations.set(route, [
+            ...new Set([logical, asset.location.physicalPath]),
+          ]);
           if (asset.content === undefined) {
             throw new MokabookError(
               "review-invalid",

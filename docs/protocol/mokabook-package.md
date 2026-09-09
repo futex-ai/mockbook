@@ -182,8 +182,10 @@ Authored source directories may sit below `mockupsDir` for a `docs/mockups/src`
 layout, but they may not equal each other or the output root; generated routes
 are collision-checked against those sources before writing. Review output must
 not overlap a source or output root in either direction. That rule applies
-equally to configured output, a CLI `--out` override, and the transactional
-writer boundary.
+to configured comparison output and the transactional writer boundary. The
+[npm CLI](#cli) has no Review command or output override; the repository-only
+[preview builder](./mokabook-publication.md#publication-option) separately accepts
+`--out` for its published catalogue.
 
 `moduleResolution` has no defaults beyond esbuild's platform behavior. Package
 roots must be in-repository directories containing `package.json`; their

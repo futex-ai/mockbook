@@ -24,6 +24,7 @@ test("both graphs retain raw and tree-shaken inputs while public resources stay 
     "data.json": '{"title":"Handbook"}',
     "template.html": "<html><body>Private template</body></html>",
     "image.svg": '<svg xmlns="http://www.w3.org/2000/svg"/>',
+    "public.svg": '<svg xmlns="http://www.w3.org/2000/svg"/>',
     "public.css": "body { color: blue; }",
     "unused.SOURCE.TSX":
       'throw new Error("unregistered source must never execute");',
@@ -55,6 +56,7 @@ test("both graphs retain raw and tree-shaken inputs while public resources stay 
     "unused.ts",
     "data.json",
     "template.html",
+    "image.svg",
   ])
     assert.ok(
       compilation.manifest.sourceFiles.includes(`mockups/${source}`),
@@ -62,7 +64,7 @@ test("both graphs retain raw and tree-shaken inputs while public resources stay 
     );
   assert.equal(
     compilation.manifest.sourceFiles.includes("mockups/image.svg"),
-    false,
+    true,
   );
   await writeCompilation(compilation, config);
   const server = await startCatalogueServer(config, { base: "main", port: 0 });
@@ -70,7 +72,7 @@ test("both graphs retain raw and tree-shaken inputs while public resources stay 
   const reader = new FileSystemReviewAssetReader(config);
   for (const route of [
     ...Object.keys(files).filter(
-      (file) => !["image.svg", "public.css"].includes(file),
+      (file) => !["public.svg", "public.css"].includes(file),
     ),
     "alias.ts",
     "disguised.txt",
@@ -88,7 +90,7 @@ test("both graphs retain raw and tree-shaken inputs while public resources stay 
       );
     await assert.rejects(reader.read(route), /not a public static file/, route);
   }
-  for (const route of ["image.svg", "public.css", "screens/home.desktop.html"])
+  for (const route of ["public.svg", "public.css", "screens/home.desktop.html"])
     assert.equal(
       (await fetch(`${server.url}/static/${route}`)).status,
       200,

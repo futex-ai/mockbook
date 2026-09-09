@@ -1,82 +1,59 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
 import path from "node:path";
 
-import { isInside, projectRealPath } from "../../dist/config/paths.js";
+import {
+  publicationFiles,
+  publicationInput,
+  readPublicationFile,
+} from "../../dist/publication/files.js";
 import { MANIFEST_NAME, parseManifest } from "../../dist/registry/manifest.js";
 
 /** Capture metadata and its exact input digest together, including private helpers. */
 export async function capturePublicationInputs(config, excludedRoots) {
-  const excluded = excludedRoots.map(projectRealPath);
-  const files = new Set();
-  async function visit(directory, publicRoot = false) {
-    const entries = await fs.promises.readdir(directory, {
-      withFileTypes: true,
-    });
-    for (const entry of entries) {
-      const file = path.join(directory, entry.name);
-      if (
-        isComparisonPath(file, config) ||
-        [".git", "node_modules", "target"].includes(entry.name) ||
-        (!publicRoot && entry.name === ".context")
-      )
-        continue;
-      const real = projectRealPath(file);
-      if (excluded.some((root) => isInside(root, real))) continue;
-      if (entry.isDirectory()) await visit(file, publicRoot);
-      else if (entry.isFile() || entry.isSymbolicLink()) files.add(file);
-    }
-  }
-  await visit(config.repoRoot);
-  await visit(config.mockupsDir, true);
+  const files = new Map();
+  for (const [root, publicRoot] of [
+    [config.repoRoot, false],
+    [config.mockupsDir, true],
+  ])
+    for (const file of await publicationFiles(
+      config,
+      root,
+      excludedRoots,
+      publicRoot,
+    ))
+      files.set(file.path, file);
   const manifestFile = path.join(config.mockupsDir, MANIFEST_NAME);
-  const manifestBytes = await fs.promises.readFile(manifestFile);
+  const input = await publicationInput(manifestFile, config.repoRoot);
+  const manifestBytes = await readPublicationFile(input, config.repoRoot);
   const manifest = parseManifest(JSON.parse(manifestBytes.toString("utf8")));
-  files.add(manifestFile);
+  files.set(manifestFile, input);
   for (const source of [
     ...manifest.sourceFiles,
     ...(config.configSourceFiles ?? []),
-  ])
-    files.add(path.resolve(config.repoRoot, source));
+  ]) {
+    const file = await publicationInput(
+      path.resolve(config.repoRoot, source),
+      config.repoRoot,
+    );
+    files.set(file.path, file);
+  }
   const hash = crypto.createHash("sha256");
-  for (const file of [...files].sort()) {
-    hash.update(path.relative(config.repoRoot, file));
+  for (const [name, file] of [...files].sort(([left], [right]) =>
+    left.localeCompare(right),
+  )) {
+    hash.update(path.relative(config.repoRoot, name));
     hash.update("\0");
-    const stat = await fs.promises.lstat(file);
-    if (stat.isSymbolicLink()) hash.update(await fs.promises.readlink(file));
-    if ((await fs.promises.stat(file)).isFile())
+    hash.update(file.kind);
+    hash.update("\0");
+    if (file.link !== undefined) hash.update(file.link);
+    hash.update("\0");
+    if (file.kind === "file")
       hash.update(
-        file === manifestFile
+        name === manifestFile
           ? manifestBytes
-          : await fs.promises.readFile(file),
+          : await readPublicationFile(file, config.repoRoot),
       );
     hash.update("\0");
   }
   return { fingerprint: hash.digest("hex"), manifest };
-}
-
-/** Exclude old comparison output even when it sits inside public assets. */
-export function isComparisonPath(file, config) {
-  if (
-    file === config.review.outDir ||
-    file.startsWith(`${config.review.outDir}${path.sep}`)
-  )
-    return true;
-  let directory = path.dirname(file);
-  while (
-    directory !== config.mockupsDir &&
-    directory !== path.dirname(directory)
-  ) {
-    if (
-      fs.existsSync(path.join(directory, ".mokabook-review-artifact")) ||
-      fs.existsSync(path.join(directory, ".mokabook-preview-artifact"))
-    )
-      return true;
-    directory = path.dirname(directory);
-  }
-  const relative = path.relative(config.mockupsDir, file).split(path.sep);
-  return (
-    relative.includes(".comparisons") ||
-    (relative.includes("__mokabook") && relative.includes("diffs"))
-  );
 }

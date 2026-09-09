@@ -197,6 +197,8 @@ use the comparison engine's paired ignore rules: excluded chrome-only edits
 stay out, while material keys and changes to screen content remain reviewable.
 Linked CSS, fonts, images, and transitive local resources still mark the screens
 that reference them; unrelated shared files do not mark the whole catalogue.
+For public file and directory aliases, edits to the target also mark consuming
+screens and pages, even when the alias itself is unchanged.
 The filter validates referenced public files, including changed stylesheets and
 their imports. Invalid resources make Changes unavailable until repaired;
 verified deletions still identify affected screens, while All remains accessible.
@@ -285,6 +287,9 @@ renderer, transformer, and page-helper imports outside it fail with the offendin
 path instead of creating an incomplete source inventory. Move shared authoring
 code inside the root or explicitly configure a common root containing it;
 installed dependencies remain supported outside the root.
+All bundler file inputs are protected authoring sources, including images or
+data imported through asset loaders. Editing them rebuilds the catalogue.
+Assets referenced only by public HTML/CSS URLs remain public resources.
 
 - `entriesDir` and `mockupsDir` select structured source and generated output.
 - `colorSchemes` defaults to `["light"]`; `["light", "dark"]` enables dark
@@ -450,6 +455,10 @@ keeps the previous artifact.
 Output stays beneath `.context`, whose resolved location must remain inside the
 real repository root. In-repository symlinks are supported; escaping context,
 parent, or output symlinks are rejected before any publication writes.
+Input capture hashes link text without reading outside or unresolved targets.
+Safe public file and directory aliases are exported as regular files at their
+logical routes; source and internal-metadata aliases remain private. The builder
+checks exported resource references before replacing the previous artifact.
 
 To include Changes, removed-entry states, and frozen screen comparisons:
 

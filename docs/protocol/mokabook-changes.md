@@ -47,6 +47,13 @@ edges. Added screens, newly available views, and existing material fragment
 changes do not bypass resource validation. Whole-document pages use these same
 rules for their single generated document and its rendered resources; they do
 not gain screen comparison controls or viewport variants.
+For public file and directory aliases, compare changed Git paths against both
+the referenced route and its validated physical path relative to the real
+`mockupsDir`. Editing a target marks its consumers even when the alias itself
+is unchanged. Obtain both identities from the same confined reader used by
+resource watching; source, internal-metadata, and escape checks still apply.
+Historical snapshot reads continue to require regular Git files and reject
+symlink blobs; detecting current impact does not relax baseline validation.
 A deleted resource still marks its consumers only when its closest existing
 ancestor is a confined public directory and its baseline is a regular Git file.
 Dangling symlinks, escaping symlinks, source-root references, and newly missing

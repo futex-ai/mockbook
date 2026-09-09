@@ -78,7 +78,6 @@ export async function loadConsumerGraph(
           result.metafile,
           path.dirname(config.configPath),
           config.repoRoot,
-          config.moduleResolution.loaders,
         ),
         ...(config.configSourceFiles ?? [config.configPath]),
         ...entrySources,
