@@ -1,6 +1,6 @@
 // Shared Mokabook shell glyphs: the disclosure chevron, the closed / open
 // folder icons for collapsible collections, the screen / page / use-case leaf
-// icons, and the top bar's search and tag controls. All icons are stroke-based
+// icons, and the top bar's brand, search and tag controls. All icons are stroke-based
 // on a 24-unit viewBox and inherit `currentColor`. The navigation tree drops
 // the chevron in favour of the folder icon, swapping the closed folder for the
 // open one while a group is expanded (see `.mbk-nav-ico.folder` in the shell
@@ -23,6 +23,19 @@ function IconSvg(props: { children: ReactNode; size: number }) {
     >
       {props.children}
     </svg>
+  );
+}
+
+/** Overlapping mobile and desktop screens in Mokabook's brand mark. */
+export function BrandIcon(props: { size?: number }) {
+  return (
+    <IconSvg size={props.size ?? 17}>
+      <path
+        d="M6.5 5.5V5a2 2 0 0 1 2-2H20a2 2 0 0 1 2 2v10.5a2 2 0 0 1-2 2h-8"
+        strokeLinecap="butt"
+      />
+      <rect height={13} rx={1.75} width={8.5} x={1.5} y={7} />
+    </IconSvg>
   );
 }
 

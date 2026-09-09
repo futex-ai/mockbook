@@ -86,10 +86,10 @@ export const SHELL_NAV_CSS = `
   place-items: center;
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
   border-radius: 6px;
   background: var(--mokabook-accent);
   color: var(--mokabook-accent-contrast);
-  font-size: 13px;
 }
 
 .mbk-search {
