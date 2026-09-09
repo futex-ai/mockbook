@@ -22,6 +22,13 @@ remain reload inputs. Those package-owned classifications take precedence over
 additional watch rules. Package source under `node_modules` or an npx cache is
 never treated as consumer source. Development of Mokabook itself uses repository
 tooling rather than a hidden consumer-specific self-reload path.
+
+The repository's `npm run dev` command builds the local CLI once, then runs
+watched Serve with `examples/basic/mokabook.config.ts`. Arguments after `--`
+are forwarded to Serve, for example `npm run dev -- --port 0`. Restarting the
+command rebuilds changes to Mokabook's own source; this shortcut does not add
+watch targets beyond the example's resolved config.
+
 An unowned public HTML file beneath `mockupsDir` is an authored static input,
 not generated merely because of its extension, so an explicit rule may reload,
 restart, rebuild, or ignore it.

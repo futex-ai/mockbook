@@ -230,10 +230,9 @@ the user's decision without fixes. The user subsequently authorized valid
 review fixes; their disposition is tracked in Milestone 7 below.
 
 1. **Severity: Medium — incomplete existing destination inventory.**
-   The reviewer noted that the new contract lists only the five new route
-   mappings, while the older shell-design inventory omits the existing Current
-   and Overlay routes. The existing destination ids do appear in the new
-   control mappings, but their id-to-route inventory is not complete.
+   The reviewer found Current/Overlay missing from the older shell inventory.
+   The new contract lists only the five new id/route mappings; existing ids
+   appear in control mappings without a complete route inventory.
    Leaving this ambiguity can make implementers duplicate or move a destination
    that should remain stable. A. Complete one canonical existing-id/route
    inventory, including Current/Overlay, and link to it from the new contract.
@@ -253,7 +252,7 @@ review fixes; their disposition is tracked in Milestone 7 below.
    destination contract as the source for the new scope rather than maintaining
    another independent requirements list in example notes.
 
-## Milestone 7: Address approved planning review findings
+## Milestone 7: Address approved planning review findings — completed
 
 Outcome: the existing route inventory and historical notes agree with the
 planned adoption, while feature implementation remains unstarted.
@@ -268,15 +267,34 @@ planned adoption, while feature implementation remains unstarted.
       planned additions in the adoption contract.
 - [x] Validate Markdown, local links/anchors, exact manifest inventory parity,
       and the diff. Apply the documentation-only full-check exemption.
-- [ ] Preserve the audited mainline logo update, then `git add -A`, commit the
+- [x] Preserve the audited mainline logo update, then `git add -A`, commit the
       fixes using Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after the push and record/report new findings
+- [x] Run `cargo xtask review` after the push and record/report new findings
       without automatically fixing them; commit/push the final review record.
 
 Validation: the inventory probe first failed for two missing routes and all
-19 missing ids, then passed with exact manifest parity after the fix. All 58
-local documentation links (including three heading anchors), Markdown
-formatting, and diff checks pass. Source tip before integration was `ef2bfd1`;
-the audited main addition was `815405e` (screen-stack logo). The merge has no
-conflicts, and code, tests, and generated output match `origin/main` exactly.
-Only documentation differs from main, so `cargo xtask check` is exempt.
+19 missing ids, then passed with exact manifest parity. All 58 local links
+(including three heading anchors), Markdown formatting, and diff checks pass.
+Source tip `ef2bfd1` integrated `815405e` (screen-stack logo) without conflicts;
+the code and generated files matched that main snapshot. The documentation-only
+`cargo xtask check` exemption applies to this change.
+
+Post-push review of `d491e16` completed against the subsequently advanced main
+`e47524b`. Source tip `d491e16` then integrated that audited development-command
+commit cleanly; package code, tests, generated output, and watch protocol match
+`e47524b`. The original two findings are fixed. Follow-up dispositions:
+
+1. **Medium — newer main absent from the reviewed tip: integration completed.**
+   The reviewer compared two diverged tips; a verified clean merge preserved
+   the dev command and docs, with no branch deletion proposed. A. Refresh the
+   branch (recommended, completed). B. Rely on target-branch integration, leaving
+   the local audit stale. The refreshed branch removes that audit ambiguity.
+2. **Low — pending delivery checkboxes: scheduled bookkeeping completed.**
+   Review was pending in the commit it reviewed; an unchanged record would
+   obscure delivery status. A. Record completion and the audited SHA
+   (recommended, completed here). B. Leave a dated pending-status note.
+3. **Low — duplicate example README phrase: pending user decision.**
+   The pre-existing repeated “plus Current and Overlay controls” makes the
+   screen summary harder to read. A. Remove the duplicate (recommended).
+   B. Replace the detailed sentence with the canonical inventory link, avoiding
+   a second screen list. No new behavior is affected; this finding is not fixed.
