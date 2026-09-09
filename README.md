@@ -396,6 +396,11 @@ must contain the committed manifest and required fragments/assets; CI should
 check out full history. Normal build validation, including nonempty registry
 requirements, still applies.
 
+Configured package roots nested inside `mockupsDir` are excluded from both
+current assets and comparison snapshots. A package root equal to `mockupsDir`
+is rejected; use a separate public output directory. Local navigation links
+must also target existing document anchors.
+
 Deploy the directory's contents with your own hosting provider. Mokabook does
 not upload files or manage hosting credentials. Serve it at the HTTP(S) origin
 root with correct MIME types and directory indexes; no Mokabook process, Git,
@@ -411,6 +416,13 @@ replaces only owned output and preserves the previous site on pre-install
 failure. Generated fragments already written by the build step remain updated
 if the later export fails. See the [export contract](./docs/protocol/mokabook-export.md)
 and [hosting contract](./docs/protocol/mokabook-export-delivery.md).
+
+Concurrent exports to filesystem aliases of the same destination share one
+reservation. The internal `.mokabook-export-reservations` directory retains
+small ownership metadata after cleanup; keep authored files out of it. Old
+hashed reservations require explicit recovery after confirming no writer is
+active. Unlisted files inside an exported site remain eligible for configured
+watch rules and prevent replacement until moved elsewhere.
 
 ## Preview Deployments
 
@@ -473,6 +485,10 @@ proves the consumer contract against a real cross-platform component stack.
 Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
+The design mockups use `MockLink` for supported navigation and state transitions;
+the two example buttons demonstrate `MockLink asChild`. See the
+[design mockup links contract](./docs/protocol/mokabook-design-links.md) for
+canonical destinations and the controls that remain visual depictions.
 
 ### Key Code
 

@@ -144,12 +144,18 @@ a competing process fails clearly. An abandoned reservation is never silently
 stolen. An actionable error identifies it for explicit recovery. Transaction
 paths are exact, operation-owned paths, never a broad glob or consumer directory.
 
-The reservation is `.mokabook-export-<20-hex>.lock` beside the resolved output,
-keyed by its real path. Its `.mokabook-export-transaction` marker records
-`schemaVersion: 1` and the output basename; `stage/` and `backup/` remain inside
-that reservation. After confirming no writer is active, explicitly inspect and
-recover a retained backup before moving an abandoned reservation aside. The
-exporter never steals reservations or deletes unowned recovery directories.
+Reservations use `.mokabook-export-reservations/locks/<output-basename>` beside
+the resolved output. Native real-path resolution and unmodified filename keys
+give case/symlink aliases the filesystem's own lock equivalence, without
+serializing genuinely distinct destinations. The internal namespace has a
+regular `.owner` containing `mokabook-export-reservations-v1` plus a newline and
+remains after cleanup; never put authored files or export destinations inside it.
+Unowned namespaces and symlinked namespace/lock directories are rejected.
+The `.mokabook-export-transaction` marker records `schemaVersion: 2` and the
+output basename; `stage/` and `backup/` remain inside that reservation. Old
+`.mokabook-export-<20-hex>.lock` siblings block new exports until explicitly
+recovered. Confirm no writer is active, inspect any retained backup, and recover
+it before moving an abandoned reservation aside. Nothing is silently stolen.
 
 Do not accept the old `.mokabook-preview-artifact` marker through the public
 command. The repository-only adapter may explicitly migrate a valid legacy
@@ -164,6 +170,11 @@ export exclusions below. Retain relative resource and fallback document links
 and verify their transitive HTML/CSS dependencies, including fonts, images,
 `srcset`, nested local documents, and linked stylesheets. Referenced files that
 cannot be exported safely fail the operation instead of producing broken links.
+Navigation fragments in shell/public HTML, including query-only links and host
+aliases, must identify an anchor in the resolved document. Build and export
+share fragment decoding and anchor checks. Resource fragments such as SVG/CSS
+identifiers retain their resource policy; historical snapshot navigation remains
+unmodified and receives resource-only validation.
 
 The shared public-file confinement check is a minimum boundary, not permission
 to copy the whole repository. Prune entry/legacy source trees, the config and
@@ -171,6 +182,11 @@ renderer, source modules, dotfiles/directories, Git/dependency/cache trees,
 review/export outputs, and transaction paths before traversal. Explicit HTTP(S)
 and data resources retain the existing resource policy and are not downloaded;
 an export referencing remote resources is not guaranteed to work offline.
+
+One export resource policy applies to current copies and comparison snapshots.
+Exclude configured consumer package roots strictly inside `mockupsDir`, including
+their metadata and non-source payloads. A package root equal to `mockupsDir`
+fails explicitly; ancestor roots such as `packageRoots: ["."]` remain supported.
 
 Copy public resources into owned output as ordinary files, never symlinks.
 Reject selected symlink files/directories and escaping references explicitly;

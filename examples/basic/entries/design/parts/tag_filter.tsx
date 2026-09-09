@@ -1,21 +1,33 @@
+import { DesignLink, useDesignNavigation } from "./design_navigation.js";
 import { TagIcon } from "./icons.js";
-import { CATALOGUE_TAGS } from "./tags.js";
+import { tagPickerTarget, tagTarget } from "./navigation_states.js";
+import { CATALOGUE_TAGS, type CatalogueTag } from "./tags.js";
 
 /**
  * Tag pills. The chip whose tag the entered query names carries the accent
  * active state, so the chips and the query describe one selection.
  */
-export function TagChips({ activeTag }: { activeTag?: string | undefined }) {
+export function TagChips({
+  activeTag,
+  tags = CATALOGUE_TAGS,
+}: {
+  activeTag?: string | undefined;
+  tags?: readonly CatalogueTag[];
+}) {
+  const navigation = useDesignNavigation();
   return (
     <span className="mbk-chips">
-      {CATALOGUE_TAGS.map((tag) => (
-        <span
-          key={tag}
-          className={tag === activeTag ? "mbk-chip tag active" : "mbk-chip tag"}
-        >
-          <TagIcon size={11} />
-          {tag}
-        </span>
+      {tags.map((tag) => (
+        <DesignLink key={tag} to={tagTarget(navigation.tags, tag)}>
+          <span
+            className={
+              tag === activeTag ? "mbk-chip tag active" : "mbk-chip tag"
+            }
+          >
+            <TagIcon size={11} />
+            {tag}
+          </span>
+        </DesignLink>
       ))}
     </span>
   );
@@ -26,13 +38,21 @@ export function TagChips({ activeTag }: { activeTag?: string | undefined }) {
  * tag picker. A catalogue that declares no tags draws no control.
  */
 export function SearchTagButton() {
+  const navigation = useDesignNavigation();
   if (CATALOGUE_TAGS.length === 0) {
     return null;
   }
   return (
-    <span className="mbk-search-tag" role="button" aria-label="Filter by tag">
-      <TagIcon size={13} />
-    </span>
+    <DesignLink to={tagPickerTarget(navigation.tags)}>
+      <span
+        className="mbk-search-tag"
+        aria-label={
+          navigation.tags?.picker ? "Close tag picker" : "Filter by tag"
+        }
+      >
+        <TagIcon size={13} />
+      </span>
+    </DesignLink>
   );
 }
 

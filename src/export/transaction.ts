@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -8,6 +7,7 @@ import {
   assertExportOwnership,
   type LegacyExportOwnership,
 } from "./ownership.js";
+import { prepareReservation, reservationPath } from "./reservation.js";
 
 /** Marker proving ownership of an active export reservation. */
 export const TRANSACTION_MARKER = ".mokabook-export-transaction";
@@ -27,19 +27,14 @@ export const fileExportOperations: ExportOperations = {
 
 /** Deterministic reservation shared by aliases of the same output. */
 export function exportReservation(output: string): string {
-  const real = projectRealPath(output);
-  const id = crypto
-    .createHash("sha256")
-    .update(real)
-    .digest("hex")
-    .slice(0, 20);
-  return path.join(path.dirname(real), `.mokabook-export-${id}.lock`);
+  return reservationPath(output);
 }
 
 /** One owned stage and rollback directory protected by an exclusive writer. */
 export class ExportTransaction {
   readonly stage: string;
   readonly backup: string;
+  readonly reservationRoot: string;
   private installed = false;
 
   private constructor(
@@ -50,6 +45,7 @@ export class ExportTransaction {
   ) {
     this.stage = path.join(reservation, "stage");
     this.backup = path.join(reservation, "backup");
+    this.reservationRoot = path.dirname(path.dirname(reservation));
   }
 
   /** Reserve output without stealing an abandoned or active reservation. */
@@ -59,8 +55,9 @@ export class ExportTransaction {
     operations = fileExportOperations,
   ): Promise<ExportTransaction> {
     await assertExportOwnership(output, legacy);
-    const reservation = exportReservation(output);
-    await fs.promises.mkdir(path.dirname(reservation), { recursive: true });
+    const real = projectRealPath(output);
+    await prepareReservation(real);
+    const reservation = exportReservation(real);
     try {
       await fs.promises.mkdir(reservation);
     } catch (error) {
@@ -70,7 +67,7 @@ export class ExportTransaction {
       );
     }
     const transaction = new ExportTransaction(
-      projectRealPath(output),
+      real,
       reservation,
       operations,
       legacy,
@@ -78,7 +75,7 @@ export class ExportTransaction {
     try {
       await fs.promises.writeFile(
         path.join(reservation, TRANSACTION_MARKER),
-        JSON.stringify({ schemaVersion: 1, output: path.basename(output) }),
+        JSON.stringify({ schemaVersion: 2, output: path.basename(real) }),
       );
       await fs.promises.mkdir(transaction.stage);
       return transaction;

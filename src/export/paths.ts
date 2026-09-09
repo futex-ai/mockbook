@@ -6,6 +6,7 @@ import { validateReviewOut } from "../config/path_validation.js";
 import { isInside, projectRealPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { exportError } from "./error.js";
+import { RESERVATION_DIRECTORY } from "./reservation.js";
 
 /** Resolve and validate an export target without creating any files. */
 export function resolveExportOutput(
@@ -44,7 +45,12 @@ export function resolveExportOutput(
     path
       .relative(projectRealPath(config.repoRoot), candidate)
       .split(path.sep)
-      .some((segment) => segment === ".git" || segment === "node_modules"),
+      .some(
+        (segment) =>
+          segment === ".git" ||
+          segment === "node_modules" ||
+          segment === RESERVATION_DIRECTORY,
+      ),
   );
   if (overlaps || containsInput || reserved)
     throw exportError(

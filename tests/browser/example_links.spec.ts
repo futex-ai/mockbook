@@ -1,0 +1,101 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+import { expect, test } from "@playwright/test";
+
+import { repositoryRoot } from "../helpers/fixture.js";
+import { focusDesignLink } from "./design_test_helpers.js";
+
+for (const viewport of ["mobile", "desktop"] as const) {
+  for (const scheme of ["light", "dark"] as const) {
+    test(`${viewport}/${scheme}: the basic example buttons work in Browse and on disk`, async ({
+      page,
+    }) => {
+      await page.goto("/view/screens/welcome.html");
+      await page.locator(`[data-viewport-option="${viewport}"]`).click();
+      if (scheme === "dark")
+        await page
+          .locator('.mbk-topbar [data-color-scheme-option="dark"]')
+          .click();
+      const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
+      const next = frame.getByRole("link", {
+        name: "View details",
+        exact: true,
+      });
+      await expect(next).toHaveAttribute(
+        "data-mokabook-link-control",
+        "button",
+      );
+      await frame.getByRole("textbox", { name: "Workspace name" }).focus();
+      await page.keyboard.press("Tab");
+      await expect(next).toBeFocused();
+      await expect(next).toHaveCSS("outline-width", "2px");
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(
+        /\/view\/screens\/details\.html\?fragment=details$/,
+      );
+      await expect(
+        page.locator(`.mbk-frame-${viewport} iframe`),
+      ).toHaveAttribute(
+        "src",
+        new RegExp(
+          `details\\.${viewport}${scheme === "dark" ? "\\.dark" : ""}\\.html#details$`,
+        ),
+      );
+      await frame.locator('a[data-mokabook-link-control="button"]').click();
+      await expect(page).toHaveURL(/\/view\/screens\/welcome\.html$/);
+
+      const suffix = `${viewport}${scheme === "dark" ? ".dark" : ""}.html`;
+      await page.goto(
+        pathToFileURL(
+          path.join(
+            repositoryRoot,
+            `examples/basic/generated/screens/welcome.${suffix}`,
+          ),
+        ).href,
+      );
+      await page
+        .getByRole("link", { name: "View details", exact: true })
+        .click();
+      await expect(page).toHaveURL(
+        new RegExp(
+          `/screens/details\\.${suffix.replaceAll(".", "\\.")}#details$`,
+        ),
+      );
+      const back = page.locator('a[data-mokabook-link-control="button"]');
+      await page.waitForLoadState("load");
+      await focusDesignLink(back);
+      await expect(back).toBeFocused();
+      await expect(back).toHaveCSS("outline-style", "solid");
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(
+        new RegExp(`/screens/welcome\\.${suffix.replaceAll(".", "\\.")}$`),
+      );
+    });
+  }
+}
+
+test("the real example tour reuses the styled buttons in both owning screens", async ({
+  page,
+}) => {
+  for (const scheme of ["light", "dark"] as const) {
+    for (const step of [0, 1]) {
+      await page.goto("/view/user-flows/example-tour.html");
+      await page
+        .locator(`.mbk-topbar [data-color-scheme-option="${scheme}"]`)
+        .click();
+      const frame = page.frameLocator(".mbk-flow-screen iframe").nth(step);
+      const button = frame.locator('a[data-mokabook-link-control="button"]');
+      if (step === 0) await button.click();
+      else {
+        await focusDesignLink(button);
+        await page.keyboard.press("Enter");
+      }
+      await expect(page).toHaveURL(
+        step === 0
+          ? /\/view\/screens\/details\.html\?fragment=details$/
+          : /\/view\/screens\/welcome\.html$/,
+      );
+    }
+  }
+});

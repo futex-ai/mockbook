@@ -5,10 +5,10 @@ Reviewed on 2026-09-09 with `cargo xtask review`, after implementation commit
 `calummoore/publish-export`. The read-only review covered the complete committed
 diff from `origin/main` (`e47524b`) to `d8c7a13` and exited successfully.
 
-All four findings below remain open for the user's decision. No automatic fixes
-were applied. The [implementation plan](../../plans/consumer-static-export.md)
-is complete under its required delivery-and-reporting workflow; review follow-up
-is separate work.
+The user subsequently approved fixes for all four findings and integration of
+latest main. Remediation passed full verification in
+[Milestone 7](../../plans/consumer-static-export.md). The findings below preserve
+the original review context; they were not automatically fixed during review.
 
 ## 1. Medium: Case Aliases Can Bypass Export Serialization
 
@@ -117,3 +117,40 @@ gaps above; the recommended follow-up includes targeted regression coverage.
 
 Empty registries retain existing Build/Check/Serve validation rather than gaining
 new support. No npm release or hosting deployment was performed.
+
+## Approved Remediation
+
+All four findings were reproduced with failing tests before fixes. The follow-up
+implements the recommended preventive scope:
+
+1. Native per-output lock directories now share the filesystem's case and Unicode
+   identity, including ancestor and symlink aliases. Distinct destinations remain
+   concurrent. Owned namespace metadata persists; legacy locks require explicit
+   recovery and unowned/symlinked namespaces are never adopted.
+2. One resource policy excludes nested package payloads from both current files
+   and baseline snapshots, rejects an equal package/public root, and preserves
+   valid ancestor package roots. Integration coverage uses real Git snapshots.
+3. Watcher traversal and event classification use the export inventory without
+   pruning directories needed to discover unowned additions. A real Chokidar
+   regression verifies later unowned files emit events while owned files do not.
+4. Build and Export share HTML reference parsing and decoded-anchor validation.
+   Tests cover self/query/cross-document links, hosting aliases, encoded anchors,
+   directory indexes, and the existing resource-only snapshot policy.
+
+The 12 added regression tests and both preview comparison integration tests
+passed before integration. Main was fetched and audited from captured source tip
+`1b723f3ce57657f4f1ee2d6e526e0ad55f6deaee`, then merged from
+`93ac77848993bf1757eceac9387aef485823acf2`. The plan-index conflict retained both
+plans. Main's design sources, generated screens, and new tests match main exactly;
+the combined diff deletes no files from main.
+
+Merged verification: `MOKABOOK_PLAYWRIGHT_PORT=54861 cargo xtask check` passed
+all 465 unit/integration tests, 104 browser tests, packed consumers, package and
+license checks, generated example verification, formatting, lint, typechecking,
+Rust formatting/Clippy, three Rust tests, and the file-length audit. Another
+workspace occupied the default browser port, so the final full run used a
+verified free port without disturbing that server. Two existing CLI startup
+tests timed out under an earlier parallel load; both passed in isolation and in
+two subsequent full suites without changing their timeouts or test concurrency.
+
+The required post-push review will be recorded here after delivery.

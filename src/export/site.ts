@@ -22,7 +22,7 @@ import type { ShellContext } from "../server/shell/context.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { exportError } from "./error.js";
 import { ExportInventory } from "./inventory.js";
-import { isExportPublicName } from "./public_files.js";
+import { exportResourcePolicy } from "./resource_policy.js";
 
 /** Assemble one complete shell/resource/comparison tree without a live server. */
 export function assembleExport(
@@ -69,10 +69,11 @@ export function assembleExport(
   if (!delivery)
     throw exportError("Invalid static catalogue delivery metadata.");
   const inventory = new ExportInventory();
+  const isPublic = exportResourcePolicy(config);
   for (const [name, bytes] of comparisonFiles) {
     if (
       name.startsWith("snapshots/") &&
-      !isExportPublicName(name.slice(name.indexOf("/", 10) + 1))
+      !isPublic(name.slice(name.indexOf("/", 10) + 1))
     )
       throw exportError(
         `Comparison contains a private export resource: ${name}`,

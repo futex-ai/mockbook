@@ -1,22 +1,42 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { isInside, isSafeRepositoryPath } from "../config/paths.js";
+import {
+  isInside,
+  isSafeRepositoryPath,
+  projectRealPath,
+  toPosixPath,
+} from "../config/paths.js";
 import { EXPORT_MARKER, parseExportOwnership } from "./ownership.js";
 import { exportReservation, TRANSACTION_MARKER } from "./transaction.js";
+import { isReservationDirectory } from "./reservation.js";
 
 /** Recognize proven output/reservations, not unrelated similarly named files. */
 export function isExportIgnoredPath(
   candidate: string,
   repoRoot: string,
+  mode: "traverse" | "event" = "event",
 ): boolean {
   for (
     let directory = candidate;
     isInside(repoRoot, directory) && directory !== repoRoot;
     directory = path.dirname(directory)
   ) {
-    const ownership = readMarker(directory, EXPORT_MARKER);
-    if (ownership && parseExportOwnership(ownership)) return true;
+    const content = readMarker(directory, EXPORT_MARKER);
+    const ownership = content ? parseExportOwnership(content) : undefined;
+    if (ownership) {
+      const relative = toPosixPath(path.relative(directory, candidate));
+      if (relative === EXPORT_MARKER || ownership.files.includes(relative))
+        return true;
+      if (
+        mode === "event" &&
+        (relative === "" ||
+          ownership.files.some((file) => file.startsWith(`${relative}/`)))
+      )
+        return true;
+      return false;
+    }
+    if (isReservationDirectory(directory)) return true;
     if (validReservation(directory)) return true;
     try {
       if (validReservation(exportReservation(directory))) return true;
@@ -36,7 +56,7 @@ function validReservation(directory: string): boolean {
       !value ||
       typeof value !== "object" ||
       !("schemaVersion" in value) ||
-      value.schemaVersion !== 1 ||
+      value.schemaVersion !== 2 ||
       !("output" in value) ||
       typeof value.output !== "string" ||
       !isSafeRepositoryPath(value.output) ||
@@ -44,8 +64,14 @@ function validReservation(directory: string): boolean {
     )
       return false;
     return (
-      exportReservation(path.join(path.dirname(directory), value.output)) ===
-      directory
+      projectRealPath(
+        exportReservation(
+          path.join(
+            path.dirname(path.dirname(path.dirname(directory))),
+            value.output,
+          ),
+        ),
+      ) === projectRealPath(directory)
     );
   } catch {
     return false;

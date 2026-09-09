@@ -1,15 +1,16 @@
 # Consumer Static Export
 
-Validation: all 429 unit/integration tests and 86 browser tests passed.
+Validation: all 465 unit/integration tests and 104 browser tests passed after integration.
 Packed local ESM, NodeNext, clean-cache npx, Accounting, and Juno consumers
 passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
-Completed: implementation, verification, commit/push, and post-push review.
+Milestones 1–6 completed; Milestone 7 fixes and main integration are verified,
+pending delivery and the required post-push review.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
-Four review findings remain for the user's decision; no fixes were applied.
+The user approved fixing all four review findings, followed by merging latest main.
 
 Implement the [consumer export protocol](../docs/protocol/mokabook-export.md)
 and [static delivery protocol](../docs/protocol/mokabook-export-delivery.md).
@@ -278,3 +279,19 @@ Medium findings and one Low finding. See the
 [post-push review](../docs/reviews/consumer-static-export.md) for every finding,
 impact, solution options, verification notes, and recommended preventive scope.
 The final plan/index/review-record changes are documentation-only bookkeeping.
+
+## Milestone 7: Resolve Review Findings And Merge Main
+
+Deliver the requested review follow-up without reopening completed milestones.
+
+- [x] Reproduce all four findings with failing regressions before fixes.
+- [x] Use native reservation identity, shared package/anchor validation, and
+      inventory-aware watcher traversal; update their protocols and READMEs.
+- [x] Pass focused regression and integration checks before main integration.
+- [x] Checkpoint the fixes, fetch main, capture the source tip, and audit main's
+      additions before merging. Preserve features path-by-path.
+- [x] Merge latest `origin/main`, resolve any conflicts, and rerun the full gate.
+- [ ] Audit diff/deletions, run `git add -A`, commit with Conventional Commits,
+      and push the existing branch before `cargo xtask review`.
+- [ ] Report new review findings without automatic fixes; record final outcomes
+      and commit/push documentation bookkeeping separately.

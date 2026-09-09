@@ -33,6 +33,14 @@ An unowned public HTML file beneath `mockupsDir` is an authored static input,
 not generated merely because of its extension, so an explicit rule may reload,
 restart, rebuild, or ignore it.
 
+Export markers prove ownership of their listed files, not every descendant of
+the output directory. Ignore inventory-listed files and the marker itself, but
+traverse the output and its subdirectories so later unowned additions still
+reach consumer rules. Owned directory events may be ignored without pruning
+traversal. Active transaction trees and the initialized internal reservation
+namespace remain pruned. Unowned files still make subsequent export replacement
+fail; watch classification does not grant permission to overwrite them.
+
 Watchers become ready before initial generation begins. Notifications during
 generation and child startup are buffered. A child validates the catalogue and binds before
 readiness. Initial startup tries a requested concrete port and then each higher

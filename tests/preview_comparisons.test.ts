@@ -91,8 +91,18 @@ test("published comparisons retain real baseline bytes, removed routes, and isol
   await assert.rejects(fixture.build, /preview comparison failed/);
   assert.equal(await read("_redirects"), redirects);
   assert.deepEqual(await fs.promises.readdir(path.dirname(fixture.output)), [
+    ".mokabook-export-reservations",
     "published",
   ]);
+  assert.deepEqual(
+    await fs.promises.readdir(
+      path.join(
+        path.dirname(fixture.output),
+        ".mokabook-export-reservations/locks",
+      ),
+    ),
+    [],
+  );
 });
 
 test("a published renamed screen keeps its current id redirect and old comparison route", async (context) => {

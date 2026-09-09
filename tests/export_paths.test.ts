@@ -26,6 +26,7 @@ test("export confines output before any write and resolves against config", asyn
     ".review",
     "node_modules/site",
     ".git/site",
+    ".mokabook-export-reservations/site",
   ])
     assert.throws(() => resolveExportOutput(config, output));
   assert.equal(fs.existsSync(path.join(fixture.root, "site")), false);

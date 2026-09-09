@@ -6,6 +6,10 @@ import test from "node:test";
 import { exportCatalogue } from "../dist/export/run.js";
 import { runExport } from "../dist/cli/export.js";
 import { exportReservation } from "../dist/export/transaction.js";
+import {
+  RESERVATION_DIRECTORY,
+  isReservationDirectory,
+} from "../dist/export/reservation.js";
 import { classifyWatchPath } from "../dist/server/watch_events.js";
 import {
   createExportFixture,
@@ -140,7 +144,12 @@ test("export refuses an output-parent alias retargeted during generation", async
     }),
     /changed its real location/,
   );
-  assert.deepEqual(await fs.promises.readdir(first), []);
+  assert.deepEqual(await fs.promises.readdir(first), [RESERVATION_DIRECTORY]);
+  assert.ok(isReservationDirectory(path.join(first, RESERVATION_DIRECTORY)));
+  assert.deepEqual(
+    await fs.promises.readdir(path.join(first, RESERVATION_DIRECTORY, "locks")),
+    [],
+  );
   assert.deepEqual(await fs.promises.readdir(second), []);
 });
 

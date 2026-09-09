@@ -43,7 +43,7 @@ export async function exportCatalogue(
     assertExportActive(options.signal);
     await writeCompilation(compilation, config);
     const publicFiles = await capturePublicFiles(config);
-    const exclusions = [output, transaction.reservation];
+    const exclusions = [output, transaction.reservationRoot];
     const changed = await reviewChangedPaths(
       git,
       commit,

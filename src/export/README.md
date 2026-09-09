@@ -15,6 +15,15 @@ check path collisions and local resource closure. `ignored.ts` keeps owned
 outputs and transactions out of broad Watch rules. The repository-only preview
 adapter supplies validated host aliases and legacy ownership explicitly.
 
+`reservation.ts` uses filesystem-native per-output directory names under an
+owned `.mokabook-export-reservations` namespace, retaining only its metadata
+after cleanup. Case and symlink aliases cannot bypass an active lock. Legacy
+hashed reservations require explicit recovery before another export.
+`resource_policy.ts` applies the same package/source boundary to current and
+historical copies. Build and export share HTML anchor validation through
+`html_link_validation.ts`. Watch traverses owned output directories to discover
+unlisted authored files while ignoring the recorded generated files.
+
 Focused verification:
 
 ```bash

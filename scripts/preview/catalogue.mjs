@@ -3,7 +3,7 @@ import path from "node:path";
 import { isInside } from "../../dist/config/paths.js";
 import { exportCatalogue } from "../../dist/export/run.js";
 import { assertExportOwnership } from "../../dist/export/ownership.js";
-import { isExportPublicName } from "../../dist/export/public_files.js";
+import { isExportPublicName } from "../../dist/export/resource_policy.js";
 import { comparisonMetadata } from "./comparisons.mjs";
 
 const markerName = ".mokabook-preview-artifact";
