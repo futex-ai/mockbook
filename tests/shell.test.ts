@@ -334,7 +334,7 @@ test("screen page renders device chrome, viewport switch, and details", () => {
   );
   assert.match(html, /class="browser-frame"/);
   assert.match(html, /class="browser-expand"/);
-  assert.match(html, /class="address">example\.test\/welcome</);
+  assert.match(html, /class="address-url">example\.test\/welcome</);
   assert.match(html, /data-mokabook-stage="" data-viewport="both"/);
   assert.match(html, /data-viewport-option="mobile"/);
   assert.match(
@@ -629,6 +629,42 @@ test("the search field leads with a legible search icon, not a glyph", () => {
     ),
   );
   assert.match(SHELL_CSS, /\.mbk-search > svg \{[^}]*flex-shrink: 0;/);
+});
+
+test("the browser bar draws copy and expand icons, not tiny glyphs", () => {
+  const catalogue = createCatalogue(manifest);
+  const entry = catalogue.byRoute.get("screens/welcome.html");
+  assert.ok(entry);
+  const html = viewPage(entry, catalogue, {
+    ...context,
+    activeRoute: "screens/welcome.html",
+  });
+  for (const glyph of ["⧉", "⤢", "⤡"]) {
+    assert.equal(html.includes(glyph), false);
+    assert.equal(SHELL_CSS.includes(glyph), false);
+  }
+  assert.match(
+    html,
+    /class="address-copy"><svg aria-hidden="true" fill="none" height="13"[^>]*width="13">/,
+  );
+  assert.match(
+    html,
+    /class="i-expand"><svg aria-hidden="true" fill="none" height="13"[^>]*width="13">/,
+  );
+  assert.match(
+    html,
+    /class="i-collapse"><svg aria-hidden="true" fill="none" height="13"[^>]*width="13">/,
+  );
+  assert.match(
+    SHELL_CSS,
+    /\.address-copy \{[^}]*flex-shrink: 0;[^}]*margin-left: auto;/,
+  );
+  assert.match(SHELL_CSS, /\.address-url \{[^}]*text-overflow: ellipsis;/);
+  assert.match(SHELL_CSS, /\.browser-expand \.i-collapse \{\s*display: none;/);
+  assert.match(
+    SHELL_CSS,
+    /\.browser-frame\.is-expanded \.browser-expand \.i-collapse \{\s*display: inline-flex;/,
+  );
 });
 
 test("missing routes keep the catalogue shell", () => {

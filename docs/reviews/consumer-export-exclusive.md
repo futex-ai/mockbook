@@ -60,8 +60,36 @@ reopening completed milestones or authorizing an automatic new-finding cycle.
   rerunning the complete gate with the installed Chromium browser selected via
   `PLAYWRIGHT_CHANNEL=chromium` passed. No product or test code changed between
   those attempts. Focused required macOS/Windows CI runs follow the push.
-- Refetched main remains `a5ecbc06d6169ec4af5329d52b6f13b2cd2f0276`, already
-  merged into the branch. No mainline file deletions were found.
+- At initial verification main was `a5ecbc0`, already merged, with no mainline
+  file deletions. See the subsequent integration below for newer mainline work.
+
+## Latest Main Integration
+
+Implementation `95bee11` was committed and pushed after the passing gate. The
+first post-push review was deliberately interrupted when GitHub reported the
+PR conflicted with newly advanced main; it produced no completed findings.
+Source tip `95bee115f626a65611f93e83bd634e6c3524b3a8` was captured before fetching
+main `aa5adea1b7d00fbfc4c3c3cf5e95c553635ccd2f` from base `a5ecbc0`.
+
+All 36 incoming paths were audited. Main's icon sizing, shell controls, generated
+design examples, and associated tests are preserved. Five watcher-test files
+conflicted because both branches independently added semantic Changes polling.
+Resolution retains main's `changedCount`, `waitForChangedCount`, and
+`waitForUpdate` interfaces and all three HTTP-backed tests; this branch's six
+additional deterministic polling tests move to a separate file. The controlled
+remove/repair recovery assertion and version-rich timeout diagnostics remain.
+No polling deadline, recovery assertion, or mainline feature was removed.
+
+All nine polling tests passed after resolution. The complete post-integration
+`cargo xtask check` also passed on macOS Node 25.4.0/npm 11.7.0: all 598
+unit/integration tests, 107 browser tests, three Rust tests, and every formatting,
+lint, typechecking, generated-example, package/license, packed-consumer,
+Rust formatting/Clippy, and file-length gate. The earlier Linux/Node 22 and
+macOS/Node 24 results describe the pre-merge source; required supported-runtime
+and native-platform CI will verify the merge after its push.
+
+No mainline file deletions or unresolved conflicts remain. Merge commit/push,
+a fresh post-push review, and GitHub CI are pending.
 
 ## Separate Dependency Audit — Needs Decision
 
@@ -84,5 +112,6 @@ reopening completed milestones or authorizing an automatic new-finding cycle.
 
 ## Delivery
 
-Commit/push, the required post-push `cargo xtask review`, and CI confirmation
-are pending. No npm release or PR merge is part of this follow-up.
+The fixes are pushed as `95bee11`; latest-main integration and its required
+post-push review and CI confirmation remain in progress. No npm release or PR
+merge is part of this follow-up.

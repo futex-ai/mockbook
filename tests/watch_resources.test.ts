@@ -10,7 +10,7 @@ import { validEntrySource } from "./helpers/fixture.js";
 import {
   catalogue,
   version,
-  waitForUpdate,
+  waitForChangedCount,
 } from "./helpers/watched_catalogue.js";
 
 const nestedCss =
@@ -61,9 +61,7 @@ test(
       ] as const) {
         const previousVersion = version(await catalogue(running.url));
         await fs.writeFile(path.join(fixture.mockupsDir, file), content);
-        html = await waitForUpdate(running.url, previousVersion, {
-          changes: 2,
-        });
+        html = await waitForChangedCount(running.url, previousVersion, 2);
         assert.match(html, /class="mbk-nav-filter-count">2</);
         const fresh = await fetch(
           `${running.url}/__mokabook/diffs/review.json`,

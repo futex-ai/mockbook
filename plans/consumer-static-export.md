@@ -1,13 +1,15 @@
 # Consumer Static Export
 
-Current validation: the complete `cargo xtask check` passes in a frozen Linux
-Node 22.14 checkout, including all 594 unit/integration tests, 105 browser tests,
-three Rust tests, and packed consumer smoke tests. All 112 focused export/release
-tests also pass locally on macOS Node 24. The two approved findings from the
+Current validation: the complete post-integration `cargo xtask check` passes on
+macOS Node 25.4.0, including all 598 unit/integration tests, 107 browser tests,
+three Rust tests, and packed consumer smoke tests. The pre-integration gate also
+passed on Linux Node 22.14, and all 112 focused export/release tests passed on
+macOS Node 24. The two approved findings from the
 [follow-up review](../docs/reviews/consumer-export-followup.md) are implemented in
 milestones 14–16: exclusive directory transactions and current release guidance.
 The [exclusive-destination review record](../docs/reviews/consumer-export-exclusive.md)
-tracks verification and the pending commit, push, post-push review, and CI.
+tracks implementation push `95bee11`, verified integration of main `aa5adea`,
+and the pending merge commit/push, post-push review, and supported-runtime CI.
 Earlier milestones remain completed and retain their historical validation.
 
 ## Objective And Status
@@ -486,8 +488,15 @@ Deliver the approved findings through the existing PR, with no release or merge.
 
 - [x] Run relevant tests and `cargo xtask check` with all tests passing; audit
       changes and deletions against `origin/main`.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push all changed
+- [x] Run `git add -A`, commit using Conventional Commits, and push all changed
       source/tests/docs before invoking `cargo xtask review`.
+- [x] After GitHub reports new mainline conflicts, capture source tip `95bee11`,
+      fetch main `aa5adea`, audit all 36 incoming paths, and resolve the five
+      watcher-test conflicts path-by-path. Preserve main's interfaces, tests,
+      icon implementation, and generated design output alongside this branch's
+      additional polling and controlled-recovery regressions.
+- [ ] Rerun the relevant tests and complete `cargo xtask check` after integration;
+      audit mainline preservation, then `git add -A`, commit, and push the merge.
 - [ ] Run the post-push review; independently assess and report new findings with
       severity, context, impact, lettered options, and a recommendation rather
       than automatically implementing another unapproved cycle.

@@ -14,32 +14,61 @@ export function version(html: string): number {
   return Number(value);
 }
 
-interface CatalogueState {
-  version: number;
-  changes: number | "unavailable";
+/** The Changes count in one shell response, absent when no filter row shows. */
+export function changedCount(html: string): number | undefined {
+  const value = html.match(/class="mbk-nav-filter-count">(\d+)</)?.[1];
+  return value === undefined ? undefined : Number(value);
 }
 
-/** Wait for a newer publication and, when specified, the intended Changes state. */
-export async function waitForUpdate(
+/** Wait for a fully published watch action to reach the current catalogue. */
+export function waitForUpdate(url: string, previous: number): Promise<string> {
+  return waitForPublished(url, previous, () => true, "a watched update");
+}
+
+/**
+ * Wait for a published watch action whose catalogue settles on `expected`
+ * changed screens, or on no Changes row at all when `expected` is undefined.
+ *
+ * An edit built from several filesystem operations — removing a file before
+ * replacing it, creating a directory before the file inside it — publishes one
+ * update per event while debouncing is off, so the first published version can
+ * carry the state between those operations. Waiting for the expected count lets
+ * those intermediate publications pass instead of asserting against one.
+ */
+export function waitForChangedCount(
   url: string,
   previous: number,
-  expected?: Pick<CatalogueState, "changes">,
+  expected?: number,
+): Promise<string> {
+  return waitForPublished(
+    url,
+    previous,
+    (html) => changedCount(html) === expected,
+    `${expected ?? "no"} changed screens`,
+  );
+}
+
+/**
+ * Poll the watched catalogue until it publishes a newer version that satisfies
+ * `settled`, reporting the last state it did publish when the wait runs out.
+ */
+async function waitForPublished(
+  url: string,
+  previous: number,
+  settled: (html: string) => boolean,
+  expectation: string,
 ): Promise<string> {
   const deadline = performance.now() + 20_000;
-  let latest: CatalogueState | undefined;
+  let published: string | undefined;
+  let latest: string | undefined;
   while (performance.now() < deadline) {
     try {
       const html = await catalogue(url);
-      const count = html.match(/class="mbk-nav-filter-count">(\d+)</)?.[1];
-      latest = {
-        version: version(html),
-        changes: count === undefined ? "unavailable" : Number(count),
-      };
-      if (
-        latest.version > previous &&
-        (!expected || latest.changes === expected.changes)
-      )
-        return html;
+      latest = html;
+      if (version(html) > previous) {
+        published = html;
+        if (settled(html)) return html;
+      }
     } catch (error) {
       const code = (error as { cause?: NodeJS.ErrnoException }).cause?.code;
       if (
@@ -51,10 +80,14 @@ export async function waitForUpdate(
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   throw new Error(
-    `referenced resource edit did not publish the expected update after version ${previous}` +
-      (expected ? `; expected Changes ${expected.changes}` : "") +
-      (latest
-        ? `; last version ${latest.version}, Changes ${latest.changes}`
-        : "; no catalogue response"),
+    `referenced resource edit did not publish ${expectation}; ${
+      published === undefined
+        ? "no watched update was published"
+        : `the last published update had ${changedCount(published) ?? "no"} changed screens`
+    }; waiting after version ${previous}; ${
+      latest === undefined
+        ? "no catalogue response"
+        : `last version ${version(latest)}, Changes ${changedCount(latest) ?? "unavailable"}`
+    }`,
   );
 }

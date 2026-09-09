@@ -1,88 +1,81 @@
 import assert from "node:assert/strict";
+import http from "node:http";
 import test from "node:test";
 
-import { waitForUpdate } from "./helpers/watched_catalogue.js";
+import {
+  changedCount,
+  version,
+  waitForChangedCount,
+  waitForUpdate,
+} from "./helpers/watched_catalogue.js";
 
-const url = "http://127.0.0.1:1234";
-
-function shell(version: number, changes?: number): string {
+/** One shell response at a published version, with an optional Changes row. */
+function shell(published: number, count?: number): string {
   const filter =
-    changes === undefined
+    count === undefined
       ? ""
-      : `<span class="mbk-nav-filter-count">${changes}</span>`;
-  return `<html data-mokabook-update-version="${version}">${filter}</html>`;
+      : `<span class="mbk-nav-filter-count">${count}</span>`;
+  return `<html><body data-mokabook-update-version="${published}">${filter}</body></html>`;
 }
 
-for (const { name, states, changes } of [
-  {
-    name: "waits for the intended Changes state after intermediate publications",
-    states: [shell(1, 0), shell(2, 2), shell(3), shell(4, 0)],
-    changes: 0,
-  },
-  {
-    name: "keeps unavailable Changes distinct from a successful empty result",
-    states: [shell(2, 0), shell(3)],
-    changes: "unavailable" as const,
-  },
-]) {
-  test(name, async (context) => {
-    const responses = [...states];
-    const fetch = context.mock.method(globalThis, "fetch", async () => {
-      const html = responses.shift();
-      assert.notEqual(html, undefined);
-      return new Response(html);
-    });
-    const html = await waitForUpdate(url, 1, { changes });
-    assert.equal(html, states.at(-1));
-    assert.equal(fetch.mock.callCount(), states.length);
+/** Serve each queued shell response once, repeating the last one after. */
+async function publish(
+  responses: readonly string[],
+): Promise<{ close: () => Promise<void>; url: string }> {
+  let served = 0;
+  const server = http.createServer((_request, response) => {
+    const body = responses[Math.min(served, responses.length - 1)] ?? "";
+    served += 1;
+    response.writeHead(200, { "content-type": "text/html" });
+    response.end(body);
   });
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  return {
+    close: () =>
+      new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error) reject(error);
+          else resolve();
+        });
+      }),
+    url: `http://127.0.0.1:${address.port}`,
+  };
 }
 
-test("an unconstrained update still requires a strictly higher version", async (context) => {
-  const responses = [shell(1, 0), shell(2, 2)];
-  context.mock.method(
-    globalThis,
-    "fetch",
-    async () => new Response(responses.shift()),
-  );
-  assert.equal(await waitForUpdate(url, 1), shell(2, 2));
+test("a settled wait passes over the state between edit operations", async () => {
+  const running = await publish([shell(1, 2), shell(2, 0)]);
+  try {
+    const html = await waitForChangedCount(running.url, 0, 0);
+    assert.equal(version(html), 2);
+    assert.equal(changedCount(html), 0);
+  } finally {
+    await running.close();
+  }
 });
 
-test("a newer but wrong Changes state fails within the original deadline", async (context) => {
-  const times = [0, 0, 20_001];
-  context.mock.method(performance, "now", () => times.shift() ?? 20_001);
-  context.mock.method(
-    globalThis,
-    "fetch",
-    async () => new Response(shell(2, 2)),
-  );
-  await assert.rejects(
-    waitForUpdate(url, 1, { changes: 0 }),
-    /expected Changes 0.*last version 2, Changes 2/,
-  );
+test("a settled wait reaches an edit that removes the Changes row", async () => {
+  const running = await publish([shell(1, 2), shell(2)]);
+  try {
+    const html = await waitForChangedCount(running.url, 0);
+    assert.equal(version(html), 2);
+    assert.equal(changedCount(html), undefined);
+    assert.doesNotMatch(html, /mbk-nav-filter-count/);
+  } finally {
+    await running.close();
+  }
 });
 
-test("transient child transport errors retry without relaxing the expected state", async (context) => {
-  let attempts = 0;
-  context.mock.method(globalThis, "fetch", async () => {
-    if (attempts++ === 0)
-      throw new TypeError("fetch failed", {
-        cause: { code: "ECONNREFUSED" },
-      });
-    return new Response(shell(2, 0));
-  });
-  assert.equal(await waitForUpdate(url, 1, { changes: 0 }), shell(2, 0));
-  assert.equal(attempts, 2);
-});
-
-test("non-transient HTTP failures are not hidden by state polling", async (context) => {
-  const fetch = context.mock.method(
-    globalThis,
-    "fetch",
-    async () => new Response("broken", { status: 500 }),
-  );
-  await assert.rejects(waitForUpdate(url, 1, { changes: 0 }), {
-    name: "AssertionError",
-  });
-  assert.equal(fetch.mock.callCount(), 1);
+test("waiting for any update stops at the first published version", async () => {
+  const running = await publish([shell(1, 2), shell(2, 0)]);
+  try {
+    const html = await waitForUpdate(running.url, 0);
+    assert.equal(version(html), 1);
+    assert.equal(changedCount(html), 2);
+  } finally {
+    await running.close();
+  }
 });
