@@ -350,6 +350,7 @@ test("screen page renders device chrome, viewport switch, and details", () => {
   assert.doesNotMatch(html, /class="mbk-idchip"[^>]*href=/);
   assert.match(html, /Proves the shell/);
   assert.match(html, /notes\.md/);
+  assert.match(html, /<details class="mbk-details" data-mokabook-details="">/);
   assert.match(
     html,
     /class="mbk-chip flow" href="\/view\/user-flows\/tour\.html"/,

@@ -167,10 +167,10 @@ scrollable region scrolls internally:
 - **Stage** — dotted-grid background (22px radial dots), centred frames with
   40px gap, internal `overflow: auto`, `MOBILE` / `DESKTOP` uppercase frame
   labels, and no separate toolbar above the grid.
-- **Details inspector** — collapsible `<details>` bottom panel, open by default
-  until the user changes it, after which Browse retains that disclosure across
-  routes and reloads: a bar with a rotating chevron, `Details`, and a muted
-  hint; a two-column body (`1.35fr / 1fr`) with description and
+- **Details inspector** — collapsible `<details>` bottom panel, collapsed by
+  default until the user changes it, after which Browse retains that disclosure
+  across routes and reloads: a bar with a rotating chevron, `Details`, and a
+  muted hint; a two-column body (`1.35fr / 1fr`) with description and
   `Why this screen —` rationale on the left and uppercase-labelled metadata
   rows (Source, Generated, Schemes, Tags, Related docs, Dependencies, Used by)
   on the right. Paths render as monospace chips; use cases render as pill chips
