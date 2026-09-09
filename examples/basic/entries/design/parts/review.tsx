@@ -1,3 +1,4 @@
+import { DESTINATIONS } from "./destinations.js";
 import { NavTree, type NavNode } from "./nav.js";
 
 /** Comparison classification states depicted by the design mockups. */
@@ -7,9 +8,14 @@ export type ReviewState =
 const CHANGED_NODES: readonly NavNode[] = [
   { depth: 0, kind: "collection", label: "Example", open: true },
   { depth: 1, kind: "collection", label: "Screens", open: true },
-  { depth: 2, kind: "screen", label: "Welcome" },
-  { depth: 2, kind: "screen", label: "Details" },
-  { depth: 0, kind: "screen", label: "Farewell · Removed" },
+  { depth: 2, kind: "screen", label: "Welcome", to: DESTINATIONS.current },
+  { depth: 2, kind: "screen", label: "Details", to: DESTINATIONS.added },
+  {
+    depth: 0,
+    kind: "screen",
+    label: "Farewell · Removed",
+    to: DESTINATIONS.removed,
+  },
 ];
 
 /** Changes uses the same catalogue navigation and filter as All. */

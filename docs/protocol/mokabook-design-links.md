@@ -2,10 +2,9 @@
 
 ## Delivery Status
 
-Planned target. The package implements `MockLink` and `MockLink asChild`, but
-Mokabook's own design screens currently contain no catalogue links. Adoption is
-tracked by the [implementation plan](../../plans/mokabook-design-mocklinks.md).
-This document specifies the change; it does not claim the mockups are updated.
+Implemented in the 24 design screens and two real example screens using
+`MockLink` and `MockLink asChild`. Verification and delivery are tracked by the
+[implementation plan](../../plans/mokabook-design-mocklinks.md).
 
 ## Scope And Ownership
 
@@ -60,11 +59,11 @@ Existing destinations and their stable id/route mappings are listed in the
 [canonical design inventory](./mokabook-shell-design.md#design-mockups),
 including the Current and Overlay screens. They retain those ids and routes.
 
-The table below lists only the five planned additions. Each has separate
-mobile and desktop components and must render standalone before a control or
-flow links to it; add its id/route to the canonical inventory when it ships.
+The five additions below now render independently in both viewport variants
+and are included in the canonical inventory. Their owning components were
+completed before link adoption.
 
-| New entry id                          | Route                                              | Depicted state                                                    |
+| Added entry id                        | Route                                              | Depicted state                                                    |
 | ------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
 | `design-browse-details-screen`        | `design/browse/views/details-screen.html`          | Normal Details screen, light selected, inspector closed           |
 | `design-browse-tag-picker`            | `design/browse/states/tags/picker.html`            | Welcome, empty query, unfiltered catalogue, picker open           |

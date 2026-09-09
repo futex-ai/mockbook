@@ -109,7 +109,7 @@
 
 .mbk-shell--mobile .mbk-cmp-toolbar { padding: 8px 12px; }
 .mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg { display: flex; flex: 1; }
-.mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg > span {
+.mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg > :is(span, a) {
   flex: 1;
   font-size: 11px;
   padding: 4px 6px;

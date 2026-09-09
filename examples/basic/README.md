@@ -21,13 +21,23 @@ navigate to the canonical Details page, retain its anchor through Light/Dark
 swaps, and select the Details row in the catalogue tree. The reciprocal Details
 link exercises the id-only form.
 
-The design screens currently draw their controls as static text and buttons.
-The [design mockup links contract](../../docs/protocol/mokabook-design-links.md)
-defines planned adoption in those screens and the example's styled buttons,
-including mobile/desktop destinations, missing states, and verification.
-The [current design-entry inventory](../../docs/protocol/mokabook-shell-design.md#design-mockups)
-lists every existing design-screen id and route; the adoption contract lists
-the five planned additions separately.
+The prominent `View details` and `Return to welcome` Firna buttons use
+`MockLink asChild`, alongside the three original text links. Both viewport
+variants and both schemes retain native pointer and keyboard navigation; the
+Details action includes its `details` anchor. The no-op handlers let Firna render
+enabled controls; generated anchors handle the navigation without scripts.
+
+The design screens use the same API for their brand, screen rows, miniature
+content, flow references, inspector, and supported scheme, comparison, and tag
+transitions. These links open canonical design states. Viewport, copy, refresh,
+resize, collapse-all, and unsupported combinations remain visual depictions.
+The actual outer shell provides its normal runtime controls. See the
+[design mockup links contract](../../docs/protocol/mokabook-design-links.md)
+and the [complete design inventory](../../docs/protocol/mokabook-shell-design.md#design-mockups).
+Shared destinations live in [destinations.ts](./entries/design/parts/destinations.ts);
+[navigation_states.ts](./entries/design/parts/navigation_states.ts) explicitly
+selects which transitions each artboard supports. Add an owning screen and its
+contract before enabling a new transition.
 
 ## Firna renderer adapter
 
@@ -47,13 +57,11 @@ render plain React DOM need none of this and can keep a plain
 `renderToStaticMarkup` adapter.
 
 The `Design` navigation group is the approved design catalogue for Mokabook's
-own catalogue and Changes views: nineteen screens covering the Browse home,
-selected screen and use case, details panel, missing route, narrow navigation,
-tag filtering, the dark-scheme and light-only stage states, and the changed,
-added, removed, difference, dark-view, shared-impact, ignored-only, and empty
-comparison states plus Current and Overlay controls, plus Current and Overlay controls, each with distinct mobile and desktop variants. The nineteen
-design screens explicitly opt out with `colorSchemes: ["light"]` because they
-are light documents that draw the Mokabook shell, including the three that
+own catalogue and Changes views. Its 24 screens cover Browse destinations,
+inspector and navigation states, tag filters, color schemes, and comparison
+outcomes; the canonical inventory above lists each route. Each has distinct
+mobile and desktop variants. The design screens use `colorSchemes: ["light"]`
+because they are light documents that draw the Mokabook shell, including the three that
 depict the shell with dark selected; the two product screens inherit the
 catalogue default and prove dark generation. All design headers use the approved
 screen-stack logo: 17px overlapping mobile and desktop outlines in a 24px
@@ -98,6 +106,6 @@ URLs apply one validated `fragment` query progressively in the parent shell.
 Published and served screens offer the same comparison controls in the actual
 Mokabook shell. Publishing prepares a validated Git comparison with isolated
 before/after resources, including removed-screen pages; browsers request those
-snapshots only after a comparison option is selected. The design screens inside
-the frames remain static pictures of that shell. There is no separate Review
+snapshots only after a comparison option is selected. Links inside the design frames navigate between authored artboards; their
+pictured comparison controls do not request actual comparison snapshots. There is no separate Review
 section or comparison CLI command.

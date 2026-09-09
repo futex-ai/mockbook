@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { DesignLink, useDesignNavigation } from "./design_navigation.js";
 import type { ReviewState } from "./review.js";
 
 interface CompareToolbarProps {
@@ -18,16 +19,23 @@ const MODE_LABELS: readonly {
 
 /** Compact display options inside the normal screen. */
 export function CompareToolbar({ mode }: CompareToolbarProps) {
+  const navigation = useDesignNavigation();
   return (
     <div className="mbk-cmp-toolbar">
       <span className="mbk-seg" role="group" aria-label="Comparison mode">
         {MODE_LABELS.map((option) => (
-          <span
+          <DesignLink
             key={option.key}
-            className={option.key === mode ? "active" : undefined}
+            to={
+              option.key === mode
+                ? undefined
+                : navigation.comparison?.[option.key]
+            }
           >
-            {option.label}
-          </span>
+            <span className={option.key === mode ? "active" : undefined}>
+              {option.label}
+            </span>
+          </DesignLink>
         ))}
       </span>
       {mode !== "current" ? (

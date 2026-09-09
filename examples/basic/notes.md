@@ -5,9 +5,10 @@ application product designs.
 
 ## Design Catalogue Notes
 
-Navigation adoption is planned in the
+Navigation follows the
 [design mockup links contract](../../docs/protocol/mokabook-design-links.md).
-The notes below describe the current static artboards until that work ships.
+The 24 artboards remain static documents, with native links between their
+canonical states in both viewport variants.
 
 The `Design` navigation group holds the approved mockups for Mokabook's own
 catalogue shell and Changes controls. Implementation notes for those mockups live here and
@@ -18,17 +19,24 @@ in each entry's description and rationale, never inside the rendered screens:
 - The `Farewell` screen shown in comparison mockups is sample comparison data that
   deliberately has no standalone entry: it depicts a screen that was removed
   on a branch.
-- Links inside the design screens are drawn as styled text because the mockups
-  are static pictures of the shell; real navigation behavior is specified in
-  the runtime protocol.
+- Supported controls are `MockLink` anchors: brand/home, catalogue leaves,
+  content and flow references, Welcome inspector, paired schemes, comparison
+  modes, and Welcome tag states. Links navigate to design ids, independently of
+  the example ids shown in the secondary metadata. The two actual example
+  buttons use `MockLink asChild` with their original Firna styles.
+- Viewport, copy, refresh, resize, and collapse-all remain depictions without
+  keyboard stops. Unsupported subject/scheme/comparison combinations have no
+  link; they cannot silently open a different comparison scenario. Existing
+  native comparison-details disclosures still open locally.
 - Desktop Current and comparison views share one visible navigation split grip.
   The static mockups record its resting state; pointer, keyboard, bounds, and
   persistence behavior are specified in the runtime protocol.
 - The completed [in-frame catalogue navigation work](../../plans/in-frame-catalogue-link-navigation.md)
   reused the approved active-row, disclosure, and frame visuals, adding runtime
   behavior and inert generated metadata without new design screens. The
-  planned [design mockup adoption](../../docs/protocol/mokabook-design-links.md#canonical-destination-inventory)
-  requires five new standalone states; that contract owns their destinations.
+  [design mockup adoption](../../docs/protocol/mokabook-design-links.md#canonical-destination-inventory)
+  adds normal light Details and four tag states; that contract owns their
+  destinations. The original inspector and forms-open routes stay available.
 - The dark-scheme, light-only, and dark view compare screens are light
   documents that draw a shell with dark selected, so they opt out of dark
   generation like every other design screen. Only the depicted device screens
@@ -40,18 +48,16 @@ in each entry's description and rationale, never inside the rendered screens:
   product meaning: the Welcome entry declares both and the Details entry
   declares `forms` in their authored metadata, which is why the `tag:forms`
   tree keeps both screen rows.
-- Tag chips and the search field's tag control are drawn as styled text like
-  every other link inside a design screen, carrying the same hover and pressed
-  styling as the shell's chips so the affordance stays part of the recorded
-  design. The chip in the accent state depicts the tag named by the search
-  query; opening the picker, moving across its chips with the keyboard, and
-  selecting one to enter that query are runtime behavior.
-- The tag control is drawn in every search field the artboards show, because it
-  belongs to the field whenever the catalogue declares tags and this fixture
-  always does. Only the tag-filter artboards draw its panel open, because only
-  they depict a reader choosing a tag; the panel lists the same `forms` and
-  `onboarding` fixture labels, which are the whole set of tags this catalogue
-  declares.
+- Welcome's light tag chips and search control link to the corresponding
+  filtered or open-picker artboards. An inactive chip selects its tag and closes
+  the picker; the active chip clears the query. Opening or closing the picker
+  preserves the depicted query. Forms retains Welcome and Details; onboarding
+  retains only Welcome. Other subjects and comparison states show tag controls
+  without links until an equivalent destination is authored.
+- The tag control remains visible in every search field. The unfiltered,
+  forms, and onboarding picker screens show the same catalogue-wide tag list,
+  with selection, query, and filtered rows kept consistent. Search typing is
+  still a depiction inside these screens; the outer shell provides real search.
 - The tag-filter artboards draw the top-bar search field because the entered
   query is the depicted state. The narrow one draws it too: the shell keeps the
   search field in the top bar below the breakpoint, and the artboard reduces the
@@ -94,9 +100,9 @@ following presentation differences are intentional:
   phone frame and scales it below the responsive breakpoint.
 - The served tag chips and tag control are buttons that announce their state —
   a pressed chip for the entered tag, an expanded control for the open panel —
-  and the panel is hidden until it is opened. A screen is a picture, so the
-  artboards draw the chosen chip and the open panel directly and leave those
-  semantics to the runtime protocol.
+  and the panel is hidden until it is opened. The artboards instead use native
+  link semantics to open authored tag states; selected chips and picker
+  visibility are part of the destination screen.
 - There is no separate Review section or standalone comparison command. Stable
   design routes retain their old identifiers to preserve catalogue links.
 - Difference mockups use CSS blending, as does the served comparison; no pixel

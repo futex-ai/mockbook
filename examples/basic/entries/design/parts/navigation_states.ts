@@ -1,0 +1,122 @@
+import {
+  DESTINATIONS as D,
+  type ComparisonMode,
+  type DepictedScheme,
+  type DesignDestination,
+} from "./destinations.js";
+import type { CatalogueTag } from "./tags.js";
+
+interface TagState {
+  active: CatalogueTag | null;
+  picker: boolean;
+}
+
+/** Only authored transitions are present; absence always means a depiction. */
+export interface NavigationState {
+  all?: DesignDestination;
+  changes?: DesignDestination;
+  comparison?: Partial<Record<ComparisonMode, DesignDestination>>;
+  inspector?: DesignDestination;
+  scheme?: DepictedScheme;
+  schemeLinks?: Partial<Record<DepictedScheme, DesignDestination>>;
+  tags?: TagState;
+}
+
+const welcomeFilters = { all: D.welcome, changes: D.current };
+const detailsFilters = { all: D.details, changes: D.added };
+const welcomeModes = {
+  current: D.current,
+  "side-by-side": D.changed,
+  overlay: D.overlay,
+  difference: D.difference,
+};
+const welcomeBrowse: NavigationState = {
+  ...welcomeFilters,
+  comparison: welcomeModes,
+  inspector: D.inspector,
+  tags: { active: null, picker: false },
+};
+
+/** Canonical states for the entire design registry, never inferred from labels. */
+export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
+  [D.home]: {},
+  [D.missing]: {},
+  [D.navigation]: {},
+  [D.tour]: {},
+  [D.welcome]: { ...welcomeBrowse, schemeLinks: { dark: D.darkWelcome } },
+  [D.details]: { ...detailsFilters, schemeLinks: { dark: D.darkDetails } },
+  [D.inspector]: { ...welcomeBrowse, inspector: D.welcome },
+  [D.darkWelcome]: {
+    ...welcomeFilters,
+    scheme: "dark",
+    schemeLinks: { light: D.welcome },
+  },
+  [D.darkDetails]: {
+    ...detailsFilters,
+    scheme: "dark",
+    schemeLinks: { light: D.details },
+  },
+  [D.tagPicker]: {
+    ...welcomeBrowse,
+    inspector: D.welcome,
+    tags: { active: null, picker: true },
+  },
+  [D.formsPicker]: {
+    ...welcomeBrowse,
+    inspector: D.welcome,
+    tags: { active: "forms", picker: true },
+  },
+  [D.forms]: {
+    ...welcomeBrowse,
+    inspector: D.welcome,
+    tags: { active: "forms", picker: false },
+  },
+  [D.onboarding]: {
+    ...welcomeBrowse,
+    inspector: D.welcome,
+    tags: { active: "onboarding", picker: false },
+  },
+  [D.onboardingPicker]: {
+    ...welcomeBrowse,
+    inspector: D.welcome,
+    tags: { active: "onboarding", picker: true },
+  },
+  [D.current]: { ...welcomeFilters, comparison: welcomeModes },
+  [D.overlay]: { ...welcomeFilters, comparison: welcomeModes },
+  [D.changed]: {
+    ...welcomeFilters,
+    comparison: welcomeModes,
+    schemeLinks: { dark: D.darkChanged },
+  },
+  [D.difference]: { ...welcomeFilters, comparison: welcomeModes },
+  [D.added]: { ...detailsFilters, comparison: { current: D.details } },
+  [D.removed]: { all: D.home },
+  [D.darkChanged]: {
+    ...welcomeFilters,
+    scheme: "dark",
+    schemeLinks: { light: D.changed },
+  },
+  [D.shared]: { ...welcomeFilters, comparison: { current: D.current } },
+  [D.ignored]: { ...welcomeFilters, comparison: { current: D.current } },
+  [D.empty]: { all: D.welcome },
+};
+
+/** Open/close preserves the depicted query; a selection closes the picker. */
+export function tagPickerTarget(
+  tags: TagState | undefined,
+): DesignDestination | undefined {
+  if (!tags) return undefined;
+  if (tags.active === "forms") return tags.picker ? D.forms : D.formsPicker;
+  if (tags.active === "onboarding")
+    return tags.picker ? D.onboarding : D.onboardingPicker;
+  return tags.picker ? D.welcome : D.tagPicker;
+}
+
+export function tagTarget(
+  tags: TagState | undefined,
+  tag: CatalogueTag,
+): DesignDestination | undefined {
+  if (!tags) return undefined;
+  if (tags.active === tag) return D.welcome;
+  return tag === "forms" ? D.forms : D.onboarding;
+}
