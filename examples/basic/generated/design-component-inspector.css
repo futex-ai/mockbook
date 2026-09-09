@@ -31,6 +31,13 @@
 .ce-inspector > details > summary::-webkit-details-marker {
   display: none;
 }
+.ce-inspector svg {
+  display: block;
+  flex-shrink: 0;
+}
+.ce-sheet-expand {
+  display: none;
+}
 .ce-inspector > details > summary:hover {
   background: #f4f6f3;
   color: var(--chrome-ink);
@@ -98,4 +105,74 @@
   max-height: none;
   overflow: visible;
   padding: 18px 16px;
+}
+/* Mobile panels float over the preview and retain their own scroll position. */
+.mbk-shell--mobile .ce-inspector-dock {
+  bottom: 0;
+  height: calc(49px + env(safe-area-inset-bottom));
+  left: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  position: absolute;
+  right: 0;
+  z-index: 3;
+}
+.mbk-shell--mobile .ce-inspector-dock:has(.ce-inspector > details[open]) {
+  border: 1px solid var(--chrome-border);
+  border-radius: 20px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  box-shadow: 0 6px 28px #24372b26;
+  height: 55cqh;
+  left: 12px;
+  max-height: calc(100cqh - 24px);
+  min-height: 180px;
+  padding-bottom: 0;
+  right: 12px;
+}
+.mbk-shell--mobile
+  .ce-inspector-dock:has(.ce-inspector > details[open]):has(
+    .ce-sheet-expand:checked
+  ) {
+  height: 85cqh;
+}
+.ce-design .mbk-shell--mobile .ce-inspector:has(> details[open]) {
+  border-top: 0;
+  grid-template-rows: 28px 48px minmax(0, 1fr);
+}
+.mbk-shell--mobile .ce-inspector:has(> details[open]) > details > summary {
+  grid-row: 2;
+}
+.mbk-shell--mobile .ce-inspector:has(> details[open]) .ce-inspector-panel {
+  grid-row: 3;
+}
+.mbk-shell--mobile .ce-inspector-close {
+  top: 36px;
+}
+.mbk-shell--mobile .ce-inspector:has(> details[open]) > .ce-sheet-expand {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  height: 28px;
+  justify-self: center;
+  margin: 0;
+  position: relative;
+  width: 64px;
+}
+.ce-sheet-expand::before {
+  background: #bdc5bf;
+  border-radius: 999px;
+  content: "";
+  height: 5px;
+  left: 14px;
+  position: absolute;
+  top: 11px;
+  width: 36px;
+}
+.ce-sheet-expand:focus-visible {
+  outline: 2px solid var(--mbk-sage-deep);
+  outline-offset: -2px;
 }

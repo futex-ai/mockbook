@@ -72,9 +72,13 @@ fields can be edited, and authored state links show the planned outcomes.
 A grouped icon toolbar switches Mobile/Desktop/Both previews, light/dark, and
 screen highlighting without navigation. Leaf components omit Nested components;
 Toolbar demonstrates composition. Unchanged fixtures show Unmodified and omit
-comparison modes. The fixed shell contains separate preview and inspector panes;
-drag the native grip at the preview’s lower-right corner to resize the inspector.
-Its icon strip stays visible while the active content scrolls. Known entries show
+comparison modes. The fixed desktop shell contains separate preview and inspector
+panes; drag the centered divider grip to resize the inspector. Mobile uses a
+rounded bottom sheet over the preview, with an iOS-style grabber that toggles
+compact/expanded heights by touch, click, or Space. Pan gestures belong to the
+later runtime milestone. In both layouts, the icon strip stays visible while the
+active content scrolls; closing and reopening retains edits. Viewport carets,
+the mobile menu, and the Usage icon use centered SVGs. Known entries show
 Added, Changed, Removed, or Unmodified; removing a variant marks its surviving
 component Changed. The States → Additions gallery demonstrates a newly added Badge.
 Comparison facts live in Details, using shared fixture values for prop differences

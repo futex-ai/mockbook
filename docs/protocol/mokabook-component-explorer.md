@@ -28,11 +28,17 @@ props to fit. Long or full-width components remain inspectable by scrolling.
 
 One icon toolbar beside the title groups a Mobile/Desktop/Both dropdown and a
 light/dark toggle. Screen views add the Highlight components toggle there. Both
-renders both real viewport contexts. The shell and title stay fixed; the preview
-and vertically resizable inspector are sibling panes whose contents scroll.
-The inspector tabs stay outside its scrolling content. Runtime resizing supports
-pointer and keyboard input, clamps both pane sizes, and restores usable bounds
-after closing/reopening or changing the available viewport.
+renders both real viewport contexts. The shell and title stay fixed. On desktop,
+the preview and vertically resizable inspector are sibling panes whose contents
+scroll, with the navigation divider's centered short-line grip. Runtime resizing
+supports pointer input across the divider and keyboard input, clamps both pane
+sizes, and restores usable bounds after closing/reopening or viewport changes.
+On mobile, the inspector is a rounded, non-modal bottom sheet over the full-size
+preview, with an iOS-style grabber, compact/expanded snap heights, safe-area
+spacing, pan gestures, and an accessible size toggle. The icon strip and close
+action stay outside scrolling content. Closing leaves the icon strip with no
+selected icon; reopening retains edits. The mockups use a native switch for
+size changes; gesture handling belongs to the runtime.
 
 Saved variants are selectable by name. One component page shows one selected
 variant at a time; variants are not independent Changes rows. A validated

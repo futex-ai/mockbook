@@ -385,6 +385,37 @@ link remain recommendations for user decision. No new review fixes were applied.
 The complete findings and options are recorded in
 [PR #48](https://github.com/futex-ai/mokabook/pull/48).
 
+## Milestone 4g: Refine inspector surfaces and icons
+
+Tags: mockup
+
+Replace the corner resize treatment with the existing divider style, make the
+mobile inspector a bottom sheet, and correct the Usage/menu/dropdown glyphs.
+
+- [x] Capture failing browser regressions for centered desktop dragging, mobile
+      sheet placement/expansion, and SVG alignment.
+- [x] Reuse the navigation divider's handle for desktop resizing and preserve
+      bounds, close/reopen sizing, fixed tabs, and independent scrolling.
+- [x] Add the mobile bottom sheet, iOS-style grabber, touch/keyboard size toggle,
+      close/reopen behavior, safe-area spacing, and retained field edits.
+- [x] Replace the misaligned menu/caret glyphs with SVGs and redraw Usage.
+- [x] Update contracts/README, regenerate artifacts, and visually inspect all
+      mobile/desktop pages and the changed interactions.
+- [x] Run focused tests and `cargo xtask check`; audit mainline preservation.
+- [x] Integrate main's preview-icon update; preserve its watcher helpers and
+      tests while retaining the branch's explicit intermediate-removal wait.
+- [ ] Run `git add -A`, commit with Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
+- [ ] Record the completed verification and update the PR handoff.
+
+Local verification for Milestone 4g passed: 497 TypeScript unit/integration
+tests, 149 Chromium browser tests, and 3 Rust tests, plus every other full-gate
+check. All 64 artboards and the expanded/closed/resized states were visually
+inspected. Main `aa5adea` is integrated with its preview icons and watcher
+helpers intact; all 56 mainline HTML artboards are byte-identical and `src/`
+has no diff from main. The commit/push, review, and handoff checkboxes above
+record subsequent delivery operations once those operations finish.
+
 ## Milestone 5: Implement component pages and inspection
 
 Tags: ui
@@ -401,9 +432,12 @@ or rendering-contract changes belong in this milestone.
 - [ ] Render Added/Changed/Removed/Unmodified entry badges and factual comparison
       Details from validated records and paired props; keep entry/variant status
       distinct and explain disabled highlighting with its specific reason.
-- [ ] Keep shell headers and inspector icons fixed around sibling scrolling
-      panes; implement the full-width draggable, keyboard-accessible divider,
+- [ ] Keep shell headers and inspector icons fixed around desktop sibling panes;
+      implement the centered full-width draggable, keyboard-accessible divider,
       bounded sizing, and close/reopen behavior from the workspace design.
+- [ ] Implement the mobile bottom sheet over the preview, with safe-area spacing,
+      an iOS-style grabber, pan gestures, compact/expanded snap heights, accessible
+      size changes, fixed tabs, and retained edits when closing/reopening.
 - [ ] Show Nested components only for component pages with recorded children;
       preserve explicit empty/unavailable inspection on screen pages.
 - [ ] Render Used by/Affected screens from actual current/baseline evidence,

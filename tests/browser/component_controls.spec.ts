@@ -130,7 +130,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
       page.getByRole("region", { name: "Controls", exact: true }),
     ).toContainText("Switch to Current to edit props.");
     await expect(
-      page.locator(".ce-inspector input, .ce-inspector select"),
+      page
+        .getByRole("region", { name: "Controls", exact: true })
+        .locator("input, select"),
     ).toHaveCount(0);
     await page
       .getByRole("link", { name: "Switch to Current", exact: true })
@@ -143,14 +145,18 @@ for (const viewport of ["desktop", "mobile"] as const) {
       page.getByRole("region", { name: "Controls", exact: true }),
     ).toContainText("Open this catalogue locally to edit props.");
     await expect(
-      page.locator(".ce-inspector input, .ce-inspector select"),
+      page
+        .getByRole("region", { name: "Controls", exact: true })
+        .locator("input, select"),
     ).toHaveCount(0);
     await page.getByRole("link", { name: "Disabled", exact: true }).click();
     await expect(page).toHaveURL(
       componentDesignUrl("controls/published/variant", viewport),
     );
     await expect(
-      page.locator(".ce-inspector input, .ce-inspector select"),
+      page
+        .getByRole("region", { name: "Controls", exact: true })
+        .locator("input, select"),
     ).toHaveCount(0);
     await expect(page.locator(".ce-canvas:visible .ce-action")).toBeDisabled();
   });

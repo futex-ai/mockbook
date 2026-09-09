@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { DesignLink, useDesignNavigation } from "./design_navigation.js";
 import { DESTINATIONS } from "./destinations.js";
 import { BrandIcon, SearchIcon } from "./icons.js";
@@ -6,6 +8,7 @@ import type { ArtboardViewport, ShellColorScheme } from "./shell.js";
 import { SearchTagButton, TagPicker } from "./tag_filter.js";
 
 interface TopBarProps {
+  menuIcon?: ReactNode;
   accessibleControls?: boolean | undefined;
   searchPlaceholder?: string | undefined;
   /** Tag the entered query names, drawn as the accent chip in the picker. */
@@ -101,6 +104,7 @@ export function TopBar({
   activeTag,
   colorScheme,
   drawerOpen,
+  menuIcon,
   searchValue,
   searchPlaceholder,
   tagPickerOpen,
@@ -120,7 +124,7 @@ export function TopBar({
                 : "Open catalogue navigation"
             }
           >
-            {drawerOpen ? "×" : "☰"}
+            {menuIcon ?? (drawerOpen ? "×" : "☰")}
           </span>
         </DesignLink>
       ) : null}

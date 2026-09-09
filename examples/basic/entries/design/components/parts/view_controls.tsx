@@ -39,9 +39,7 @@ export function ViewControls({
         <ViewIcon kind="mobile" />
         <ViewIcon kind="desktop" />
         <ViewIcon kind="both" />
-        <span className="ce-dropdown-arrow" aria-hidden="true">
-          ⌄
-        </span>
+        <ViewIcon kind="chevron" size={12} />
         <select
           className="ce-viewport-select"
           aria-label="Preview viewport"

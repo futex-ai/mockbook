@@ -2,7 +2,7 @@
 
 ## Delivery Status
 
-Milestones 4, 4a, 4b, 4c, 4f, and 7 of the [component explorer plan](../../plans/component-explorer.md)
+Milestones 4, 4a, 4b, 4c, 4f, 4g, and 7 of the [component explorer plan](../../plans/component-explorer.md)
 deliver the complete mobile/desktop mockup set for sign-off. The
 [icon inspector revision](./mokabook-component-inspector-design.md) and
 [prop controls designs](./mokabook-component-controls-design.md) extend the
@@ -79,7 +79,11 @@ The same `ActionExample` and `ToolbarExample` are reused in consuming screens.
 
 The inspector separates Details (description/source/references), Nested components (present only when the component has children), Props/Controls (supplied values or declared editable fields), and
 Usage (Used by plus Affected screens). Only one panel is open at a time. Click
-its icon again or its close affordance to collapse it; no icon is then selected. Its content scrolls below a fixed icon strip, and the native grip at the preview’s lower-right corner resizes the split. The outer page does not scroll.
+its icon again or its close affordance to collapse it; no icon is then selected.
+Its content scrolls below a fixed icon strip. Desktop uses the navigation
+divider's centered grip to resize the split. Mobile opens a rounded bottom sheet
+over the preview; its iOS-style grabber toggles compact/expanded heights in the
+mockups. The outer page does not scroll.
 Props use a definition list and monospace values. Usage rows show screen or
 component titles, direct/transitive relationships, instance counts, and view
 counts derived from the synthetic usage fixture. Source paths are explicit

@@ -2,7 +2,7 @@
 
 ## Delivery Status
 
-Design revision for Milestones 4b and 4c of the
+Design revision for Milestones 4b, 4c, and 4g of the
 [component explorer plan](../../plans/component-explorer.md). It replaces the
 single crowded Details disclosure in component and consuming-screen mockups.
 The runtime inspector remains pending. Existing non-component Browse/Changes
@@ -10,8 +10,9 @@ artboards continue to document the currently implemented shell.
 
 ## One Inspector
 
-Component pages and consuming-screen designs share one inspector beneath the
-preview. Its icon strip contains Details, Props (Controls on editable component
+Component pages and consuming-screen designs share one inspector: beneath the
+preview on desktop and in a floating bottom sheet on mobile. Its icon strip
+contains Details, Props (Controls on editable component
 designs), and Usage. Screens also have Components; composed components have
 Nested components, while leaves omit it. Each icon has an accessible name, visible focus
 style, and a tooltip. Only the active icon has the sage selected treatment.
@@ -36,10 +37,12 @@ for the mockups' disclosure behavior. It must also work in sandboxed Browse
 frames and directly from disk. The runtime implementation additionally supports
 Escape and focus return as specified by the explorer contract.
 
-Both layouts use a bounded, scrollable panel inside a fixed shell. The inspector
-shares space with the preview through a resizable divider, with a native corner
-grip in the mockups. The enclosing page and main column do not scroll. The icon
-strip remains separate from scrolling panel content. The
+Both layouts use a bounded, scrollable panel inside a fixed shell. Desktop uses
+the navigation divider's centered short-line grip to resize the inspector.
+Mobile uses a rounded sheet over the preview with an iOS-style grabber; the
+mockup grabber toggles compact/expanded heights without scripts. Closing leaves
+the icon strip at the bottom. The enclosing page and main column do not scroll.
+The icon strip remains separate from scrolling panel content. The
 [workspace design](./mokabook-component-workspace-design.md) owns the exact pane,
 resize, and grouped view-control behavior.
 Each owning artboard declares its initial panel explicitly; instance links open

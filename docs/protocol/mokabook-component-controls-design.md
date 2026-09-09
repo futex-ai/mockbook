@@ -15,7 +15,9 @@ shared icon inspector. Controls occupies the Props/Controls tab; Details and Usa
 remain independently available. The leaf Action component has no Nested
 components tab. The [workspace design](./mokabook-component-workspace-design.md)
 groups view controls, shows both selected preview contexts, and gives the
-inspector a resizable pane beneath the preview.
+inspector a resizable pane beneath the desktop preview and a rounded bottom sheet
+over the mobile preview. Its centered desktop divider and iOS-style mobile
+grabber follow the workspace design.
 
 The Action fixture demonstrates text (label), boolean (disabled), numeric
 (corner radius), select (emphasis), and optional text (hint). Its typed saved

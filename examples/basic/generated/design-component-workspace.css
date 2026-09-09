@@ -11,55 +11,104 @@
   flex-shrink: 0;
 }
 .ce-workspace {
+  container-type: size;
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  position: relative;
+}
+.ce-preview-region {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
 }
 .ce-preview-pane {
-  flex: 1 1 0;
-  min-height: 80px;
-  min-width: 0;
+  inset: 0;
   overflow: auto;
   overscroll-behavior: contain;
+  position: absolute;
 }
-.ce-workspace:has(.ce-inspector > details[open]) > .ce-preview-pane {
-  border-bottom: 5px solid #dce3dd;
+.mbk-shell--mobile .ce-preview-pane {
+  padding-bottom: calc(49px + env(safe-area-inset-bottom));
+}
+.ce-preview-sizer,
+.ce-inspector-resize {
+  display: none;
+}
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-preview-region {
   flex: 0 0 auto;
-  height: 50%;
-  max-height: calc(100% - 120px);
+}
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-preview-pane {
+  bottom: 16px;
+}
+/* A narrow native sizing box gives the centered handle a 64px pointer target. */
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-preview-sizer {
+  cursor: row-resize;
+  display: block;
+  height: 50cqh;
+  margin-inline: auto;
+  max-height: calc(100cqh - 120px);
+  min-height: 96px;
+  opacity: 0;
+  overflow: hidden;
   resize: vertical;
+  transform: scaleX(4);
+  width: 16px;
 }
-.ce-workspace:not(:has(.ce-inspector > details[open])) > .ce-preview-pane {
-  height: auto !important;
-  resize: none;
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-inspector-resize {
+  bottom: 0;
+  display: block;
+  height: 16px;
+  left: calc(50% - 32px);
+  pointer-events: none;
+  position: absolute;
+  width: 64px;
 }
-.ce-preview-pane::-webkit-resizer {
-  background: linear-gradient(
-    135deg,
-    transparent 45%,
-    #6b8172 46%,
-    #6b8172 53%,
-    transparent 54%
-  );
+.ce-inspector-resize .mbk-nav-resize {
+  cursor: row-resize;
+  inset: 0;
+  width: 100%;
+}
+.ce-inspector-resize .mbk-nav-resize::after {
+  height: 2px;
+  left: 16px;
+  top: 7px;
+  width: 32px;
 }
 .ce-design .ce-preview-pane > .mbk-stage {
   display: block;
   min-height: 100%;
   overflow: visible;
 }
-.ce-workspace .ce-inspector {
+.ce-inspector-dock {
   flex: 0 0 49px;
+  min-height: 49px;
+  overflow: hidden;
+}
+.ce-inspector-dock:has(.ce-inspector > details[open]) {
+  flex: 1 1 0;
+  min-height: 120px;
+}
+.ce-workspace .ce-inspector {
   grid-template-rows: 48px 0;
+  height: 100%;
   min-height: 49px;
   overflow: hidden;
 }
 .ce-workspace .ce-inspector:has(> details[open]) {
-  flex: 1 1 0;
   grid-template-rows: 48px minmax(0, 1fr);
-  min-height: 120px;
 }
 .ce-design .ce-workspace .ce-inspector-panel {
   max-height: none;

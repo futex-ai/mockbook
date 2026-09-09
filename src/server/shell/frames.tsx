@@ -1,10 +1,11 @@
 // The realistic device chrome the served shell wraps around every embedded
 // screen fragment: a dark-bezel phone with notch, status band, and home pill,
-// and a browser window with traffic lights, a monospace address pill, and the
-// expand-to-overlay toggle handled by the Browse client.
+// and a browser window with traffic lights, a monospace address pill carrying
+// a copy icon, and the expand-to-overlay toggle handled by the Browse client.
 
 import type { ReactNode } from "react";
 
+import { CollapseIcon, CopyIcon, ExpandIcon } from "./icons.js";
 import { PhoneStatusBar } from "./status_bar.js";
 
 /** A 390×844 phone body whose screen area hosts the mobile fragment. */
@@ -35,7 +36,12 @@ export function BrowserFrame(props: {
           <i />
           <i />
         </span>
-        <span className="address">{props.address}</span>
+        <span className="address">
+          <span className="address-url">{props.address}</span>
+          <span aria-hidden="true" className="address-copy">
+            <CopyIcon />
+          </span>
+        </span>
         {props.expandable !== false ? (
           <button
             aria-expanded="false"
@@ -45,10 +51,10 @@ export function BrowserFrame(props: {
             type="button"
           >
             <span aria-hidden="true" className="i-expand">
-              ⤢
+              <ExpandIcon />
             </span>
             <span aria-hidden="true" className="i-collapse">
-              ⤡
+              <CollapseIcon />
             </span>
           </button>
         ) : null}

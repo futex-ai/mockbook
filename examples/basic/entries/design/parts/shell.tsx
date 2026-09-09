@@ -20,6 +20,7 @@ interface ShellProps {
   aside?: ReactNode;
   children: ReactNode;
   colorScheme?: ShellColorScheme | undefined;
+  menuIcon?: ReactNode;
   nav: ReactNode;
   searchValue?: string | undefined;
   tagPickerOpen?: boolean | undefined;
@@ -34,6 +35,7 @@ export function Shell({
   children,
   design,
   colorScheme,
+  menuIcon,
   nav,
   searchValue,
   searchPlaceholder,
@@ -45,6 +47,7 @@ export function Shell({
       <DesignNavigation design={design}>
         <div className="mbk-shell mbk-shell--desktop">
           <TopBar
+            menuIcon={menuIcon}
             accessibleControls={accessibleControls}
             searchPlaceholder={searchPlaceholder}
             drawerOpen={design === DESTINATIONS.navigation}
@@ -66,6 +69,7 @@ export function Shell({
     <DesignNavigation design={design}>
       <div className="mbk-shell mbk-shell--mobile">
         <TopBar
+          menuIcon={menuIcon}
           accessibleControls={accessibleControls}
           searchPlaceholder={searchPlaceholder}
           drawerOpen={design === DESTINATIONS.navigation}

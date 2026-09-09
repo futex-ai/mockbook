@@ -22,6 +22,21 @@
   gap: 5px;
   width: 54px;
 }
+.ce-icon-control svg {
+  display: block;
+  flex-shrink: 0;
+}
+.ce-design .mbk-menu-btn {
+  display: grid;
+  height: 32px;
+  line-height: 0;
+  padding: 0;
+  place-items: center;
+  width: 32px;
+}
+.ce-design .mbk-menu-btn svg {
+  display: block;
+}
 .ce-icon-control input,
 .ce-icon-control select {
   cursor: inherit;
@@ -59,7 +74,7 @@
 .ce-icon-control input:disabled {
   pointer-events: none;
 }
-.ce-viewport-control [data-view-icon],
+.ce-viewport-control [data-view-icon]:not([data-view-icon="chevron"]),
 .ce-theme-control [data-view-icon="dark"],
 .ce-scheme-dark {
   display: none;

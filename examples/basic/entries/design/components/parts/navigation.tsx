@@ -10,6 +10,7 @@ import {
 } from "./destinations.js";
 
 import type { CatalogueIdentity } from "./metadata.js";
+import { ViewIcon } from "./view_icons.js";
 
 export type ChangeScenario =
   "all" | "component" | "screen" | "removed" | "added";
@@ -165,6 +166,7 @@ export function ExplorerShell({
   return (
     <div className="ce-design">
       <Shell
+        menuIcon={<ViewIcon kind="menu" />}
         design={design}
         accessibleControls
         searchPlaceholder="Search catalogue…"

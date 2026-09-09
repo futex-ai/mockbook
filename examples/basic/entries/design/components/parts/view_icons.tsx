@@ -1,9 +1,18 @@
 import type { ReactNode } from "react";
 
 export type ViewIconKind =
-  "mobile" | "desktop" | "both" | "light" | "dark" | "highlight";
+  | "mobile"
+  | "desktop"
+  | "both"
+  | "light"
+  | "dark"
+  | "highlight"
+  | "chevron"
+  | "menu";
 
 const paths: Record<ViewIconKind, ReactNode> = {
+  chevron: <path d="m6 9 6 6 6-6" />,
+  menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   mobile: (
     <>
       <rect x="7" y="2" width="10" height="20" rx="2" />
@@ -38,13 +47,19 @@ const paths: Record<ViewIconKind, ReactNode> = {
   ),
 };
 
-export function ViewIcon({ kind }: { kind: ViewIconKind }) {
+export function ViewIcon({
+  kind,
+  size = 18,
+}: {
+  kind: ViewIconKind;
+  size?: number;
+}) {
   return (
     <svg
       aria-hidden="true"
       data-view-icon={kind}
-      width="18"
-      height="18"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

@@ -135,19 +135,19 @@ for (const viewport of ["desktop", "mobile"] as const) {
       const inspector = page.locator(".ce-inspector");
       const heading = await page.locator(".mbk-screen-head").boundingBox();
       const before = await inspector.boundingBox();
-      const bounds = await pane.boundingBox();
-      expect(bounds).not.toBeNull();
-      await page.mouse.move(
-        bounds!.x + bounds!.width - 8,
-        bounds!.y + bounds!.height - 8,
-      );
-      await page.mouse.down();
-      await page.mouse.move(
-        bounds!.x + bounds!.width - 8,
-        bounds!.y + bounds!.height - 68,
-        { steps: 12 },
-      );
-      await page.mouse.up();
+      if (viewport === "desktop") {
+        const grip = (await page
+          .locator(".ce-inspector-resize")
+          .boundingBox())!;
+        const x = grip.x + grip.width / 2;
+        const y = grip.y + grip.height / 2;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x, y - 60, { steps: 12 });
+        await page.mouse.up();
+      } else {
+        await page.getByRole("switch", { name: "Expanded inspector" }).check();
+      }
       await expect
         .poll(async () => (await inspector.boundingBox())!.height)
         .toBeGreaterThan(before!.height + 40);

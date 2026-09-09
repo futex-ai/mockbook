@@ -11,6 +11,7 @@ import { validEntrySource } from "./helpers/fixture.js";
 import {
   catalogue,
   version,
+  waitForChangedCount,
   waitForUpdate,
 } from "./helpers/watched_catalogue.js";
 
@@ -46,11 +47,7 @@ test(
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
         await action();
-        html = await waitForUpdate(running.url, previous, (candidate) =>
-          count === undefined
-            ? !/mbk-nav-filter-count/.test(candidate)
-            : candidate.includes(`class="mbk-nav-filter-count">${count}<`),
-        );
+        html = await waitForChangedCount(running.url, previous, count);
         if (count === undefined)
           assert.doesNotMatch(html, /mbk-nav-filter-count/);
         else assert.ok(html.includes(`class="mbk-nav-filter-count">${count}<`));
@@ -133,7 +130,7 @@ test(
         path.join(fixture.mockupsDir, "image.svg"),
         '<svg width="42"/>',
       );
-      const html = await waitForUpdate(running.url, previous);
+      const html = await waitForChangedCount(running.url, previous, 0);
       assert.match(html, /class="mbk-nav-filter-count">0</);
     } finally {
       await running.close();

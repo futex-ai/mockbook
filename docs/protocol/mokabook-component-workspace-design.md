@@ -2,8 +2,8 @@
 
 ## Delivery Status
 
-Milestones 4c and 4f of the [component explorer plan](../../plans/component-explorer.md)
-revises the existing component, controls, and consuming-screen artboards after
+Milestones 4c, 4f, and 4g of the [component explorer plan](../../plans/component-explorer.md)
+revise the existing component, controls, and consuming-screen artboards after
 design feedback. It changes the mockups; the package-owned runtime remains a
 later milestone. The existing owning routes and mobile/desktop screen components
 remain the review entry points.
@@ -15,6 +15,10 @@ viewport dropdown (Mobile, Desktop, Both), a light/dark toggle, and, on consumin
 screens, a Highlight components toggle. Do not repeat the theme control in the
 top bar or give highlighting a separate horizontal band. Icons have accessible
 names, hover tooltips, selected states, and visible keyboard focus.
+
+Use centered SVGs for the menu and dropdown chevron, avoiding text baselines.
+Usage uses a connected-node icon with clear, separated strokes. Icon boxes do
+not shrink; all glyphs are centered within their pointer targets.
 
 The viewport dropdown switches the actual displayed preview contexts. Both shows
 both mobile and desktop, with labels identifying each. Desktop content retains
@@ -41,21 +45,28 @@ component; apply the same treatment to outer, nested, and single-instance region
 The artboard fills its viewport. Its top bar, screen title, view toolbar, saved
 variants, and comparison controls remain outside scrolling content. The enclosing
 page and main column have no vertical scrollbar. The preview and inspector are
-sibling panes; their contents may scroll independently without an enclosing
+siblings on desktop; their contents may scroll independently without an enclosing
 scroll region. The inspector's icon strip stays visible while its content scrolls.
 
-An open inspector is vertically resizable at the divider below the preview. The
-mockup uses the browser's native resize grip at the lower-right corner of the
-preview pane. Dragging changes the space shared with the inspector. Both panes
-have minimum heights, and resizing cannot push the tabs or content outside the
-shell. Closing the inspector returns its space to the preview. Reopening restores
-the split, clamped to the available viewport. The future runtime divider supports
-dragging across its full width and keyboard resizing with appropriate separator
-semantics; the native mockup grip does not replace that implementation.
+On desktop, use the navigation divider's centered short-line handle, rotated to
+resize vertically. There is no diagonal corner grip or thick colored border.
+The native sizing element sits behind the preview with its hit area centered
+on the divider; it changes layout height without consumer scripts. Both panes
+have minimum heights. Closing restores the preview's space; reopening retains
+the resized split, clamped to the available workspace. Runtime resizing supports
+the whole divider and keyboard input; native mockup dragging uses its center grip.
 
-Mobile follows the same bounded shell and pane ownership. Content can scroll
-inside the active inspector; scrolling it must not move the page title or tabs.
-No nested page/panel scrollbar should be needed to reach the last field.
+On mobile, keep the preview at full size and open the inspector above it as a
+non-modal bottom sheet with rounded corners, a light shadow, safe-area spacing,
+and a centered iOS-style grabber. The icon strip and close action stay fixed at
+the top of the sheet. Only its content scrolls. Closing leaves the icon strip at
+the bottom with no selected icon and no sheet content or grabber.
+
+The mockup grabber is a native switch: touch/click or Space toggles between
+compact and expanded sheet heights without discarding edits or switching tabs.
+The checked state exposes the expanded size to assistive technology. Runtime
+implementation adds pan gestures and snap heights; the mockup does not claim
+native iOS drag behavior. Background preview/header controls stay available.
 
 ## Nested Components
 
@@ -114,8 +125,10 @@ theme, and highlight controls from disk and inside served frames. Verify both
 rendered contexts, independent mask ids, correct labels, retained control values,
 leaf/composite tab membership, and explicit comparison eligibility.
 
-Use pointer dragging to resize the inspector; check bounds, closing/reopening,
+Use pointer dragging on the centered desktop grip, and touch/Space on the mobile
+grabber. Check bounds, closing/reopening, retained edits and preview dimensions,
 and document/main/inspector scrolling separately at mobile and desktop sizes.
+Verify centered menu/caret SVGs and clear Usage geometry at both sizes.
 Keep existing link, prop, usage, highlight-geometry, and Changes-count assertions.
 Open and visually inspect every changed artboard and the interactive Both/Dark
 states. Regenerate with `npm run example:build`, verify with

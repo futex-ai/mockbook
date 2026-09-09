@@ -64,7 +64,8 @@ export function handleAddressClick(
 ): boolean {
   const address = target.closest<HTMLElement>(".browser-bar .address");
   if (!address) return false;
-  const text = address.textContent?.trim() ?? "";
+  const url = address.querySelector<HTMLElement>(".address-url") ?? address;
+  const text = url.textContent?.trim() ?? "";
   if (text !== "") void copy(text);
   const bar = address.parentElement;
   if (!bar) return true;

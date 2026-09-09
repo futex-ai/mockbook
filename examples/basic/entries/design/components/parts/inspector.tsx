@@ -22,6 +22,13 @@ export function Inspector({
 }) {
   return (
     <section className="ce-inspector" aria-label="Inspector">
+      <input
+        type="checkbox"
+        role="switch"
+        className="ce-sheet-expand"
+        aria-label="Expanded inspector"
+        title="Expand or collapse inspector"
+      />
       {panels.map((panel, index) => (
         <details
           key={panel.id}
