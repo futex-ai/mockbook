@@ -1,8 +1,8 @@
 # Component Explorer
 
 Status: active; mockup milestones 4, 4a, 4b, 4c, and 7 are completed and ready
-for joint design sign-off. Verification follow-up 4d is completed; 4e addresses
-the recurring integrated watcher-test race. Component runtime
+for joint design sign-off. Verification follow-ups 4d and 4e are completed.
+Component runtime
 implementation remains pending. At the user's request, the mockups precede
 the runtime/backend milestones.
 
@@ -296,17 +296,17 @@ including package smokes and all formatting/lint/type/generated-output checks.
 Only test sequencing and its documentation changed; runtime source and generated
 artboards remain unchanged from the reviewed implementation.
 
-Commit `4fa47f0` is pushed and its required post-push review completed. The final
+Commit `4fa47f0` is pushed and its required post-push review completed. That
 review reports the same stale inventory summaries (Low) and pending delivery
 record (Medium); the former remains for user decision and the latter is closed
-by this record. No implementation findings were reported in either review pass.
+by this record. Neither of those first two passes reported implementation findings.
 Release Node 24 CI passed the complete gate. The unchanged mainline resource
 watcher test intermittently observed a replacement's temporary missing-file state
 on Node 22 and was retried; CI history and current status are recorded in
 [PR #48](https://github.com/futex-ai/mokabook/pull/48). The published artboards are
 unchanged from the verified Milestone 4c preview.
 
-## Milestone 4e: Await completed resource replacements in tests
+## Milestone 4e: Await completed resource replacements in tests — completed
 
 The unchanged mainline watcher test repeatedly fails on CI when a multi-event
 file replacement publishes its temporary missing-file state before the final
@@ -317,15 +317,26 @@ resource. Verify the intended final state without changing runtime watch behavio
 - [x] Extend the bounded watch-test wait to accept the expected catalogue state,
       keeping existing assertions and timeout budgets intact.
 - [x] Run focused resource-watch tests and `cargo xtask check`; inspect the diff.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
-- [ ] Record verification and PR handoff after the checks finish.
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [x] Run `cargo xtask review` after pushing; report findings for user decision.
+- [x] Record verification and PR handoff after the checks finish.
 
 Validation: observing the intermediate removal reproduced the original count
 assertion failure before the correction. All 10 focused resource-watch tests
 then passed, followed by `cargo xtask check` with all 493 TypeScript, 133 Chromium,
 and 3 Rust tests, package smokes, and format/lint/type/generated-output checks.
 The 20-second wait deadline, final assertions, runtime, and artboards are intact.
+
+Commit `5cdd78e` is pushed. Its [CI run](https://github.com/futex-ai/mokabook/actions/runs/34390399505)
+passed the full gate on Node 22.14 and Node 24, including Required CI; Preview
+also deployed successfully. The third required post-push review completed with
+three follow-ups for user decision: comparison controls with no action (Medium),
+a duplicated browser route inventory (Medium), and stale secondary document
+counts (Low). All 31 current routes are covered; the inventory finding concerns
+future additions. The review's fourth finding, pending handoff bookkeeping (Low),
+is closed by this delivery record. Findings and recommendations are recorded in
+[PR #48](https://github.com/futex-ai/mokabook/pull/48); no new review fixes were
+automatically applied.
 
 ## Milestone 5: Implement component pages and inspection
 
