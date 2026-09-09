@@ -45,7 +45,61 @@
       "title": "Browse shell",
       "childIds": [
         "design-browse-views",
-        "design-browse-states"
+        "design-browse-states",
+        "design-browse-pages",
+        "design-browse-publication"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/design.mockup.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Complete documents, their details, and removed documents.",
+      "id": "design-browse-pages",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/design.mockup.tsx",
+      "title": "Document pages",
+      "childIds": [
+        "design-page-view",
+        "design-page-details",
+        "design-page-navigation",
+        "design-page-removed"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/design.mockup.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Catalogue browsing with optional Changes and comparisons.",
+      "id": "design-browse-publication",
+      "kind": "collection",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/design.mockup.tsx",
+      "title": "Published catalogue",
+      "childIds": [
+        "design-publication-catalogue",
+        "design-publication-changes"
       ]
     },
     {
@@ -246,7 +300,8 @@
       "title": "Example",
       "childIds": [
         "example-screens",
-        "example-tour"
+        "example-tour",
+        "example-handbook"
       ]
     },
     {
@@ -268,6 +323,198 @@
       "childIds": [
         "example-welcome",
         "example-details"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/page_screens.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Page metadata and the narrow catalogue drawer.",
+      "id": "design-page-details",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Document pages"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/page_screens.tsx",
+      "title": "Document details",
+      "fragments": {
+        "desktop": "design/browse/pages/details.desktop.html",
+        "mobile": "design/browse/pages/details.mobile.html"
+      },
+      "route": "design/browse/pages/details.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/page_screens.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "A document in its declared collection, with the narrow catalogue drawer.",
+      "id": "design-page-navigation",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Document pages"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/page_screens.tsx",
+      "title": "Document navigation",
+      "fragments": {
+        "desktop": "design/browse/pages/navigation.desktop.html",
+        "mobile": "design/browse/pages/navigation.mobile.html"
+      },
+      "route": "design/browse/pages/navigation.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/page_screens.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "A flat Changes row retains baseline context after its parents are deleted.",
+      "id": "design-page-removed",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Document pages"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/page_screens.tsx",
+      "title": "Removed document",
+      "fragments": {
+        "desktop": "design/browse/pages/removed.desktop.html",
+        "mobile": "design/browse/pages/removed.mobile.html"
+      },
+      "route": "design/browse/pages/removed.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/page_screens.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "A whole document beside screens and flows in one hierarchy.",
+      "id": "design-page-view",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Document pages"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/page_screens.tsx",
+      "title": "Document page",
+      "fragments": {
+        "desktop": "design/browse/pages/view.desktop.html",
+        "mobile": "design/browse/pages/view.mobile.html"
+      },
+      "route": "design/browse/pages/view.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/publication_screens.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "Navigation, search and variants with review omitted.",
+      "id": "design-publication-catalogue",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Published catalogue"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/publication_screens.tsx",
+      "title": "Current catalogue",
+      "fragments": {
+        "desktop": "design/browse/publication/catalogue.desktop.html",
+        "mobile": "design/browse/publication/catalogue.mobile.html"
+      },
+      "route": "design/browse/publication/catalogue.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/design/publication_screens.tsx",
+        "examples/basic/generated/design-stage.css",
+        "examples/basic/generated/design.css"
+      ],
+      "description": "The same catalogue with Changes and optional screen comparisons.",
+      "id": "design-publication-changes",
+      "kind": "screen",
+      "navPath": [
+        "Design",
+        "Mokabook design",
+        "Browse shell",
+        "Published catalogue"
+      ],
+      "relatedDocs": [
+        "docs/protocol/mokabook-shell-design.md",
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/design/publication_screens.tsx",
+      "title": "Catalogue with Changes",
+      "fragments": {
+        "desktop": "design/browse/publication/changes.desktop.html",
+        "mobile": "design/browse/publication/changes.mobile.html"
+      },
+      "route": "design/browse/publication/changes.html",
+      "useCaseIds": [],
+      "viewports": [
+        "mobile",
+        "desktop"
       ]
     },
     {
@@ -897,6 +1144,27 @@
         "examples/basic/entries/catalogue.mockup.tsx",
         "examples/basic/generated/styles.css"
       ],
+      "description": "A handbook to accompany the example screens.",
+      "id": "example-handbook",
+      "kind": "page",
+      "navPath": [
+        "Example"
+      ],
+      "relatedDocs": [
+        "examples/basic/notes.md"
+      ],
+      "sourcePath": "examples/basic/entries/catalogue.mockup.tsx",
+      "title": "Getting started",
+      "route": "handbook.html",
+      "tags": [
+        "documents"
+      ]
+    },
+    {
+      "dependencies": [
+        "examples/basic/entries/catalogue.mockup.tsx",
+        "examples/basic/generated/styles.css"
+      ],
       "description": "A second synthetic screen proving cross-screen links.",
       "id": "example-details",
       "kind": "screen",
@@ -997,6 +1265,31 @@
     }
   ],
   "generatedBy": "mokabook",
-  "legacyPages": [],
-  "schemaVersion": 3
+  "sourceFiles": [
+    "examples/basic/entries/catalogue.mockup.tsx",
+    "examples/basic/entries/design/browse_scheme_screens.tsx",
+    "examples/basic/entries/design/browse_screens.tsx",
+    "examples/basic/entries/design/browse_tag_screens.tsx",
+    "examples/basic/entries/design/changes_screens.tsx",
+    "examples/basic/entries/design/design.mockup.tsx",
+    "examples/basic/entries/design/page_screens.tsx",
+    "examples/basic/entries/design/parts/compare.tsx",
+    "examples/basic/entries/design/parts/details.tsx",
+    "examples/basic/entries/design/parts/icons.tsx",
+    "examples/basic/entries/design/parts/nav.tsx",
+    "examples/basic/entries/design/parts/nav_resize.tsx",
+    "examples/basic/entries/design/parts/review.tsx",
+    "examples/basic/entries/design/parts/shell.tsx",
+    "examples/basic/entries/design/parts/stage.tsx",
+    "examples/basic/entries/design/parts/tag_filter.tsx",
+    "examples/basic/entries/design/parts/tags.ts",
+    "examples/basic/entries/design/publication_screens.tsx",
+    "examples/basic/entries/design/review_impact_screens.tsx",
+    "examples/basic/entries/design/review_outcome_screens.tsx",
+    "examples/basic/entries/document.tsx",
+    "examples/basic/mokabook.config.ts",
+    "examples/basic/renderer.tsx",
+    "examples/basic/theme.ts"
+  ],
+  "schemaVersion": 4
 }

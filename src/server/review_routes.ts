@@ -5,6 +5,7 @@ import type { ServerResponse } from "node:http";
 import { encodeUrlPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
+import type { GitClient } from "../review/git.js";
 import { runReview } from "../review/run.js";
 import {
   ReviewGenerationStore,
@@ -31,6 +32,7 @@ export interface ServedReview extends ReviewArtifactProvider {
 export function configuredServedReview(
   config: ResolvedConfig,
   base: string,
+  git?: GitClient,
 ): ServedReview {
   return {
     base,
@@ -39,7 +41,7 @@ export function configuredServedReview(
         config,
         base,
         config.review.outDir,
-        undefined,
+        git,
         undefined,
         options.changedPathExclusions,
       );

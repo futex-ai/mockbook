@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { isPublicStaticFile } from "../config/public_files.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { extractHtmlReferences } from "../html_references.js";
 import { isLogicalFragment } from "../navigation/logical.js";
@@ -20,6 +21,8 @@ export function requestedFragment(
   if (values.length === 0) return undefined;
   const fragment = values.length === 1 ? values[0] : undefined;
   if (!fragment || !isLogicalFragment(fragment)) return null;
+  if (entry?.kind === "page")
+    return containsFragment(entry.route, fragment, config) ? fragment : null;
   const screen = destinationScreen(entry, catalogue);
   if (!screen || !allViewsContain(screen, fragment, config)) return null;
   return fragment;
@@ -54,15 +57,21 @@ function allViewsContain(
       ? [screen.darkFragments.mobile, screen.darkFragments.desktop]
       : []),
   ];
-  return routes.every((route) => {
-    try {
-      const content = fs.readFileSync(
-        path.join(config.mockupsDir, route),
-        "utf8",
-      );
-      return extractHtmlReferences(content).anchors.has(fragment);
-    } catch {
-      return false;
-    }
-  });
+  return routes.every((route) => containsFragment(route, fragment, config));
+}
+
+function containsFragment(
+  route: string,
+  fragment: string,
+  config: ResolvedConfig,
+): boolean {
+  try {
+    const file = path.join(config.mockupsDir, route);
+    if (!isPublicStaticFile(file, config)) return false;
+    return extractHtmlReferences(fs.readFileSync(file, "utf8")).anchors.has(
+      fragment,
+    );
+  } catch {
+    return false;
+  }
 }

@@ -66,7 +66,12 @@ function isDefinition(value: unknown): value is RegistryDefinition {
     return false;
   }
   const kind = (value as { kind?: unknown }).kind;
-  return kind === "screen" || kind === "collection" || kind === "use-case";
+  return (
+    kind === "page" ||
+    kind === "screen" ||
+    kind === "collection" ||
+    kind === "use-case"
+  );
 }
 
 function compareEntries(

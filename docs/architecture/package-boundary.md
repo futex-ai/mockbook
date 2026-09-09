@@ -12,7 +12,7 @@ paths, and synthetic tests.
 | Registry definitions and validation     | Product screens and fixture data | Source and output roots    |
 | esbuild discovery and one-graph loading | Product component library        | Renderer/module resolution |
 | Static fragments and manifest schema    | Theme/tokens/providers           | Stylesheet rules           |
-| Generated-file ownership and check      | Product CSS/fonts/images         | Legacy policy/bridge       |
+| Generated-file ownership and check      | Product CSS/fonts/images         | Document transformer       |
 | Safe routes and catalogue navigation    | Product route semantics          | Additional watch inputs    |
 | Git comparison and Review-ignore rules  | Comparison policy                | Base, output, impact globs |
 
@@ -34,22 +34,18 @@ conditions, package fields, extensions, loaders, and package roots describe the
 consumer component tree. Mokabook validates and applies them without supplying
 React Native Web, Accounting, or Juno defaults.
 
-## Legacy Boundary
+## Complete-Document Boundary
 
-Legacy `.source.ts`, `.source.tsx`, and `.source.html` discovery is generic.
-Comment components use an explicitly configured module exporting
-`renderComponent(name, attributes)`. Route aliases, maximum-screen exemptions,
-stage-id policy, and component names have no defaults. Accounting keeps its
-existing component registry and supplies it as an adapter during migration.
-Source-relative exclusions and the complete-document compatibility transformer
-are temporary cutover tools. They remain explicit, deterministic consumer code,
-and their result receives the same package validation as newly authored output.
+Consumers register complete HTML with `definePage` or nested `page`. A callback
+may reuse an existing render helper, but discovery, comment expansion, route
+aliases, and legacy lint settings are removed. Consumer policy owns source
+allowlists and document-stage rules. A configured complete-document transformer
+remains an explicit, deterministic consumer boundary whose result receives all
+normal validation. Historical v2/v3 support belongs only to Git comparisons.
 
 ## Runtime Boundary
 
-Browse serves only the configured mockups root and rejects authored entry and
-legacy source trees, traversal, and symlink escapes. Watch targets come only
-from resolved config; package-owned dependency/build/test/output trees are
+Browse serves only the configured mockups root and rejects protected authoring inputs, traversal, and symlink escapes. Watch targets come from resolved config and the complete source inventory; package-owned dependency/build/test/output trees are
 pruned before broad consumer rules, while explicit source modules and
 stylesheets retain their required action. Output HTML is pruned only when its
 versioned, comment-safe generated header decodes to a source beneath an authored
@@ -70,7 +66,7 @@ changed-path exclusions rather than consumer-owned ignore policy, and shutdown
 drains generation work before removing them.
 
 Browse promotes only explicit id-addressed
-catalogue links from manifest-owned generated fragments and legacy documents
+catalogue links from manifest-owned generated fragments and complete pages
 whose ownership header matches the entry's manifest `sourcePath` into outer
 Browse routes. Adapted public unowned HTML loses reserved-looking metadata and
 is never trusted. A generated document with an activatable catalogue link

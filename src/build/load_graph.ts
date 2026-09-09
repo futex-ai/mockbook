@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 
+import { graphSourceFiles, normalizeSourceFiles } from "./source_inventory.js";
 import { build } from "esbuild";
 
 import type { RegistryDefinition } from "../authoring/types.js";
@@ -10,7 +11,7 @@ import type { CompatibilityTransformer } from "../compatibility/types.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
 import type { Renderer } from "../renderer/types.js";
-import { discoverEntryModules, discoverLegacySources } from "./discovery.js";
+import { discoverEntryModules } from "./discovery.js";
 import {
   consumerReactPlugin,
   packageNodePaths,
@@ -21,43 +22,29 @@ import {
   packageApiPlugin,
 } from "./consumer_entry.js";
 
-/** One loaded legacy module and its authored source path. */
-export interface LoadedLegacyModule {
-  exports: Record<string, unknown>;
-  sourcePath: string;
-  sourceRelativePath: string;
-}
-
 /** Consumer modules loaded in one React-safe esbuild graph. */
 export interface LoadedGraph {
   compatibilityTransformer?: CompatibilityTransformer;
   definitions: unknown[];
   entrySources: readonly string[];
-  legacy: readonly LoadedLegacyModule[];
-  renderLegacyComponent?: (
-    name: string,
-    attributes: Readonly<Record<string, string>>,
-  ) => string;
+  sourceFiles: readonly string[];
   renderer: Renderer;
 }
 
 /** Bundle and import all React-bearing consumer modules as one graph. */
 export async function loadConsumerGraph(
   config: ResolvedConfig,
+  evaluate = true,
 ): Promise<LoadedGraph> {
   const entrySources = discoverEntryModules(config.entriesDir);
-  const allLegacy = config.legacy
-    ? discoverLegacySources(config.legacy.pagesDir, config.legacy.exclude)
-    : [];
-  const legacySources = allLegacy.filter(
-    (source) => !source.endsWith(".source.html"),
-  );
   const temporaryDir = await fs.promises.mkdtemp(
     path.join(os.tmpdir(), "mokabook-graph-"),
   );
   const outputPath = path.join(temporaryDir, "consumer.cjs");
   try {
-    await build({
+    const result = await build({
+      metafile: true,
+      preserveSymlinks: true,
       absWorkingDir: path.dirname(config.configPath),
       alias: config.moduleResolution.aliases,
       bundle: true,
@@ -76,7 +63,7 @@ export async function loadConsumerGraph(
       outfile: outputPath,
       platform: "node",
       plugins: [
-        consumerEntryPlugin(config, entrySources, legacySources),
+        consumerEntryPlugin(config, entrySources),
         packageApiPlugin(config),
         consumerReactPlugin(config),
       ],
@@ -85,15 +72,35 @@ export async function loadConsumerGraph(
         : {}),
       target: "node22",
     });
+    const sourceFiles = normalizeSourceFiles(
+      [
+        ...graphSourceFiles(
+          result.metafile,
+          path.dirname(config.configPath),
+          config.repoRoot,
+          config.moduleResolution.loaders,
+        ),
+        ...(config.configSourceFiles ?? [config.configPath]),
+        ...entrySources,
+        ...(config.renderer ? [config.renderer] : []),
+        ...(config.compatibility.transformer
+          ? [config.compatibility.transformer]
+          : []),
+      ],
+      config.repoRoot,
+    );
+    if (!evaluate)
+      return {
+        definitions: [],
+        entrySources,
+        sourceFiles,
+        renderer: () => {
+          throw new Error("inventory-only graph cannot render");
+        },
+      };
     const imported = createRequire(import.meta.url)(outputPath) as {
       compatibilityTransformer?: unknown;
       definitions: unknown[];
-      legacy: Array<{
-        exports: Record<string, unknown>;
-        sourcePath: string;
-        sourceRelativePath: string;
-      }>;
-      renderLegacyComponent?: unknown;
       renderer: unknown;
     };
     if (typeof imported.renderer !== "function") {
@@ -120,15 +127,7 @@ export async function loadConsumerGraph(
         : {}),
       definitions: imported.definitions,
       entrySources,
-      legacy: imported.legacy,
-      ...(typeof imported.renderLegacyComponent === "function"
-        ? {
-            renderLegacyComponent: imported.renderLegacyComponent as (
-              name: string,
-              attributes: Readonly<Record<string, string>>,
-            ) => string,
-          }
-        : {}),
+      sourceFiles,
       renderer: imported.renderer as Renderer,
     };
   } catch (error) {

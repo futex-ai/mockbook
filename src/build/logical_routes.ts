@@ -14,6 +14,7 @@ export function artifactRouteForEntry(
   byId: ReadonlyMap<string, ResolvedRegistryEntry>,
   catalogueSchemes: readonly ColorScheme[],
 ): string | undefined {
+  if (entry.kind === "page") return entry.route;
   const screen =
     entry.kind === "screen"
       ? entry

@@ -8,7 +8,7 @@ Usage:
 
 Commands:
   serve    Build and serve the catalogue with on-demand diffs
-  build    Generate static HTML fragments and the version 3 manifest
+  build    Generate static HTML documents and the version 4 manifest
   check    Validate source and committed generated output without writing
 
 Options:

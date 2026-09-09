@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { isAuthoringSource } from "../build/source_inventory.js";
 import { isInside, isSafeRepositoryPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
@@ -30,9 +31,6 @@ export class FileSystemReviewAssetReader implements ReviewAssetReader {
       ]);
       const sourceRoots = await Promise.all([
         fs.promises.realpath(this.config.entriesDir),
-        ...(this.config.legacy
-          ? [fs.promises.realpath(this.config.legacy.pagesDir)]
-          : []),
       ]);
       if (
         !isInside(realRoot, realCandidate) ||
@@ -257,8 +255,7 @@ function assertPublicStaticRoute(
   const candidate = path.resolve(config.mockupsDir, route);
   if (
     !isInside(config.mockupsDir, candidate) ||
-    isInside(config.entriesDir, candidate) ||
-    Boolean(config.legacy && isInside(config.legacy.pagesDir, candidate))
+    isAuthoringSource(candidate, config)
   ) {
     throw assetError(route, "not a public static file");
   }

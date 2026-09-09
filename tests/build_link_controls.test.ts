@@ -6,6 +6,7 @@ import test from "node:test";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { loadConfig } from "../dist/config/load.js";
 import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   validEntrySource,
@@ -173,7 +174,7 @@ test("custom and legacy renderers adapt controls before compatibility checks", a
     ),
     {
       extraConfig:
-        'renderer: "renderer.tsx", legacy: { pagesDir: "legacy" }, compatibility: { transformer: "transform.ts" },',
+        'renderer: "renderer.tsx",  compatibility: { transformer: "transform.ts" },',
     },
   );
   context.after(() => removeFixture(fixture));
@@ -194,6 +195,12 @@ export const source = () => '<html><body>'+renderToStaticMarkup(<MockLink asChil
     `export default input => {
 if (input.content.includes("<template")) throw new Error("unconsumed child link");
 return input.content; };`,
+  );
+  await registerFixturePage(
+    fixture,
+    "old",
+    "old.html",
+    "legacy/old.source.tsx",
   );
   const config = await loadConfig(fixture.root);
   const compilation = await compileCatalogue(config);

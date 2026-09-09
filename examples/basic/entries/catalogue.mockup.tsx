@@ -4,11 +4,14 @@ import { Input } from "@firna/ui/input";
 import {
   defineCollection,
   defineScreen,
+  definePage,
   defineUseCase,
   MockLink,
   ReviewIgnore,
   reviewMaterialKey,
 } from "mokabook";
+
+import { renderExampleDocument } from "./document.js";
 
 const metadata = {
   dependencies: ["examples/basic/generated/styles.css"],
@@ -48,6 +51,11 @@ function Welcome({ compact }: { compact: boolean }) {
         Open the details screen
       </MockLink>
       <p>
+        <MockLink to="example-handbook" fragment="next-steps">
+          Read the handbook
+        </MockLink>
+      </p>
+      <p>
         <MockLink to="design-browse-home">
           See the Mokabook shell design
         </MockLink>
@@ -75,7 +83,7 @@ function Details({ compact }: { compact: boolean }) {
 export const mockups = [
   defineCollection({
     ...metadata,
-    childIds: ["example-screens", "example-tour"],
+    childIds: ["example-screens", "example-tour", "example-handbook"],
     description: "Synthetic examples for the reusable Mokabook package.",
     id: "example",
     title: "Example",
@@ -110,6 +118,15 @@ export const mockups = [
     tags: ["forms"],
     title: "Details",
     useCaseIds: ["example-tour"],
+  }),
+  definePage({
+    ...metadata,
+    id: "example-handbook",
+    title: "Getting started",
+    description: "A handbook to accompany the example screens.",
+    route: "handbook.html",
+    tags: ["documents"],
+    render: renderExampleDocument,
   }),
   defineUseCase({
     ...metadata,

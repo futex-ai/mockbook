@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 
+import { loadConsumerGraph } from "../build/load_graph.js";
 import { compileCatalogue } from "../build/compile.js";
 import {
   FileSystemGeneratedOutputStore,
@@ -83,10 +84,8 @@ export async function serve(
       config,
     );
     const base = options.base ?? config.review.base;
-    const changedRoutes = await computeChangedRoutes(config, base);
     const server = await dependencies.serverFactory.start(config, {
       base,
-      ...(changedRoutes ? { changedRoutes } : {}),
       port: options.port,
       review: configuredServedReview(config, base),
     });
@@ -112,6 +111,7 @@ async function serveWatched(
 ): Promise<RunningServe> {
   const gate = new NotificationGate<string>();
   const failureGate = new NotificationGate<Error>();
+  config.sourceFiles = (await loadConsumerGraph(config, false)).sourceFiles;
   let activeConfig = config;
   let watcher = createWatcher(watcherFactory, activeConfig, gate);
   let supervisor: ProcessSupervisor | undefined;
@@ -150,8 +150,12 @@ async function serveWatched(
   const notifyCandidate = (candidate: string): void => {
     debouncer?.notify(classifyWatchPath(candidate, activeConfig));
   };
-  const reconfigure = async (): Promise<void> => {
-    const nextConfig = await configLoader.load(activeConfig.configPath);
+  const reconfigure = async (candidate?: ResolvedConfig): Promise<void> => {
+    const nextConfig =
+      candidate ?? (await configLoader.load(activeConfig.configPath));
+    nextConfig.sourceFiles = (
+      await loadConsumerGraph(nextConfig, false)
+    ).sourceFiles;
     const replacementGate = new NotificationGate<string>();
     const replacement = createWatcher(
       watcherFactory,
@@ -210,7 +214,16 @@ async function serveWatched(
       return;
     }
     if (action === "rebuild") {
-      const nextCompilation = await compileCatalogue(activeConfig);
+      const graph = await loadConsumerGraph(activeConfig, false);
+      const candidate = { ...activeConfig, sourceFiles: graph.sourceFiles };
+      if (
+        JSON.stringify(watchTargets(candidate)) !==
+        JSON.stringify(watchTargets(activeConfig))
+      ) {
+        await reconfigure(candidate);
+        return;
+      }
+      const nextCompilation = await compileCatalogue(candidate);
       await outputStore.write(nextCompilation, activeConfig);
       const nextSignature = JSON.stringify(nextCompilation.manifest);
       if (nextSignature === manifestSignature) {

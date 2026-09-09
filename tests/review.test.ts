@@ -23,7 +23,7 @@ import { runReview } from "../dist/review/run.js";
 import { writeReviewArtifact } from "../dist/review/write.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import type { Compilation } from "../dist/build/compile.js";
-import type { ManifestScreen, ManifestV3 } from "../dist/registry/types.js";
+import type { ManifestScreen, ManifestV4 } from "../dist/registry/types.js";
 import {
   createFixture,
   removeFixture,
@@ -95,8 +95,8 @@ test("Review classifies added, removed, and unchanged routes independently", asy
   const baseManifest = {
     entries: [{ ...detail, useCaseIds: [] }, old],
     generatedBy: "mokabook" as const,
-    legacyPages: [],
-    schemaVersion: 3 as const,
+    sourceFiles: compilation.manifest.sourceFiles,
+    schemaVersion: 4 as const,
   };
   const gitFiles = new Map<string, string>([
     ["mockups/mokabook-manifest.json", `${JSON.stringify(baseManifest)}\n`],
@@ -466,7 +466,7 @@ function fakeGit(files: ReadonlyMap<string, string>): GitClient {
 }
 
 function filesForCompilation(
-  manifest: ManifestV3,
+  manifest: ManifestV4,
   compilation: Compilation,
 ): Map<string, string> {
   const files = new Map<string, string>([
@@ -479,7 +479,7 @@ function filesForCompilation(
   return files;
 }
 
-function withoutDarkFragments(manifest: ManifestV3): ManifestV3 {
+function withoutDarkFragments(manifest: ManifestV4): ManifestV4 {
   return {
     ...manifest,
     entries: manifest.entries.map((entry) => {

@@ -9,6 +9,7 @@ import {
 } from "../config/paths.js";
 import { MokabookError } from "../errors.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
+import { isAuthoringSource } from "./source_inventory.js";
 import { walkFiles } from "./discovery.js";
 
 const ENCODED_HEADER =
@@ -92,8 +93,7 @@ export function pendingGeneratedOrphanRoutes(
 export function isOwned(candidate: string, config: ResolvedConfig): boolean {
   if (
     !isInside(config.mockupsDir, candidate) ||
-    isInside(config.entriesDir, candidate) ||
-    Boolean(config.legacy && isInside(config.legacy.pagesDir, candidate))
+    isAuthoringSource(candidate, config)
   ) {
     return false;
   }
@@ -111,12 +111,7 @@ export function isOwned(candidate: string, config: ResolvedConfig): boolean {
       );
       if (!source || !isSafeRepositoryPath(source)) return false;
       const absoluteSource = path.resolve(config.repoRoot, source);
-      return (
-        isInside(config.entriesDir, absoluteSource) ||
-        Boolean(
-          config.legacy && isInside(config.legacy.pagesDir, absoluteSource),
-        )
-      );
+      return isInside(config.entriesDir, absoluteSource);
     } finally {
       fs.closeSync(handle);
     }

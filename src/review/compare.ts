@@ -9,7 +9,7 @@ import { toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import { dependencyContainsChangedPath } from "../registry/dependency_paths.js";
-import type { ManifestScreen, ManifestV3 } from "../registry/types.js";
+import type { ManifestScreen, HistoricalManifest } from "../registry/types.js";
 import { VIEWPORTS } from "../registry/views.js";
 import {
   copySnapshotDependencies,
@@ -59,8 +59,18 @@ export async function compareReview(
   const mockupsPrefix = toPosixPath(
     path.relative(config.repoRoot, config.mockupsDir),
   );
+  const baselineConfig = {
+    ...config,
+    sourceFiles:
+      baseManifest.schemaVersion === 4
+        ? baseManifest.sourceFiles
+        : [
+            ...baseManifest.entries.map((entry) => entry.sourcePath),
+            ...baseManifest.legacyPages.map((page) => page.sourcePath),
+          ],
+  };
   const baseAssetReader = new GitReviewAssetReader(
-    config,
+    baselineConfig,
     git,
     baseCommit,
     mockupsPrefix,
@@ -260,7 +270,7 @@ function compareView(
   };
 }
 
-function screenMap(manifest: ManifestV3): Map<string, ManifestScreen> {
+function screenMap(manifest: HistoricalManifest): Map<string, ManifestScreen> {
   return new Map(
     manifest.entries
       .filter((entry): entry is ManifestScreen => entry.kind === "screen")

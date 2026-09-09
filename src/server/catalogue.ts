@@ -1,8 +1,8 @@
+import type { RemovedEntrySnapshot } from "../registry/changes.js";
 import type {
   ManifestEntry,
-  ManifestLegacyPage,
   ManifestScreen,
-  ManifestV3,
+  ManifestV4,
 } from "../registry/types.js";
 import {
   analyzeHierarchy,
@@ -12,15 +12,16 @@ import {
 /** Validated lookup model used by server routes. */
 export interface Catalogue {
   byId: ReadonlyMap<string, ManifestEntry>;
-  byRoute: ReadonlyMap<string, ManifestEntry | ManifestLegacyPage>;
+  byRoute: ReadonlyMap<string, ManifestEntry>;
   /** Whether any screen in the catalogue was rendered in the dark scheme. */
   hasDarkFragments: boolean;
   hierarchy: CatalogueHierarchy<ManifestEntry>;
-  manifest: ManifestV3;
+  manifest: ManifestV4;
   /** Every classification tag the entries declare, deduplicated and sorted. */
   tags: readonly string[];
   /** Baseline screens retained only for on-demand comparisons. */
   removedScreens: readonly ManifestScreen[];
+  removedEntries: readonly RemovedEntrySnapshot[];
 }
 
 /** The union of the tags declared across every entry that can carry them. */
@@ -34,15 +35,19 @@ function collectTags(entries: readonly ManifestEntry[]): readonly string[] {
 
 /** Build deterministic id and route indexes from a validated manifest. */
 export function createCatalogue(
-  manifest: ManifestV3,
-  removedScreens: readonly ManifestScreen[] = [],
+  manifest: ManifestV4,
+  removedEntries: readonly RemovedEntrySnapshot[] = [],
 ): Catalogue {
+  const removedScreens = removedEntries.flatMap(({ entry }) =>
+    entry.kind === "screen" ? [entry] : [],
+  );
   const byId = new Map(manifest.entries.map((entry) => [entry.id, entry]));
-  const byRoute = new Map<string, ManifestEntry | ManifestLegacyPage>();
+  const byRoute = new Map<string, ManifestEntry>();
   for (const entry of manifest.entries) {
     if (entry.kind !== "collection") byRoute.set(entry.route, entry);
   }
-  for (const page of manifest.legacyPages) byRoute.set(page.route, page);
+  for (const { entry } of removedEntries)
+    if (!byId.has(entry.id)) byId.set(entry.id, entry);
   const hasDarkFragments = [...manifest.entries, ...removedScreens].some(
     (entry) => entry.kind === "screen" && entry.darkFragments !== undefined,
   );
@@ -56,5 +61,6 @@ export function createCatalogue(
     manifest,
     tags,
     removedScreens,
+    removedEntries,
   };
 }

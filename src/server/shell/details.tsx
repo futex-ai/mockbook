@@ -114,7 +114,7 @@ function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
         {entry.rationale ? (
           <p className="mbk-details-rationale">
             <span className="k">
-              Why this {entry.kind === "use-case" ? "flow" : "screen"} —{" "}
+              Why this {entry.kind === "use-case" ? "flow" : entry.kind} —{" "}
             </span>
             {entry.rationale}
           </p>
@@ -129,8 +129,23 @@ function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
             <PathChips values={generatedPaths(entry)} />
           </MetaRow>
         ) : null}
+        {entry.kind === "page" ? (
+          <MetaRow label="Generated">
+            <PathChips values={[entry.route]} />
+          </MetaRow>
+        ) : null}
         {entry.kind === "screen" && props.catalogue.hasDarkFragments ? (
           <MetaRow label="Schemes">{schemeNames(entry)}</MetaRow>
+        ) : null}
+        {props.catalogue.removedEntries.find(
+          (removed) => removed.entry.route === entry.route,
+        ) ? (
+          <MetaRow label="Location">
+            {props.catalogue.removedEntries
+              .find((removed) => removed.entry.route === entry.route)
+              ?.ancestors.map(({ title }) => title)
+              .join(" › ")}
+          </MetaRow>
         ) : null}
         <TagChips values={entry.tags ?? []} />
         {entry.relatedDocs.length > 0 ? (
@@ -154,25 +169,6 @@ function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
   );
 }
 
-function LegacyDetailsBody(props: { sourcePath: string }) {
-  return (
-    <div className="mbk-details-body">
-      <div>
-        <p className="mbk-details-desc">
-          A catalogue page that has not moved to the structured registry yet, so
-          it may show several screen states. It is browsed here exactly as the
-          generated page renders.
-        </p>
-      </div>
-      <div className="mbk-meta">
-        <MetaRow label="Source">
-          <code className="mbk-code">{props.sourcePath}</code>
-        </MetaRow>
-      </div>
-    </div>
-  );
-}
-
 /** The collapsed-by-default details panel for the selected route. */
 export function DetailsPanel(props: {
   catalogue: Catalogue;
@@ -189,14 +185,12 @@ export function DetailsPanel(props: {
           Description, rationale, source, related docs, and use cases
         </span>
       </summary>
-      {props.target.kind === "entry" ? (
+      {
         <EntryDetailsBody
           catalogue={props.catalogue}
           entry={props.target.entry}
         />
-      ) : (
-        <LegacyDetailsBody sourcePath={props.target.page.sourcePath} />
-      )}
+      }
     </details>
   );
 }

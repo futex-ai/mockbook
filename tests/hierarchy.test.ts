@@ -2,8 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { defineCollection, defineScreen } from "../dist/index.js";
-import { createManifest, parseManifest } from "../dist/registry/manifest.js";
-import type { ManifestV3 } from "../dist/registry/types.js";
+import {
+  createManifest,
+  parseManifest,
+  parseHistoricalManifest,
+} from "../dist/registry/manifest.js";
+import type { ManifestV4 } from "../dist/registry/types.js";
 import type {
   RegistryDefinition,
   ResolvedRegistryEntry,
@@ -143,8 +147,9 @@ test("manifest validation guards cycles while retaining historical paths", () =>
 
   const versionTwo = structuredClone(manifest) as unknown as MutableManifest;
   versionTwo.schemaVersion = 2;
+  Object.assign(versionTwo, { legacyPages: [] });
   delete versionTwo.generatedBy;
-  assert.equal(parseManifest(versionTwo, true).schemaVersion, 3);
+  assert.equal(parseHistoricalManifest(versionTwo, true).schemaVersion, 3);
 });
 
 function entry(
@@ -157,7 +162,7 @@ function entry(
 }
 
 type MutableManifest = Omit<
-  ManifestV3,
+  ManifestV4,
   "entries" | "generatedBy" | "schemaVersion"
 > & {
   entries: Array<{
@@ -169,7 +174,7 @@ type MutableManifest = Omit<
   schemaVersion: number;
 };
 
-function hierarchyManifest(): ManifestV3 {
+function hierarchyManifest(): ManifestV4 {
   return createManifest(
     [
       resolved(

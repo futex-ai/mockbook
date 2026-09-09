@@ -161,6 +161,24 @@ export async function smokeAccountingFixture(context) {
     fs.existsSync(path.join(root, "docs/mockups/archive/legacy-notice.html")),
     true,
   );
+  const pageManifest = JSON.parse(
+    await fs.promises.readFile(
+      path.join(root, "docs/mockups/mokabook-manifest.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(pageManifest.schemaVersion, 4);
+  assert.equal("legacyPages" in pageManifest, false);
+  assert.ok(
+    pageManifest.entries.some(
+      (entry) => entry.id === "accounting-notice" && entry.kind === "page",
+    ),
+  );
+  assert.ok(
+    pageManifest.sourceFiles.some((file) =>
+      file.endsWith("legacy/components.tsx"),
+    ),
+  );
   await smokeServer(root);
   await smokeExternalWatch(root);
 

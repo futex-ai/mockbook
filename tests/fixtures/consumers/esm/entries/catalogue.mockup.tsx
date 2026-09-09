@@ -2,6 +2,7 @@ import React from "react";
 
 import {
   defineCollection,
+  definePage,
   defineScreen,
   defineUseCase,
   MockLink,
@@ -14,9 +15,18 @@ const metadata = {
 };
 
 export const mockups = [
+  definePage({
+    ...metadata,
+    id: "packed-handbook",
+    title: "Handbook",
+    description: "Whole document in the packed API",
+    route: "handbook.html",
+    render: () =>
+      '<html><body><main id="handbook">Handbook</main><a href="mock:packed-home">Home</a></body></html>',
+  }),
   defineCollection({
     ...metadata,
-    childIds: ["packed-pages", "packed-tour"],
+    childIds: ["packed-pages", "packed-tour", "packed-handbook"],
     description: "Packed ESM consumer catalogue.",
     id: "packed-esm",
     title: "Packed ESM",

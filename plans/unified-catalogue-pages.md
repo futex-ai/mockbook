@@ -2,7 +2,8 @@
 
 ## Status And Outcome
 
-Active plan; implementation has not started. The user approved a mandatory
+Implementation and consumer verification are complete; commit, push, and final
+review remain. The user approved a mandatory
 breaking upgrade after the Accounting inspection found a second App root, and
 subsequently requested fixes for the contract reviews.
 
@@ -87,8 +88,9 @@ implementation by removing the proposed source-registration compatibility layer.
       and release notes identifying the intentional breaking API removal.
 - [x] Revise unfinished milestones and cross-links; keep implementation unstarted.
 
-Validate this documentation revision, then commit/push and run the required
-post-push review. Full implementation checks remain in the final milestone.
+Commit `75180d8` passed Markdown/link and milestone checks and was pushed.
+Its review found three contract gaps: shared change metadata, source inventory,
+and the Accounting snapshot. Milestone 3 resolved them; the full gate remains below.
 
 ## Milestone 3: Resolve contract reviews — completed
 
@@ -100,161 +102,163 @@ The user requested fixes for the reviews of `75180d8` and `dc44b02`.
       verified Accounting commit, manifest hash, and source/artifact checks.
 - [x] Add regression work to unfinished milestones; preserve completed work.
 
-Validate the revised Markdown and diff, then commit/push before the required
-review. This revision remains documentation only; new findings require a decision.
+Commit `f7a1a36` passed Prettier, 130 local links, milestone and inventory checks
+and was pushed. Its review found ambiguous route-change wording and missing
+completed-review records. Both findings were verified and corrected on the
+user's instruction; explicit-route stability also receives implementation tests.
 
-## Milestone 4: Record unified page designs
+## Milestone 4: Record unified page designs — completed
 
 Tags: mockup
 
 Extend the existing neutral shell design catalogue with the page states needed
 to review the new presentation before changing the real UI.
 
-- [ ] Inspect and reuse `examples/basic/entries/design/parts/` and existing
+- [x] Inspect and reuse `examples/basic/entries/design/parts/` and existing
       Browse screen components, tokens, navigation, frames, and details.
-- [ ] Add linked mobile/desktop page-view/details and removed-page screens.
+- [x] Add linked mobile/desktop page-view/details and removed-page screens.
       Show a flat Changes row and baseline breadcrumbs after deleting its parents.
-- [ ] Author the reusable synthetic whole-document sample used by those designs
+- [x] Author the reusable synthetic whole-document sample used by those designs
       and the later basic-example registration; complete its markup in this milestone.
-- [ ] Show a page beside a screen/use case under one existing collection,
+- [x] Show a page beside a screen/use case under one existing collection,
       correct ancestry and ID/tag search, page metadata, and a narrow navigation
       drawer. Hide unsupported page variant/comparison controls.
-- [ ] Keep synthetic document content confined to the approved example design
+- [x] Keep synthetic document content confined to the approved example design
       fixture. No engineering/migration annotations appear inside rendered screens.
-- [ ] Link new screens from the owning design catalogue; keep each owning
+- [x] Link new screens from the owning design catalogue; keep each owning
       screen-spec page at five or fewer screen mockups and split linked pages when
       needed. Reuse owning screen components in any flow.
-- [ ] Update the shell design protocol and example README; run
+- [x] Update the shell design protocol and example README; run
       `npm run example:build`, `npm run example:check`, relevant example tests, and
       typechecking. Commit generated HTML from source; open every changed mobile
       and desktop artifact directly from disk for visual inspection.
 
 The functioning design catalogue specifies the page UI before implementation.
 
-## Milestone 5: Implement page definitions and source migration
+## Milestone 5: Implement page definitions and source migration — completed
 
 Add the backend authoring, compilation, schema, and historical compatibility
 boundaries while preserving existing complete-document rendering.
 
-- [ ] Add failure-first tests for flat/nested pages, callback attribution and
+- [x] Add failure-first tests for flat/nested pages, callback attribution and
       validation, tag/inheritance rules, mixed children, invalid page-valued
       use-case steps, duplicate IDs/routes, missing/multiple parents, and cycles.
-- [ ] Extend `src/authoring/` and exports with typed page inputs/definitions,
+- [x] Extend `src/authoring/` and exports with typed page inputs/definitions,
       `definePage`, and nested `page`; update entry preparation and validation.
-- [ ] Remove legacy config/types, automatic discovery, and `src/legacy/pages.ts`.
+- [x] Remove legacy config/types, automatic discovery, and `src/legacy/pages.ts`.
       Add rejection tests for obsolete configuration, including `undefined`, and
       prove unimported `.source` modules are not catalogue entries. Migrate
       affected fixtures alongside these changes; add no registration shim.
-- [ ] Add tests before changing rendering: synchronous complete HTML, one
+- [x] Add tests before changing rendering: synchronous complete HTML, one
       render/output, imported existing render helpers, exception and
       promise rejection, global dark configuration, and unchanged source content.
-- [ ] Implement the shared page output path without invoking the screen
+- [x] Implement the shared page output path without invoking the screen
       renderer. Preserve the complete validation/transform pipeline and consumer
       module/React resolution. Keep artifacts and declarations fully typed.
-- [ ] Add generated-ownership, source-root, output collision, deterministic
+- [x] Add generated-ownership, source-root, output collision, deterministic
       build/check, orphan, rollback, path traversal, symlink, and foreign-file
       tests, including page routes that overlap another entry's fragments.
-- [ ] Test that old artifacts outside the new owner roots still reject
+- [x] Test that old artifacts outside the new owner roots still reject
       overwrite, and that verified consumer regeneration succeeds without
       broadening ownership. Keep imported render helpers protected source inputs.
-- [ ] Implement schema-v4 serialization/strict validation and dedicated
+- [x] Implement schema-v4 serialization/strict validation and dedicated
       v2/v3 historical readers. Test stale current output, invalid canonical input,
       gated v2 fallback, exact-route legacy baseline matching, unmatched historical
       documents, and unchanged screen comparisons across schema versions.
-- [ ] Implement the source-protection contract: both authoring graphs, asset
+- [x] Implement the source-protection contract: both authoring graphs, asset
       classification, freshness, reserved names, and logical/realpath checks.
       Test stale unimported sources, all import roles, public assets, and output
       collisions before sharing the guard across runtime/resource consumers.
-- [ ] Prepare common catalogue indexes and route/artifact lookups for pages;
+- [x] Prepare common catalogue indexes and route/artifact lookups for pages;
       eliminate assumptions that every routed non-use-case entry is a screen.
       Update active runtime readers and fixtures coherently with the schema switch.
-- [ ] Run `npm run build`, typechecking, lint, and focused authoring, config,
+- [x] Run `npm run build`, typechecking, lint, and focused authoring, config,
       registry, manifest, build, compatibility, and baseline/safety tests.
 
 The functioning compiler supplies a tested page model and safe migration boundary.
 
-## Milestone 6: Complete runtime links, impact, and publication
+## Milestone 6: Complete runtime links, impact, and publication — completed
 
 Make every non-visual consumer understand the same page model before the shell
 and consumer fixtures switch to it.
 
-- [ ] Add a mixed-tree regression reproducing the two App groups and assert
+- [x] Add a mixed-tree regression reproducing the two App groups and assert
       one explicit App/Book ancestry after registration. Retain coverage proving
       unrelated same-title collections stay distinct and unclaimed pages are leaves.
-- [ ] Update catalogue/hierarchy and route-target models, page artifact lookup,
+- [x] Update catalogue/hierarchy and route-target models, page artifact lookup,
       GET/HEAD handlers, `/view`, `/id`, `/static`, and validated fragment transport.
-- [ ] Replace route-derived legacy tree/Overview model builders with the common
+- [x] Replace route-derived legacy tree/Overview model builders with the common
       collection tree; keep all runtime models ready before shell presentation changes.
-- [ ] Add page-to-screen, screen-to-page, page-to-page, use-case-to-page-link,
+- [x] Add page-to-screen, screen-to-page, page-to-page, use-case-to-page-link,
       anchor, and `MockLink asChild` tests for served and portable output. Preserve
       final-transform validation, authenticated link ownership, and sandbox limits.
-- [ ] Implement `CatalogueChangeSnapshot` and page impact, sharing it across
+- [x] Implement `CatalogueChangeSnapshot` and page impact, sharing it across
       server/watch/publication. Test deleted ancestors, baseline breadcrumbs,
       reparenting, title/module edits, route/ID reuse, historical baselines, and
       screen-only comparisons; never derive page removals from screen results.
-- [ ] Update watcher inputs, reload attribution, and published catalogue
+- [x] Update watcher inputs, reload attribution, and published catalogue
       assembly, including page resources, ID redirects, anchors, and removed-page
       states only when publication includes Changes. Honor the optional-publication
       contract and preserve transactional/screen-comparison behavior. Test that
       imported and stale source files stay private through GET/HEAD, Review,
       and both exports, while graph changes update watcher inputs.
-- [ ] Update focused fixtures at each boundary, run relevant server, navigation,
+- [x] Update focused fixtures at each boundary, run relevant server, navigation,
       watch, review, preview, safety, and packed-API tests, and run the build.
 
 Page routes and publication work through one model; screen comparisons still work.
 
-## Milestone 7: Use one hierarchy throughout Browse
+## Milestone 7: Use one hierarchy throughout Browse — completed
 
 Tags: ui
 
 Apply the completed designs to the real package shell using the page-aware
 runtime. This milestone contains presentation and client work only.
 
-- [ ] Add shell/browser regressions before replacing the legacy navigation and
+- [x] Add shell/browser regressions before replacing the legacy navigation and
       route-target presentation. Verify one row per ID and one declared App group.
-- [ ] Render all collection children from the completed common tree and remove
+- [x] Render all collection children from the completed common tree and remove
       obsolete legacy presentation branches. Preserve page icons and independent
       stable collection identities.
-- [ ] Reuse the full-document frame and add authored title, ID, breadcrumbs,
+- [x] Reuse the full-document frame and add authored title, ID, breadcrumbs,
       tags, details, home counts, and flat Changes-only removed-page rows with
       baseline details. Preserve screen controls and removed-screen visibility.
-- [ ] Exercise ID/title/route/tag search, All/Changes, active-row reveal,
+- [x] Exercise ID/title/route/tag search, All/Changes, active-row reveal,
       disclosures, scroll restoration, direct/in-frame links, Back/Forward, watch
       reparenting, and static fragment restoration at mobile and desktop widths.
-- [ ] Verify pages honor both publication capabilities: ordinary exports contain
+- [x] Verify pages honor both publication capabilities: ordinary exports contain
       current pages only; opted-in exports retain page Changes and removal states.
-- [ ] Ignore old `legacy:` disclosure keys without resetting existing
+- [x] Ignore old `legacy:` disclosure keys without resetting existing
       `collection:` state or applying saved state by title. Verify this on reload.
-- [ ] Start the real server and compare screen, page, use-case, and missing-page
+- [x] Start the real server and compare screen, page, use-case, and missing-page
       views with their designs. Run focused shell/client tests, Chromium tests,
       accessibility assertions, and visual smoke tests.
 
 Browse renders one hierarchy with complete page metadata and working screen views.
 
-## Milestone 8: Prove the required consumer upgrade
+## Milestone 8: Prove the required consumer upgrade — completed
 
 Activate the final v4 contract across examples, packed consumers, and migration
 guidance, and rehearse the actual Accounting inventory before release.
 
-- [ ] Register the already-designed synthetic document as a page in the basic
+- [x] Register the already-designed synthetic document as a page in the basic
       example and use `definePage` in the Accounting packed fixture. Convert raw
       HTML comment components into consumer composition, make aliases explicit
       routes, and preserve applicable lint rules in consumer source-policy tests.
       Update ESM/NodeNext/npx/Juno checks for the new API/schema.
-- [ ] Verify current readers/outputs require v4 and no legacy discovery/config
+- [x] Verify current readers/outputs require v4 and no legacy discovery/config
       adapters remain. Keep historical v2/v3 readers at the comparison boundary
       and retain their regression fixtures and ownership-header parsing.
-- [ ] Update the package/runtime/navigation/Changes/watch/architecture docs,
+- [x] Update the package/runtime/navigation/Changes/watch/architecture docs,
       README, and example guidance to describe implemented behavior. Change the
       target protocols' delivery status only when their required behavior passes.
-- [ ] Build and pack the candidate. In a disposable Accounting checkout,
+- [x] Build and pack the candidate. In a disposable Accounting checkout,
       follow the versioned consumer note for the five definitions and memberships,
       remove `legacy` config, update consumer policy tests/docs, and perform the
       verified old-artifact regeneration. Do not alter the synced inspection workspace.
-- [ ] Validate complete pre/post source, route, anchor, and artifact inventories;
+- [x] Validate complete pre/post source, route, anchor, and artifact inventories;
       preserve all product screens, links, resources, and four real root collections.
       Keep the consumer patch and exact tarball identity under `.context`.
-- [ ] Run Accounting mockup build/check/test/typecheck, relevant browser tests,
+- [x] Run Accounting mockup build/check/test/typecheck, relevant browser tests,
       its required repository gate, and real-server mobile/desktop smoke tests of
       all five pages, incoming links, search, ancestry, and exactly one App group.
 
@@ -265,13 +269,13 @@ The package has a verified migration and rehearsal; durable adoption follows sep
 Finish implementation delivery only after all required checks pass; keep the
 complete new source, tests, docs, and generated artifacts in the reviewed diff.
 
-- [ ] Run all relevant tests with a 100% pass rate, `npm run build`, lint,
+- [x] Run all relevant tests with a 100% pass rate, `npm run build`, lint,
       typechecking, example build/check, packed consumers, and browser tests. Run
       `cargo xtask check` as the authoritative full gate; fix failures before
       claiming completion. Avoid repeating passed checks without a new concern.
-- [ ] If Rust changes, run `cargo fmt --all -- --check`, clippy, relevant Rust
+- [x] If Rust changes, run `cargo fmt --all -- --check`, clippy, relevant Rust
       tests, and the required file-length audit; fix any formatting/build errors.
-- [ ] Fetch/audit main from the captured source tip before integration; preserve
+- [x] Fetch/audit main from the captured source tip before integration; preserve
       its additions. Inspect the diff and deletions against `origin/main` and stop
       for any unapproved feature removal. Validate Markdown links and generated
       output and record verification results in this plan.
@@ -288,6 +292,44 @@ complete new source, tests, docs, and generated artifacts in the reviewed diff.
 - [ ] Record the review outcome and unresolved decisions; mark only finished
       milestones complete and move this plan to Completed when all required work
       is done. Validate and commit/push final documentation bookkeeping if needed.
+
+## Implementation Verification
+
+`cargo xtask check` passed on 2026-09-09: 425 Node tests, 82 Chromium tests,
+packed ESM/NodeNext/npx/Juno/Accounting consumers, example freshness, formatting,
+lint, typechecking, Rust fmt/clippy, three Rust tests, and file-length checks.
+No Mokabook Rust implementation changed. Regression tests also preserve the
+post-screen render context of complete documents and their ReviewIgnore
+serialization. All eight new page design artifacts were opened directly from
+disk and visually inspected; the four publication designs passed the same check.
+
+The Accounting rehearsal at `ba5f3fb` uses candidate SHA-256
+`262a44b34b86c58778ec81286ed93cf27e8e6a9439b9fa617bc914fec6e4c8fa`.
+Inventory comparison preserves all 2400 existing entries and four roots. Of
+3775 HTML artifacts, 3770 are byte-identical; the five documents change only
+their verified ownership header, with bodies, anchors, resources, and links
+unchanged. All 929 existing source files remain; only the two collection
+registrations and two consumer policy/test files change, plus one new page
+registration module. All five document routes, IDs, metadata, search, ancestry,
+source GET/HEAD protection, and catalogue links passed real-server smoke tests
+at 390px and 1280px. The four existing incoming artifact links also passed;
+header/selection previously had none and is now reached through its collection.
+
+The main audit retained source tip `f7a1a36`; refreshed `origin/main` remained
+`e47524b`. The three removed files are the authorized legacy renderer and raw
+HTML fixture plus the removed-screen helper superseded by shared entry metadata.
+No unrelated mainline feature was removed. The full Accounting gate passed with
+5574 Rust, 198 mockup, 4596 app, and 52 additional TypeScript tests, plus lint,
+typechecking and infrastructure checks. All 36 supplemental mockup browser cases
+passed; an installed-Chrome stall required rerunning the eight layout cases with
+Playwright Chromium 1228. The real CLI smoke passed. The rehearsal patch includes
+a behavior-preserving fix for a pre-existing Clippy warning in the disposable
+consumer. No consumer branch was committed or pushed. Evidence is recorded in
+[the consumer note](../docs/migration/accounting-page-entries.md).
+
+Sixteen live/published screen, page, flow, and missing-route views were also
+visually inspected at mobile/desktop sizes. Post-push review records follow the
+remaining delivery steps.
 
 ## Consumer Follow-Up (Outside Package Completion)
 

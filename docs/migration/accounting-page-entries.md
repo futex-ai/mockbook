@@ -2,8 +2,8 @@
 
 ## Status And Ownership
 
-Planned consumer migration; not implemented. This note records Accounting's
-specific inputs and delivery checks for the generic
+The isolated rehearsal is complete; durable consumer adoption remains a separate
+follow-up. This note records Accounting's specific inputs and delivery checks for the generic
 [page migration](../protocol/mokabook-page-migration.md). Its IDs, routes, and
 counts belong to Accounting, not to Mokabook's API, defaults, or generic test
 fixtures. Dedicated packed-consumer tests may model Accounting explicitly;
@@ -71,11 +71,37 @@ five registered document pages with the intended parents, no current
 `app`, `email`, `marketing`, and `user-flows`. Product screens and user flows
 keep their existing IDs, hierarchy, routes, and mobile/desktop output.
 
+## Verified Rehearsal
+
+The disposable checkout at the recorded revision used candidate tarball SHA-256
+`262a44b34b86c58778ec81286ed93cf27e8e6a9439b9fa617bc914fec6e4c8fa`.
+The migrated manifest has 2405 entries: the original 2400 are preserved, with
+five page children added to the two existing collections. All four root IDs
+remain unchanged. All 3775 HTML artifacts remain present: 3770 are byte-identical,
+and the five documents differ only in their verified ownership header. Their
+complete bodies, anchors, links, resources, and original render helpers are
+unchanged. Only the two owning registrations and two policy/test modules change
+among the 929 existing source files; one page-registration module is added.
+
+The full Accounting `cargo xtask check` passed, including 5574 Rust tests,
+198 mockup tests, 4596 app tests, 52 additional TypeScript tests, infrastructure
+checks, lint, and typechecking. A pre-existing Clippy boolean-expression warning
+required a behavior-preserving normalization only in the disposable checkout.
+All 36 supplemental mockup browser cases passed after rerunning the eight layout
+cases with Playwright's bundled Chromium to avoid an installed-Chrome stall.
+
+The five documents passed file and served-route smoke checks at 390px and 1280px:
+IDs, metadata, anchors, search, ancestry, source GET/HEAD protection, and catalogue
+links work with one App group. The four existing incoming artifact links remain
+functional; header/selection had no incoming artifact link and is now reachable
+through its collection. The synced checkout remains clean at the inspected
+revision. Exact inventories, logs, screenshots, candidate tarball, and the
+107 KB rehearsal patch are retained under `.context` for later adoption.
+
 ## Rehearsal And Consumer Delivery
 
-Before the Mokabook page feature is ready, build and pack its candidate and
-rehearse this migration in a disposable Accounting checkout using that exact
-tarball. Do not modify the synced inspection workspace or wait for npm release.
+For a later consumer revision, repeat this procedure in a disposable Accounting
+checkout using the exact chosen package tarball. Do not modify the synced inspection workspace or wait for npm release.
 Follow the generic source-preserving output-ownership procedure, including
 rollback on failure. Confirm abandoned `*.source.*` files remain private.
 

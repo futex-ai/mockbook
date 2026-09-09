@@ -19,7 +19,7 @@ import {
 import type { ResolvedRegistryEntry } from "../dist/authoring/types.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
-test("filesystem manifest loading falls back to the legacy v2 filename", async (context) => {
+test("current filesystem reads reject legacy-only output even with historical compatibility", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
   const config = withV2Compatibility(await loadConfig(fixture.root));
@@ -29,7 +29,7 @@ test("filesystem manifest loading falls back to the legacy v2 filename", async (
     JSON.stringify(legacy),
   );
 
-  assert.equal(readManifest(config).schemaVersion, 3);
+  assert.throws(() => readManifest(config), /could not read/);
 });
 
 test("filesystem manifest loading never accepts v2 under the canonical filename", async (context) => {
@@ -46,7 +46,7 @@ test("filesystem manifest loading never accepts v2 under the canonical filename"
     JSON.stringify(legacy),
   );
 
-  assert.throws(() => readManifest(config), /schema version 3/);
+  assert.throws(() => readManifest(config), /schema version 4/);
 });
 
 test("manifest loading rejects URL-sensitive catalogue routes", async (context) => {
@@ -87,6 +87,7 @@ test("manifest validates darkFragments names and collisions", () => {
 
   const collision = {
     ...structuredClone(manifest),
+    sourceFiles: ["entries/a.mockup.tsx", "entries/b.mockup.tsx"],
     entries: [
       ...manifest.entries,
       manifestWithScreen("b", "a.mobile.dark.html").entries[0]!,
@@ -116,7 +117,7 @@ test("manifest validation accepts tags and rejects invalid ones", () => {
   }
 });
 
-test("light-only manifests stay byte-identical", () => {
+test("light-only manifests remain deterministic without variant metadata", () => {
   const entry = resolvedScreen();
   const expected = serializeManifest({
     entries: [
@@ -139,8 +140,8 @@ test("light-only manifests stay byte-identical", () => {
       },
     ],
     generatedBy: "mokabook",
-    legacyPages: [],
-    schemaVersion: 3,
+    sourceFiles: ["entries/a.mockup.tsx"],
+    schemaVersion: 4,
   });
 
   const serialized = serializeManifest(createManifest([entry], [], ["light"]));

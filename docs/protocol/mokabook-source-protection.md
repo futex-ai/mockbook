@@ -2,11 +2,9 @@
 
 ## Delivery Status
 
-Approved target, not implemented. This supplements the schema-v4
-[page contract](./mokabook-pages.md) and its
-[migration procedure](./mokabook-page-migration.md). The current package uses
-configured source roots; the target removes legacy roots while retaining source
-protection. Implementation belongs to the authoring and runtime milestones in
+Implemented for schema-v4 [pages](./mokabook-pages.md), screens, and flows.
+The same resolved inventory protects build, runtime, comparisons, and both
+publication options. Verification is tracked in
 [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
 
 ## Protected Inputs

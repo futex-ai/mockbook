@@ -6,6 +6,7 @@ import { writeCompilation } from "../../dist/build/transaction.js";
 import { loadConfig } from "../../dist/config/load.js";
 import { startCatalogueServer } from "../../dist/server/http.js";
 import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   type TestFixture,
@@ -36,7 +37,13 @@ export async function startNavigationFixture(): Promise<NavigationFixture> {
   );
   await fs.promises.writeFile(
     fixture.configPath,
-    `export default { colorSchemes: ["light", "dark"], entriesDir: "entries", legacy: { pagesDir: "legacy" }, mockupsDir: "mockups", repoRoot: "." };\n`,
+    `export default { colorSchemes: ["light", "dark"], entriesDir: "entries",  mockupsDir: "mockups", repoRoot: "." };\n`,
+  );
+  await registerFixturePage(
+    fixture,
+    "guide",
+    "guide.html",
+    "legacy/guide.source.ts",
   );
   const config = await loadConfig(fixture.root);
   await writeCompilation(await compileCatalogue(config), config);

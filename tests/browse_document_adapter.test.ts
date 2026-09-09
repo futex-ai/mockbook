@@ -9,6 +9,7 @@ import { generatedHeader } from "../dist/build/ownership.js";
 import { loadConfig } from "../dist/config/load.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
 import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   validEntrySource,
@@ -103,8 +104,8 @@ test("Browse strips reserved metadata from unowned HTML", () => {
   const catalogue = createCatalogue({
     entries: [],
     generatedBy: "mokabook",
-    legacyPages: [],
-    schemaVersion: 3,
+    sourceFiles: [],
+    schemaVersion: 4,
   });
   const original = `<!doctype html><html><body><a data-mokabook-link="home" DATA-MOKABOOK-LINK="details" data-mokabook-target="_top" DATA-MOKABOOK-TARGET="_blank" href="./home.html">Home</a></body></html>`;
   const adapted = adaptBrowseDocument(original, "unowned.html", catalogue);
@@ -200,7 +201,19 @@ test("Browse authenticates generated legacy links from their manifest owner", as
   );
   await fs.promises.writeFile(
     fixture.configPath,
-    'export default { entriesDir: "entries", legacy: { pagesDir: "legacy" }, mockupsDir: "mockups", repoRoot: "." };\n',
+    'export default { entriesDir: "entries",  mockupsDir: "mockups", repoRoot: "." };\n',
+  );
+  await registerFixturePage(
+    fixture,
+    "notice",
+    "notice.html",
+    "legacy/notice.source.ts",
+  );
+  await registerFixturePage(
+    fixture,
+    "compact",
+    "compact.mobile.html",
+    "legacy/compact.mobile.source.ts",
   );
   const compilation = await compileCatalogue(await loadConfig(fixture.root));
   const original = compilation.outputs.get("notice.html") ?? "";
@@ -219,6 +232,6 @@ test("Browse authenticates generated legacy links from their manifest owner", as
     mobileRoute,
     createCatalogue(compilation.manifest),
   );
-  assert.match(mobile, /href="\.\/screens\/details\.mobile\.html"/);
+  assert.match(mobile, /href="\.\/screens\/details\.desktop\.html"/);
   assert.match(mobile, /data-mokabook-link="details"/);
 });

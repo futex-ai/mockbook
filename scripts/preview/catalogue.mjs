@@ -1,12 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { publicationOptions } from "../../dist/publication/options.js";
+import {
+  NodeGitCommandRunner,
+  RepositoryGitClient,
+} from "../../dist/review/git.js";
+import { fingerprintInputs, isComparisonPath } from "./inputs.mjs";
 import { adaptBrowseDocument } from "../../dist/browse/document_adapter.js";
-import { toPosixPath } from "../../dist/config/paths.js";
+import {
+  isInside,
+  projectRealPath,
+  toPosixPath,
+} from "../../dist/config/paths.js";
 import { isPublicStaticFile } from "../../dist/config/public_files.js";
 import { readManifest } from "../../dist/registry/manifest.js";
 import { createCatalogue } from "../../dist/server/catalogue.js";
-import { computeChangedRoutes } from "../../dist/server/changed.js";
+import { computeCatalogueChanges } from "../../dist/server/changed.js";
 import {
   loadBrowserClientModules,
   loadBrowserNavigationModules,
@@ -24,7 +34,8 @@ const liveUpdateScript =
   '<script src="/__mokabook/client/browser.js" type="module"></script>';
 
 /** Publish the real catalogue shell and isolated Git comparisons together. */
-export async function buildPreview(config, output) {
+export async function buildPreview(config, output, options = {}) {
+  const capability = publicationOptions(options);
   assertSafeOutput(output, config.repoRoot);
   assertOwnedOutput(output);
   await fs.promises.mkdir(path.dirname(output), { recursive: true });
@@ -34,22 +45,49 @@ export async function buildPreview(config, output) {
   try {
     const manifest = readManifest(config);
     const catalogue = createCatalogue(manifest);
-    const changedRoutes = await computeChangedRoutes(config, "origin/main");
-    const review = previewComparisonProvider(config, stage);
+    const base = capability.includeChanges
+      ? (capability.base ?? config.review.base)
+      : "";
+    const fingerprint = capability.includeChanges
+      ? await fingerprintInputs(config)
+      : undefined;
+    let git;
+    if (capability.includeChanges) {
+      const repository = new RepositoryGitClient(
+        new NodeGitCommandRunner(config.repoRoot),
+      );
+      const commit = await repository.mergeBase(base, "HEAD");
+      git = new Proxy(repository, {
+        get(target, key) {
+          if (key === "mergeBase") return async () => commit;
+          const value = Reflect.get(target, key);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      });
+    }
+    const changes = git
+      ? await computeCatalogueChanges(config, base, git)
+      : undefined;
+    const changedRoutes = changes?.changedRoutes;
+    if (capability.includeChanges && !changedRoutes)
+      throw new Error("preview change detection failed");
+    const review = git
+      ? previewComparisonProvider(config, stage, base, git)
+      : undefined;
     const server = await startCatalogueServer(config, {
-      base: "origin/main",
+      base,
+      ...(changes ? { changes } : {}),
       ...(changedRoutes ? { changedRoutes } : {}),
       port: 0,
-      review,
+      ...(review ? { review } : {}),
     });
     let comparison;
-    let removed;
+    let removed = [];
     try {
-      comparison = await captureComparison(server.url);
-      removed = comparison.result.screens.filter(
-        (screen) =>
-          screen.state === "removed" && !catalogue.byRoute.has(screen.route),
-      );
+      if (review) {
+        comparison = await captureComparison(server.url);
+        removed = changes.removedEntries.map(({ entry }) => entry);
+      }
       await capturePage(server.url, "/", stage, "index.html");
       for (const entry of [...manifest.entries, ...removed]) {
         if (entry.kind === "collection") continue;
@@ -58,14 +96,6 @@ export async function buildPreview(config, output) {
           `/view/${encodePath(entry.route)}`,
           stage,
           `view/${entry.route}`,
-        );
-      }
-      for (const page of manifest.legacyPages) {
-        await capturePage(
-          server.url,
-          `/view/${encodePath(page.route)}`,
-          stage,
-          `view/${page.route}`,
         );
       }
       await capturePage(
@@ -79,24 +109,33 @@ export async function buildPreview(config, output) {
     } finally {
       await server.close();
     }
-    await publishComparison(review, comparison, stage);
+    if (review && comparison)
+      await publishComparison(review, comparison, stage);
     await copyPublicFiles(config, catalogue, stage);
     await writeText(
       stage,
       "_redirects",
       [
-        comparison.redirect,
+        ...(comparison ? [comparison.redirect] : []),
         redirects([
           ...manifest.entries,
           ...removed.filter((screen) => !catalogue.byId.has(screen.id)),
         ]),
       ].join("\n"),
     );
-    await writeText(
-      stage,
-      "_headers",
-      "/__mokabook/diffs/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n",
-    );
+    if (comparison)
+      await writeText(
+        stage,
+        "_headers",
+        "/__mokabook/diffs/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n",
+      );
+    if (
+      fingerprint !== undefined &&
+      fingerprint !== (await fingerprintInputs(config))
+    )
+      throw new Error(
+        "consumer inputs changed during publication; retry with stable inputs",
+      );
     await writeText(stage, markerName, "schemaVersion=1\n");
     await installArtifact(stage, output);
   } catch (error) {
@@ -121,9 +160,9 @@ async function captureAssets(serverUrl, stage) {
 function shellAssets() {
   return [
     "/__mokabook/shell.css",
-    ...[...loadBrowserClientModules().keys()].map(
-      (name) => `/__mokabook/client/${name}`,
-    ),
+    ...[...loadBrowserClientModules().keys()]
+      .filter((name) => name !== "browser.js" && name !== "live_updates.js")
+      .map((name) => `/__mokabook/client/${name}`),
     ...[...loadBrowserNavigationModules().keys()].map(
       (name) => `/__mokabook/navigation/${name}`,
     ),
@@ -155,7 +194,11 @@ async function capturePage(
 
 async function copyPublicFiles(config, catalogue, stage) {
   for (const candidate of await regularFiles(config.mockupsDir)) {
-    if (!isPublicStaticFile(candidate, config)) continue;
+    if (
+      !isPublicStaticFile(candidate, config) ||
+      isComparisonPath(candidate, config)
+    )
+      continue;
     const relative = toPosixPath(path.relative(config.mockupsDir, candidate));
     const target = path.join(stage, "static", relative);
     await fs.promises.mkdir(path.dirname(target), { recursive: true });
@@ -234,7 +277,9 @@ function assertSafeOutput(output, repoRoot) {
   if (
     relative === "" ||
     relative.startsWith(`..${path.sep}`) ||
-    path.isAbsolute(relative)
+    path.isAbsolute(relative) ||
+    !isInside(projectRealPath(contextRoot), projectRealPath(output)) ||
+    projectRealPath(output) === projectRealPath(contextRoot)
   ) {
     throw new Error(`preview output must be inside ${contextRoot}`);
   }

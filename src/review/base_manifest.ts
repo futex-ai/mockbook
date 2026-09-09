@@ -4,10 +4,10 @@ import { toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import {
   MANIFEST_NAME,
-  parseManifest,
+  parseHistoricalManifest,
   selectManifestInput,
 } from "../registry/manifest.js";
-import type { ManifestV3 } from "../registry/types.js";
+import type { HistoricalManifest } from "../registry/types.js";
 import type { GitClient } from "./git.js";
 
 /** Read the canonical base manifest, falling back only when it is absent. */
@@ -15,14 +15,14 @@ export async function readBaseManifest(
   git: GitClient,
   commit: string,
   config: ResolvedConfig,
-): Promise<ManifestV3> {
+): Promise<HistoricalManifest> {
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
   const canonicalPath = joinGit(prefix, MANIFEST_NAME);
   const selection = selectManifestInput(
     await git.fileExists(commit, canonicalPath),
     config.compatibility.readManifestV2,
   );
-  return parseManifest(
+  return parseHistoricalManifest(
     JSON.parse(await git.readFile(commit, joinGit(prefix, selection.filename))),
     selection.allowV2,
   );

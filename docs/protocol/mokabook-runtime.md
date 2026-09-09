@@ -1,14 +1,13 @@
 # Mokabook Build And Browse Runtime
 
-The approved [page-entry target](./mokabook-pages.md) will replace the separate
-legacy navigation tree with ordinary collection-owned pages. Its
-[migration contract](./mokabook-page-migration.md) is not implemented; this
-document continues to describe the current runtime.
+[Whole-document pages](./mokabook-pages.md) share the same explicit collection
+hierarchy as screens and flows. The [migration contract](./mokabook-page-migration.md)
+defines the required consumer upgrade.
 
 ## Source Of Truth
 
-Consumer-authored registry modules and legacy page modules are the source of
-truth. Generated fragments, legacy HTML, and the manifest remain committed in
+Consumer-authored registry modules and imported render helpers are the source of
+truth. Generated fragments, page HTML, and the manifest remain committed in
 consumer repositories so they can be reviewed without a server. Browsing and
 comparisons consume those same artifacts and definitions; neither may introduce a
 second screen renderer or catalogue.
@@ -30,11 +29,11 @@ disclosure are implemented. Their delivery history is recorded in the completed
 `mokabook build` performs this transaction:
 
 1. Load and validate config.
-2. Discover and bundle all configured entry, renderer, and legacy modules.
+2. Discover and bundle all entry, renderer, transformer, and imported helper modules.
 3. Validate registry metadata, routes, relationships, and output collisions.
-4. Render screen fragments and configured legacy pages in deterministic order.
+4. Render screen fragments and registered whole-document pages in deterministic order.
 5. Resolve id links and validate document links and anchors.
-6. Build the version 3 manifest.
+6. Build the version 4 manifest and resolved source inventory.
 7. Stage every generated file before changing the last-good output.
 8. Atomically replace generated files and remove proven generated orphans.
 
@@ -47,7 +46,7 @@ diagnostics use repo-relative paths and deterministic ordering.
 fails for:
 
 - invalid config or registry metadata;
-- duplicate ids/routes or route/fragment/legacy collisions;
+- duplicate ids/routes or route/fragment/page collisions;
 - missing collection children, duplicate child references, children claimed by
   multiple collections, collection cycles, missing use-case screens, or
   reciprocal memberships;
@@ -61,19 +60,21 @@ fails for:
 - invalid or colliding `darkFragments` manifest routes;
 - stale, missing, or proven-orphan generated output;
 - malformed Review-ignore markers or material keys;
-- configured source, screen-cap, stage-id, or legacy-policy violations.
+- protected-source or source-inventory violations.
 
 The failure report groups problems by class and tells the author whether to run
 `mokabook build` or edit source/config. `check` never rewrites output.
 
 ## Catalogue And Routes
 
-Browse validates the manifest before binding its listening port. It exposes:
+Browse validates the v4 manifest and independently resolves both source graphs
+before binding its listening port. A stale inventory requires a rebuild. This
+scan never renders pages or rewrites output. It exposes:
 
 - `/` for the catalogue home;
-- `/view/<route>` for screens, use cases, and configured legacy pages;
+- `/view/<route>` for screens, use cases, and registered whole-document pages;
 - `/id/<id>` as a canonical redirect for routed registry entries;
-- `/static/<path>` for generated fragments, legacy pages, and consumer assets,
+- `/static/<path>` for generated fragments, document pages, and consumer assets,
   always delivered with `Cache-Control: no-store` because watched rebuilds
   replace bytes at stable URLs;
 - `/__mokabook/diffs/review.json` for explicitly requested comparisons, with
@@ -143,21 +144,19 @@ fragments is affected too and remains visible in the changed-only filter.
 
 A screen embeds its generated mobile and desktop fragments inside package-owned
 device frames. A use case renders ordered steps that reference those same
-fragments and link back to their standalone screens. A legacy page embeds the
-whole generated document. Breadcrumb ancestors that resolve to a viewable
-route (a legacy directory's Overview page) are links; structural collection
-crumbs stay text. The details inspector may show description, rationale,
+fragments and link back to their standalone screens. A page embeds its complete generated document without viewport or comparison
+controls. All ancestors are structural collection crumbs and stay text. The details inspector may show description, rationale,
 source and fragment paths including dark renders, the schemes a screen renders
 in, the tags the entry declares, related docs, dependencies, use cases, and
 comparison context.
-Consumer fragments and legacy documents are sandboxed without script permission
+Consumer fragments and document pages are sandboxed without script permission
 so they cannot alter the same-origin Browse shell. Package-owned same-origin
 inspection permits parent-owned outer navigation after explicit user
 activation. Browse does not grant either
 top-navigation sandbox token, so direct and nested consumer contexts retain the
 active restriction that prevents them from replacing the shell. The
 served/preview adapter authenticates markers only for current-manifest
-screen fragments and generated legacy pages whose ownership header names that
+screen fragments and generated document pages whose ownership header names that
 entry's manifest `sourcePath`. The versioned header stores that identity as
 canonical base64, keeping arbitrary repository filename bytes out of the HTML
 comment grammar. The adapter shares the strict build/cleanup decoder and
@@ -175,12 +174,10 @@ otherwise remain portable and sandbox-confined. Consumer scripts, forms,
 popups, downloads, and top navigation remain forbidden. Review panes retain
 their stricter sandbox and byte-unmodified documents.
 
-Every structured disclosure group uses `collection:<id>` as its rendered and
-persisted identity. Legacy directory groups use
-`legacy:<route-directory>`. Labels remain presentation only, so collections or
-legacy directories with the same displayed title retain independent state.
-Recovery data containing the former label-path values does not match a current
-group and is ignored rather than risking application to the wrong collection.
+Every disclosure group uses `collection:<id>` as its rendered and persisted
+identity. Labels remain presentation only, so equally titled collections retain
+independent state. Obsolete `legacy:` and label-path keys are ignored while
+valid collection keys remain effective.
 
 A catalogue with dark fragments offers a `Light | Dark` scheme switch; a
 light-only catalogue offers none. One switch renders in the top bar and one in

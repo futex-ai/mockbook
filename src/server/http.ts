@@ -1,5 +1,6 @@
 import http, { type ServerResponse } from "node:http";
 
+import { assertFreshSourceInventory } from "../build/source_freshness.js";
 import { encodeUrlPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
@@ -17,7 +18,8 @@ import {
   loadShellFontAssets,
 } from "./client_modules.js";
 import { homePage, notFoundPage, viewPage } from "./pages.js";
-import { removedScreens } from "./removed_screens.js";
+import { computeCatalogueChanges } from "./changed.js";
+import type { CatalogueChangeSnapshot } from "../registry/changes.js";
 import { requestedFragment, withFragmentQuery } from "./fragments.js";
 import { listenOnAvailablePort } from "./ports.js";
 import { safeDecode, safeDecodePath, send } from "./respond.js";
@@ -31,6 +33,7 @@ import type { CatalogueUpdate } from "./update_messages.js";
 export interface ServerOptions {
   base: string;
   changedRoutes?: readonly string[];
+  changes?: CatalogueChangeSnapshot;
   port: number;
   /** Enables on-demand comparison JSON and isolated snapshots. */
   review?: ServedReview;
@@ -52,10 +55,17 @@ export async function startCatalogueServer(
   options: ServerOptions,
 ): Promise<RunningServer> {
   const manifest = readManifest(config);
-  const removed = options.review
-    ? await removedScreens(config, manifest, options.base)
-    : [];
-  const catalogue = createCatalogue(manifest, removed);
+  await assertFreshSourceInventory(config, manifest);
+  let changes = options.changes;
+  if (!changes && options.review) {
+    try {
+      changes = await computeCatalogueChanges(config, options.base);
+    } catch (error) {
+      if (error instanceof MokabookError && error.code === "manifest-invalid")
+        throw error;
+    }
+  }
+  const catalogue = createCatalogue(manifest, changes?.removedEntries);
   const clientModules = loadBrowserClientModules();
   const navigationModules = loadBrowserNavigationModules();
   const fontAssets = loadShellFontAssets();
@@ -63,7 +73,7 @@ export async function startCatalogueServer(
   const reviewRoutes = options.review
     ? new ReviewRoutes(options.review)
     : undefined;
-  let changedRoutes = options.changedRoutes;
+  let changedRoutes = changes?.changedRoutes ?? options.changedRoutes;
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
     handleRequest(
@@ -273,7 +283,8 @@ function renderView(
   const route = safeDecodePath(encodedRoute);
   const entry = route
     ? (catalogue.byRoute.get(route) ??
-      catalogue.removedScreens.find((screen) => screen.route === route))
+      catalogue.removedEntries.find(({ entry }) => entry.route === route)
+        ?.entry)
     : undefined;
   if (!entry)
     return send(
@@ -284,8 +295,8 @@ function renderView(
       method,
     );
   const manifestEntry = "kind" in entry ? entry : undefined;
-  const removed = catalogue.removedScreens.some(
-    (screen) => screen.route === route,
+  const removed = catalogue.removedEntries.some(
+    ({ entry }) => entry.route === route,
   );
   const fragment = removed
     ? url.searchParams.has("fragment")

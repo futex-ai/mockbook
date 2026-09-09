@@ -2,16 +2,10 @@
 
 ## Delivery Status
 
-Approved target, not implemented. The current repository preview builder always
-includes Git changes and screen comparisons, as documented in
-[Changes](./mokabook-changes.md) and [preview deployments](./npm-release.md).
-This contract makes that content optional; implementation is tracked in
-[Optional Published Changes](../../plans/optional-published-changes.md).
-
-The option applies to the whole catalogue. It can ship independently of
-[first-class pages](./mokabook-pages.md); each implementation consumes the
-current supported manifest and entry kinds. It does not retain obsolete
-authoring APIs or alter the mandatory page migration.
+Implemented by the repository-only preview builder. Current catalogues publish
+without review by default; an explicit option includes a pinned comparison.
+[Optional Published Changes](../../plans/optional-published-changes.md) records
+implementation verification. This does not change the npm CLI.
 
 ## Publication Option
 
@@ -23,8 +17,8 @@ npm run preview:build -- --include-changes
 npm run preview:build -- --include-changes --base origin/main
 ```
 
-These are target commands, not yet available. Keep the existing `--out <path>`
-option, output default, and ownership restrictions. Accept options in any order;
+The existing `--out <path>` option, output default, and ownership restrictions
+remain supported. Accept options in any order;
 reject unknown or repeated options, missing values, and `--base` without
 `--include-changes` before loading consumer code or changing output.
 
@@ -80,10 +74,9 @@ previous generation or stale asset copy.
 With `--include-changes`, publish the existing All/Changes navigation and screen
 comparison controls, including a zero changed count. Retain removed-screen
 metadata, routes, and comparisons under the existing ID/route precedence rules.
-Once page support lands, include page impact and removed-v4-page missing-current
+Include page impact and removed-v4-page missing-current
 states from the [shared catalogue snapshot](./mokabook-catalogue-changes.md),
-including flat Changes rows after deleting their parents. Pages still have no
-visual comparisons. Until that target lands, preserve current screen metadata.
+including flat Changes rows after deleting their parents. Pages have no visual comparisons; screen metadata remains supported.
 
 Resolve the effective base and HEAD once, then pin their merge-base commit for
 both route impact and screen comparisons. Capture the current catalogue,
@@ -103,7 +96,7 @@ comparison failure aborts publication and preserves the previous owned output.
 Do not silently fall back to a catalogue without changes when they were
 explicitly requested. Preserve source protection, snapshot isolation, resource
 confinement, and sandbox restrictions in both options.
-After the v4 cutover, both options apply the
+Both options apply the
 [shared source policy](./mokabook-source-protection.md), including unimported
 reserved files and complete config/consumer input inventories.
 

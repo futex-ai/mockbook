@@ -4,26 +4,23 @@ The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` is no longer a CLI option.
 
-The approved [page-entry target](./mokabook-pages.md) adds page impact and
-missing-current states to this same filter while keeping comparison controls
-screen-only. Page support is planned; this document describes current behavior.
-Its [shared catalogue snapshot](./mokabook-catalogue-changes.md) will supply
-impact/removal metadata independently of the screen comparison result, with
-flat removed pages and baseline ancestry in details. The future
-[source policy](./mokabook-source-protection.md) also covers Review asset reads.
+[Pages](./mokabook-pages.md) participate in Changes and removed-entry states,
+while comparison controls remain screen-only. The
+[shared catalogue snapshot](./mokabook-catalogue-changes.md) supplies metadata
+independently of screen results; removed pages are flat Changes-only rows with
+baseline ancestry. Review reads follow the [source policy](./mokabook-source-protection.md).
 
-The approved [publication option](./mokabook-publication.md) will make published
-Changes and comparisons opt-in. It is not implemented; the publishing behavior
-below remains current until that separate change lands.
+[Published Changes](./mokabook-publication.md) are opt-in through
+`npm run preview:build -- --include-changes`. Default publication omits Changes,
+comparisons, history, and removals; both options omit live updates.
 
 ## Screen controls
 
-Every structured screen offers Current / Side by side / Overlay / Difference
+Every screen in a review-enabled catalogue offers Current / Side by side / Overlay / Difference
 in a compact band beneath its heading. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
 viewport or color scheme, and receiving a watched update do not generate
-comparison snapshots in development. Published catalogues prepare snapshots at
-build time, but never fetch or render them while browsing in Current. The first
+comparison snapshots in development. Publications with Changes prepare snapshots at build time, but never fetch or render them while browsing in Current. The first
 explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
 Navigation must never let a late comparison response replace another screen.
@@ -88,7 +85,8 @@ See [the shell design](./mokabook-shell-design.md) and
 
 ## Comparison engine
 
-An explicit development diff request, or publishing a catalogue, compares the workspace with a configured base ref, defaulting
+An explicit development diff request, or publishing with `--include-changes`,
+compares the workspace with a configured base ref, defaulting
 to `origin/main`. It resolves the merge base shared by `HEAD` and that ref, then
 reads the committed `mockupsDir` tree at that branch point without checking it
 out or rebuilding it. Commits reachable only from the configured base do not
@@ -108,7 +106,7 @@ scheme, enumerated from the union of base and head manifest entries. Each side's
 view set is `["light", ...(screen.darkFragments ? ["dark"] : [])]`: a dark
 view present only in head is `added`, and one present only in base is
 `removed`. Mobile and desktop still classify separately from their fragments.
-Added, removed, changed, and unchanged states handle version 2 and version 3
+Added, removed, changed, and unchanged states handle historical version 2, version 3, and current version 4
 manifests during Accounting migration; pre-dark bases simply have no
 `darkFragments`. Configured shared-impact globs and manifest dependencies
 identify changes that can affect many screens. A dependency is a repository file
@@ -128,8 +126,7 @@ not portable in an isolated snapshot and fail comparison instead of being
 silently omitted.
 Current-worktree resources must resolve to regular public files. Every base
 resource, including the pane document itself and each transitive dependency,
-must be a regular Git file. Neither side may read from configured entry or
-legacy source roots. Pane documents remain byte-unmodified and run in
+must be a regular Git file. Neither side may read from protected authoring inputs. Pane documents remain byte-unmodified and run in
 script-disabled sandboxes.
 
 `review.json` is the normative machine-readable result:

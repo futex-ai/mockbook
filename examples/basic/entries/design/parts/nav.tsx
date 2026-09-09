@@ -1,6 +1,12 @@
 import type { CSSProperties } from "react";
 
-import { FlowIcon, FolderIcon, FolderOpenIcon, ScreenIcon } from "./icons.js";
+import {
+  FlowIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  PageIcon,
+  ScreenIcon,
+} from "./icons.js";
 import { NavResizeHandle } from "./nav_resize.js";
 
 /** One entry in the catalogue navigation tree. */
@@ -9,7 +15,7 @@ export interface NavNode {
   count?: number;
   /** Nesting depth (0 = top level), used for indentation. */
   depth: number;
-  kind: "collection" | "flow" | "screen";
+  kind: "collection" | "flow" | "page" | "screen";
   label: string;
   /** Whether a collection is expanded (screens and flows ignore this). */
   open?: boolean;
@@ -92,7 +98,13 @@ function NavRow({
         className={node.kind === "flow" ? "mbk-nav-ico flow" : "mbk-nav-ico"}
         aria-hidden="true"
       >
-        {node.kind === "flow" ? <FlowIcon /> : <ScreenIcon />}
+        {node.kind === "flow" ? (
+          <FlowIcon />
+        ) : node.kind === "page" ? (
+          <PageIcon />
+        ) : (
+          <ScreenIcon />
+        )}
       </span>
       {node.label}
     </span>
@@ -101,6 +113,7 @@ function NavRow({
 
 interface NavTreeProps {
   activeLabel?: string | undefined;
+  changes?: boolean | undefined;
   changedCount?: number | undefined;
   changedOnly?: boolean | undefined;
   /** Rows to draw instead of the whole catalogue, as a filter leaves them. */
@@ -109,6 +122,7 @@ interface NavTreeProps {
 
 function CatalogueBody({
   activeLabel,
+  changes = true,
   changedCount = 3,
   changedOnly,
   nodes,
@@ -118,26 +132,28 @@ function CatalogueBody({
       <div className="mbk-nav-head">
         Catalogue<span>Collapse all</span>
       </div>
-      <div
-        className="mbk-nav-filter"
-        role="group"
-        aria-label="Catalogue filter"
-      >
-        <span
-          className={
-            changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
-          }
+      {changes ? (
+        <div
+          className="mbk-nav-filter"
+          role="group"
+          aria-label="Catalogue filter"
         >
-          All
-        </span>
-        <span
-          className={
-            changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
-          }
-        >
-          Changes<span className="mbk-nav-filter-count">{changedCount}</span>
-        </span>
-      </div>
+          <span
+            className={
+              changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
+            }
+          >
+            All
+          </span>
+          <span
+            className={
+              changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
+            }
+          >
+            Changes<span className="mbk-nav-filter-count">{changedCount}</span>
+          </span>
+        </div>
+      ) : null}
       <div className="mbk-nav-scroll">
         {(nodes ?? NAV_TREE).map((node, index) => (
           <NavRow
@@ -154,6 +170,7 @@ function CatalogueBody({
 /** Persistent desktop catalogue navigation. */
 export function NavTree({
   activeLabel,
+  changes,
   changedCount,
   changedOnly,
   nodes,
@@ -162,6 +179,7 @@ export function NavTree({
     <nav className="mbk-nav" aria-label="Catalogue">
       <CatalogueBody
         activeLabel={activeLabel}
+        changes={changes}
         changedCount={changedCount}
         changedOnly={changedOnly}
         nodes={nodes}
@@ -174,6 +192,7 @@ export function NavTree({
 /** Mobile catalogue navigation drawer, shown open. */
 export function NavDrawer({
   activeLabel,
+  changes,
   changedCount,
   changedOnly,
   nodes,
@@ -182,6 +201,7 @@ export function NavDrawer({
     <nav className="mbk-nav mbk-drawer" aria-label="Catalogue">
       <CatalogueBody
         activeLabel={activeLabel}
+        changes={changes}
         changedCount={changedCount}
         changedOnly={changedOnly}
         nodes={nodes}

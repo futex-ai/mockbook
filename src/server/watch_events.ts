@@ -160,12 +160,21 @@ export function classifyWatchPath(
   config: ResolvedConfig,
 ): RuntimeWatchAction {
   const absolute = path.resolve(candidate);
-  if (absolute === config.configPath) return "reconfigure";
+  if (
+    absolute === config.configPath ||
+    config.configSourceFiles?.some(
+      (source) => path.resolve(config.repoRoot, source) === absolute,
+    )
+  )
+    return "reconfigure";
+  if (
+    config.sourceFiles?.some(
+      (source) => path.resolve(config.repoRoot, source) === absolute,
+    )
+  )
+    return "rebuild";
   if (isInside(config.entriesDir, absolute)) return "rebuild";
-  if (config.legacy && isInside(config.legacy.pagesDir, absolute))
-    return "rebuild";
-  if (config.renderer === absolute || config.legacy?.components === absolute)
-    return "rebuild";
+  if (config.renderer === absolute) return "rebuild";
   const relative = toPosixPath(path.relative(config.repoRoot, absolute));
   if (isPackageOwnedIgnoredWatchPath(absolute, config)) return "ignore";
   const stylesheetPaths = configuredStylesheetPaths(config);
@@ -206,9 +215,12 @@ export function isPackageOwnedIgnoredWatchPath(
 /** Resolve the finite roots/globs watched for this consumer. */
 export function watchTargets(config: ResolvedConfig): string[] {
   const targets = [config.configPath, config.entriesDir];
-  if (config.legacy) targets.push(config.legacy.pagesDir);
+  targets.push(
+    ...(config.sourceFiles ?? []).map((source) =>
+      path.resolve(config.repoRoot, source),
+    ),
+  );
   if (config.renderer) targets.push(config.renderer);
-  if (config.legacy?.components) targets.push(config.legacy.components);
   for (const stylesheet of configuredStylesheetPaths(config)) {
     if (!/^https?:\/\//.test(stylesheet))
       targets.push(path.resolve(config.mockupsDir, stylesheet));
@@ -244,9 +256,10 @@ function isRequiredWatchPath(
   const required = [
     config.configPath,
     config.entriesDir,
-    ...(config.legacy ? [config.legacy.pagesDir] : []),
     ...(config.renderer ? [config.renderer] : []),
-    ...(config.legacy?.components ? [config.legacy.components] : []),
+    ...(config.sourceFiles ?? []).map((source) =>
+      path.resolve(config.repoRoot, source),
+    ),
     ...configuredStylesheetPaths(config).flatMap((stylesheet) =>
       /^https?:\/\//.test(stylesheet)
         ? []

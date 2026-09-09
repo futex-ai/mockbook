@@ -1,14 +1,14 @@
 # Watched Catalogue Development
 
 `mokabook serve` watches by default; `--no-watch` serves one deterministic
-snapshot. Every catalogue shell loads the package-owned browser client, which connects to
+snapshot. Every development catalogue shell loads the package-owned browser client, which connects to
 the versioned event stream and reloads its current durable URL after a higher
 version arrives. Snapshot panes do not run this client. Watch classification
-derives only from resolved config:
+derives from resolved config and both resolved source graphs:
 
-- the discovered or explicit config file reloads configuration, generated
+- the config file and its transitive authoring imports reload configuration, generated
   output, watch targets, and the child;
-- entry/page/renderer inputs rebuild generated output;
+- entry/page/renderer/transformer imports rebuild generated output;
 - an input shared with shell metadata rebuilds before restarting the child;
 - configured CSS/fonts/images reload the browser without rebuilding;
 - header-proven generated output plus `.git`, `.context`, `node_modules`,
@@ -33,7 +33,10 @@ An unowned public HTML file beneath `mockupsDir` is an authored static input,
 not generated merely because of its extension, so an explicit rule may reload,
 restart, rebuild, or ignore it.
 
-Watchers become ready before initial generation begins. Notifications during
+The input graphs are resolved before the watcher is constructed. Watchers
+become ready before initial generation begins. Import changes replace the watch
+set before committing a candidate, using the same readiness and recovery rules
+as config adoption. Notifications during
 generation and child startup are buffered. A child validates the catalogue and binds before
 readiness. Initial startup tries a requested concrete port and then each higher
 port in order when the address is occupied; port `0` delegates selection to the

@@ -1,7 +1,6 @@
 import type { ResolvedConfig } from "../config/types.js";
 import { transformCompatibilityDocuments } from "../compatibility/transform.js";
 import { MokabookError } from "../errors.js";
-import { renderLegacyPages } from "../legacy/pages.js";
 import {
   createManifest,
   fragmentRoute,
@@ -10,23 +9,20 @@ import {
   serializeManifest,
 } from "../registry/manifest.js";
 import { prepareRegistry } from "../registry/prepare.js";
-import type { ManifestLegacyPage, ManifestV3 } from "../registry/types.js";
+import type { ManifestV4 } from "../registry/types.js";
 import type { ArtifactView } from "../registry/views.js";
 import { effectiveColorSchemes, VIEWPORTS } from "../registry/views.js";
 import { normalizeSingleDocument } from "../review/ignore.js";
 import { validateHtmlLinks } from "./html_links.js";
 import { validateLogicalFragments } from "./logical_records.js";
 import { loadConsumerGraph } from "./load_graph.js";
-import {
-  generatedHeader,
-  validateGeneratedOwnershipHeaders,
-} from "./ownership.js";
+import { validateGeneratedOwnershipHeaders } from "./ownership.js";
 import { validateGeneratedOutputPaths } from "./output_paths.js";
-import { addOutput, renderFragments } from "./render.js";
+import { renderFragments } from "./render.js";
 
 /** Complete in-memory static compilation result. */
 export interface Compilation {
-  manifest: ManifestV3;
+  manifest: ManifestV4;
   outputs: ReadonlyMap<string, string>;
 }
 
@@ -35,6 +31,7 @@ export async function compileCatalogue(
   config: ResolvedConfig,
 ): Promise<Compilation> {
   const graph = await loadConsumerGraph(config);
+  config = { ...config, sourceFiles: graph.sourceFiles };
   const registry = prepareRegistry(graph.definitions, config);
   const fragmentViews = new Map<string, ArtifactView>();
   const outputs = renderFragments(
@@ -43,7 +40,6 @@ export async function compileCatalogue(
     config,
     fragmentViews,
   );
-  const legacy = renderLegacyPages(config, graph);
   const routedEntries = new Set(
     registry.entries.flatMap((entry) =>
       entry.kind === "collection" ? [] : [entry.route],
@@ -51,6 +47,8 @@ export async function compileCatalogue(
   );
   const generatedOwners = new Map<string, string>();
   for (const entry of registry.entries) {
+    if (entry.kind === "page")
+      generatedOwners.set(entry.route, entry.sourceRelativePath);
     if (entry.kind !== "screen") continue;
     for (const viewport of VIEWPORTS) {
       for (const colorScheme of effectiveColorSchemes(
@@ -64,21 +62,14 @@ export async function compileCatalogue(
       }
     }
   }
-  const fragmentRoutes = new Set(generatedOwners.keys());
-  for (const page of legacy) {
-    if (routedEntries.has(page.route) || fragmentRoutes.has(page.route)) {
-      throw new MokabookError(
-        "build-invalid",
-        `legacy route collides with registry output: ${page.route}`,
-      );
-    }
-    addOutput(
-      outputs,
-      page.route,
-      `${generatedHeader(page.sourceRelativePath)}${page.content}`,
-    );
-    generatedOwners.set(page.route, page.sourceRelativePath);
-  }
+  const fragmentRoutes = new Set(
+    [...generatedOwners.keys()].filter(
+      (route) =>
+        !registry.entries.some(
+          (entry) => entry.kind === "page" && entry.route === route,
+        ),
+    ),
+  );
   for (const route of routedEntries) {
     if (fragmentRoutes.has(route)) {
       throw new MokabookError(
@@ -99,13 +90,9 @@ export async function compileCatalogue(
   for (const [route, content] of outputs) {
     normalizeSingleDocument(content, route);
   }
-  const legacyManifest: ManifestLegacyPage[] = legacy.map((page) => ({
-    route: page.route,
-    sourcePath: page.sourceRelativePath,
-  }));
   const manifest = createManifest(
     registry.entries,
-    legacyManifest,
+    graph.sourceFiles,
     config.colorSchemes,
   );
   parseManifest(manifest);

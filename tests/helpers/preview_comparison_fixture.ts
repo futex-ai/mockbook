@@ -13,10 +13,13 @@ const execute = promisify(execFile);
 
 /** Build a published catalogue against a real Git baseline and changed assets. */
 export async function createPreviewComparisonFixture() {
-  const fixture = await createFixture(comparisonEntrySource(false), {
-    extraConfig:
-      'colorSchemes: ["light", "dark"], stylesheets: [{ match: "**/*.html", stylesheets: ["styles.css"] }],',
-  });
+  const fixture = await createFixture(
+    comparisonEntrySource(false) + documentEntries(false),
+    {
+      extraConfig:
+        'colorSchemes: ["light", "dark"], stylesheets: [{ match: "**/*.html", stylesheets: ["styles.css"] }],',
+    },
+  );
   try {
     const config = await loadConfig(fixture.root);
     await fs.promises.writeFile(
@@ -43,7 +46,10 @@ export async function createPreviewComparisonFixture() {
     await git("add", ".");
     await git("commit", "-qm", "test: published baseline");
     await git("update-ref", "refs/remotes/origin/main", "HEAD");
-    await fs.promises.writeFile(fixture.entryPath, comparisonEntrySource(true));
+    await fs.promises.writeFile(
+      fixture.entryPath,
+      comparisonEntrySource(true) + documentEntries(true),
+    );
     await fs.promises.writeFile(
       path.join(fixture.mockupsDir, "styles.css"),
       'body { color: blue; background: url("./pixel.png"); }\n',
@@ -61,7 +67,7 @@ export async function createPreviewComparisonFixture() {
         [
           "--input-type=module",
           "--eval",
-          'import { loadConfig } from "./dist/config/load.js"; import { buildPreview } from "./scripts/preview/catalogue.mjs"; await buildPreview(await loadConfig(process.argv[1]), process.argv[2]);',
+          'import { loadConfig } from "./dist/config/load.js"; import { buildPreview } from "./scripts/preview/catalogue.mjs"; await buildPreview(await loadConfig(process.argv[1]), process.argv[2], { includeChanges: true });',
           fixture.root,
           output,
         ],
@@ -80,4 +86,13 @@ export async function createPreviewComparisonFixture() {
     await removeFixture(fixture);
     throw error;
   }
+}
+
+function documentEntries(current: boolean): string {
+  return `
+import { definePage, defineCollection as documentCollection } from "mokabook";
+const documentMetadata = { description: "Document", dependencies: [], relatedDocs: [], tags: ["documents"] };
+mockups.push(definePage({ ...documentMetadata, id: "handbook", title: "Handbook", route: "handbook.html", render: () => '<html><body><main id="overview">Handbook</main><a href="mock:home">Home</a></body></html>' }));
+${current ? "" : 'mockups.push(documentCollection({ id: "documents", title: "Documents", description: "Documents", dependencies: [], relatedDocs: [], childIds: ["removed-document"] }), definePage({ ...documentMetadata, id: "removed-document", title: "Former handbook", route: "removed-document.html", render: () => "<html><body>Previous document</body></html>" }));'}
+`;
 }

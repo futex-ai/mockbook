@@ -20,16 +20,12 @@ control with its picker panel, the mark-only narrow brand, and the top bar's
 stacking above the navigation drawer scrim. Every state recorded here is
 implemented.
 
-The approved [page-entry target](./mokabook-pages.md) requires additional
-whole-document and removed-page designs before its UI is implemented. Those
-states are planned and are not included in the implemented catalogue below.
-The [removed-page contract](./mokabook-catalogue-changes.md) requires a flat row
-in Changes and baseline breadcrumbs in details even after all parents are
-deleted; its mobile/desktop mockups must not recreate historical collections.
-
-The approved [publication option](./mokabook-publication.md) also requires mobile
-and desktop designs with Changes and comparison controls omitted or included.
-Those capability states must be designed before their presentation is implemented.
+The page and publication designs are now recorded in the example catalogue.
+Their runtime implementation is tracked in the linked plans. Whole documents
+use a plain bordered pane and omit device/comparison controls. Removed pages
+are flat Changes rows; baseline breadcrumbs are text even after their parents
+are deleted. Ordinary publications omit the Changes filter and comparison band
+while preserving the same navigation, search, tags, and screen variants.
 
 ## Design Mockups
 
@@ -55,6 +51,13 @@ generated under `examples/basic/generated/design/`:
 | `design/review/impact/shared-impact.html` | Summary with shared-impact card        |
 | `design/review/impact/ignored-only.html`  | Ignored-region-only classification     |
 | `design/review/impact/empty.html`         | Empty Changes filter retaining Current |
+
+Additional owning groups keep each new page at no more than five screens:
+
+- `design/browse/pages/view.html`, `details.html`, and `removed.html` specify
+  full documents, metadata/drawer, and deleted-parent behavior.
+- `design/browse/publication/catalogue.html` and `changes.html` specify review
+  omitted and included, using the existing Welcome stage.
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
@@ -224,7 +227,7 @@ scrollable region scrolls internally:
   joined by a 2px connector line, each with title, description, a
   `This screen in the catalogue: <title> →` link, and one browser frame
   (height 640px) indented under the step head.
-- **Legacy embed** — a bordered, 12px-radius iframe pane on the dotted stage.
+- **Document pane** — a bordered, 12px-radius iframe pane on the dotted stage.
 
 ## Color Scheme
 

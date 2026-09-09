@@ -1,17 +1,39 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { ManifestV3 } from "../dist/registry/types.js";
+import type { ManifestV4 } from "../dist/registry/types.js";
 import type { Catalogue } from "../dist/server/catalogue.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
 import { homePage, notFoundPage, viewPage } from "../dist/server/pages.js";
 import { SHELL_CSS } from "../dist/server/shell/css.js";
 import { buildNavTree } from "../dist/server/shell/nav_tree.js";
 
-const manifest: ManifestV3 = {
+const manifest: ManifestV4 = {
   entries: [
     {
-      childIds: ["screens", "tour"],
+      kind: "page",
+      id: "old",
+      title: "Old",
+      description: "Original complete document",
+      route: "legacy/old.html",
+      sourcePath: "entries/fixture.mockup.tsx",
+      dependencies: [],
+      relatedDocs: [],
+      navPath: [],
+    },
+    {
+      kind: "page",
+      id: "overview",
+      title: "Overview",
+      description: "Catalogue overview",
+      route: "legacy/index.html",
+      sourcePath: "entries/fixture.mockup.tsx",
+      dependencies: [],
+      relatedDocs: [],
+      navPath: [],
+    },
+    {
+      childIds: ["screens", "tour", "old", "overview"],
       dependencies: [],
       description: "Example catalogue",
       id: "example",
@@ -84,14 +106,11 @@ const manifest: ManifestV3 = {
     },
   ],
   generatedBy: "mokabook",
-  legacyPages: [
-    { route: "legacy/index.html", sourcePath: "pages/index.html" },
-    { route: "legacy/old.html", sourcePath: "pages/old.html" },
-  ],
-  schemaVersion: 3,
+  sourceFiles: ["entries/fixture.mockup.tsx"],
+  schemaVersion: 4,
 };
 
-const darkManifest: ManifestV3 = {
+const darkManifest: ManifestV4 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
     entry.kind === "screen" && entry.id === "welcome"
@@ -106,7 +125,7 @@ const darkManifest: ManifestV3 = {
   ),
 };
 
-const taggedFlowManifest: ManifestV3 = {
+const taggedFlowManifest: ManifestV4 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
     entry.kind === "use-case"
@@ -115,7 +134,7 @@ const taggedFlowManifest: ManifestV3 = {
   ),
 };
 
-const untaggedManifest: ManifestV3 = {
+const untaggedManifest: ManifestV4 = {
   ...manifest,
   entries: manifest.entries.map((entry) => {
     if (entry.kind === "collection") return entry;
@@ -233,11 +252,11 @@ function assertLightSrcMatchesAttribute(html: string, frames: number): void {
   }
 }
 
-test("nav tree nests collections and folds legacy directories", () => {
+test("nav tree nests pages and screens in one declared hierarchy", () => {
   const catalogue = createCatalogue(manifest);
-  const tree = buildNavTree(catalogue.hierarchy, manifest.legacyPages);
+  const tree = buildNavTree(catalogue.hierarchy);
   const labels = tree.map((node) => node.label);
-  assert.deepEqual(labels, ["Example", "Legacy"]);
+  assert.deepEqual(labels, ["Example"]);
   const example = tree[0];
   assert.ok(example?.kind === "group");
   const screens = example.children.find((node) => node.label === "Screens");
@@ -248,15 +267,15 @@ test("nav tree nests collections and folds legacy directories", () => {
   );
   const tour = example.children.find((node) => node.label === "Tour");
   assert.ok(tour?.kind === "leaf" && tour.entryKind === "use-case");
-  const legacy = tree[1];
-  assert.ok(legacy?.kind === "group");
   assert.deepEqual(
-    legacy.children.map((node) => node.label),
-    ["Overview", "Old"],
+    example.children
+      .filter((node) => node.kind === "leaf" && node.entryKind === "page")
+      .map((node) => node.label),
+    ["Old", "Overview"],
   );
 });
 
-test("legacy breadcrumbs link ancestors through their Overview page", () => {
+test("page breadcrumbs use real collections without invented Overview links", () => {
   const catalogue = createCatalogue(manifest);
   const entry = catalogue.byRoute.get("legacy/old.html");
   assert.ok(entry);
@@ -266,7 +285,7 @@ test("legacy breadcrumbs link ancestors through their Overview page", () => {
   });
   assert.match(
     html,
-    /class="mbk-crumb-link" href="\/view\/legacy\/index\.html">Legacy</,
+    /aria-label="Catalogue location" class="mbk-crumbs"><span>Example<\/span>/,
   );
   assert.match(html, /class="mbk-stage-embed"/);
 });

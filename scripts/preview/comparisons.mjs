@@ -6,13 +6,14 @@ import { configuredServedReview } from "../../dist/server/review_routes.js";
 const comparisonRoute = "/__mokabook/diffs/review.json";
 
 /** Keep publishing isolated from another server's configured comparison output. */
-export function previewComparisonProvider(config, stage) {
+export function previewComparisonProvider(config, stage, base, git) {
   return configuredServedReview(
     {
       ...config,
       review: { ...config.review, outDir: path.join(stage, ".comparisons") },
     },
-    "origin/main",
+    base,
+    git,
   );
 }
 

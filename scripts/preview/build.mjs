@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { publicationArguments } from "../../dist/publication/options.js";
 import { loadConfig } from "../../dist/config/load.js";
 import { buildPreview } from "./catalogue.mjs";
 
@@ -8,16 +9,12 @@ const configPath = path.join(
   repositoryRoot,
   "examples/basic/mokabook.config.ts",
 );
-const output = outputArgument(process.argv.slice(2));
+const parsed = publicationArguments(process.argv.slice(2));
+const output = path.resolve(
+  repositoryRoot,
+  parsed.output ?? ".context/mokabook-preview",
+);
 const config = await loadConfig(repositoryRoot, configPath);
 
-await buildPreview(config, output);
+await buildPreview(config, output, parsed.options);
 process.stdout.write(`Built Mokabook preview at ${output}.\n`);
-
-function outputArgument(arguments_) {
-  if (arguments_.length === 0)
-    return path.join(repositoryRoot, ".context/mokabook-preview");
-  if (arguments_.length === 2 && arguments_[0] === "--out")
-    return path.resolve(repositoryRoot, arguments_[1]);
-  throw new Error("usage: node scripts/preview/build.mjs [--out <path>]");
-}

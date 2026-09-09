@@ -10,7 +10,7 @@ import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
 import { analyzeHierarchy } from "./hierarchy.js";
 import { validateManifest } from "./manifest_validation.js";
-import type { ManifestEntry, ManifestLegacyPage, ManifestV3 } from "./types.js";
+import type { ManifestEntry, ManifestV4, HistoricalManifest } from "./types.js";
 import { effectiveColorSchemes } from "./views.js";
 
 /** Canonical generated manifest filename. */
@@ -29,12 +29,12 @@ export function fragmentRoute(
   return route.replace(/\.html$/, `.${viewport}${schemeSuffix}.html`);
 }
 
-/** Create deterministic manifest data from prepared entries and legacy pages. */
+/** Create deterministic manifest data from prepared entries and the source inventory. */
 export function createManifest(
   entries: readonly ResolvedRegistryEntry[],
-  legacyPages: readonly ManifestLegacyPage[],
+  sourceFiles: readonly string[],
   catalogueSchemes: readonly ColorScheme[],
-): ManifestV3 {
+): ManifestV4 {
   const hierarchy = analyzeHierarchy(entries).hierarchy;
   return {
     entries: entries.map((entry) =>
@@ -47,29 +47,27 @@ export function createManifest(
       ),
     ),
     generatedBy: "mokabook",
-    legacyPages: [...legacyPages].sort((left, right) =>
-      left.route.localeCompare(right.route),
-    ),
-    schemaVersion: 3,
+    sourceFiles: [
+      ...new Set([
+        ...sourceFiles,
+        ...entries.map((entry) => entry.sourceRelativePath),
+      ]),
+    ].sort(),
+    schemaVersion: 4,
   };
 }
 
-/** Serialize a version 3 manifest byte-stably. */
-export function serializeManifest(manifest: ManifestV3): string {
+/** Serialize a version 4 manifest byte-stably. */
+export function serializeManifest(manifest: ManifestV4): string {
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
 
-/** Read canonical output, falling back to the legacy v2 file only when absent. */
-export function readManifest(config: ResolvedConfig): ManifestV3 {
+/** Read strictly current schema-v4 canonical output. */
+export function readManifest(config: ResolvedConfig): ManifestV4 {
   const canonicalPath = path.join(config.mockupsDir, MANIFEST_NAME);
-  const selection = selectManifestInput(
-    fs.existsSync(canonicalPath),
-    config.compatibility.readManifestV2,
-  );
-  return readManifestFile(
-    path.join(config.mockupsDir, selection.filename),
-    selection.allowV2,
-  );
+  const manifest = readManifestFile(canonicalPath);
+  config.sourceFiles = manifest.sourceFiles;
+  return manifest;
 }
 
 /** Select the strict canonical input or the explicitly enabled legacy input. */
@@ -83,7 +81,7 @@ export function selectManifestInput(
   return { allowV2: true, filename: LEGACY_MANIFEST_NAME };
 }
 
-function readManifestFile(candidate: string, allowV2: boolean): ManifestV3 {
+function readManifestFile(candidate: string): ManifestV4 {
   let value: unknown;
   try {
     value = JSON.parse(fs.readFileSync(candidate, "utf8"));
@@ -96,12 +94,20 @@ function readManifestFile(candidate: string, allowV2: boolean): ManifestV3 {
       },
     );
   }
-  return parseManifest(value, allowV2);
+  return parseManifest(value);
 }
 
 /** Validate manifest-shaped JSON and normalize temporary version 2 input. */
-export function parseManifest(value: unknown, allowV2 = false): ManifestV3 {
-  return validateManifest(value, allowV2);
+export function parseManifest(value: unknown): ManifestV4 {
+  return validateManifest(value, false, false) as ManifestV4;
+}
+
+/** Read old schemas only at the historical comparison boundary. */
+export function parseHistoricalManifest(
+  value: unknown,
+  allowV2 = false,
+): HistoricalManifest {
+  return validateManifest(value, allowV2, true);
 }
 
 function toManifestEntry(
@@ -124,6 +130,13 @@ function toManifestEntry(
   };
   if (entry.kind === "collection")
     return { ...common, childIds: [...entry.childIds], kind: "collection" };
+  if (entry.kind === "page")
+    return {
+      ...common,
+      kind: "page",
+      route: entry.route,
+      ...(entry.tags?.length ? { tags: [...entry.tags] } : {}),
+    };
   if (entry.kind === "use-case") {
     return {
       ...common,

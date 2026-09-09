@@ -26,7 +26,43 @@ export function renderFragments(
   fragmentViews: Map<string, ArtifactView>,
 ): Map<string, string> {
   const outputs = new Map<string, string>();
-  for (const entry of entries) {
+  const ordered = [
+    ...entries.filter((entry) => entry.kind === "screen"),
+    ...entries.filter((entry) => entry.kind === "page"),
+  ];
+  for (const entry of ordered) {
+    if (entry.kind === "page") {
+      let rendered: unknown;
+      try {
+        rendered = entry.render();
+      } catch (error) {
+        throw new MokabookError(
+          "build-invalid",
+          `page render failed for ${entry.id} (${entry.sourceRelativePath}): ${errorMessage(error)}`,
+          { cause: error },
+        );
+      }
+      if (
+        typeof rendered !== "string" ||
+        !/<html[\s>]/i.test(rendered) ||
+        !/<\/html\s*>/i.test(rendered)
+      ) {
+        if (rendered instanceof Promise) void rendered.catch(() => undefined);
+        throw new MokabookError(
+          "build-invalid",
+          `page render must return a complete HTML document synchronously for ${entry.id} (${entry.sourceRelativePath})`,
+        );
+      }
+      addOutput(
+        outputs,
+        entry.route,
+        `${generatedHeader(entry.sourceRelativePath)}${serializeReviewSentinels(rendered)}`,
+      );
+      fragmentViews.set(entry.route, {
+        colorScheme: "light",
+        viewport: "desktop",
+      });
+    }
     if (entry.kind !== "screen") continue;
     for (const viewport of VIEWPORTS) {
       for (const colorScheme of effectiveColorSchemes(

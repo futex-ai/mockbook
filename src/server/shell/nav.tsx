@@ -65,6 +65,8 @@ function LeafRow(props: {
       data-changed={changed ? "true" : undefined}
       data-entry-id={props.node.entryId}
       data-nav-row=""
+      data-removed-page={props.node.removedPage ? "" : undefined}
+      hidden={props.node.removedPage ? true : undefined}
       data-route={props.node.route}
       data-tags={tags.length > 0 ? tags.join(" ") : undefined}
       href={`/view/${encodeUrlPath(props.node.route)}`}
@@ -176,18 +178,16 @@ export function CatalogueNav(props: {
   context: ShellContext;
 }) {
   const nodes = [
-    ...buildNavTree(
-      props.catalogue.hierarchy,
-      props.catalogue.manifest.legacyPages,
-    ),
-    ...props.catalogue.removedScreens.map((screen): NavLeafNode => ({
+    ...buildNavTree(props.catalogue.hierarchy),
+    ...props.catalogue.removedEntries.map(({ entry }): NavLeafNode => ({
       kind: "leaf",
-      key: `removed:${screen.route}`,
-      entryId: screen.id,
-      entryKind: "screen",
-      label: `${screen.title} · Removed`,
-      route: screen.route,
-      tags: screen.tags ?? [],
+      key: `removed:${entry.route}`,
+      entryId: entry.id,
+      entryKind: entry.kind,
+      label: `${entry.title} · Removed`,
+      route: entry.route,
+      tags: entry.tags ?? [],
+      removedPage: entry.kind === "page",
     })),
   ];
   return (

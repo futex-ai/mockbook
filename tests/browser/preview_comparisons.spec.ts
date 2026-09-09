@@ -11,7 +11,7 @@ let preview: PreviewFixture;
 
 test.describe.configure({ timeout: 90_000 });
 test.beforeAll(async () => {
-  preview = await startPreviewFixture();
+  preview = await startPreviewFixture(true);
 });
 test.afterAll(async () => {
   await preview.close();

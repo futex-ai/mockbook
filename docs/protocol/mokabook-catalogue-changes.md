@@ -2,10 +2,9 @@
 
 ## Delivery Status
 
-Approved target, not implemented. This supplements
-[Pages in the catalogue](./mokabook-pages.md). It defines catalogue impact and
-removed-entry metadata separately from the existing screen-only
-[comparison result](./mokabook-changes.md). Implementation is tracked in
+Implemented alongside [Pages in the catalogue](./mokabook-pages.md).
+Catalogue impact and removed-entry metadata are independent of the screen-only
+[comparison result](./mokabook-changes.md). Verification is tracked in
 [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
 
 ## Shared Metadata Contract

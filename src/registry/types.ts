@@ -19,7 +19,7 @@ export interface ManifestEntryBase {
   dependencies: readonly string[];
   description: string;
   id: string;
-  kind: "collection" | "screen" | "use-case";
+  kind: "collection" | "screen" | "page" | "use-case";
   navPath: readonly string[];
   rationale?: string;
   relatedDocs: readonly string[];
@@ -40,6 +40,13 @@ export interface ManifestScreen extends ManifestEntryBase {
   viewports: readonly Viewport[];
 }
 
+/** Serializable whole-document page. */
+export interface ManifestPage extends ManifestEntryBase {
+  kind: "page";
+  route: string;
+  tags?: readonly string[];
+}
+
 /** Serializable collection manifest entry. */
 export interface ManifestCollection extends ManifestEntryBase {
   childIds: readonly string[];
@@ -55,9 +62,9 @@ export interface ManifestUseCase extends ManifestEntryBase {
   tags?: readonly string[];
 }
 
-/** Any version 3 entry. */
+/** Any supported registry entry, including current whole-document pages. */
 export type ManifestEntry =
-  ManifestScreen | ManifestCollection | ManifestUseCase;
+  ManifestScreen | ManifestPage | ManifestCollection | ManifestUseCase;
 
 /** One generated legacy page. */
 export interface ManifestLegacyPage {
@@ -72,3 +79,14 @@ export interface ManifestV3 {
   legacyPages: readonly ManifestLegacyPage[];
   schemaVersion: 3;
 }
+
+/** Current generated catalogue, with a complete private source inventory. */
+export interface ManifestV4 {
+  entries: readonly ManifestEntry[];
+  generatedBy: "mokabook";
+  schemaVersion: 4;
+  sourceFiles: readonly string[];
+}
+
+/** Validated historical manifest used exclusively by Git comparisons. */
+export type HistoricalManifest = ManifestV3 | ManifestV4;

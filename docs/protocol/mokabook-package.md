@@ -19,12 +19,10 @@ The catalogue-link implementation and its verification history are recorded in
 the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
-The approved [page-entry target](./mokabook-pages.md) and
-[source/manifest migration](./mokabook-page-migration.md) are not implemented.
-They define the future `page` kind and unified hierarchy; the API and schema-v3
-descriptions below remain the current behavior until that cutover. The target
-removes `legacy` configuration and requires consumers to adopt ordinary page
-definitions; there is no legacy registration adapter in the new API.
+[Whole-document pages](./mokabook-pages.md) use the same IDs and hierarchy as
+screens and flows. Current manifests require v4. The
+[breaking migration](./mokabook-page-migration.md) removes legacy configuration,
+discovery, and rendering adapters; consumers use ordinary page definitions.
 
 ## Package Identity
 
@@ -85,7 +83,6 @@ the following contract:
 
 - `mockupsDir`: output/catalogue root, such as `docs/mockups`;
 - `entriesDir`: structured `*.mockup.ts` and `*.mockup.tsx` source directory;
-- optional legacy page discovery and rendering settings;
 - a light-only or light-and-dark catalogue rendering set;
 - optional renderer-module path and declarative route-to-stylesheet rules;
 - optional consumer package roots, aliases, conditions, fields, extensions, and
@@ -94,7 +91,6 @@ the following contract:
   directory;
 - shared-impact globs for comparisons;
 - additional authored inputs and static assets for watched Serve;
-- optional legacy link aliases and lint policy needed by that consumer.
 - an optional temporary document transformer for an existing consumer cutover.
 
 The resolved config has one repository root, one mockups root, and normalized
@@ -147,17 +143,6 @@ interface MokabookConfig {
     lightStylesheets?: readonly string[];
     darkStylesheets?: readonly string[];
   }[];
-  legacy?: {
-    pagesDir: string;
-    components?: string;
-    exclude?: readonly string[];
-    routeAliases?: Readonly<Record<string, string>>;
-    lint?: {
-      allowRoutes?: readonly string[];
-      maxScreensPerPage?: number;
-      requireStageIds?: boolean;
-    };
-  };
   review?: {
     base?: string; // origin/main; merge base with HEAD
     outDir?: string; // .context/mokabook-review
@@ -177,8 +162,8 @@ interface MokabookConfig {
 }
 ```
 
-Filesystem fields (`repoRoot`, `entriesDir`, `mockupsDir`, `renderer`, legacy
-page/component paths, compatibility transformer, module-resolution package
+Filesystem fields (`repoRoot`, `entriesDir`, `mockupsDir`, `renderer`,
+compatibility transformer, module-resolution package
 roots, and Review `outDir`) are config-relative. Stylesheet file paths are
 relative to `mockupsDir`; HTTP(S) stylesheet URLs are allowed.
 `colorSchemes` is a non-empty, duplicate-free subset of `"light" | "dark"`
@@ -187,8 +172,7 @@ light-first order. Shared `stylesheets` apply to every generated view, with a
 matching `lightStylesheets` or `darkStylesheets` list appended in declaration
 order.
 `watch.rules[].paths` and Review `sharedImpact` are repository-relative POSIX
-globs, while stylesheet `match` and legacy aliases/lint routes match catalogue
-routes. `repoRoot` defaults to the config directory. Duplicate stylesheet
+globs, while stylesheet `match` matches catalogue routes. `repoRoot` defaults to the config directory. Duplicate stylesheet
 matches and watch paths are invalid. Additional watch rules cannot override
 configured source/module rebuilds, configured stylesheet reloads, or
 package-owned ignores for dependency, build, test, Review, header-proven
@@ -385,7 +369,7 @@ serializes Review-ignore markers, adapts opt-in `MockLink asChild` controls,
 and rewrites every complete
 `mock:<id>[#fragment]` value found in `href` or `data-nav-href` after this
 function returns, including when one element has both attributes. The rewrite
-is element-aware and applies to legacy output: logical `href` is valid only on
+is element-aware and applies to complete page output: logical `href` is valid only on
 native HTML/SVG links, every other owner fails the build, documents with an
 activatable logical link reject `<base href>`, and final compatibility output
 is checked through that fail-closed contract. The
@@ -461,8 +445,8 @@ never copied into the npm package.
 - `<screen>.mobile.html` and `<screen>.desktop.html` fragments for each screen;
 - `<screen>.mobile.dark.html` and `<screen>.desktop.dark.html` when that screen's
   effective schemes include dark;
-- legacy HTML only when legacy support is configured;
-- `mokabook-manifest.json` using schema version 3.
+- one complete HTML document at each page route;
+- `mokabook-manifest.json` using schema version 4.
 
 Screen and use-case routes are durable identifiers and do not imply a composed
 HTML file. A screen's fragments are bare product renders with required head
@@ -472,7 +456,7 @@ previous dark documents proven generated orphans: `check` reports them and
 `build` removes them through the normal ownership-safe lifecycle.
 
 Manifest source and output paths are repository-relative; routes are relative
-to `mockupsDir`. The manifest includes every entry, fragment, legacy page,
+to `mockupsDir`. The manifest includes every entry, fragment, source input,
 relationship, related doc, and dependency needed by Browse and Review. It is
 stable across operating systems and independent of absolute checkout paths.
 Repository paths are canonical POSIX paths with no empty, dot, parent, drive,
@@ -482,23 +466,23 @@ Generated documents carry a generic generated-file header. After compatibility
 transformation, every pending document must retain the expected source path in
 that header. The same parser accepts LF and CRLF and lets Build remove only
 files proven to have been generated by the configured catalogue: an HTML
-header's source must belong to the current entries or legacy root even when
+header's source must belong to the current entries root even when
 that source was just deleted. It never deletes an unknown or foreign-catalogue
 file.
 
-The normative version 3 manifest shape is:
+The normative version 4 manifest shape is:
 
 ```ts
-interface ManifestV3 {
-  schemaVersion: 3;
+interface ManifestV4 {
+  schemaVersion: 4;
   generatedBy: "mokabook";
   entries: readonly ManifestEntry[];
-  legacyPages: readonly { route: string; sourcePath: string }[];
+  sourceFiles: readonly string[];
 }
 
 interface CommonEntry {
   id: string;
-  kind: "screen" | "collection" | "use-case";
+  kind: "screen" | "collection" | "use-case" | "page";
   title: string;
   description: string;
   rationale?: string;
@@ -509,6 +493,7 @@ interface CommonEntry {
 }
 
 type ManifestEntry =
+  | (CommonEntry & { kind: "page"; route: string; tags?: readonly string[] })
   | (CommonEntry & {
       kind: "screen";
       route: string;
@@ -535,48 +520,40 @@ type ManifestEntry =
     });
 ```
 
-Entries sort by route then id; legacy pages, dependencies, and generated files
+Entries sort by route then id; source inputs, dependencies, and generated files
 sort lexically. Optional properties are omitted, not emitted as `null`.
-`navPath` is schema-v3 compatibility output derived from collection ancestry;
+`navPath` is derived output derived from collection ancestry;
 it contains the ordered ancestor collection titles and is empty for catalogue
 roots. It is not an authoring input and it is not a second source of hierarchy.
 `darkFragments` is present exactly when the screen's effective schemes include
 dark. Its routes use the `.mobile.dark.html` and `.desktop.dark.html` names and
 participate in the same safe-route and collision validation as light fragments.
-Light-only manifests omit the field and remain byte-identical to pre-axis
-schema-v3 output.
+Light-only manifests omit the field.
 `tags` carries the authored classification list, in authored order and never
-sorted, and is written only for a screen or use case that declares a non-empty
+sorted, and is written only for a page, screen, or use case that declares a non-empty
 one; an absent or empty declaration is omitted, so an untagged catalogue
 serializes exactly as it did before the field existed.
 `sourcePath`, related docs, and dependencies use repo-relative POSIX paths.
 Manifest dependencies retain the file-or-directory-root matching semantics of
 the authoring API.
 
-## Legacy Compatibility
+## Page Migration And Historical Comparisons
 
-Legacy `.source.ts`, `.source.tsx`, and `.source.html` generation is an optional
-transition feature. Generic discovery, bundling, stale/orphan detection, link
-validation, screen-cap validation, and comment-component expansion belong to
-the package.
+`legacy` configuration is rejected, including an explicitly undefined value.
+Register complete synchronous HTML with `definePage` or nested `page`; move
+comment components, source allowlists, and stage policy into consumer code.
+The [migration contract](./mokabook-page-migration.md) specifies safe archival
+of verified old artifacts without weakening generated-file ownership.
 
-Application-specific route repairs, allowlists, component registries, and
-source-layout rules belong in the consumer config or adapter. Accounting's
-historical app-family rewrites must not become defaults. New structured entries
-must not rely on legacy route repair.
+Current reads accept only canonical `mokabook-manifest.json` schema v4 and
+validate the [resolved source inventory](./mokabook-source-protection.md).
+Git comparisons accept validated historical v3 or v4. A v2
+`mockbook-manifest.json` is considered only when the historical canonical file
+is absent and `compatibility.readManifestV2` is enabled. Invalid canonical
+history never falls back. Historical readers never execute consumer code.
 
-Manifest readers may accept Accounting's `mockbook-manifest.json` version 2
-during the Accounting cutover only when the canonical
-`mokabook-manifest.json` is absent. A present but invalid version 3 manifest
-fails validation instead of falling back to potentially stale version 2 data.
-Every new build emits `mokabook-manifest.json` version 3. Compatibility code
-has explicit fixtures and a removal policy; it is not an undocumented
-fallback.
-
-Validated version 2 and version 3 manifests keep their serialized `navPath`
-values available to older comparison readers, but current Browse derives its
-structured tree and breadcrumbs from collection relationships. A historical
-label array therefore cannot override ancestry or block cross-version Review.
+The [page contract](./mokabook-pages.md) defines the public page inputs,
+rendering pipeline, exact routes, inheritance, and schema validation.
 
 ## Non-Goals
 

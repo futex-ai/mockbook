@@ -2,13 +2,11 @@
 
 ## Delivery Status
 
-Approved target, not implemented. The current package emits schema v3 and
-builds separate structured and legacy navigation trees. This contract defines
-their replacement; [page migration](./mokabook-page-migration.md) defines the
-required consumer upgrade and historical comparison support. Current behavior remains documented in
-[the package contract](./mokabook-package.md) and
-[the runtime contract](./mokabook-runtime.md) until implementation lands.
-Implementation is tracked in [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
+Implemented in this branch. All routed entries use one collection hierarchy,
+and current builds emit schema v4. [Page migration](./mokabook-page-migration.md)
+defines the required breaking consumer upgrade and historical comparison
+support. Verification is tracked in
+[Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
 
 ## Purpose And Boundary
 
@@ -86,6 +84,10 @@ multiple parents, missing children, duplicate child references, and collection
 cycles retain their existing failures. Unclaimed pages are root leaves.
 
 ## Build And Output
+
+Render screen views first, then complete pages, with deterministic catalogue
+ordering within each kind. This preserves existing consumer document helpers
+that collect a shared stylesheet after screen rendering.
 
 The compiler calls each page callback once per compilation, synchronously,
 after registry validation. Non-functions, promises, non-string return values,
@@ -198,8 +200,13 @@ restoration identically. Old portable artifact links remain valid.
 Pages participate in the All/Changes filter wherever review is enabled. Compare
 stable page metadata, real ancestor IDs/titles, the generated document, explicitly declared
 dependencies, and shared-impact paths against the Git branch point. Renaming
-or reparenting a page affects its route; moving unrelated source composition
-without changing those inputs does not mark every page in that module changed.
+or reparenting a page marks that entry changed. A flat `definePage` keeps its
+explicit `route`; title and collection membership never rewrite it. A nested
+`page` derives its route from the root path, collection segments, and its slug,
+so changing those path inputs changes its URL; changing titles alone does not.
+Moving unrelated source composition without changing those inputs does not
+mark every page in that module changed. Regression coverage must distinguish
+change attribution from URL derivation for both authoring forms.
 Do not use the serialized `navPath` as independent impact evidence.
 
 Screen comparison generation and use-case impact propagation retain their

@@ -10,11 +10,10 @@ import type { ResolvedConfig } from "../config/types.js";
 /** Virtual module name for the complete consumer-owned build graph. */
 export const CONSUMER_ENTRY_PATH = "mokabook:consumer-entry";
 
-/** Load every consumer entry, legacy module, renderer, and migration bridge. */
+/** Load every registry entry, renderer, and document transformer. */
 export function consumerEntryPlugin(
   config: ResolvedConfig,
   entries: readonly string[],
-  legacy: readonly string[],
 ): Plugin {
   return {
     name: "mokabook-consumer-entry",
@@ -24,7 +23,7 @@ export function consumerEntryPlugin(
         path: CONSUMER_ENTRY_PATH,
       }));
       pluginBuild.onLoad({ filter: /.*/, namespace: "mokabook-entry" }, () => ({
-        contents: virtualEntryContents(config, entries, legacy),
+        contents: virtualEntryContents(config, entries),
         loader: "ts",
         resolveDir: path.dirname(config.configPath),
       }));
@@ -79,17 +78,10 @@ export function packageApiPlugin(config: ResolvedConfig): Plugin {
 function virtualEntryContents(
   config: ResolvedConfig,
   entries: readonly string[],
-  legacy: readonly string[],
 ): string {
   const imports = entries.map(
     (source, index) => `import * as entry${index} from ${quote(source)};`,
   );
-  const legacyImports = legacy.map(
-    (source, index) => `import * as legacy${index} from ${quote(source)};`,
-  );
-  const componentImport = config.legacy?.components
-    ? `import * as legacyComponents from ${quote(config.legacy.components)};\nimport { renderToStaticMarkup as renderLegacyNode } from "react-dom/server";`
-    : "";
   const transformerImport = config.compatibility.transformer
     ? `import compatibilityTransformer from ${quote(config.compatibility.transformer)};`
     : "";
@@ -100,28 +92,12 @@ function virtualEntryContents(
     (_source, index) =>
       `(entry${index}.mockups ?? entry${index}.default ?? [])`,
   );
-  const legacyValues = legacy.map((source, index) => {
-    const relative = toPosixPath(path.relative(config.repoRoot, source));
-    return `{ exports: legacy${index}, sourcePath: ${quote(source)}, sourceRelativePath: ${quote(relative)} }`;
-  });
   return [
     ...imports,
-    ...legacyImports,
-    componentImport,
     transformerImport,
     `import renderer from ${quote(rendererPath)};`,
     `const flatten = (values) => values.flat(Infinity);`,
     `export const definitions = flatten([${entryValues.join(",")}]);`,
-    `export const legacy = [${legacyValues.join(",")}];`,
-    ...(config.legacy?.components
-      ? [
-          `export const renderLegacyComponent = (name, attributes) => {`,
-          `  if (typeof legacyComponents.renderComponent !== "function") throw new Error("legacy components module must export renderComponent");`,
-          `  const output = legacyComponents.renderComponent(name, attributes);`,
-          `  return typeof output === "string" ? output : renderLegacyNode(output);`,
-          `};`,
-        ]
-      : []),
     ...(config.compatibility.transformer
       ? [`export { compatibilityTransformer };`]
       : []),
@@ -138,6 +114,8 @@ function attributedApiContents(
     `import * as api from ${quote(indexPath)};`,
     `import { __attributeDefinition as attribute } from ${quote(definitionsPath)};`,
     `const source = ${quote(sourceRelativePath)};`,
+    `export const definePage = (input) => attribute(api.definePage(input), source);`,
+    `export const page = (input) => attribute(api.page(input), source);`,
     `export const defineScreen = (input) => attribute(api.defineScreen(input), source);`,
     `export const defineCollection = (input) => attribute(api.defineCollection(input), source);`,
     `export const defineUseCase = (input) => attribute(api.defineUseCase(input), source);`,

@@ -1,5 +1,21 @@
 # Mokabook CI And Npm Release Contract
 
+## Breaking Page Upgrade Release Note
+
+The page release intentionally removes `legacy` configuration and its exported
+types, automatic `.source` discovery, comment-component expansion, legacy lint
+options, and route aliases. Consumers must register complete documents with
+`definePage` or nested `page`, import existing render helpers, preserve explicit
+routes, and regenerate manifest v4 with `sourceFiles`. Current v2/v3 output is
+rejected; historical readers remain available only for Git comparisons. Follow
+[the migration procedure](./mokabook-page-migration.md) before replacing old
+owned artifacts. Screen and use-case authoring remains supported.
+
+The repository preview command now exports the current catalogue by default.
+Use `--include-changes` to package a frozen baseline and comparisons. Both
+options omit development updates. Release automation must record these changes
+as breaking; version numbers and `CHANGELOG.md` remain release-PR owned.
+
 ## Package Metadata
 
 `package.json` describes an unscoped public ESM package named `mokabook` with an
@@ -62,9 +78,9 @@ permissions.
 
 ## Preview Deployments
 
-The approved [publication option](./mokabook-publication.md) will make comparisons
-explicit in PR builds and omit them from main builds. It is not implemented;
-this section describes the current workflow, which includes review in both.
+The [publication option](./mokabook-publication.md) is implemented. The main
+job publishes the current catalogue with `npm run preview:build`; PR previews
+use `npm run preview:build -- --include-changes --base origin/main`.
 
 `.github/workflows/preview.yml` deploys a browsable copy of the synthetic basic
 consumer to the direct-upload Cloudflare Pages project `mokabook`. A `main`
@@ -77,7 +93,7 @@ receive Cloudflare credentials or write-capable execution.
 `npm run preview:build` first rebuilds Mokabook and its committed basic
 consumer. The repository-only preview builder starts the real Browse server on
 an ephemeral loopback port and snapshots the home, not-found, current catalogue
-routes, and removed-screen routes. It copies the shell stylesheet, browser and
+routes, plus removed-entry routes only when Changes is included. It copies the shell stylesheet, browser and
 shared navigation modules, fonts, id redirects, and every validated public
 consumer asset into `.context/mokabook-preview`. HTML copies pass through the
 same manifest/header-aware logical-link adapter as served Browse; unowned
@@ -86,18 +102,15 @@ Preview shell links use Cloudflare
 Pages' canonical extensionless HTML routes, and static shell HTML omits the
 watched server's live-update entrypoint. The parent client validates one optional
 `fragment` query and applies its encoded hash to every applicable current and
-light/dark frame source, with first-step-only use-case scope. The builder
-computes route changes from the
-branch point shared with `origin/main`, and both deployment jobs fetch complete
-Git history so that common ancestor can be resolved and the static Browse shell
-always includes the All/Changes filter, including a zero count. Every structured
-screen includes Current / Side by side / Overlay / Difference in the actual
-shell. Publishing prepares the real comparison through the same Git engine as
-development, then exports its JSON, isolated snapshots, and their resources
-under one immutable generation path. The stable comparison URL redirects to that
-generation. Visitors fetch and render comparisons only after selecting a diff;
-refresh reloads the currently published result. Missing baselines and invalid
-comparison output fail the build instead of publishing unusable controls.
+light/dark frame source, with first-step-only use-case scope. Default capture needs no Git or comparison provider and omits review controls,
+counts, removed routes, and baseline artifacts. Explicit Changes capture pins
+one merge-base commit for impact and screen comparisons and rejects any input
+mutation during capture. It packages comparison JSON and isolated resources
+under an immutable generation path; visitors fetch them only after selecting a
+diff. Refresh loads that same published result. Unavailable requested baselines
+or invalid comparisons abort the build without replacing previous output.
+Both options omit the live-update entrypoint, watch-only modules, event routes,
+and stale comparison directories. Full history remains available in both jobs.
 The [Changes contract](./mokabook-changes.md) owns the shared interaction and
 snapshot rules. Artifact
 replacement is transactional and refuses to overwrite a directory without

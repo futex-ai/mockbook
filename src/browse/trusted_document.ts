@@ -20,6 +20,12 @@ export function trustedDocument(
   catalogue: Catalogue,
 ): TrustedBrowseDocument | undefined {
   for (const entry of catalogue.manifest.entries) {
+    if (entry.kind === "page" && entry.route === route)
+      return {
+        colorScheme: "light",
+        sourcePath: entry.sourcePath,
+        viewport: "desktop",
+      };
     if (entry.kind !== "screen") continue;
     for (const viewport of ["mobile", "desktop"] as const) {
       if (entry.fragments[viewport] === route) {
@@ -30,16 +36,7 @@ export function trustedDocument(
       }
     }
   }
-  const legacy = catalogue.manifest.legacyPages.find(
-    (page) => page.route === route,
-  );
-  return legacy
-    ? {
-        colorScheme: "light",
-        sourcePath: legacy.sourcePath,
-        viewport: route.endsWith(".mobile.html") ? "mobile" : "desktop",
-      }
-    : undefined;
+  return undefined;
 }
 
 /** Derive the exact portable href expected for a trusted logical marker. */
@@ -56,13 +53,18 @@ export function expectedPortableHref(
       : entry?.kind === "use-case" && entry.steps[0]
         ? catalogue.byId.get(entry.steps[0].screenId)
         : undefined;
-  if (screen?.kind !== "screen") {
+  if (entry?.kind !== "page" && screen?.kind !== "screen") {
     throw invalid(
       sourceRoute,
       `trusted marker links to an invalid id: ${destination.id}`,
     );
   }
-  const targetRoute = fragmentFor(screen, source.viewport, source.colorScheme);
+  const targetRoute =
+    entry?.kind === "page"
+      ? entry.route
+      : screen?.kind === "screen"
+        ? fragmentFor(screen, source.viewport, source.colorScheme)
+        : "";
   const relative = path.posix.relative(
     path.posix.dirname(sourceRoute),
     targetRoute,

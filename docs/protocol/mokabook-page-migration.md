@@ -2,11 +2,11 @@
 
 ## Delivery Status
 
-Approved target, not implemented. This supplements
-[Pages in the catalogue](./mokabook-pages.md). The current separate legacy
-navigation remains implemented until the planned cutover is complete. The
-change is a pre-1.0 breaking authoring/manifest change and needs release notes
-and packed-consumer verification before publication.
+The breaking page API is implemented. This supplements
+[Pages in the catalogue](./mokabook-pages.md). Consumers must register complete
+documents and rebuild before adopting the new package; historical comparisons
+remain supported. The [implementation plan](../../plans/unified-catalogue-pages.md)
+records verification and the isolated consumer rehearsal.
 
 ## Required Upgrade
 

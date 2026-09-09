@@ -75,7 +75,7 @@ npm run example:check
 npm run preview:build
 ```
 
-Generated HTML and the schema-v3 manifest are committed under `generated/` so
+Generated HTML and the schema-v4 manifest are committed under `generated/` so
 the fixture also exercises stale and deterministic-output checks. The
 hand-authored stylesheets (`styles.css`, `design.css`, `design-stage.css`,
 `design-review.css`) also live under `generated/` because it doubles as the
@@ -93,3 +93,19 @@ before/after resources, including removed-screen pages; browsers request those
 snapshots only after a comparison option is selected. The design screens inside
 the frames remain static pictures of that shell. There is no separate Review
 section or comparison CLI command.
+
+The shell designs now include `design/browse/pages/` (document, details,
+and removal) and `design/browse/publication/` (current catalogue and Changes).
+Each state has its own mobile and desktop component and reuses the shell,
+navigation, and stage primitives. The synthetic handbook in `entries/document.tsx`
+is shared by these designs and the first-class page example.
+
+The `example-handbook` page imports the shared example document and belongs to
+the existing Example collection alongside Screens and Example tour. Its exact
+`handbook.html` route, `next-steps` anchor, and incoming Welcome link exercise
+the public page API. The design catalogue has four responsive page states and
+two publication states.
+
+`npm run preview:build` exports current content without Git or review controls.
+Add `-- --include-changes --base origin/main` to package Changes and immutable
+screen comparisons. Both options omit development update connections.

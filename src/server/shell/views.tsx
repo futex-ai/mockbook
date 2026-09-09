@@ -27,7 +27,7 @@ export type ShellView =
  * has no room for below the breakpoint.
  */
 function HeadActions(props: { catalogue: Catalogue; target: RouteTarget }) {
-  if (props.target.kind !== "entry") {
+  if (props.target.entry.kind === "page") {
     return null;
   }
   return (
@@ -48,19 +48,24 @@ function TargetView(props: {
   const target = props.target;
   const removed =
     target.kind === "entry" &&
-    props.catalogue.removedScreens.some(
-      (screen) => screen.route === target.entry.route,
+    props.catalogue.removedEntries.some(
+      ({ entry }) => entry.route === target.entry.route,
     );
   const stage = removed ? (
     <div className="mbk-empty" data-mokabook-stage="" data-viewport="both">
-      <h2>This screen was removed</h2>
-      <p>Select a comparison to see the previous screen.</p>
+      <h2>
+        This {target.entry.kind === "page" ? "page" : "screen"} was removed
+      </h2>
+      {target.entry.kind === "page" ? (
+        <p>This document is no longer in the catalogue.</p>
+      ) : (
+        <p>Select a comparison to see the previous screen.</p>
+      )}
     </div>
   ) : (
     <TargetStage
       catalogue={props.catalogue}
       {...(props.fragment ? { fragment: props.fragment } : {})}
-      legacyTitle={head.title}
       target={props.target}
     />
   );
@@ -90,7 +95,7 @@ function HomeView(props: { catalogue: Catalogue }) {
   const entries = props.catalogue.manifest.entries;
   const screens = entries.filter((entry) => entry.kind === "screen").length;
   const useCases = entries.filter((entry) => entry.kind === "use-case").length;
-  const pages = props.catalogue.manifest.legacyPages.length;
+  const pages = entries.filter((entry) => entry.kind === "page").length;
   return (
     <EmptyStage heading="Mokabook">
       <p>
@@ -130,9 +135,7 @@ export function activeRouteForView(view: ShellView): string | undefined {
   if (view.kind !== "target") {
     return undefined;
   }
-  return view.target.kind === "entry"
-    ? view.target.entry.route
-    : view.target.page.route;
+  return view.target.entry.route;
 }
 
 /** The browser document title for a shell view. */

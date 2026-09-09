@@ -1,5 +1,4 @@
 import type { ResolvedConfig } from "../config/types.js";
-import { computeChangedRoutes } from "./changed.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
 import { parseChildUpdateMessage } from "./update_messages.js";
@@ -12,10 +11,8 @@ export async function runServerChild(
   updateVersion: number,
   strictPort: boolean,
 ): Promise<void> {
-  const changedRoutes = await computeChangedRoutes(config, base);
   const server = await startCatalogueServer(config, {
     base,
-    ...(changedRoutes ? { changedRoutes } : {}),
     port,
     review: configuredServedReview(config, base),
     strictPort,

@@ -5,6 +5,8 @@ import {
   defineCollection,
   defineConfig,
   defineRoot,
+  definePage,
+  page,
   defineScreen,
   defineUseCase,
   MockLink,
@@ -19,8 +21,9 @@ import {
   type CompatibilityTransformer,
   type CompatibilityTransformInput,
   type EntryInput,
-  type LegacyConfig,
-  type LegacyLintConfig,
+  type PageInput,
+  type PageDefinition,
+  type NestedPageInput,
   type ModuleLoader,
   type ModuleResolutionConfig,
   type MokabookConfig,
@@ -69,7 +72,24 @@ const invalidChildProps = (
     <button>Continue</button>
   </MockLink>
 );
+const documentPage: PageInput = {
+  id: "typed-page",
+  title: "Page",
+  description: "Page",
+  dependencies: [],
+  relatedDocs: [],
+  route: "page.html",
+  render: () => "<html><body>Page</body></html>",
+};
+const nestedPage: NestedPageInput = {
+  id: "nested-page",
+  title: "Page",
+  description: "Page",
+  slug: "page",
+  render: documentPage.render,
+};
 const definitions: RegistryDefinition[] = [
+  definePage(documentPage),
   defineScreen({
     dependencies: [],
     description: "Type declaration fixture",
@@ -84,6 +104,7 @@ const definitions: RegistryDefinition[] = [
 ];
 
 void [
+  page(nestedPage),
   collection,
   defineCollection,
   defineRoot,
@@ -106,8 +127,9 @@ type PublicTypes =
   | CompatibilityConfig
   | CompatibilityTransformInput
   | EntryInput
-  | LegacyConfig
-  | LegacyLintConfig
+  | PageInput
+  | PageDefinition
+  | NestedPageInput
   | ModuleLoader
   | ModuleResolutionConfig
   | RegistryDefinition
@@ -134,3 +156,14 @@ const exhaustive:
   PublicTypes | Renderer | CompatibilityTransformer | undefined =
   compatibilityTransformer ?? renderer;
 void exhaustive;
+
+// @ts-expect-error Pages cannot declare screen variants.
+const unsupportedPage: PageInput = { ...documentPage, mobile: node };
+// @ts-expect-error Legacy configuration was removed, including undefined.
+const obsoleteConfig: MokabookConfig = { ...config, legacy: undefined };
+const asynchronousPage: PageInput = {
+  ...documentPage,
+  // @ts-expect-error Page callbacks must be synchronous complete HTML strings.
+  render: async () => "<html/>",
+};
+void [unsupportedPage, obsoleteConfig, asynchronousPage];
