@@ -1,10 +1,9 @@
 # Component Explorer
 
-Status: active; mockup milestones 4, 4a, 4b, 4c, and 7 are completed and ready
-for joint design sign-off. Verification follow-ups 4d and 4e are completed.
-Component runtime
-implementation remains pending. At the user's request, the mockups precede
-the runtime/backend milestones.
+Status: active; mockup milestones 4, 4a, 4b, 4c, 4f, 4g, and 7 are completed
+and ready for joint design sign-off. Verification follow-ups 4d and 4e are
+completed. Component runtime implementation remains pending. At the user's
+request, the mockups precede the runtime/backend milestones.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -385,7 +384,7 @@ link remain recommendations for user decision. No new review fixes were applied.
 The complete findings and options are recorded in
 [PR #48](https://github.com/futex-ai/mokabook/pull/48).
 
-## Milestone 4g: Refine inspector surfaces and icons
+## Milestone 4g: Refine inspector surfaces and icons — completed
 
 Tags: mockup
 
@@ -404,17 +403,31 @@ mobile inspector a bottom sheet, and correct the Usage/menu/dropdown glyphs.
 - [x] Run focused tests and `cargo xtask check`; audit mainline preservation.
 - [x] Integrate main's preview-icon update; preserve its watcher helpers and
       tests while retaining the branch's explicit intermediate-removal wait.
-- [ ] Run `git add -A`, commit with Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
-- [ ] Record the completed verification and update the PR handoff.
+- [x] Run `git add -A`, commit with Conventional Commits, and push the branch.
+- [x] Run `cargo xtask review` after pushing; report findings for user decision.
+- [x] Record the completed verification and update the PR handoff.
 
 Local verification for Milestone 4g passed: 497 TypeScript unit/integration
 tests, 149 Chromium browser tests, and 3 Rust tests, plus every other full-gate
 check. All 64 artboards and the expanded/closed/resized states were visually
 inspected. Main `aa5adea` is integrated with its preview icons and watcher
 helpers intact; all 56 mainline HTML artboards are byte-identical and `src/`
-has no diff from main. The commit/push, review, and handoff checkboxes above
-record subsequent delivery operations once those operations finish.
+has no diff from main. Implementation commit `ebb1ccb` is pushed and its required
+post-push review is complete.
+
+The review repeated the manual browser-route inventory (Medium) and stale
+secondary protocol counts (Low) recommendations recorded under Milestone 4f.
+All 32 current routes match the manifest; neither recommendation has been
+automatically applied. Its delivery-bookkeeping finding is covered by this
+existing handoff task. Published smoke checks pass for desktop/mobile icons,
+mobile sheet sizing, close/reopen retention, Usage, and Both/Dark highlighting.
+[CI](https://github.com/futex-ai/mokabook/actions/runs/34406794097) passed on Node 22.14
+and Node 24, including Required CI. Node 24 passed after retries for an npm
+connection reset and one existing published-navigation timeout. Six focused
+navigation repetitions passed unchanged locally; test timeouts and assertions
+remain intact.
+The [preview deployment](https://github.com/futex-ai/mokabook/actions/runs/34406794146)
+succeeded.
 
 ## Milestone 5: Implement component pages and inspection
 

@@ -2,8 +2,8 @@
 
 ## Active
 
-- [Component Explorer](./component-explorer.md) — component mockups and the comparison/
-  highlighting revision are ready for joint sign-off; runtime implementation pending.
+- [Component Explorer](./component-explorer.md) — component mockups, comparison details,
+  and the responsive inspector are ready for joint sign-off; runtime implementation pending.
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 
