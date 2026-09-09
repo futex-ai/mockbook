@@ -49,6 +49,12 @@ Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
 the rendered screen area.
 
+Navigation inside these design artboards is currently depicted as static
+controls. The [design mockup links contract](./mokabook-design-links.md) defines
+planned adoption of `MockLink`, including canonical destinations and the
+boundary between linked states and local runtime controls. Its delivery status
+is separate from the implemented outer shell described here.
+
 ## Consumer-Tunable Custom Properties
 
 Consumers may set exactly these CSS custom properties to tune the shell accent.

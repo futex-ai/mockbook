@@ -5,6 +5,10 @@ application product designs.
 
 ## Design Catalogue Notes
 
+Navigation adoption is planned in the
+[design mockup links contract](../../docs/protocol/mokabook-design-links.md).
+The notes below describe the current static artboards until that work ships.
+
 The `Design` navigation group holds the approved mockups for Mokabook's own
 catalogue shell and Changes controls. Implementation notes for those mockups live here and
 in each entry's description and rationale, never inside the rendered screens:

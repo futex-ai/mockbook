@@ -21,6 +21,11 @@ navigate to the canonical Details page, retain its anchor through Light/Dark
 swaps, and select the Details row in the catalogue tree. The reciprocal Details
 link exercises the id-only form.
 
+The design screens currently draw their controls as static text and buttons.
+The [design mockup links contract](../../docs/protocol/mokabook-design-links.md)
+defines planned adoption in those screens and the example's styled buttons,
+including mobile/desktop destinations, missing states, and verification.
+
 ## Firna renderer adapter
 
 `renderer.tsx` is the reference consumer adapter for react-native-web

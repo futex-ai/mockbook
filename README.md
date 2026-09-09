@@ -414,6 +414,8 @@ proves the consumer contract against a real cross-platform component stack.
 Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
+Navigation within those design mockups is a planned consumer adoption, recorded
+in the [design mockup links contract](./docs/protocol/mokabook-design-links.md).
 
 ### Key Code
 
