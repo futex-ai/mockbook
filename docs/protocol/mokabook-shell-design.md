@@ -97,13 +97,17 @@ The shell fills the viewport (`100vh`, document scrolling disabled); every
 scrollable region scrolls internally:
 
 - **Top bar** — 48px, surface background, hairline bottom border: brand mark
-  (24px rounded square in the accent with the `◫` glyph), the product name in
+  (a non-shrinking 24px accent square with 6px corners and an 18px inline SVG
+  of overlapping mobile and desktop screen outlines), the product name in
   its own `mbk-name` span, a centred search field (max-width 440px, led by a
   15px stroked magnifier icon that holds its size while the field flexes)
   that flexes down to whatever room the bar leaves it, the color-scheme control
   when the catalogue has one. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
-  retains space; the brand link keeps its accessible name. There is no mode
+  retains space; the brand link keeps its accessible name. The decorative mark
+  inherits the accent-contrast color and uses two-unit strokes on a 24-unit
+  viewBox, with the mobile outline in front and a gap in the desktop outline
+  at the overlap. There is no mode
   switch. A query splits into terms: every `tag:<tag>`
   term matches only rows whose entry declares that tag, and the remaining words
   rejoin into one phrase that must appear in a row's authored ID, title, or

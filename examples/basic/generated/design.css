@@ -102,7 +102,7 @@ body {
   border-radius: 6px;
   color: #fff;
   display: inline-grid;
-  font-size: 13px;
+  flex-shrink: 0;
   height: 24px;
   place-items: center;
   width: 24px;

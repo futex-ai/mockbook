@@ -592,13 +592,17 @@ test("the search field carries a tag control over a closed picker", () => {
 test("the brand names itself and the search bar drops that name", () => {
   const browse = homePage(createCatalogue(manifest), context);
   assert.ok(browse.includes('<header class="mbk-topbar" data-search="">'));
-  assert.ok(
-    browse.includes(
-      '<a aria-label="Mokabook" class="mbk-brand" href="/">' +
-        '<span aria-hidden="true" class="mbk-mark">◫</span>' +
-        '<span class="mbk-name">Mokabook</span></a>',
-    ),
+  const brand = browse.match(
+    /<a aria-label="Mokabook" class="mbk-brand" href="\/">(.*?)<\/a>/,
+  )?.[1];
+  assert.ok(brand);
+  assert.match(
+    brand,
+    /<span aria-hidden="true" class="mbk-mark"><svg aria-hidden="true"/,
   );
+  assert.match(brand, /height="18" stroke="currentColor"/);
+  assert.ok(brand.endsWith('<span class="mbk-name">Mokabook</span>'));
+  assert.equal(brand.replace(/<[^>]*>/g, ""), "Mokabook");
 
   assert.ok(
     flatCss(SHELL_CSS).includes(
@@ -607,6 +611,7 @@ test("the brand names itself and the search bar drops that name", () => {
     ),
   );
   assert.match(SHELL_CSS, /\.mbk-search \{[^}]*flex: 1;[^}]*min-width: 0;/);
+  assert.match(SHELL_CSS, /\.mbk-mark \{[^}]*flex-shrink: 0;/);
 });
 
 test("the search field leads with a legible search icon, not a glyph", () => {

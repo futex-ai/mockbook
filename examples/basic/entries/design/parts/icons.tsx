@@ -22,6 +22,19 @@ function IconSvg({ children, size }: IconProps & { children: ReactNode }) {
   );
 }
 
+/** Overlapping mobile and desktop screens in Mokabook's brand mark. */
+export function BrandIcon({ size }: IconProps) {
+  return (
+    <IconSvg size={size ?? 18}>
+      <path
+        d="M6.5 5.5V5a2 2 0 0 1 2-2H20a2 2 0 0 1 2 2v10.5a2 2 0 0 1-2 2h-8"
+        strokeLinecap="butt"
+      />
+      <rect height={13} rx={1.75} width={8.5} x={1.5} y={7} />
+    </IconSvg>
+  );
+}
+
 /** Disclosure chevron for collapsible groups and the details bar. */
 export function ChevronIcon({ size }: IconProps) {
   return (
