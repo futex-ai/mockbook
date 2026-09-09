@@ -4,6 +4,7 @@ export type MokabookErrorCode =
   | "cli-invalid"
   | "config-invalid"
   | "config-missing"
+  | "export-invalid"
   | "git-failed"
   | "manifest-invalid"
   | "review-invalid"

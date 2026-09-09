@@ -213,6 +213,12 @@ details inspector, frames, focus, and status announcement all describe the
 destination. Back and Forward return through those outer route entries and
 restore their route-owned scroll.
 
+For exported catalogues the shared delivery resolver maps that trusted id to
+the exact `/view/<route>.html` file in shell-owned metadata before fetching or
+opening any context. Development still follows the `/id` redirect. Real static
+id aliases show full content without JavaScript and normalize their history
+entry progressively; see [Static export delivery](./mokabook-export-delivery.md).
+
 The same trusted parent enhancement exclusively handles modified pointer
 activation and explicit non-self targets after validating the marker and
 canonical destination. Modified activation includes Meta-, Ctrl-, or

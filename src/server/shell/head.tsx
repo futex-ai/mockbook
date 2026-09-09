@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 
-import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { Catalogue } from "../catalogue.js";
 import {
   legacyCrumbTrail,
@@ -22,10 +22,7 @@ function Crumbs(props: { items: readonly CrumbLink[] }) {
         <span key={`${item.label}-${index}`}>
           {index > 0 ? <span className="sep">›</span> : null}
           {item.route ? (
-            <a
-              className="mbk-crumb-link"
-              href={`/view/${encodeUrlPath(item.route)}`}
-            >
+            <a className="mbk-crumb-link" href={catalogueViewHref(item.route)}>
               {item.label}
             </a>
           ) : (

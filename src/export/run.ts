@@ -1,0 +1,127 @@
+import fs from "node:fs";
+import path from "node:path";
+
+import { compileCatalogue } from "../build/compile.js";
+import { writeCompilation } from "../build/transaction.js";
+import type { ResolvedConfig } from "../config/types.js";
+import { projectRealPath } from "../config/paths.js";
+import { MokabookError, errorMessage } from "../errors.js";
+import { readBaseManifest } from "../review/base_manifest.js";
+import { reviewChangedPaths } from "../review/changed_paths.js";
+import { compareReview } from "../review/compare.js";
+import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import { assertExportActive, exportError } from "./error.js";
+import { assertInputsUnchanged, pinnedGit } from "./inputs.js";
+import { ExportInventory } from "./inventory.js";
+import { EXPORT_MARKER } from "./ownership.js";
+import { resolveExportOutput } from "./paths.js";
+import { capturePublicFiles } from "./public_files.js";
+import { validateExportReferences } from "./references.js";
+import { assembleExport } from "./site.js";
+import { ExportTransaction } from "./transaction.js";
+import type { ExportOptions, ExportResult } from "./types.js";
+
+/** Build and transactionally export a consumer's complete static catalogue. */
+export async function exportCatalogue(
+  config: ResolvedConfig,
+  options: ExportOptions,
+): Promise<ExportResult> {
+  const output = resolveExportOutput(config, options.outDir);
+  assertExportActive(options.signal);
+  const transaction = await ExportTransaction.open(
+    output,
+    options.adapter?.legacyOwnership,
+  );
+  try {
+    const git = new RepositoryGitClient(
+      new NodeGitCommandRunner(config.repoRoot),
+    );
+    const base = options.base ?? config.review.base;
+    const commit = await git.mergeBase(base, "HEAD");
+    const baseline = await readBaseManifest(git, commit, config);
+    const compilation = await compileCatalogue(config);
+    assertExportActive(options.signal);
+    await writeCompilation(compilation, config);
+    const publicFiles = await capturePublicFiles(config);
+    const exclusions = [output, transaction.reservation];
+    const changed = await reviewChangedPaths(
+      git,
+      commit,
+      config,
+      config.review.outDir,
+      exclusions,
+    );
+    const comparison = await compareReview(
+      compilation,
+      config,
+      pinnedGit(git, commit, changed),
+      base,
+      transaction.stage,
+      {
+        read: async (name) => {
+          const bytes = publicFiles.get(name);
+          if (!bytes)
+            throw exportError(`Comparison resource is not exportable: ${name}`);
+          return bytes;
+        },
+      },
+      exclusions,
+    );
+    const site = assembleExport(
+      config,
+      compilation,
+      baseline,
+      comparison,
+      publicFiles,
+    );
+    const result: ExportResult = {
+      outDir: output,
+      comparisonUrl: site.delivery.comparisonUrl,
+      idRoutes: site.delivery.idRoutes,
+    };
+    const aliases = await options.adapter?.transform(
+      site.inventory.files,
+      result,
+    );
+    const files = new ExportInventory();
+    for (const [name, bytes] of site.inventory.files) files.add(name, bytes);
+    validateExportReferences(files.files, aliases ?? new Map());
+    files.add(
+      EXPORT_MARKER,
+      `${JSON.stringify({ schemaVersion: 1, files: [...files.files.keys()].sort() }, null, 2)}\n`,
+    );
+    for (const [name, bytes] of files.files) {
+      assertExportActive(options.signal);
+      const target = path.join(transaction.stage, name);
+      await fs.promises.mkdir(path.dirname(target), { recursive: true });
+      await fs.promises.writeFile(target, bytes);
+    }
+    await assertInputsUnchanged(
+      config,
+      compilation,
+      publicFiles,
+      git,
+      commit,
+      changed,
+      exclusions,
+    );
+    assertExportActive(options.signal);
+    if (
+      projectRealPath(resolveExportOutput(config, options.outDir)) !==
+      transaction.output
+    )
+      throw exportError(
+        "Export output changed its real location during export.",
+      );
+    await transaction.install(options.signal);
+    return result;
+  } catch (error) {
+    if (error instanceof MokabookError) throw error;
+    throw exportError(
+      `Could not export catalogue: ${errorMessage(error)}`,
+      error,
+    );
+  } finally {
+    await transaction.close();
+  }
+}

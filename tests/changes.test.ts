@@ -14,13 +14,13 @@ import { writeCompilation } from "../dist/build/transaction.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
-test("review command and artifact output option are removed", () => {
+test("review stays internal and output options belong only to export", () => {
   assert.throws(() => parseArguments(["review"]), /unknown command: review/);
   assert.throws(
     () => parseArguments(["serve", "--out", "report"]),
-    /unknown option: --out/,
+    /--out belongs to export/,
   );
-  assert.doesNotMatch(HELP, /mokabook review|--out/);
+  assert.doesNotMatch(HELP, /mokabook review/);
   assert.equal(parseArguments(["serve", "--base", "HEAD"]).base, "HEAD");
 });
 

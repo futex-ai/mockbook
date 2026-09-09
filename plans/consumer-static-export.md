@@ -1,16 +1,20 @@
 # Consumer Static Export
 
+Validation: all 429 unit/integration tests and 86 browser tests passed.
+Packed local ESM, NodeNext, clean-cache npx, Accounting, and Juno consumers
+passed. Markdown formatting, local links, lint, and typechecking passed.
+
 ## Objective And Status
 
-Planning complete; implementation has not started. Add a supported consumer CLI
+Implementation delivered; final verification and review in progress. Add a supported consumer CLI
 that exports the complete Mokabook catalogue and comparisons into a directory
 the consumer can deploy through their own hosting workflow.
 
 Implement the [consumer export protocol](../docs/protocol/mokabook-export.md)
 and [static delivery protocol](../docs/protocol/mokabook-export-delivery.md).
-Those documents are planned contracts, not claims about the current release.
+Those documents describe the implemented contract on this branch, not a new npm release.
 
-Planned consumer invocation:
+Consumer invocation:
 
 ```bash
 npx mokabook export --out .context/mokabook-site
@@ -23,7 +27,7 @@ overrides `review.base`. The first release requires a valid Git baseline and
 supports hosting at an origin root, with ordinary static files and directory
 indexes. Subpath hosting and Git-free/optional comparisons are separate work.
 
-## Current Code And Design Decisions
+## Initial Code And Design Decisions
 
 - `src/cli/arguments.ts`, `help.ts`, and `run.ts` support only build/check/serve.
   `build` writes fragments and a manifest, not the catalogue shell.
@@ -55,6 +59,13 @@ incomplete milestone; never reopen completed milestones. Follow the repo's
 separate-backend-then-new-UI rule if client work discovers a missing backend
 contract. Test discovered regressions before fixing them.
 
+Implementation clarification: the existing registry rejects empty definitions
+and empty collections, so the planned "empty valid catalogue" case does not
+exist. Preserve Build/Check/Serve validation; export rejects an empty registry
+and retains the previous site. Supporting empty catalogues across commands is
+a separate product decision, raised with the user. Protocols and regression
+tests now describe the existing validation accurately.
+
 ## Milestone 1: Define The Consumer Contract — completed
 
 Specify the public command and complete artifact/delivery behavior before code.
@@ -76,106 +87,120 @@ validate changed Markdown and local links, inspect the diff, then commit/push
 the docs before `cargo xtask review`. Report findings without implementing them.
 The implementation milestones below remain incomplete after that docs delivery.
 
-## Milestone 2: Implement The Shared Export Engine
+## Milestone 2: Implement The Shared Export Engine — completed
 
 Deliver a tested internal engine while existing consumer commands and the
 repository preview remain functional. Do not expose a partial export command.
 
-- [ ] Add typed export options, results, versioned ownership data, and static
+- [x] Add typed export options, results, versioned ownership data, and static
       delivery descriptors under `src/export`; keep files near 200 lines and
       split coherent responsibilities before 300 lines.
-- [ ] Implement config-relative output resolution and lexical/real-path
+- [x] Implement config-relative output resolution and lexical/real-path
       confinement. Test missing/empty output, config/renderer/source overlap,
       installed-package/dependency/Git paths, symlink parents, and malformed
       ownership inventories before any replacement is allowed.
-- [ ] Implement one-writer ownership, exact stage/backup paths, safe replacement,
+- [x] Implement one-writer ownership, exact stage/backup paths, safe replacement,
       rollback, explicit stale-reservation recovery, and cancellation/drain
       behavior. Cover installation and cleanup failures with injected boundaries
       plus real-filesystem integration tests.
-- [ ] Reuse the normal build transaction; pin one Git baseline and capture
+- [x] Reuse the normal build transaction; pin one Git baseline and capture
       consistent current inputs for both route attribution and comparisons.
       Reject missing history and detected mid-export edits explicitly.
-- [ ] Preserve distinct Changes attribution and comparison materiality. Apply
+- [x] Preserve distinct Changes attribution and comparison materiality. Apply
       export, transaction, and real-path exclusions to both and extend Watch's
       owned-output pruning without suppressing unrelated authored files.
-- [ ] Generate the complete route/resource inventory through existing shell,
+- [x] Generate the complete route/resource inventory through existing shell,
       catalogue, and Browse-adaptation functions. Detect duplicate/prefix path
       collisions and preserve current-id precedence for removed/renamed screens.
-- [ ] Package the complete browser module/font graph and public consumer asset
+- [x] Package the complete browser module/font graph and public consumer asset
       graph. Test transitive HTML/CSS resources, binary assets, exclusions,
       symlink refusal, missing local assets, and retained external URLs.
-- [ ] Generate isolated comparisons with unchanged schema-v2 JSON and snapshot
+- [x] Generate isolated comparisons with unchanged schema-v2 JSON and snapshot
       documents. Never use or disturb a live server's comparison directory.
-- [ ] Provide a typed static rendering context for the next milestone, including
+- [x] Provide a typed static rendering context for the next milestone, including
       canonical/id routes and the direct generation URL; keep default served
       rendering behavior unchanged.
-- [ ] Run focused engine/config/review/watch/transaction tests and `npm run build`.
+- [x] Run focused engine/config/review/watch/transaction tests and `npm run build`.
 
 Exit: the internal engine can assemble and validate complete site inputs and
 resources; the established public product remains available and tested.
 
-## Milestone 3: Support Portable Static Browser Delivery
+Validation: 54 focused export, config, review, Changes, and watch tests passed;
+`npm run build`, `npm run typecheck`, and `npm run lint` also passed.
+
+## Milestone 3: Support Portable Static Browser Delivery — completed
 
 Tags: ui
 
 Make the existing shell and client work from plain static files, preserving the
 approved appearance and all served navigation/comparison behavior.
 
-- [ ] Render and safely parse versioned shell-owned delivery metadata. Missing
+- [x] Render and safely parse versioned shell-owned delivery metadata. Missing
       static metadata must not silently fall back to development endpoints;
       malformed data must not create cross-origin or out-of-prefix navigation.
-- [ ] Use a shared delivery-aware target resolver for shell links and every
+- [x] Use a shared delivery-aware target resolver for shell links and every
       trusted frame activation mode. Preserve exact exported HTML paths and the
       existing served `/id` redirect path in development.
-- [ ] Render full canonical content for static id aliases. Normalize enhanced
+- [x] Render full canonical content for static id aliases. Normalize enhanced
       alias history without extra requests, preserve the validated fragment,
       and retain real page content when JavaScript is disabled.
-- [ ] Select the direct immutable comparison URL in static mode. Keep lazy
+- [x] Select the direct immutable comparison URL in static mode. Keep lazy
       loading, relative snapshot resolution, retry/refresh, cancellation, missing
       sides, and the server's current stable endpoint behavior intact.
-- [ ] Remove the watcher connection from static shells, with no environment
+- [x] Remove the watcher connection from static shells, with no environment
       badges or copy changes. Keep both viewports, schemes, search, tags, Changes,
       details, flows, active-tree state, and history/scroll behavior.
-- [ ] Add focused client/rendering tests and browser tests against exact static
+- [x] Add focused client/rendering tests and browser tests against exact static
       files and directory indexes, with no rewrite rules or live Mokabook routes.
-- [ ] Visually smoke-test the existing mobile/desktop owning screens in Current
+- [x] Visually smoke-test the existing mobile/desktop owning screens in Current
       and all comparison modes, including alias/deep-link and fragment entry.
       Retain baseline served browser tests.
 
 Exit: internally generated sites provide the complete existing experience on a
 basic static server, and ordinary development Browse remains fully functional.
 
-## Milestone 4: Expose The CLI And Adopt It Internally
+Validation: 59 focused client/navigation tests and 15 static/served browser tests
+passed. Inspected mobile/desktop screenshots of Current and every comparison
+mode; used browser-suite screenshots after interactive Browser setup failed.
+
+## Milestone 4: Expose The CLI And Adopt It Internally — completed
 
 Deliver the supported consumer command and reuse the engine for the existing
 repository preview without changing its deployment ownership or public URLs.
 
-- [ ] Extend parser/help/dispatch with `export`, required `--out`, `--config`,
+- [x] Extend parser/help/dispatch with `export`, required `--out`, `--config`,
       and optional `--base`. Test wrong-command options, no-argument/default
       behavior, unknown flags, missing values, and config-free help.
-- [ ] Wire the complete export operation through typed errors and accurate
+- [x] Wire the complete export operation through typed errors and accurate
       success/failure output. Verify build-then-export behavior and document the
       separate build/output transaction guarantees.
-- [ ] Add CLI integration fixtures with config discovery from nested working
+- [x] Add CLI integration fixtures with config discovery from nested working
       directories, explicit nested configs, absolute/confined output, custom
       React renderers, cross-platform module resolution, and legacy pages.
-- [ ] Exercise non-default configured bases, overrides, equal-head baselines,
+- [x] Exercise non-default configured bases, overrides, equal-head baselines,
       missing refs/history, empty catalogues, removed screens, reused ids,
       ignored-only changes, and unchanged/shared-impact screens.
-- [ ] Turn repository preview entrypoints into adapters over the shared engine;
+- [x] Turn repository preview entrypoints into adapters over the shared engine;
       retain their files, command, output path, local `--out` behavior, existing
       public assets/routes, and Cloudflare alias/header metadata.
-- [ ] Add explicit legacy-marker migration in the repository adapter only.
+- [x] Add explicit legacy-marker migration in the repository adapter only.
       Verify rollback from both an existing owned preview and a fresh directory;
       do not teach the public command to overwrite legacy/unrelated directories.
-- [ ] Keep preview adapter transformations inside the staged transaction.
+- [x] Keep preview adapter transformations inside the staged transaction.
       Audit parity against main before replacing old logic; retain production
       and PR deployment aliases, security settings, cleanup, and existing tests.
-- [ ] Run CLI/preview integration suites, build the package, and run the real
+- [x] Prove provider alias validation, explicit legacy migration, output-parent
+      retarget rejection, and post-install cleanup diagnostics with regression
+      tests while integrating the new CLI and repository adapter.
+- [x] Run CLI/preview integration suites, build the package, and run the real
       example through `npm run preview:build` and the Cloudflare local runtime.
 
 Exit: a consumer can invoke the public CLI to export a complete site, and the
 repository's established preview workflow uses the same tested core.
+
+Validation: CLI, migration, safety, and comparison cases passed; the packed
+Accounting/Juno fixtures cover custom renderers, module resolution, and legacy
+pages. All 8 existing Cloudflare browser checks and preview builds passed.
 
 ## Milestone 5: Prove Consumer Publishing And Document It
 
@@ -212,11 +237,11 @@ served artifact demonstrates the documented publishing workflow.
 Deliver all implementation, generated fixtures, and documentation through the
 required repository workflow; no deployment or npm release is part of this plan.
 
-- [ ] Run `cargo xtask check` after all relevant tests pass. Resolve failures
+- [x] Run `cargo xtask check` after all relevant tests pass. Resolve failures
       and rerun affected checks; keep implementation complete and functioning.
-- [ ] Fetch main and audit its additions from a captured source tip before any
+- [x] Fetch main and audit its additions from a captured source tip before any
       integration. Resolve paths individually; preserve mainline features.
-- [ ] Inspect the complete diff and deletions against `origin/main`; confirm
+- [x] Inspect the complete diff and deletions against `origin/main`; confirm
       every new source/test/generated file belongs to the intended change.
 - [ ] After checks pass, run `git add -A`, commit all completed work using
       Conventional Commits with a title of at most 50 characters and a body,
@@ -233,3 +258,14 @@ required repository workflow; no deployment or npm release is part of this plan.
 
 Exit: the requested implementation is checked, committed, pushed, and reviewed;
 any reviewer-proposed follow-up remains the user's decision.
+
+Preservation audit: fetched main from source tip
+`59ca3ac3dd86c86a4474e5ecbf022d5779bbc0e0`; main remains
+`e47524b9cb23f1866cb4b1a6a45ebb624b52a300`, with no incoming additions or file
+deletions. Preview capture logic is replaced by the planned shared engine;
+entrypoints, existing behavior/tests, and deployment workflows are retained.
+
+Final gate: `cargo xtask check` passed formatting, lint, typechecking, all 429
+unit/integration tests, committed example verification, package/license checks,
+packed consumers, all 86 browser tests, Rust formatting/Clippy, 3 Rust tests,
+and the Rust file-length audit. No npm release or deployment was performed.

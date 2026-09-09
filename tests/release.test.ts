@@ -7,6 +7,10 @@ import { pathToFileURL } from "node:url";
 import { parse } from "yaml";
 
 import { repositoryRoot } from "./helpers/fixture.js";
+import {
+  packageReport,
+  type PackageReport,
+} from "./helpers/release_fixture.js";
 
 interface WorkflowStep {
   env?: Readonly<Record<string, string>>;
@@ -40,14 +44,6 @@ interface ReleaseContextModule {
     releaseTag: string;
   }): string | undefined;
   validateTagVersion(ref: string, version: string): void;
-}
-
-interface PackageReport {
-  files: Array<{ path: string; size: number }>;
-  integrity: string;
-  name: string;
-  shasum: string;
-  version: string;
 }
 
 interface RegistryContractModule {
@@ -278,22 +274,4 @@ async function registryContract(): Promise<RegistryContractModule> {
     path.join(repositoryRoot, "scripts/release/registry_contract.mjs"),
   ).href;
   return (await import(url)) as RegistryContractModule;
-}
-
-function packageReport(): PackageReport {
-  return {
-    files: [
-      { path: "dist/index.js", size: 1 },
-      { path: "dist/index.d.ts", size: 1 },
-      { path: "dist/cli/bin.js", size: 1 },
-      { path: "README.md", size: 1 },
-      { path: "LICENSE", size: 1 },
-      { path: "CHANGELOG.md", size: 1 },
-      { path: "package.json", size: 1 },
-    ],
-    integrity: `sha512-${"a".repeat(12)}`,
-    name: "mokabook",
-    shasum: "b".repeat(40),
-    version: "1.2.3",
-  };
 }

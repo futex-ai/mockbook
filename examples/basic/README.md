@@ -79,8 +79,8 @@ Generated HTML and the schema-v3 manifest are committed under `generated/` so
 the fixture also exercises stale and deterministic-output checks. The
 hand-authored stylesheets (`styles.css`, `design.css`, `design-stage.css`,
 `design-review.css`) also live under `generated/` because it doubles as the
-public static root. `preview:build` snapshots this catalogue through the real
-server into `.context/mokabook-preview` for Cloudflare Pages; it is the same
+public static root. `preview:build` exports this catalogue through the shared
+package engine into `.context/mokabook-preview` for Cloudflare Pages; it is the same
 artifact used by the main and pull-request preview workflow. The snapshot
 compares the catalogue with its branch point on `origin/main` and preserves
 the catalogue's All/Changes filter, Light/Dark switch, client assets, and light/dark
@@ -93,3 +93,14 @@ before/after resources, including removed-screen pages; browsers request those
 snapshots only after a comparison option is selected. The design screens inside
 the frames remain static pictures of that shell. There is no separate Review
 section or comparison CLI command.
+
+For an ordinary static host, use the consumer command instead of the Pages adapter:
+
+```bash
+node dist/cli/bin.js export --config examples/basic/mokabook.config.ts --out ../../.context/mokabook-site
+```
+
+Output is config-relative. This command builds the example itself, retains exact
+`.html` URLs and real `/id/<id>/index.html` aliases, and needs no provider rewrites.
+Both exports require the configured Git baseline and committed baseline output.
+See the [consumer publishing recipe](../../README.md#export-and-publish-a-consumer-build).

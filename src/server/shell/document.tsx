@@ -58,6 +58,10 @@ export function renderShellPage(
   const markup = renderToStaticMarkup(
     <html
       data-mokabook-base={context.base}
+      data-mokabook-static={context.delivery ? "" : undefined}
+      data-mokabook-delivery={
+        context.delivery ? JSON.stringify(context.delivery) : undefined
+      }
       data-mokabook-update-version={context.updateVersion}
       lang="en"
     >
@@ -87,7 +91,9 @@ export function renderShellPage(
         </div>
         <script src="/__mokabook/client/navigation-resize.js" />
         <script src="/__mokabook/client/browse.js" type="module" />
-        <script src="/__mokabook/client/browser.js" type="module" />
+        {!context.delivery ? (
+          <script src="/__mokabook/client/browser.js" type="module" />
+        ) : null}
       </body>
     </html>,
   );

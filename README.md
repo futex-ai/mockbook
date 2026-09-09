@@ -1,7 +1,7 @@
 # Mokabook
 
 Mokabook turns React-authored mobile and desktop mockups into committed static
-HTML, serves the resulting catalogue during development, and compares screens
+HTML, exports complete catalogues for hosting, serves them during development, and compares screens
 with their Git baseline on demand. It is app-independent: product screens, component libraries,
 themes, styles, and compatibility adapters stay in the consuming repository.
 
@@ -144,6 +144,7 @@ npx mokabook                         # build, serve, and watch
 npx mokabook serve --no-watch --port 0
 npx mokabook build
 npx mokabook check
+npx mokabook export --out .context/mokabook-site
 ```
 
 Options follow the command, so an explicit config is
@@ -152,14 +153,15 @@ development dependency, `npx --no-install mokabook` guarantees npm does not
 fall back to the registry. After the first release, a clean machine may use
 `npx --package mokabook mokabook` without adding a dependency.
 
-| Command              | Outcome                                                   |
-| -------------------- | --------------------------------------------------------- |
-| `mokabook`           | Build, serve, and watch using a stable development URL    |
-| `mokabook serve`     | Serve the catalogue and on-demand diffs; watch by default |
-| `mokabook build`     | Validate and transactionally write generated output       |
-| `mokabook check`     | Compare expected and committed bytes without writing      |
-| `mokabook --help`    | Show commands and their supported options                 |
-| `mokabook --version` | Print the installed package version                       |
+| Command                        | Outcome                                                   |
+| ------------------------------ | --------------------------------------------------------- |
+| `mokabook`                     | Build, serve, and watch using a stable development URL    |
+| `mokabook serve`               | Serve the catalogue and on-demand diffs; watch by default |
+| `mokabook build`               | Validate and transactionally write generated output       |
+| `mokabook check`               | Compare expected and committed bytes without writing      |
+| `mokabook export --out <path>` | Build a complete static catalogue for your host           |
+| `mokabook --help`              | Show commands and their supported options                 |
+| `mokabook --version`           | Print the installed package version                       |
 
 Serve starts at port `4173`. If that port, or a concrete `--port` value, is
 already occupied, Mokabook tries each following port in order until one is
@@ -212,7 +214,8 @@ rules, and isolated snapshot dependencies. Overlays use 50% opacity; Difference
 uses CSS blending, without inventing pixel measurements. Immutable generations
 keep snapshots coherent during refresh, retain replaced resources briefly, and
 drain generation work before shutdown. The former Review tab, standalone report,
-`mokabook review` command, and `--out` option have been removed.
+`mokabook review` command, and its report-output option have been removed.
+`--out` is supported only by the separate `export` command.
 
 Consumer documents run in sandboxed frames. Comparisons keep unmodified base/head
 documents in separate snapshot trees and copies their referenced local CSS,
@@ -327,6 +330,14 @@ forcing React peers to the consumer's one runtime.
   portable.
 - **A watched edit fails:** fix the reported candidate build/config error. The
   last-good server remains active and adopts the next valid change.
+- **Export cannot find its baseline:** fetch the configured base with enough
+  Git history and retain its committed manifest/fragments. Export never fetches
+  history and does not silently omit comparisons.
+- **Export refuses its destination:** choose a missing/empty directory outside
+  source, generated, dependency, and comparison roots. Keep unrelated files out
+  of owned exports. For a retained reservation, confirm no export is running,
+  inspect its stage/backup, and recover the previous site before moving an
+  abandoned reservation. Never delete a live writer's reservation.
 
 ## Developer Setup
 
@@ -367,23 +378,50 @@ lint, typechecking, unit/integration tests, the committed example, package
 allowlist and license checks, clean packed ESM/NodeNext/npx/Accounting/Juno
 consumers, Chromium tests, and all Rust checks.
 
+## Export And Publish A Consumer Build
+
+From the consumer repository, run:
+
+```bash
+npx mokabook export --out .context/mokabook-site
+# For a config under tools/, write tools/site/ and select another Git base:
+npx mokabook export --config tools/mokabook.config.ts --out site --base main
+```
+
+Export builds first, then packages the complete catalogue, real id aliases,
+assets, and Git comparisons. `--out` is required and config-relative, not
+working-directory-relative; absolute paths must remain inside `repoRoot`.
+`--base` overrides `review.base` (default `origin/main`). The Git branch point
+must contain the committed manifest and required fragments/assets; CI should
+check out full history. Normal build validation, including nonempty registry
+requirements, still applies.
+
+Deploy the directory's contents with your own hosting provider. Mokabook does
+not upload files or manage hosting credentials. Serve it at the HTTP(S) origin
+root with correct MIME types and directory indexes; no Mokabook process, Git,
+source tree, or rewrite rules are needed there. Subpath hosting and `file://`
+catalogue browsing are unsupported. Configure shell revalidation and comparison
+`Cache-Control: no-store` / `X-Content-Type-Options: nosniff` headers, and deploy
+atomically to avoid mixed builds. External HTTP(S) resources stay external, so
+not every catalogue is offline-capable.
+
+Comparisons load only after selection. Refresh reads the same exported
+generation; deploy a new export and reload the page for new results. Re-export
+replaces only owned output and preserves the previous site on pre-install
+failure. Generated fragments already written by the build step remain updated
+if the later export fails. See the [export contract](./docs/protocol/mokabook-export.md)
+and [hosting contract](./docs/protocol/mokabook-export-delivery.md).
+
 ## Preview Deployments
 
-Consumer publishing is currently limited: `mokabook build` produces screen
-documents and a manifest, while exporting the full static catalogue is only
-available through this repository's example scripts. A public `mokabook export`
-command is planned in the [static export contract](./docs/protocol/mokabook-export.md)
-and tracked in the [implementation plans](./plans/README.md); it is not available
-in the current CLI. The commands below publish this repository's example only.
-
 `npm run preview:build` turns the real `examples/basic` Browse catalogue into a
-static Cloudflare Pages artifact at `.context/mokabook-preview`. It snapshots
-every catalogue route through Mokabook's HTTP server, copies the package shell
+static Cloudflare Pages artifact at `.context/mokabook-preview`. Its thin
+repository adapter uses the same export engine to render every route and copy the package shell
 and adapted public example assets, preserves id redirects, and excludes the
 development-only live-reload connection. Static routes authenticate the same
 generated link markers as served Browse, and a single validated `fragment`
 query is applied progressively to current and light/dark frame sources. The
-snapshot compares the catalogue with `origin/main`, so Browse includes its
+snapshot uses the example's configured base (`origin/main`), so Browse includes its
 All/Changes filter even when the changed count is zero. The artifact is not
 part of the npm package. Published screens include the same Current / Side by
 side / Overlay / Difference controls as development. Publishing packages the

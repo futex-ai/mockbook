@@ -5,6 +5,7 @@ import { minimatch } from "minimatch";
 import { isOwned } from "../build/ownership.js";
 import { isInside, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig, WatchAction } from "../config/types.js";
+import { isExportIgnoredPath } from "../export/ignored.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
 
 const IGNORED_DIRECTORY_NAMES = new Set([
@@ -194,6 +195,7 @@ export function isPackageOwnedIgnoredWatchPath(
   if (!isInside(config.repoRoot, absolute)) return false;
   if (isRequiredWatchPath(absolute, config)) return false;
   if (isGeneratedOutputPath(absolute, config)) return true;
+  if (isExportIgnoredPath(absolute, config.repoRoot)) return true;
   if (isInside(config.review.outDir, absolute)) return true;
   const parts = path.relative(config.repoRoot, absolute).split(path.sep);
   return parts.some(

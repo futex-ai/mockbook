@@ -2,12 +2,11 @@
 
 ## Delivery Status
 
-Planned target; not implemented. The current CLI exposes only `serve`, `build`,
-and `check`. The repository's `scripts/preview` implementation publishes only
-its example catalogue and is not part of the consumer npm interface. The
+Implemented consumer CLI and shared export engine. `scripts/preview` is a thin
+repository-only Cloudflare adapter over that engine. The
 [consumer static export plan](../../plans/consumer-static-export.md) tracks
 delivery of this contract and the [static delivery contract](./mokabook-export-delivery.md).
-Existing runtime and preview behavior remains authoritative until that delivery.
+Normal build validation and the existing comparison schema remain authoritative.
 
 ## Scope
 
@@ -23,8 +22,7 @@ Git fetch, commit, push, npm publication, or hosting-account operation.
 
 ## CLI Contract
 
-The following commands describe the planned interface, not currently runnable
-consumer commands:
+The installed CLI supports:
 
 ```bash
 npx mokabook export --out .context/mokabook-site
@@ -71,9 +69,11 @@ by simply counting materially changed comparison screens.
 
 Keep `ReviewResult.schemaVersion` at 2, all existing states, shared/dependency
 impact, ignored regions, both viewports, and all effective color schemes.
-Removed screens remain reachable and current ids win when reused. A missing
-baseline document follows the comparison engine's existing added/removed rules;
-an invalid manifest or resource never becomes an invented empty baseline.
+Removed screens remain reachable and current ids win when reused. A route absent
+from a side's manifest follows the existing added/removed rules. A declared but
+missing baseline document, invalid manifest, or unavailable resource fails;
+none becomes an invented empty baseline. Empty registries retain the normal
+build error; export does not weaken registry validation to create an empty site.
 
 Comparisons use private temporary storage, independent of `review.outDir` and
 any running development server. Exclude the final export directory, its
@@ -115,6 +115,10 @@ report it accurately without deleting the installed site or a rollback copy
 still required for recovery. Do not claim cross-process atomicity for arbitrary
 changes to the entire consumer repository.
 
+Cancellation is checked again after ownership validation and after the old
+directory moves to backup. The final stage-to-output rename is the commit point;
+once started it is drained along with cleanup, not interrupted mid-rename.
+
 ## Output Ownership And Confinement
 
 The output must be a strict descendant of `repoRoot`. Validate both lexical
@@ -139,6 +143,13 @@ Serialize writers to the same resolved output with an exclusive reservation;
 a competing process fails clearly. An abandoned reservation is never silently
 stolen. An actionable error identifies it for explicit recovery. Transaction
 paths are exact, operation-owned paths, never a broad glob or consumer directory.
+
+The reservation is `.mokabook-export-<20-hex>.lock` beside the resolved output,
+keyed by its real path. Its `.mokabook-export-transaction` marker records
+`schemaVersion: 1` and the output basename; `stage/` and `backup/` remain inside
+that reservation. After confirming no writer is active, explicitly inspect and
+recover a retained backup before moving an abandoned reservation aside. The
+exporter never steals reservations or deletes unowned recovery directories.
 
 Do not accept the old `.mokabook-preview-artifact` marker through the public
 command. The repository-only adapter may explicitly migrate a valid legacy
@@ -199,7 +210,7 @@ fragments keep their existing direct-from-disk behavior.
 ## Verification
 
 Implementation must cover option validation and config-relative paths, custom
-renderer/module resolution, legacy entries, both schemes/viewports, empty and
+renderer/module resolution, legacy entries, both schemes/viewports, invalid empty and
 removed catalogues, non-default bases, missing history/resources, output overlap,
 symlinks, ownership/collisions, concurrent writers, input changes, rollback,
 shutdown, export self-attribution, public-file exclusion, and asset closure.

@@ -1,13 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { inspectConsumerExport } from "./export.mjs";
 
-import {
-  runCommand,
-  startCommand,
-  stopCommand,
-  waitForOutput,
-} from "./command.mjs";
+import { runCommand } from "./command.mjs";
+import { smokeExternalWatch } from "./watch.mjs";
 import {
   copyFixture,
   initializeGit,
@@ -63,6 +60,16 @@ export async function smokeEsmConsumer(context) {
   });
   assert.equal(
     review.screens.find((screen) => screen.id === "packed-home")?.state,
+    "changed",
+  );
+  await runBin(root, ["export", "--out", "published", "--base", "HEAD"], {
+    cwd: nested,
+  });
+  const exported = await inspectConsumerExport(root, "published", "HEAD", [
+    "id/packed-home/index.html",
+  ]);
+  assert.equal(
+    exported.screens.find((screen) => screen.id === "packed-home")?.state,
     "changed",
   );
 }
@@ -123,6 +130,31 @@ export async function smokeCleanCacheExecution(context) {
     fs.existsSync(path.join(root, "mockups/mokabook-manifest.json")),
     true,
   );
+  await fs.promises.rename(
+    path.join(root, "mokabook.config.ts"),
+    path.join(root, "custom.config.ts"),
+  );
+  await initializeGit(root);
+  await runCommand("git", ["branch", "export-baseline"], { cwd: root });
+  const exportArgs = npx.map((arg) =>
+    arg === cache ? path.join(context.workingRoot, "empty-export-cache") : arg,
+  );
+  await runCommand(
+    "npm",
+    [
+      ...exportArgs,
+      "export",
+      "--config",
+      "custom.config.ts",
+      "--out",
+      "published",
+      "--base",
+      "export-baseline",
+    ],
+    { cwd: root },
+  );
+  await inspectConsumerExport(root, "published", "export-baseline");
+  assert.equal(fs.existsSync(path.join(root, "node_modules/mokabook")), false);
 }
 
 export async function smokeAccountingFixture(context) {
@@ -178,6 +210,11 @@ export async function smokeAccountingFixture(context) {
   });
   assert.deepEqual(review.sharedImpact, ["shared/tokens.ts"]);
   assert.ok(review.screens.every((screen) => screen.sharedImpact.length === 1));
+  await runBin(root, ["export", "--out", "published"]);
+  await inspectConsumerExport(root, "published", "HEAD", [
+    "view/archive/legacy-notice.html",
+    "static/app/dashboard.desktop.html",
+  ]);
 }
 
 export async function smokeJunoFixture(context) {
@@ -198,6 +235,18 @@ export async function smokeJunoFixture(context) {
   assert.match(fragment, /data-juno-layout="compact"/);
   assert.match(fragment, /href="\.\.\/juno\.css"/);
   await smokeServer(root, config);
+  await initializeGit(root);
+  await runBin(root, [
+    "export",
+    ...config,
+    "--out",
+    "published",
+    "--base",
+    "HEAD",
+  ]);
+  await inspectConsumerExport(root, "tools/published", "HEAD", [
+    "view/workspace/overview.html",
+  ]);
 }
 
 function consumerPackage(name, context, installMokabook) {
@@ -216,65 +265,4 @@ function consumerPackage(name, context, installMokabook) {
       typescript: context.versions.typescript,
     },
   };
-}
-
-async function smokeExternalWatch(root) {
-  const bin = path.join(root, "node_modules/.bin/mokabook");
-  const running = startCommand(bin, ["serve", "--port", "0"], { cwd: root });
-  try {
-    const match = await waitForOutput(
-      running,
-      /Mokabook listening at (http:\/\/[^\s]+)/,
-      "Accounting-shaped watched server",
-    );
-    const response = await fetch(`${match[1]}/__mokabook/events`);
-    assert.ok(response.body);
-    const reader = response.body.getReader();
-    await readServerEvent(reader, "ready");
-    await fs.promises.writeFile(
-      path.join(root, "external/templates.json"),
-      '{"template":"updated"}\n',
-    );
-    await readServerEvent(reader, "update");
-    await reader.cancel();
-  } finally {
-    const code = await stopCommand(running);
-    assert.equal(code, 0);
-  }
-}
-
-async function readServerEvent(reader, expected) {
-  const decoder = new TextDecoder();
-  let pending = "";
-  const deadline = Date.now() + 20_000;
-  while (Date.now() < deadline) {
-    const result = await readWithTimeout(reader, expected);
-    if (result.done) throw new Error("update stream closed unexpectedly");
-    pending += decoder.decode(result.value, { stream: true });
-    const boundary = pending.indexOf("\n\n");
-    if (boundary === -1) continue;
-    const event = pending.slice(0, boundary);
-    if (event.includes(`event: ${expected}`)) return;
-    pending = pending.slice(boundary + 2);
-  }
-  throw new Error(`timed out waiting for ${expected}`);
-}
-
-function readWithTimeout(reader, expected) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`timed out waiting for ${expected}`)),
-      20_000,
-    );
-    reader.read().then(
-      (result) => {
-        clearTimeout(timer);
-        resolve(result);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
 }

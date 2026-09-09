@@ -1,7 +1,11 @@
 /** Server-side context shared by every served Mokabook shell page. */
 
+import type { StaticDelivery } from "../../navigation/delivery.js";
+
 /** Server-side context shared by every shell page. */
 export interface ShellContext {
+  /** Validated delivery information for a static export. */
+  delivery?: StaticDelivery;
   /** Route of the currently selected catalogue entry, when one is active. */
   activeRoute?: string;
   /** Review comparison base ref for the serve session. */

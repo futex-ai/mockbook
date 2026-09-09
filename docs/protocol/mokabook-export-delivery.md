@@ -2,10 +2,10 @@
 
 ## Delivery Status
 
-Planned target; not implemented. This document completes the
+Implemented. This document completes the
 [consumer export contract](./mokabook-export.md). It defines portable serving
-and browser behavior for the planned command, not the current Cloudflare-only
-repository preview. Implementation is tracked in the
+and browser behavior for the consumer command, with Cloudflare normalization
+kept in the repository adapter. Delivery is tracked in the
 [consumer static export plan](../../plans/consumer-static-export.md).
 
 ## Hosting Contract
@@ -43,15 +43,16 @@ existing validated route grammar and are encoded once when written into URLs.
 | `404.html`                  | Existing catalogue not-found view                                                    |
 | `.mokabook-export-artifact` | Public-safe versioned ownership inventory                                            |
 
-Keep authored `.html` and `.htm` route suffixes in portable shell URLs; do not
+Catalogue routes retain their validated `.html` suffixes; additional public
+`.htm` documents retain their filenames too. Do not
 apply the preview script's Cloudflare-specific extension stripping. Generated
 resource references must address actual exported files. Hosts that normalize
 HTML URLs remain compatible provided their redirects preserve the query and
 resolve to the same page; Cloudflare tests protect this existing deployment.
 
 Collections remain navigation folders, not new routed pages. Include use cases
-and configured legacy pages. An empty valid catalogue still exports its real
-empty home, package assets, comparison JSON, and not-found page. Missing views
+and configured legacy pages. Empty registries remain invalid under the existing
+build contract; exporting one preserves the previous artifact. Missing views
 remain explicit in added/removed comparisons; never synthesize content.
 
 Every manifest, generated, copied, and adapter-added path enters a single
@@ -68,6 +69,11 @@ the id-to-route map, and the generation-specific comparison URL. Validate it
 against the catalogue while exporting and at the client boundary. All targets
 must stay same-origin under the expected Mokabook prefixes. Consumer markup
 cannot supply or override this descriptor; serialize it safely in HTML.
+The root `html` element carries `data-mokabook-static=""` and an escaped
+`data-mokabook-delivery` JSON attribute with `schemaVersion: 1`, `canonicalPath`,
+`idRoutes`, and `comparisonUrl`. Static mode with missing/malformed metadata
+fails closed instead of requesting a development endpoint. Generation ids are
+64 lowercase hex characters hashing the sorted path/content-hash inventory.
 
 Both renderer and parent navigation use a shared delivery-aware route resolver.
 Development retains its `/id/<id>` HTTP redirect behavior. Static frame-link
@@ -117,7 +123,9 @@ and scheme/viewport switches do not request comparison JSON or snapshot files.
 Side by side, Overlay, and Difference retain the existing UI and missing-side
 states. Refresh/retry reload the same exported generation; only another export
 and deployment produces new comparison content. An open tab retains its loaded
-deployment's descriptor; reload the page to adopt a newer deployment. Hosts may
+deployment's descriptor; reload the page to adopt a newer deployment. Progressive
+navigation encountering a different generation performs a full page load rather
+than mixing its new route with the old catalogue navigation. Hosts may
 retain prior generations for old tabs; if they remove them, the existing
 comparison failure state applies until page reload. Cancellation and failure
 keep the catalogue usable and cannot replace a different screen.

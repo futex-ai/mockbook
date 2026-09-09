@@ -32,9 +32,12 @@ to deterministic npm scripts and includes:
 - packed-tarball installs in clean ESM, NodeNext, Accounting-shaped, and
   Juno-shaped consumers;
 - local-npx and clean-cache npx-style execution from the packed artifact;
+- consumer exports from the installed CLI, including custom configs/bases,
+  cross-platform renderers, legacy pages, and the compiled static client graph;
 - source-tree ESM, declaration, CLI, workspace-resolution, server, Review, and
   watched-runtime regressions;
-- Playwright Browse and Review regressions using Chromium; and
+- Playwright Browse and Review regressions using Chromium, including isolated
+  exact-file exports after source removal and the actual Cloudflare runtime; and
 - Rust formatting, Clippy, tests, and file-length audits for `xtask`.
 
 Tests that mutate files use isolated temporary directories and clean up child
@@ -62,10 +65,9 @@ permissions.
 
 ## Preview Deployments
 
-The planned [consumer static exporter](./mokabook-export.md) will provide a
-shared package implementation for this preview through a repository adapter.
-Until that plan is delivered, this section describes the implemented
-repository-only exporter; it is not an npm consumer publishing interface.
+The [consumer static exporter](./mokabook-export.md) provides the shared package
+implementation. This section describes the repository's deployment adapter;
+consumer `mokabook export` produces files without deploying or publishing npm.
 
 `.github/workflows/preview.yml` deploys a browsable copy of the synthetic basic
 consumer to the direct-upload Cloudflare Pages project `mokabook`. A `main`
@@ -76,9 +78,9 @@ the deployment result, URL, commit, and workflow run. Fork pull requests never
 receive Cloudflare credentials or write-capable execution.
 
 `npm run preview:build` first rebuilds Mokabook and its committed basic
-consumer. The repository-only preview builder starts the real Browse server on
-an ephemeral loopback port and snapshots the home, not-found, current catalogue
-routes, and removed-screen routes. It copies the shell stylesheet, browser and
+consumer. The repository-only preview adapter calls the shared exporter, which
+directly renders the home, not-found, current catalogue routes, and removed-screen
+routes through the existing shell. It copies the shell stylesheet, browser and
 shared navigation modules, fonts, id redirects, and every validated public
 consumer asset into `.context/mokabook-preview`. HTML copies pass through the
 same manifest/header-aware logical-link adapter as served Browse; unowned
@@ -95,14 +97,16 @@ always includes the All/Changes filter, including a zero count. Every structured
 screen includes Current / Side by side / Overlay / Difference in the actual
 shell. Publishing prepares the real comparison through the same Git engine as
 development, then exports its JSON, isolated snapshots, and their resources
-under one immutable generation path. The stable comparison URL redirects to that
-generation. Visitors fetch and render comparisons only after selecting a diff;
+under one immutable generation path. Static shell metadata addresses that
+generation directly, and the stable comparison redirect remains available.
+Visitors fetch and render comparisons only after selecting a diff;
 refresh reloads the currently published result. Missing baselines and invalid
 comparison output fail the build instead of publishing unusable controls.
 The [Changes contract](./mokabook-changes.md) owns the shared interaction and
 snapshot rules. Artifact
-replacement is transactional and refuses to overwrite a directory without
-Mokabook's ownership marker.
+replacement uses the shared exclusive reservation, ownership inventory, and
+rollback transaction. Only this adapter can migrate a valid legacy
+`.mokabook-preview-artifact` directory; consumer export cannot claim it.
 
 Closing a same-repository pull request marks its sticky comment inactive and
 attempts to delete all Cloudflare deployments carrying that PR branch alias.

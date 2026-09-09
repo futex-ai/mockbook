@@ -2,7 +2,7 @@
 
 The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report
-section, or `mokabook review` command; `--out` is no longer a CLI option.
+section, or `mokabook review` command; `--out` belongs only to static `export`.
 
 ## Screen controls
 
@@ -38,14 +38,14 @@ The existing Git branch-point comparison engine, ownership checks, dependency
 copying, ignored-region rules, and light/dark classifications remain in force.
 The existing `review` configuration and authoring helpers are retained; the
 configuration selects the Git base, internal snapshot directory, and shared
-impact patterns. `serve --base` overrides the configured base.
+impact patterns. `serve --base` and `export --base` override the configured base.
 
-The planned [consumer static export](./mokabook-export.md) reuses this engine
+The [consumer static export](./mokabook-export.md) reuses this engine
 and schema. Its [static delivery contract](./mokabook-export-delivery.md)
 defines direct generation URLs without requiring a hosting-provider redirect;
-the implemented server and repository preview behavior below is unchanged.
+the server and repository adapter retain their stable redirect for compatibility.
 
-The shell requests `/__mokabook/diffs/review.json` on demand. The response
+The development shell requests `/__mokabook/diffs/review.json` on demand. The response
 redirects to an immutable generation; snapshot URLs resolve relative to that
 response URL. No standalone HTML report or navigation payload is generated.
 Only comparison JSON and snapshot files are served through this private route.
@@ -56,8 +56,9 @@ requests and draining active work before shutdown.
 Published catalogues retain the same All / Changes navigation and screen controls.
 Publishing generates one validated Git comparison in a private staging directory,
 then packages its JSON and complete before/after snapshot trees under the resolved
-generation path. The stable JSON request redirects to that generation, so the
-same client resolves relative snapshot and resource URLs without a live server.
+generation path. Static shell metadata addresses that generation directly; the
+repository adapter also retains the stable JSON redirect. The same client
+resolves relative snapshot and resource URLs without a live server.
 Snapshot HTTP responses disable caching and MIME sniffing. Diagnostic summaries
 and internal ownership markers are not published.
 
