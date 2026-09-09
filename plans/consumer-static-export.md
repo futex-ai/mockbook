@@ -6,8 +6,10 @@ passed. Markdown formatting, local links, lint, and typechecking passed.
 
 ## Objective And Status
 
-Milestones 1–7 completed. The user approved both transaction follow-ups;
-Milestone 8 tracks their regression-first implementation and delivery.
+Milestones 1–8 completed, including both approved transaction follow-ups.
+The post-push review reported one new Medium adapter-alias finding, recorded
+with options in the [review report](../docs/reviews/consumer-static-export.md)
+for the user's decision; it was not automatically fixed.
 The supported consumer CLI exports the complete Mokabook catalogue and comparisons
 into a directory the consumer can deploy through their own hosting workflow.
 The user approved fixing all four review findings, followed by merging latest main.
@@ -299,10 +301,10 @@ Deliver the requested review follow-up without reopening completed milestones.
 Delivered `fd543db`, merging main `93ac778` without deleting mainline files.
 The full gate passed 465 unit/integration and 104 browser tests; five additional
 post-commit browser smoke tests passed against the new merge baseline.
-The successful post-push review reported one new High and one new Medium finding;
-both remain unchanged with options and recommendations in the review record.
+The successful post-push review reported one new High and one new Medium finding.
+They were left unchanged at that handoff; approved fixes follow in Milestone 8.
 
-## Milestone 8: Preserve Destination Data And Primary Failures
+## Milestone 8: Preserve Destination Data And Primary Failures — completed
 
 Resolve both approved follow-up findings at shared transaction/cleanup boundaries.
 
@@ -317,7 +319,12 @@ Resolve both approved follow-up findings at shared transaction/cleanup boundarie
       cover recovery conflicts, cancellation, and single/combined failures.
 - [x] Update ownership/recovery protocols and READMEs; pass focused tests and
       smoke tests, followed by the complete `cargo xtask check` gate.
-- [ ] Audit mainline preservation and deletions, run `git add -A`, commit using
+- [x] Audit mainline preservation and deletions, run `git add -A`, commit using
       Conventional Commits, and push before running `cargo xtask review`.
-- [ ] Report new findings without automatic fixes, complete the index/status,
+- [x] Report new findings without automatic fixes, complete the index/status,
       and validate, commit, and push final documentation bookkeeping.
+
+Delivered `7fee0f4` with 20 new regressions and the complete passing gate above.
+The post-push review completed on 2026-09-09 against main `93ac778`; its one new
+Medium finding, reproduction, and recommended preventive scope are in the
+[review report](../docs/reviews/consumer-static-export.md).

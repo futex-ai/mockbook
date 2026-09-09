@@ -236,5 +236,51 @@ real subprocess CLI failure cases. All 59 focused export/static-delivery tests
 passed. `MOKABOOK_PLAYWRIGHT_PORT=54861 cargo xtask check` passed all 485
 unit/integration tests, 104 browser tests, packed consumers, package/license
 checks, example verification, formatting, lint, typechecking, Rust formatting
-and Clippy, three Rust tests, and the Rust file-length audit. The required
-post-push review is pending delivery.
+and Clippy, three Rust tests, and the Rust file-length audit.
+
+Delivery: implementation commit `7fee0f49ad20983cb5dcd26540b864a2d635ba86` was
+pushed before `cargo xtask review`. The third read-only review completed
+successfully on 2026-09-09 against `origin/main` (`93ac778`), covering 91 changed
+files. It reported the new finding below, not an unresolved instance of either
+approved transaction finding. The reviewer did not rerun artifact-writing checks;
+the complete implementation gate above was run separately. Mainline preservation
+audits found no deleted files, and main's example design sources/generated files
+remain unchanged. Final plan/index/report edits are documentation-only.
+
+## Transaction Follow-Up Review: New Finding
+
+### 1. Medium: Adapter Aliases Bypass Collision Validation
+
+The export engine accepts adapter aliases in [run.ts](../../src/export/run.ts).
+[references.ts](../../src/export/references.ts) checks path safety, an exact
+alias/file match, and target existence, but does not apply the case-folded exact
+and prefix collision rules in [inventory.ts](../../src/export/inventory.ts).
+The repository's [preview adapter](../../scripts/preview/catalogue.mjs) creates
+extensionless aliases for `view/*.html` and `static/*.html`.
+
+Doing nothing allows an export to pass validation with an alias such as
+`view/foo` for `view/foo.html` while `view/foo/bar.html` also creates a real
+directory at that URL prefix. Clean-URL hosts can interpret those routes
+ambiguously or serve unintended content. Alias/alias and case-folded alias/file
+collisions also escape the documented
+[single collision-checked inventory](../protocol/mokabook-export-delivery.md).
+
+Options:
+
+- A. Add separate alias/file and alias/alias collision checks in reference
+  validation. This repairs the immediate gap but duplicates path policy.
+- B. Extract or reuse one collision index for deployed files and adapter aliases,
+  with regression tests for alias/file, alias/directory, alias/alias, and
+  case-folded collisions, plus preview-adapter integration coverage.
+- C. Narrow the protocol so adapters alone own alias safety, weakening the
+  engine's documented guarantee.
+
+Recommended: B. A shared namespace prevents collision rules from drifting across
+file assembly and host adapters. It requires a modest abstraction change, but
+provides broader protection than another local validation loop.
+
+Verification: read-only, in-memory calls to the built modules accepted an
+alias/directory prefix collision, a case-folded alias/file collision, and an
+alias/alias prefix collision. Adding those aliases to the existing file inventory
+rejected all three cases. No export or filesystem mutation was used for this
+reproduction. This new finding remains unchanged pending the user's decision.
