@@ -12,12 +12,28 @@ import { RESERVATION_DIRECTORY } from "./reservation.js";
 export function resolveExportOutput(
   config: ResolvedConfig,
   value: string,
+  adapterRoot?: string,
 ): string {
   if (value.trim() === "")
     throw exportError("Export output must not be empty.");
   const output = path.resolve(path.dirname(config.configPath), value);
   validateReviewOut(output, config, "Export output", "export-invalid");
   const real = projectRealPath(output);
+  if (adapterRoot !== undefined) {
+    if (adapterRoot.trim() === "")
+      throw exportError("Adapter output root must not be empty.");
+    const root = path.resolve(path.dirname(config.configPath), adapterRoot);
+    const realRoot = projectRealPath(root);
+    if (
+      output === root ||
+      real === realRoot ||
+      !isInside(root, output) ||
+      !isInside(realRoot, real)
+    )
+      throw exportError(
+        "Export output must remain inside the configured adapter root.",
+      );
+  }
   const runtime = fileURLToPath(new URL("..", import.meta.url));
   const protectedDirectories = [config.review.outDir, runtime];
   const protectedFiles = [

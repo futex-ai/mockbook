@@ -14,16 +14,32 @@ export function version(html: string): number {
   return Number(value);
 }
 
-/** Wait for a fully published watch action to reach the current catalogue. */
+interface CatalogueState {
+  version: number;
+  changes: number | "unavailable";
+}
+
+/** Wait for a newer publication and, when specified, the intended Changes state. */
 export async function waitForUpdate(
   url: string,
   previous: number,
+  expected?: Pick<CatalogueState, "changes">,
 ): Promise<string> {
   const deadline = performance.now() + 20_000;
+  let latest: CatalogueState | undefined;
   while (performance.now() < deadline) {
     try {
       const html = await catalogue(url);
-      if (version(html) > previous) return html;
+      const count = html.match(/class="mbk-nav-filter-count">(\d+)</)?.[1];
+      latest = {
+        version: version(html),
+        changes: count === undefined ? "unavailable" : Number(count),
+      };
+      if (
+        latest.version > previous &&
+        (!expected || latest.changes === expected.changes)
+      )
+        return html;
     } catch (error) {
       const code = (error as { cause?: NodeJS.ErrnoException }).cause?.code;
       if (
@@ -34,5 +50,11 @@ export async function waitForUpdate(
     }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error("referenced resource edit did not publish a watched update");
+  throw new Error(
+    `referenced resource edit did not publish the expected update after version ${previous}` +
+      (expected ? `; expected Changes ${expected.changes}` : "") +
+      (latest
+        ? `; last version ${latest.version}, Changes ${latest.changes}`
+        : "; no catalogue response"),
+  );
 }

@@ -6,10 +6,14 @@ import {
   resolveDeliveryHref,
   validFragmentQuery,
 } from "../dist/navigation/delivery.js";
-import { readStaticDelivery } from "../dist/client/static_delivery.js";
+import {
+  adoptStaticDelivery,
+  readStaticDelivery,
+} from "../dist/client/static_delivery.js";
 
 const descriptor = {
-  schemaVersion: 1,
+  schemaVersion: 2,
+  deploymentId: "a".repeat(64),
   canonicalPath: "/view/screens/home.html",
   idRoutes: { home: "/view/screens/home.html" },
   comparisonUrl: `/__mokabook/diffs/__generations/${"a".repeat(64)}/review.json`,
@@ -65,4 +69,40 @@ test("a static document with missing or malformed metadata never falls back to t
     ),
     parseStaticDelivery(descriptor),
   );
+});
+
+test("different deployment identities never adopt a route with the same comparison URL", () => {
+  const document = (deploymentId: string) => {
+    const values = new Map([
+      ["data-mokabook-static", ""],
+      [
+        "data-mokabook-delivery",
+        JSON.stringify({ ...descriptor, deploymentId }),
+      ],
+    ]);
+    return {
+      documentElement: {
+        getAttribute: (key: string) => values.get(key) ?? null,
+        setAttribute: (key: string, value: string) => values.set(key, value),
+      },
+    } as unknown as Document;
+  };
+  const current = document("a".repeat(64));
+  const before = current.documentElement.getAttribute("data-mokabook-delivery");
+  assert.equal(adoptStaticDelivery(current, document("b".repeat(64))), false);
+  assert.equal(
+    current.documentElement.getAttribute("data-mokabook-delivery"),
+    before,
+  );
+  assert.equal(adoptStaticDelivery(current, document("a".repeat(64))), true);
+});
+
+test("old and malformed deployment descriptors fail closed", () => {
+  for (const value of [
+    { ...descriptor, schemaVersion: 1 },
+    { ...descriptor, deploymentId: undefined },
+    { ...descriptor, deploymentId: "newest" },
+    { ...descriptor, deploymentId: "A".repeat(64) },
+  ])
+    assert.equal(parseStaticDelivery(value), undefined);
 });

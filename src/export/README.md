@@ -12,6 +12,13 @@ The shared `server/changed_content.ts` calculation receives the same captured
 asset reader as comparisons, preserving Serve's material-output/resource Changes
 membership without reading a different current-file snapshot.
 
+`deployment.ts` finalizes a separate complete-artifact identity after provider
+transformation and ownership assembly. `content_id.ts` uses deterministic file
+hashes and alias edges; `shell_metadata.ts` normalizes and stamps only known
+shell roots while preserving other bytes and rejecting adapter metadata drift.
+Descriptor version 2 lets both old and current clients reload across incompatible
+deployments. Comparison generation URLs retain their separate content identity.
+
 `paths.ts`, `ownership.ts`, and `transaction.ts` constrain replacement to a
 validated, exclusively reserved output. `inventory.ts` and `references.ts` use
 `path_index.ts` for one case-folded file/alias collision policy, including
@@ -19,6 +26,8 @@ directory prefixes and the final ownership marker. Reference validation also
 proves local resource closure. `ignored.ts` keeps owned
 outputs and transactions out of broad Watch rules. The repository-only preview
 adapter supplies validated host aliases and legacy ownership explicitly.
+It also declares its stricter `.context` output root; the same shared path
+validator enforces that scope at preflight and before installation.
 
 `reservation.ts` uses filesystem-native per-output directory names under an
 owned `.mokabook-export-reservations` namespace, retaining only its metadata

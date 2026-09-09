@@ -12,6 +12,7 @@ import { compareReview } from "../review/compare.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
 import { changedContentPaths } from "../server/changed_content.js";
 import { withExportCleanup } from "./cleanup.js";
+import { finalizeDeployment } from "./deployment.js";
 import { assertExportActive, exportError } from "./error.js";
 import {
   assertInputsUnchanged,
@@ -25,21 +26,22 @@ import { capturePublicFiles } from "./public_files.js";
 import { validateExportReferences } from "./references.js";
 import { assembleExport } from "./site.js";
 import { ExportTransaction } from "./transaction.js";
-import type { ExportOptions, ExportResult } from "./types.js";
+import type { ExportOptions, ExportResult, ExportRoutes } from "./types.js";
 
 /** Build and transactionally export a consumer's complete static catalogue. */
 export async function exportCatalogue(
   config: ResolvedConfig,
   options: ExportOptions,
 ): Promise<ExportResult> {
-  const output = resolveExportOutput(config, options.outDir);
+  const outputRoot = options.adapter?.outputRoot;
+  const output = resolveExportOutput(config, options.outDir, outputRoot);
   assertExportActive(options.signal);
   const transaction = await ExportTransaction.open(
     output,
     options.adapter?.legacyOwnership,
   );
   return withExportCleanup(
-    () => generateExport(config, options, output, transaction),
+    () => generateExport(config, options, output, transaction, outputRoot),
     () => transaction.close(),
   );
 }
@@ -49,6 +51,7 @@ async function generateExport(
   options: ExportOptions,
   output: string,
   transaction: ExportTransaction,
+  outputRoot?: string,
 ): Promise<ExportResult> {
   try {
     const git = new RepositoryGitClient(
@@ -96,22 +99,23 @@ async function generateExport(
       publicFiles,
       contentChanges,
     );
-    const result: ExportResult = {
+    const routes: ExportRoutes = Object.freeze({
       outDir: output,
       comparisonUrl: site.delivery.comparisonUrl,
-      idRoutes: site.delivery.idRoutes,
-    };
-    const aliases = await options.adapter?.transform(
-      site.inventory.files,
-      result,
+      idRoutes: Object.freeze({ ...site.delivery.idRoutes }),
+    });
+    const aliases = new Map(
+      (await options.adapter?.transform(site.inventory.files, routes)) ?? [],
     );
     const files = new ExportInventory();
-    for (const [name, bytes] of site.inventory.files) files.add(name, bytes);
+    for (const [name, bytes] of site.inventory.files)
+      files.add(name, Buffer.from(bytes));
     files.add(
       EXPORT_MARKER,
       `${JSON.stringify({ schemaVersion: 1, files: [...files.files.keys()].sort() }, null, 2)}\n`,
     );
-    validateExportReferences(files.files, aliases ?? new Map());
+    validateExportReferences(files.files, aliases);
+    const deploymentId = finalizeDeployment(files.files, site.shells, aliases);
     for (const [name, bytes] of files.files) {
       assertExportActive(options.signal);
       const target = path.join(transaction.stage, name);
@@ -129,14 +133,14 @@ async function generateExport(
     );
     assertExportActive(options.signal);
     if (
-      projectRealPath(resolveExportOutput(config, options.outDir)) !==
+      projectRealPath(resolveExportOutput(config, output, outputRoot)) !==
       transaction.output
     )
       throw exportError(
         "Export output changed its real location during export.",
       );
     await transaction.install(options.signal);
-    return result;
+    return { ...routes, deploymentId };
   } catch (error) {
     if (error instanceof MokabookError) throw error;
     throw exportError(

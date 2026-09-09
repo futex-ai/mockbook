@@ -132,6 +132,15 @@ and one-shot state recovery. A document without a valid stamp retains
 compatibility behavior in which its first `ready` version establishes the
 baseline.
 
+A filesystem edit composed of multiple operations can publish intermediate
+states: removing a tracked alias may identify a deletion before its replacement
+restores the baseline. A higher version proves a completed watch action, not
+completion of every filesystem operation a caller groups into one edit. Tests
+for a specific result must wait for both a higher version and that semantic
+state within the existing deadline, distinguishing unavailable Changes from an
+available zero count. They must retain subsequent-edit and comparison
+invalidation assertions rather than assuming exactly one publication per edit.
+
 Publishing an update without restarting the child marks its cached comparison
 stale before notifying browsers. Reload restores Current, so comparison work
 waits for another explicit diff selection. Concurrent comparison requests reuse

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { isInside } from "../../dist/config/paths.js";
+import { resolveExportOutput } from "../../dist/export/paths.js";
 import { exportCatalogue } from "../../dist/export/run.js";
 import { assertExportOwnership } from "../../dist/export/ownership.js";
 import { isExportPublicName } from "../../dist/export/resource_policy.js";
@@ -22,10 +22,9 @@ const legacyOwnership = {
 /** Keep the repository's Pages deployment policy outside the consumer exporter. */
 export async function buildPreview(config, output) {
   const contextRoot = path.join(config.repoRoot, ".context");
-  if (output === contextRoot || !isInside(contextRoot, output))
-    throw new Error(`preview output must be inside ${contextRoot}`);
+  const confinedOutput = resolveExportOutput(config, output, contextRoot);
   try {
-    await assertExportOwnership(output, legacyOwnership);
+    await assertExportOwnership(confinedOutput, legacyOwnership);
   } catch (cause) {
     throw new Error(
       `refusing to replace unowned preview directory: ${output}`,
@@ -34,8 +33,12 @@ export async function buildPreview(config, output) {
   }
   try {
     return await exportCatalogue(config, {
-      outDir: output,
-      adapter: { legacyOwnership, transform: pagesArtifact },
+      outDir: confinedOutput,
+      adapter: {
+        legacyOwnership,
+        outputRoot: contextRoot,
+        transform: pagesArtifact,
+      },
     });
   } catch (cause) {
     throw new Error(

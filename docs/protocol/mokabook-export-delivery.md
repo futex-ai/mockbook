@@ -21,8 +21,8 @@ The artifact includes a `404.html` catalogue page. Hosts may configure it as
 their error document; producing the HTTP 404 status for arbitrary unknown URLs
 is host configuration, not something static HTML can guarantee.
 The consumer publishes atomically or as an immutable host deployment to avoid
-serving a mix of builds. Configure revalidation for shell HTML and mutable
-aliases; comparison generation URLs must not be rewritten to another generation.
+serving a mix of builds. Configure revalidation for shell HTML, mutable assets,
+and aliases; comparison generation URLs must not be rewritten to another generation.
 Serve comparison resources with `X-Content-Type-Options: nosniff` and the existing
 no-store policy. Generic deployments document these header requirements;
 provider adapters may emit the host's metadata files for them. Correctness must
@@ -80,10 +80,10 @@ against the catalogue while exporting and at the client boundary. All targets
 must stay same-origin under the expected Mokabook prefixes. Consumer markup
 cannot supply or override this descriptor; serialize it safely in HTML.
 The root `html` element carries `data-mokabook-static=""` and an escaped
-`data-mokabook-delivery` JSON attribute with `schemaVersion: 1`, `canonicalPath`,
-`idRoutes`, and `comparisonUrl`. Static mode with missing/malformed metadata
-fails closed instead of requesting a development endpoint. Generation ids are
-64 lowercase hex characters hashing the sorted path/content-hash inventory.
+`data-mokabook-delivery` JSON attribute with `schemaVersion: 2`, `canonicalPath`,
+`idRoutes`, `comparisonUrl`, and `deploymentId`. Static mode with missing,
+malformed, or older metadata fails closed instead of requesting a development
+endpoint. Both identity values use 64 lowercase SHA-256 hex characters.
 
 Both renderer and parent navigation use a shared delivery-aware route resolver.
 Development retains its `/id/<id>` HTTP redirect behavior. Static frame-link
@@ -134,7 +134,7 @@ Side by side, Overlay, and Difference retain the existing UI and missing-side
 states. Refresh/retry reload the same exported generation; only another export
 and deployment produces new comparison content. An open tab retains its loaded
 deployment's descriptor; reload the page to adopt a newer deployment. Progressive
-navigation encountering a different generation performs a full page load rather
+navigation encountering a different deployment identity performs a full page load rather
 than mixing its new route with the old catalogue navigation. Hosts may
 retain prior generations for old tabs; if they remove them, the existing
 comparison failure state applies until page reload. Cancellation and failure
@@ -145,6 +145,38 @@ modules. The browser graph must be complete without unused server dependencies.
 All product data, counts, and comparison results come from the real captured
 catalogue and Git inputs. No publishing, sandbox, or environment labels are added
 to product screens. The existing light/dark, mobile/desktop shell design applies.
+
+## Deployment Identity
+
+Comparison generations identify only the comparison JSON and snapshot inventory.
+The separate `deploymentId` identifies the entire installed artifact, including
+shell pages, navigation metadata, public files, CSS, client/navigation modules,
+fonts, provider files, ownership inventory, and alias-to-file mappings. An export
+with unchanged comparisons but changed deployment content must get a different
+deployment identity. Identical content and aliases retain the same identity,
+independent of file/alias insertion order or the output directory.
+
+Finalize identity after the provider adapter and ownership inventory are complete.
+Only exporter-owned shell roots may carry the stamped descriptor. Require every
+such shell page to retain its original canonical path, id map, comparison URL,
+and one valid root descriptor; adapters cannot remove or rewrite that contract.
+Normalize each owned root descriptor to its canonical JSON serialization with
+`deploymentId` set to 64 zeroes. Hash each resulting file's exact bytes, sort
+the `[path, contentHash]` pairs by JavaScript string order, sort alias pairs by
+alias path, and SHA-256 the JSON encoding of `[filePairs, aliasPairs]`.
+Do not normalize lookalike metadata inside consumer documents, scripts, or other
+non-shell files. Their bytes participate unchanged.
+
+Stamp the resulting identity into those owned root descriptors, changing no
+other document bytes. No adapter or inventory mutation may follow finalization.
+Every owned root's staging placeholder is replaced before installation. This avoids a
+self-referential hash while covering every deployed byte except the derived
+identity field itself. The comparison generation keeps its separate URL/hash.
+
+Progressive navigation requires both deployment identity and comparison URL to
+match; otherwise it performs a full document load before adopting any new view.
+Old descriptor versions also trigger that fallback. Within one deployment,
+ordinary progressive navigation and browser state preservation remain unchanged.
 
 ## Browser Acceptance
 

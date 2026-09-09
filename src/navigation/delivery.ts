@@ -7,7 +7,8 @@ export function catalogueViewHref(route: string): string {
 
 /** Trusted shell metadata needed to serve a catalogue from ordinary files. */
 export interface StaticDelivery {
-  schemaVersion: 1;
+  schemaVersion: 2;
+  deploymentId: string;
   canonicalPath: string;
   idRoutes: Readonly<Record<string, string>>;
   comparisonUrl: string;
@@ -31,7 +32,10 @@ export function parseStaticDelivery(
     !value ||
     typeof value !== "object" ||
     !("schemaVersion" in value) ||
-    value.schemaVersion !== 1 ||
+    value.schemaVersion !== 2 ||
+    !("deploymentId" in value) ||
+    typeof value.deploymentId !== "string" ||
+    !/^[a-f0-9]{64}$/.test(value.deploymentId) ||
     !("canonicalPath" in value) ||
     !("comparisonUrl" in value) ||
     !("idRoutes" in value)
@@ -65,7 +69,8 @@ export function parseStaticDelivery(
     idRoutes[id] = route;
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    deploymentId: value.deploymentId,
     canonicalPath: value.canonicalPath as string,
     comparisonUrl: value.comparisonUrl,
     idRoutes,

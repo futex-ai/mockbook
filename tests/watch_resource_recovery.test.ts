@@ -42,7 +42,9 @@ test(
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
         await action();
-        html = await waitForUpdate(running.url, previous);
+        html = await waitForUpdate(running.url, previous, {
+          changes: count ?? "unavailable",
+        });
         if (count === undefined)
           assert.doesNotMatch(html, /mbk-nav-filter-count/);
         else assert.ok(html.includes(`class="mbk-nav-filter-count">${count}<`));
@@ -98,7 +100,7 @@ test(
       const edit = async (file: string, content: string) => {
         const previous = version(html);
         await fs.writeFile(file, content);
-        html = await waitForUpdate(running.url, previous);
+        html = await waitForUpdate(running.url, previous, { changes: 2 });
         assert.match(html, /class="mbk-nav-filter-count">2</);
       };
       await edit(

@@ -1,5 +1,9 @@
 # Consumer Export: Alias Fix And Main Integration
 
+The two code findings below were subsequently approved and implemented. The
+historical review and CI results are retained; see **Approved Follow-Up** for the
+current changes and validation. Required CI confirmation is still pending.
+
 ## Approved Fix
 
 The user approved the Medium adapter-alias finding in the
@@ -94,8 +98,8 @@ covering the final artifact and aliases; C) always use full-page navigation.
 Recommended: B, with a documented hashing/finalization contract and regressions
 where comparison bytes are unchanged but shell, client, assets, or adapter
 output changes. This is broader than a descriptor-only patch but protects the
-whole deployment boundary while retaining progressive navigation. Not fixed;
-requires user approval.
+whole deployment boundary while retaining progressive navigation. This was not
+fixed in the reviewed snapshot; the later approved implementation is below.
 
 ### 2. Low — Preview confinement checks lexical paths only
 
@@ -114,7 +118,8 @@ root; B) reject every symlink ancestor; C) document lexical-only confinement.
 Recommended: A, reusing shared path-resolution helpers and testing ancestor
 symlinks, a symlinked `.context`, and retargeting before installation. Define the
 adapter boundary once so lexical and physical checks cannot drift. This retains
-safe symlinks more selectively than B. Not fixed; requires user approval.
+safe symlinks more selectively than B. This was not fixed in the reviewed
+snapshot; the later approved implementation is below.
 
 ### 3. Low — Delivery bookkeeping was pending at the review snapshot
 
@@ -131,8 +136,8 @@ TODOs for the new findings immediately. Recommended: B. C would conflate
 reviewer recommendations with user-approved scope. This is the previously
 authorized delivery step, not an automatic implementation of new findings.
 
-The two code follow-ups remain open for the user's decision. Their existence
-does not reopen completed milestones or authorize another implementation cycle.
+The two code follow-ups required a separate user decision at this delivery.
+The later approval added milestones 10–13 without reopening completed work.
 
 ## CI Follow-Up — Not An AI Review Finding
 
@@ -149,3 +154,49 @@ without identifying the cause. Recommended: A. If multiple valid publications
 are the cause, use a shared semantic-state waiter with regression tests rather
 than adding sleeps; if recovery is broken, fix the watcher itself. No test was
 skipped or weakened, and no watcher change was made for this new CI issue.
+
+## Approved Follow-Up
+
+The user approved both code recommendations and the Node 22 investigation.
+
+- **Deployment identity:** descriptor schema 2 carries a separate SHA-256 ID
+  covering every final artifact path/byte and adapter alias edge. Finalization
+  happens after adapters, reference validation, and ownership assembly. Only
+  authenticated exporter-owned root descriptors are normalized for hashing and
+  stamped afterward; consumer lookalikes and other bytes are retained. Old tabs
+  fall back to a full document load for a different ID or an old descriptor.
+  This protects shell, runtime, font, asset, and alias changes even when the
+  comparison generation is unchanged.
+- **Preview confinement:** one captured adapter output-root policy enforces
+  both lexical and projected-realpath containment at preflight and immediately
+  before installation. Safe symlinked scratch roots remain supported; ancestor
+  escapes and retargeting cannot redirect an export outside the chosen scope.
+- **Watcher observation:** a controlled Node 22.14/Linux removal/repair sequence
+  reproduced the same failing assertion. Version 5 reported two Changes for
+  the removed file; version 6 reported zero after restoration. The runtime
+  recovered, but the helper had accepted the first newer publication. The
+  original CI log did not record the actual intermediate count. A shared
+  expected-state predicate now distinguishes unavailable Changes from zero
+  while preserving the 20-second deadline. The real symlink test deliberately
+  exercises that interleaving; polling regressions cover intermediate states,
+  timeouts, and transport errors. No watcher runtime change or timeout increase
+  was needed, and all subsequent recovery/comparison assertions remain.
+
+Test-first evidence includes failures for complete-artifact identity, malformed
+adapter shell metadata, preview scope escapes, and old-tab navigation. The
+watcher reproducer failed in Linux; four deterministic test failures were then
+captured locally before the shared helper fix. All 22 focused export/preview
+tests, 4 delivery unit tests, 13 static/preview browser tests, and 11 watcher
+tests passed after their fixes. Mobile and desktop owning-screen screenshots
+retain the approved appearance. A clean Linux container using Node 22.14.0 and
+npm 11.7.0 passed all 578 unit/integration tests, with none failed, skipped, or
+cancelled. The initial archive transfer accidentally included macOS metadata
+files; that invalid run was discarded and the complete clean run passed. The
+complete Node 24.2.0 gate also passed with
+`MOKABOOK_PLAYWRIGHT_PORT=62330 cargo xtask check`: all 578 unit/integration
+tests, 105 browser tests, 3 Rust tests, formatting, lint, typechecking, generated
+examples, package/license checks, and packed ESM/NodeNext/npx/Accounting/Juno
+consumer smoke tests. The Rust file-length audit passed for all 10 files.
+Main was fetched again and remains `a5ecbc0`, already contained in this branch;
+the preservation audit found no mainline file deletions. Post-push review and
+required CI results remain pending.

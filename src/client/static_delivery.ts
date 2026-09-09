@@ -65,6 +65,7 @@ export function adoptStaticDelivery(doc: Document, next: Document): boolean {
     if (
       !previous ||
       !delivery ||
+      previous.deploymentId !== delivery.deploymentId ||
       previous.comparisonUrl !== delivery.comparisonUrl
     )
       return false;

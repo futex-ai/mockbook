@@ -128,6 +128,14 @@ The output must be a strict descendant of `repoRoot`. Validate both lexical
 and projected real paths before creating directories and again before replacing
 anything. Reject symlink output entries and escapes through symlink ancestors.
 
+An internal hosting adapter may declare a stricter output root. Require the
+output to be a strict descendant of that root both lexically and after projecting
+real paths, at preflight and again before installation. The repository preview
+uses `.context` as this root. A symlink inside it cannot redirect output elsewhere
+in the repo. A symlinked root is supported only when its resolved location still
+satisfies all core repository/source protections; the transaction pins the real
+output location so retargeting cannot redirect installation.
+
 Output must neither contain nor be contained by `entriesDir`, `mockupsDir`,
 legacy source roots, or `review.outDir`. It must not contain the config,
 renderer module, or a configured consumer package's `package.json`. Reject repository root, Git

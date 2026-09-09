@@ -398,6 +398,10 @@ consumers, Chromium tests, and all Rust checks.
 `npm test` limits test-file parallelism to four workers to keep subprocess-heavy
 fixtures within their existing startup deadlines on shared developer machines.
 All tests still run, including their explicit concurrent-writer and race cases.
+Watcher tests use `tests/helpers/watched_catalogue.ts` to await a newer version
+and the expected Changes state within the existing deadline. Multi-operation
+edits can publish intermediate states; the first newer version alone does not
+prove that an entire replacement or repair has completed.
 
 ## Export And Publish A Consumer Build
 
@@ -426,7 +430,7 @@ Deploy the directory's contents with your own hosting provider. Mokabook does
 not upload files or manage hosting credentials. Serve it at the HTTP(S) origin
 root with correct MIME types and directory indexes; no Mokabook process, Git,
 source tree, or rewrite rules are needed there. Subpath hosting and `file://`
-catalogue browsing are unsupported. Configure shell revalidation and comparison
+catalogue browsing are unsupported. Configure shell and mutable-asset revalidation and comparison
 `Cache-Control: no-store` / `X-Content-Type-Options: nosniff` headers, and deploy
 atomically to avoid mixed builds. External HTTP(S) resources stay external, so
 not every catalogue is offline-capable.
@@ -439,6 +443,12 @@ both it and the captured backup are preserved for manual recovery. Generated
 fragments already written by the build step remain updated
 if the later export fails. See the [export contract](./docs/protocol/mokabook-export.md)
 and [hosting contract](./docs/protocol/mokabook-export-delivery.md).
+
+Each complete export has its own content-derived deployment identity, separate
+from comparison generations. Navigation from an old tab performs a full reload
+when the deployed catalogue, assets, or host aliases change, even if the
+comparison files are unchanged. Within one deployment, navigation remains
+progressive. Hosting must revalidate mutable files so that reload can fetch them.
 
 Concurrent exports to filesystem aliases of the same destination share one
 reservation. The internal `.mokabook-export-reservations` directory retains
@@ -475,6 +485,10 @@ preserves the previous local artifact.
 The preview adapter's extensionless URLs must not collide with another file,
 directory, or alias, including case-only differences. A collision stops export
 before replacing the previous site; choose distinct routes or public-file names.
+Preview output must remain below `.context` in both lexical and resolved paths.
+A symlinked scratch root is supported within the repository's safe boundaries,
+but an inner symlink cannot redirect output elsewhere. The same checks run before
+generation and before installation, and the resolved destination is pinned.
 
 The Preview workflow deploys `main` to the Cloudflare Pages project `mokabook`
 at `https://mokabook.pages.dev`. Same-repository, non-release pull requests use

@@ -1,5 +1,3 @@
-import crypto from "node:crypto";
-
 import type { Compilation } from "../build/compile.js";
 import { adaptBrowseDocument } from "../browse/document_adapter.js";
 import {
@@ -8,7 +6,7 @@ import {
   type StaticDelivery,
 } from "../navigation/delivery.js";
 import type { ManifestScreen, ManifestV3 } from "../registry/types.js";
-import type { ReviewArtifact, ReviewArtifactContent } from "../review/types.js";
+import type { ReviewArtifact } from "../review/types.js";
 import { createCatalogue } from "../server/catalogue.js";
 import {
   loadBrowserClientModules,
@@ -21,8 +19,10 @@ import { SHELL_CSS } from "../server/shell/css.js";
 import type { ShellContext } from "../server/shell/context.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { exportError } from "./error.js";
+import { comparisonContentId } from "./content_id.js";
 import { ExportInventory } from "./inventory.js";
 import { exportResourcePolicy } from "./resource_policy.js";
+import { STAGED_DEPLOYMENT_ID } from "./shell_metadata.js";
 
 /** Assemble one complete shell/resource/comparison tree without a live server. */
 export function assembleExport(
@@ -32,7 +32,11 @@ export function assembleExport(
   comparison: ReviewArtifact,
   publicFiles: ReadonlyMap<string, Buffer>,
   contentChanges: readonly string[],
-): { inventory: ExportInventory; delivery: StaticDelivery } {
+): {
+  inventory: ExportInventory;
+  delivery: StaticDelivery;
+  shells: ReadonlyMap<string, StaticDelivery>;
+} {
   const current = createCatalogue(compilation.manifest);
   const removed = baseline.entries.filter(
     (entry): entry is ManifestScreen =>
@@ -59,10 +63,11 @@ export function assembleExport(
     "review.json",
     `${JSON.stringify(comparison.result, null, 2)}\n`,
   );
-  const generation = contentId(comparisonFiles);
+  const generation = comparisonContentId(comparisonFiles);
   const prefix = `__mokabook/diffs/__generations/${generation}`;
   const delivery = parseStaticDelivery({
-    schemaVersion: 1,
+    schemaVersion: 2,
+    deploymentId: STAGED_DEPLOYMENT_ID,
     canonicalPath: "/",
     comparisonUrl: `/${prefix}/review.json`,
     idRoutes,
@@ -70,6 +75,11 @@ export function assembleExport(
   if (!delivery)
     throw exportError("Invalid static catalogue delivery metadata.");
   const inventory = new ExportInventory();
+  const shells = new Map<string, StaticDelivery>();
+  const addShell = (name: string, html: string, descriptor: StaticDelivery) => {
+    inventory.add(name, html);
+    shells.set(name, descriptor);
+  };
   const isPublic = exportResourcePolicy(config);
   for (const [name, bytes] of comparisonFiles) {
     if (
@@ -96,29 +106,32 @@ export function assembleExport(
     updateVersion: 0,
     delivery,
   };
-  inventory.add("index.html", homePage(catalogue, context));
-  inventory.add(
+  addShell("index.html", homePage(catalogue, context), delivery);
+  const notFoundDelivery = { ...delivery, canonicalPath: "/404.html" };
+  addShell(
     "404.html",
     notFoundPage("", catalogue, {
       ...context,
-      delivery: { ...delivery, canonicalPath: "/404.html" },
+      delivery: notFoundDelivery,
     }),
+    notFoundDelivery,
   );
   for (const entry of entries) {
     if (!("route" in entry)) continue;
     const canonicalPath = catalogueViewHref(entry.route);
+    const descriptor = { ...delivery, canonicalPath };
     const html = viewPage(entry, catalogue, {
       ...context,
       activeRoute: entry.route,
-      delivery: { ...delivery, canonicalPath },
+      delivery: descriptor,
     });
-    inventory.add(`view/${entry.route}`, html);
+    addShell(`view/${entry.route}`, html, descriptor);
     if (
       "id" in entry &&
       typeof entry.id === "string" &&
       idRoutes[entry.id] === canonicalPath
     )
-      inventory.add(`id/${entry.id}/index.html`, html);
+      addShell(`id/${entry.id}/index.html`, html, descriptor);
   }
   for (const [name, bytes] of publicFiles) {
     const adapted = /\.html?$/i.test(name)
@@ -135,18 +148,5 @@ export function assembleExport(
     inventory.add(`__mokabook/navigation/${name}`, bytes);
   for (const [name, bytes] of loadShellFontAssets())
     inventory.add(`__mokabook/fonts/${name}`, bytes);
-  return { inventory, delivery };
-}
-
-function contentId(files: ReadonlyMap<string, ReviewArtifactContent>): string {
-  const identities = [...files]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([name, bytes]) => [
-      name,
-      crypto.createHash("sha256").update(bytes).digest("hex"),
-    ]);
-  return crypto
-    .createHash("sha256")
-    .update(JSON.stringify(identities))
-    .digest("hex");
+  return { inventory, delivery, shells };
 }

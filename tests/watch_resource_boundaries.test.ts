@@ -46,7 +46,9 @@ test(
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
         await action();
-        html = await waitForUpdate(running.url, previous);
+        html = await waitForUpdate(running.url, previous, {
+          changes: count ?? "unavailable",
+        });
         if (count === undefined)
           assert.doesNotMatch(html, /mbk-nav-filter-count/);
         else assert.ok(html.includes(`class="mbk-nav-filter-count">${count}<`));
@@ -83,6 +85,10 @@ test(
       assert.ok(!invalid.paths.has(path.join(fixture.root, "notes.md")));
       await edit(async () => {
         await fs.rm(image);
+        const removed = await waitForUpdate(running.url, version(html), {
+          changes: 2,
+        });
+        assert.match(removed, /class="mbk-nav-filter-count">2</);
         await fs.writeFile(image, "<svg/>");
       }, 0);
       await edit(() => link("missing.svg"));
@@ -128,7 +134,7 @@ test(
         path.join(fixture.mockupsDir, "image.svg"),
         '<svg width="42"/>',
       );
-      const html = await waitForUpdate(running.url, previous);
+      const html = await waitForUpdate(running.url, previous, { changes: 0 });
       assert.match(html, /class="mbk-nav-filter-count">0</);
     } finally {
       await running.close();
