@@ -4,7 +4,7 @@ import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import {
   catalogueSnapshotForConfig,
-  loadCatalogueSnapshot,
+  loadServedCatalogueSnapshot,
   type CatalogueSnapshot,
 } from "./catalogue_snapshot.js";
 import {
@@ -12,7 +12,6 @@ import {
   loadBrowserNavigationModules,
   loadShellFontAssets,
 } from "./client_modules.js";
-import { computeCatalogueChanges } from "./changed.js";
 import { handleCatalogueRequest } from "./http_routes.js";
 import { listenOnAvailablePort } from "./ports.js";
 import { ReviewRoutes, type ServedReview } from "./review_routes.js";
@@ -21,8 +20,7 @@ import type { CatalogueUpdate } from "./update_messages.js";
 /** Options for one deterministic server child. */
 export interface ServerOptions {
   base: string;
-  changedRoutes?: readonly string[];
-  /** Reuse the publisher's validated generation without rereading current metadata. */
+  /** Reuse a validated startup or publication generation without rereading metadata. */
   snapshot?: CatalogueSnapshot;
   port: number;
   /** Enables on-demand comparison JSON and isolated snapshots. */
@@ -46,27 +44,9 @@ export async function startCatalogueServer(
 ): Promise<RunningServer> {
   const snapshot =
     options.snapshot ??
-    (await loadCatalogueSnapshot(
+    (await loadServedCatalogueSnapshot(
       config,
-      options.review
-        ? async (manifest) => {
-            try {
-              return await computeCatalogueChanges(
-                config,
-                options.base,
-                undefined,
-                manifest,
-              );
-            } catch (error) {
-              if (
-                error instanceof MokabookError &&
-                error.code === "manifest-invalid"
-              )
-                throw error;
-              return undefined;
-            }
-          }
-        : undefined,
+      options.review ? options.base : undefined,
     ));
   const { catalogue, changes } = catalogueSnapshotForConfig(snapshot, config);
   const clientModules = loadBrowserClientModules();
@@ -76,7 +56,7 @@ export async function startCatalogueServer(
   const reviewRoutes = options.review
     ? new ReviewRoutes(options.review)
     : undefined;
-  let changedRoutes = changes?.changedRoutes ?? options.changedRoutes;
+  let changedRoutes = changes?.changedRoutes;
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
     handleCatalogueRequest(

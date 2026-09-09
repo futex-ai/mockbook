@@ -5,6 +5,7 @@ import type { CatalogueChangeSnapshot } from "../registry/changes.js";
 import { parseManifest, readManifest } from "../registry/manifest.js";
 import type { ManifestV4 } from "../registry/types.js";
 import { createCatalogue, type Catalogue } from "./catalogue.js";
+import { computeCatalogueChanges } from "./changed.js";
 
 const configIdentity = Symbol("validated catalogue config");
 
@@ -31,6 +32,37 @@ export async function loadCatalogueSnapshot(
     catalogue: createCatalogue(manifest, changes?.removedEntries),
     ...(changes ? { changes } : {}),
   };
+}
+
+/** Validate startup metadata once, retaining Browse when optional history is unavailable. */
+export function loadServedCatalogueSnapshot(
+  config: ResolvedConfig,
+  base?: string,
+  manifest?: ManifestV4,
+): Promise<CatalogueSnapshot> {
+  return loadCatalogueSnapshot(
+    config,
+    base === undefined
+      ? undefined
+      : async (current) => {
+          try {
+            return await computeCatalogueChanges(
+              config,
+              base,
+              undefined,
+              current,
+            );
+          } catch (error) {
+            if (
+              error instanceof MokabookError &&
+              error.code === "manifest-invalid"
+            )
+              throw error;
+            return undefined;
+          }
+        },
+    manifest,
+  );
 }
 
 /** Reject snapshots from another configuration or outside the validation factory. */

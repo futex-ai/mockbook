@@ -139,7 +139,7 @@ selection under the repository's review rule.
    assignment. **Recommended: A**; the independent build disproves the claim,
    so no production change is justified.
 
-2. **Medium — no-watch startup computes Changes twice and can retain stale fallback routes. Open.**
+2. **Medium — no-watch startup computes Changes twice and can retain stale fallback routes. Fixed in the follow-up below.**
    [Serve](../../src/server/serve.ts) precomputes a route list, then
    [HTTP startup](../../src/server/http.ts) computes a complete catalogue-change
    snapshot again. Ordinarily the second result supersedes the first; duplicate
@@ -157,7 +157,7 @@ selection under the repository's review rule.
    duplicate calculation does not additionally pin later on-demand comparisons;
    that would require an explicit provider decision beyond this demonstrated bug.
 
-3. **Medium — preserved legacy-page comparison is promised but absent. Open.**
+3. **Medium — preserved legacy-page comparison is promised but absent. Fixed in the follow-up below.**
    [The migration contract](../protocol/mokabook-page-migration.md) requires an
    exact-route historical adapter using the current page's ID and the legacy
    document/source. [Document pairing](../../src/server/changed_content.ts)
@@ -188,3 +188,44 @@ no new plan was created.
 Final documentation bookkeeping validated 190 local Markdown targets across
 25 changed documents. The final code remains at e9047fe; only this review record
 changed after the completed review.
+
+## Startup And Historical Comparison Follow-Up
+
+The user requested fixes for the two validated findings above. The invalid
+nested-page attribution finding remains unchanged.
+
+1. **Medium — startup snapshot. Fixed, option A.** No-watch Serve constructs one
+   validated snapshot from the successfully written compilation and resolves its
+   optional Changes once. HTTP receives that snapshot and cannot retry Git or
+   reread a later manifest. A shared startup loader retains existing unavailable
+   history and fatal manifest-validation behavior for server children too. The
+   partial `ServerOptions.changedRoutes` fallback is removed; lightweight watch
+   notifications keep their existing route updates. Regression tests reproduce
+   the failed second calculation, retain a removed page's row/count/view, cover
+   unavailable history, and mutate metadata at the factory handoff. This fixes
+   generation ownership rather than adding another fallback. Later on-demand
+   screen comparisons retain their existing provider policy.
+
+2. **Medium — historical page adapter. Fixed, option A.** A typed
+   [page-baseline index](../../src/review/page_baselines.ts) maps current IDs to
+   v4 page IDs or exact preserved v2/v3 legacy routes. Existing paired-ignore,
+   material-content, resource, and historical source-protection rules consume
+   those artifacts. Current display metadata stays current, and unmatched legacy
+   records still cannot become removed entries. The runtime's stale separate-tree
+   paragraph is corrected. Regression fixtures cover both historical versions,
+   unchanged/ignored/material/resource edits, one-sided ignore markers, unsafe
+   Git files and private source collisions, metadata attribution, and unmatched
+   routes. No historical source code runs and pages gain no visual comparisons.
+
+The initial regression run failed 10 of 20 cases on the reviewed code, including
+the removed-page 404 and skipped historical material/safety checks. After the
+fixes, all 59 focused tests passed. The full `cargo xtask check` then passed:
+592 Node tests, 104 Chromium tests, 3 Rust tests, formatting, ESLint,
+typechecking, example freshness (70 files), package checks and packed-consumer
+smokes, clippy, and the Rust file-length audit (10 files). Runtime tests start
+real no-watch servers and exercise removed/current routes; the CLI lifecycle
+smoke and watched/published browser coverage also passed. Documentation checks
+validated 191 local links across 25 changed Markdown files. The mainline audit
+found only the three previously approved deletions and no new removals.
+Verification is logged in `.context/review-followup-4-check.log`. Post-push review
+invocation 7/10 is the remaining delivery step.

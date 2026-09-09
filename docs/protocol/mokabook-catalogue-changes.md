@@ -30,6 +30,16 @@ interface RemovedEntrySnapshot {
 }
 ```
 
+No-watch Serve validates the successfully written compilation's manifest and
+resolves its optional Changes exactly once before handing that catalogue
+snapshot to HTTP. HTTP consumes the supplied snapshot without rereading the
+manifest or retrying Git. Child startup uses the same validation and optional
+history loader when no snapshot was supplied. A failed optional calculation
+omits the entire Changes result, including removed entries; there is no separate
+startup route-list fallback. Invalid current manifests or stale source inventories
+still prevent listening. This startup guarantee does not pin a later, explicitly
+requested on-demand screen comparison to the startup Git state.
+
 The entry types are the validated manifest DTOs, including their common metadata
 and tags. Historical screen readers normalize older supported shapes first;
 pages enter `removedEntries` only from a v4 baseline with a real catalogue ID.

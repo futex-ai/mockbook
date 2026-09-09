@@ -97,10 +97,10 @@ any filesystem resolution.
 Browse caches the validated collection forest from manifest `childIds`.
 Structured roots, nested navigation, and breadcrumbs all consume that one
 model; serialized `navPath` labels from current or historical manifests never
-override it. An unclaimed screen or use case renders directly at the catalogue
-root with no invented `Catalogue` group or breadcrumb. Legacy pages remain a
-separate route-directory tree because they have no structured collection
-entries.
+override it. An unclaimed screen, page, or use case renders directly at the
+catalogue root with no invented group or breadcrumb. Registered pages use the
+same collection forest. Historical legacy records are comparison inputs only;
+source and route directories never create current navigation groups.
 
 ## Browse Shell
 

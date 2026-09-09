@@ -92,6 +92,12 @@ Match a historical legacy page to a current page by its exact preserved route,
 whose uniqueness has been validated. Use the historical document/source for
 artifact comparison and the current ID for attribution. This is a comparison
 adapter only: it cannot assign a current collection or change a current title.
+The typed page-baseline index maps each current ID to a validated historical
+document: v4 matches by ID, and normalized v2/v3 matches only by route. It feeds
+the existing paired-ignore/material comparison and rendered-resource traversal.
+Historical source paths retain the baseline's own source-protection policy;
+document reads still require public, regular Git files. The adapter executes no
+historical source code and creates no page visual-comparison snapshots.
 New explicit metadata/ancestry can mark migration routes changed; there is no
 promise of a zero Changes count during adoption. A changed historical route
 without an explicit preserved match is treated as an added current page.

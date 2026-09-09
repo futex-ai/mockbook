@@ -20,6 +20,7 @@ import {
   normalizeSingleDocument,
 } from "../review/ignore.js";
 import { fragmentForView, unionColorSchemes } from "../review/screen_views.js";
+import { pageBaselines } from "../review/page_baselines.js";
 import { ChangedResourceGraph } from "./changed_resources.js";
 
 interface DocumentPair {
@@ -127,11 +128,12 @@ function documentPairs(
   changed: ReadonlySet<string>,
 ): DocumentPair[] {
   const bases = new Map(baseline.entries.map((entry) => [entry.id, entry]));
+  const pages = pageBaselines(manifest, baseline);
   const pairs: DocumentPair[] = [];
   for (const screen of manifest.entries) {
     const baseEntry = bases.get(screen.id);
     if (screen.kind === "page") {
-      const base = baseEntry?.kind === "page" ? baseEntry.route : undefined;
+      const base = pages.get(screen.id)?.route;
       pairs.push({
         ...(base ? { base } : {}),
         head: screen.route,

@@ -166,6 +166,10 @@ already occupied, Mokabook tries each following port in order until one is
 free. `--port 0` instead asks the operating system to choose a free port.
 Watched Serve keeps the first resolved port for later child restarts so its URL
 stays stable.
+With `--no-watch`, Serve validates the compiled catalogue and resolves Changes
+once before starting HTTP. Navigation, counts, and removed-page routes use that
+same snapshot. Unavailable Git history omits Changes while current pages remain
+accessible.
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
@@ -350,6 +354,10 @@ configuration, discovery, comment expansion, aliases, and lint settings are
 removed. The [migration guide](./docs/protocol/mokabook-page-migration.md)
 explains source-preserving registration and safe regeneration of old artifacts.
 Source folders and route folders never create additional navigation groups.
+Historical v2/v3 documents pair with registered pages only at exact preserved
+routes, using the same material-content, paired-ignore, and resource rules.
+New IDs and collection metadata can still put migrated pages in Changes;
+unmatched historical documents never become removed catalogue entries.
 
 ## Rendering Boundary
 
