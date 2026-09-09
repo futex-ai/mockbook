@@ -600,7 +600,7 @@ test("the brand names itself and the search bar drops that name", () => {
     brand,
     /<span aria-hidden="true" class="mbk-mark"><svg aria-hidden="true"/,
   );
-  assert.match(brand, /height="18" stroke="currentColor"/);
+  assert.match(brand, /height="17" stroke="currentColor"/);
   assert.ok(brand.endsWith('<span class="mbk-name">Mokabook</span>'));
   assert.equal(brand.replace(/<[^>]*>/g, ""), "Mokabook");
 

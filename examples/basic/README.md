@@ -48,7 +48,8 @@ design screens explicitly opt out with `colorSchemes: ["light"]` because they
 are light documents that draw the Mokabook shell, including the three that
 depict the shell with dark selected; the two product screens inherit the
 catalogue default and prove dark generation. All design headers use the approved
-screen-stack logo: overlapping mobile and desktop outlines in a sage square.
+screen-stack logo: 17px overlapping mobile and desktop outlines in a 24px
+sage square.
 Desktop variants depict the
 shared resize grip on the catalogue navigation in Current and comparison views; narrow variants
 keep the drawer fixed. The recorded tokens and responsive rules live in

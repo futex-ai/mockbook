@@ -97,7 +97,7 @@ The shell fills the viewport (`100vh`, document scrolling disabled); every
 scrollable region scrolls internally:
 
 - **Top bar** — 48px, surface background, hairline bottom border: brand mark
-  (a non-shrinking 24px accent square with 6px corners and an 18px inline SVG
+  (a non-shrinking 24px accent square with 6px corners and a 17px inline SVG
   of overlapping mobile and desktop screen outlines), the product name in
   its own `mbk-name` span, a centred search field (max-width 440px, led by a
   15px stroked magnifier icon that holds its size while the field flexes)

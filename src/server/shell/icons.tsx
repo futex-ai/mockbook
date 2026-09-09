@@ -29,7 +29,7 @@ function IconSvg(props: { children: ReactNode; size: number }) {
 /** Overlapping mobile and desktop screens in Mokabook's brand mark. */
 export function BrandIcon(props: { size?: number }) {
   return (
-    <IconSvg size={props.size ?? 18}>
+    <IconSvg size={props.size ?? 17}>
       <path
         d="M6.5 5.5V5a2 2 0 0 1 2-2H20a2 2 0 0 1 2 2v10.5a2 2 0 0 1-2 2h-8"
         strokeLinecap="butt"
