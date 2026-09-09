@@ -14,6 +14,8 @@ import type { LoadedGraph } from "../build/load_graph.js";
 import { pendingGeneratedOrphanRoutes } from "../build/ownership.js";
 import type { ArtifactView } from "../registry/views.js";
 import { rewriteMockLinks } from "../build/mock_links.js";
+import { adaptLinkControls } from "../build/link_controls.js";
+import { validateControlMetadata } from "../build/link_control_metadata.js";
 
 /** Resolve legacy id links and apply an explicitly configured migration bridge. */
 export function transformCompatibilityDocuments(
@@ -31,7 +33,7 @@ export function transformCompatibilityDocuments(
     const { colorScheme, viewport } =
       fragmentViews.get(route) ?? legacyRouteView(route);
     const linked = rewriteMockLinks(
-      original,
+      adaptLinkControls(original, route),
       route,
       viewport,
       colorScheme,
@@ -78,6 +80,7 @@ export function transformCompatibilityDocuments(
     const normalized = transformed.endsWith("\n")
       ? transformed
       : `${transformed}\n`;
+    validateControlMetadata(linked.content, normalized, route);
     validateCompatibilityRecords(route, normalized, linked.records);
     outputs.set(route, normalized);
   }

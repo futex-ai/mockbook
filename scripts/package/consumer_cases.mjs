@@ -150,6 +150,11 @@ export async function smokeAccountingFixture(context) {
   );
   assert.match(appFragment, /data-accounting-renderer="desktop"/);
   assert.match(appFragment, /data-theme="fixture-theme"/);
+  assert.match(
+    appFragment,
+    /<a[^>]*class="fixture-button"[^>]*data-mokabook-link="accounting-campaign"/,
+  );
+  assert.doesNotMatch(appFragment, /data-mokabook-link-child-/);
   assert.match(appFragment, /href="\.\.\/app\.css"/);
   assert.match(campaignFragment, /href="\.\.\/marketing\.css"/);
   assert.equal(

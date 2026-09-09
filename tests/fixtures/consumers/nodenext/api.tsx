@@ -52,6 +52,23 @@ const node: ReactNode = (
   </MockLink>
 );
 const typedLink: string = mockLink("typed-screen", "typed-section");
+const childLink = (
+  <MockLink asChild to="typed-screen">
+    <button>Continue</button>
+  </MockLink>
+);
+const invalidChildLink = (
+  // @ts-expect-error Child mode requires one React element.
+  <MockLink asChild to="typed-screen">
+    Text
+  </MockLink>
+);
+const invalidChildProps = (
+  // @ts-expect-error Styling belongs on the child in child mode.
+  <MockLink asChild to="typed-screen" className="button">
+    <button>Continue</button>
+  </MockLink>
+);
 const definitions: RegistryDefinition[] = [
   defineScreen({
     dependencies: [],
@@ -76,6 +93,9 @@ void [
   reviewMaterialKey,
   screen,
   typedLink,
+  childLink,
+  invalidChildLink,
+  invalidChildProps,
   config,
   definitions,
 ];

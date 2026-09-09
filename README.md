@@ -98,6 +98,29 @@ const detailsHref = mockLink("account-detail", "summary");
 // "mock:account-detail#summary"
 ```
 
+To use a styled control as a catalogue link, opt into `MockLink asChild`:
+
+```tsx
+<MockLink asChild to="account-detail">
+  <button className="primary-action">View account</button>
+</MockLink>
+```
+
+Mokabook adapts that one rendered control into a native link during the build,
+preserving its classes, inline styles, label, and icons. Custom components may
+render an HTML `a`, `button`, `div`, or `span`; put attributes on the child,
+which must have no interactive descendants. Disabled or busy controls remain
+inactive, and adapted links receive a visible keyboard focus outline. The
+default `MockLink` behavior and documents without child links keep their bytes.
+Navigation works in Browse, use-case frames, standalone files, and Review
+snapshots through the existing link mechanism, without a consumer click script.
+
+Keep any props your component requires to render enabled; Mokabook handles the
+destination through the generated link. Native browser button chrome and
+JavaScript-driven hover/pressed effects are not reproduced by static adaptation.
+See the [styled link controls contract](./docs/protocol/mokabook-link-controls.md)
+for supported markup, inactive states, and validation rules.
+
 Color-scheme adoption has two steps: enable `colorSchemes: ["light", "dark"]`
 in the config, then select the consumer theme from `input.colorScheme` in the
 configured renderer. Mokabook re-renders the same mobile and desktop nodes for
@@ -414,4 +437,5 @@ recorded by the
 - [Protocol index](./docs/protocol/README.md)
 - [Package ownership boundary](./docs/architecture/package-boundary.md)
 - [Accounting migration inventory](./docs/migration/accounting-framework-inventory.md)
+- [Styled control migration guide](./docs/migration/accounting-link-controls.md)
 - [Implementation plans](./plans/README.md)

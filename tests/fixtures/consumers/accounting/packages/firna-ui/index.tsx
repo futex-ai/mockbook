@@ -34,3 +34,16 @@ export function FirnaCard({
 export function collectFirnaStyles() {
   return "[data-theme='fixture-theme']{box-sizing:border-box}";
 }
+
+export function FirnaButton({ children }: { children: ReactNode }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="fixture-button"
+      data-theme={useContext(ThemeContext)}
+    >
+      {children}
+    </div>
+  );
+}

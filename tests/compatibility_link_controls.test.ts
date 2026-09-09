@@ -1,0 +1,101 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import test from "node:test";
+
+import { compileCatalogue } from "../dist/build/compile.js";
+import { loadConfig } from "../dist/config/load.js";
+import {
+  createFixture,
+  removeFixture,
+  validEntrySource,
+} from "./helpers/fixture.js";
+
+const source = validEntrySource({
+  body: '<MockLink asChild to="details"><button id="continue">Continue</button></MockLink><MockLink to="details" id="ordinary">Plain</MockLink>',
+}).replace(
+  'import React from "react";',
+  'import React from "react"; import { MockLink } from "mokabook";',
+);
+
+test("custom renderer casing cannot bypass child adaptation", async (context) => {
+  const fixture = await createFixture(source, {
+    extraConfig: 'renderer: "renderer.tsx",',
+  });
+  context.after(() => removeFixture(fixture));
+  await fs.writeFile(
+    path.join(fixture.root, "renderer.tsx"),
+    `import { renderToStaticMarkup } from "react-dom/server";
+export default input => '<html><body>' + renderToStaticMarkup(input.node).replaceAll('data-mokabook-link-child-', 'DATA-MOKABOOK-LINK-CHILD-') + '</body></html>';`,
+  );
+  const compilation = await compileCatalogue(await loadConfig(fixture.root));
+  const html = compilation.outputs.get("screens/home.mobile.html") ?? "";
+  assert.match(html, /<a id="continue"/);
+  assert.match(html, /data-mokabook-link-control="button"/);
+  assert.doesNotMatch(html, /data-mokabook-link-child-/i);
+});
+
+test("compatibility transforms cannot introduce or alter owned control metadata", async (context) => {
+  const fixture = await createFixture(source, {
+    extraConfig: 'compatibility: { transformer: "transform.ts" },',
+  });
+  context.after(() => removeFixture(fixture));
+  const transformer = path.join(fixture.root, "transform.ts");
+  const mutations = [
+    `input.content.replace('</body>', '<template DATA-MOKABOOK-LINK-CHILD-END=""></template></body>')`,
+    `input.content.replace('</body>', '<a DATA-MOKABOOK-LINK-CONTROL="button">Unrelated</a></body>')`,
+    `input.content.replace('</body>', '<template><a data-mokabook-link-control="span">Inert</a></template></body>')`,
+    `input.content.replace('</head>', '<style DATA-MOKABOOK-LINK-CONTROL-STYLES=""></style></head>')`,
+    `input.content.replace('data-mokabook-link-control="button"', 'data-mokabook-link-control="div"')`,
+    `input.content.replace(' data-mokabook-link-control="button"', '')`,
+    `input.content.replace(' data-mokabook-link-control="button"', '').replace('id="ordinary"', 'id="ordinary" data-mokabook-link-control="button"')`,
+    `input.content.replace('data-mokabook-link-control="button"', 'data-mokabook-link-control="button" DATA-MOKABOOK-LINK-CONTROL="div"')`,
+    `input.content.replace('width:fit-content', 'width:100%')`,
+    `input.content.replace('data-mokabook-link-control-styles=""', 'data-mokabook-link-control-styles="changed"')`,
+    String.raw`input.content.replace(/<style data-mokabook-link-control-styles="">[^]*?<\/style>/, '')`,
+    `input.content.replace('id="ordinary"', 'id="ordinary" data-mokabook-link-control-future=""')`,
+  ];
+  for (const expression of mutations) {
+    await context.test(expression, async () => {
+      await fs.writeFile(transformer, `export default input => ${expression};`);
+      await assert.rejects(
+        async () => compileCatalogue(await loadConfig(fixture.root)),
+        /MockLink child control.*(unconsumed markers|metadata)/,
+      );
+    });
+  }
+});
+
+test("compatibility cannot add control metadata to a document without child links", async (context) => {
+  const fixture = await createFixture(validEntrySource(), {
+    extraConfig: 'compatibility: { transformer: "transform.ts" },',
+  });
+  context.after(() => removeFixture(fixture));
+  await fs.writeFile(
+    path.join(fixture.root, "transform.ts"),
+    `export default input => input.content.replace('</body>', '<a DATA-MOKABOOK-LINK-CONTROL="a">Unrelated</a></body>');`,
+  );
+  await assert.rejects(
+    async () => compileCatalogue(await loadConfig(fixture.root)),
+    /MockLink child control.*metadata/,
+  );
+});
+
+test("compatibility preserves generated metadata while allowing harmless edits and literal names", async (context) => {
+  const fixture = await createFixture(source, {
+    extraConfig: 'compatibility: { transformer: "transform.ts" },',
+  });
+  context.after(() => removeFixture(fixture));
+  await fs.writeFile(
+    path.join(fixture.root, "transform.ts"),
+    `export default input => input.content
+      .replaceAll(' data-mokabook-link-control', ' DATA-MOKABOOK-LINK-CONTROL')
+      .replaceAll('Continue', 'Next')
+      .replace('</body>', '<p data-note="data-mokabook-link-child-end">Literal metadata</p></body>');`,
+  );
+  const compilation = await compileCatalogue(await loadConfig(fixture.root));
+  const html = compilation.outputs.get("screens/home.mobile.html") ?? "";
+  assert.match(html, /DATA-MOKABOOK-LINK-CONTROL="button"/);
+  assert.match(html, />Next<\/a>/);
+  assert.match(html, /data-note="data-mokabook-link-child-end"/);
+});

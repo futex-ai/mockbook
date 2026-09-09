@@ -329,6 +329,11 @@ contain `<base href>`; the builder rejects that combination before and after
 compatibility transformation while continuing to support `<base target>`. The
 complete behavior is defined by the
 [catalogue navigation contract](./mokabook-navigation.md).
+`MockLink asChild` explicitly adapts one consumer-styled control into that
+native-link contract during static generation. Child attributes stay on the
+child, inactive controls remain metadata-only, and ambiguous markup fails the
+build. The complete API and rendering rules are in
+[Styled catalogue link controls](./mokabook-link-controls.md).
 Local resource URLs in HTML source attributes, `srcset`, inline/style-block
 CSS, and transitively referenced HTML/CSS must likewise resolve to public
 static files beneath `mockupsDir` that remain after the pending build. An owned
@@ -369,7 +374,8 @@ export default function render(input: RenderInput): string;
 ```
 
 The string must contain a complete `<html>` document. Mokabook
-serializes Review-ignore markers and rewrites every complete
+serializes Review-ignore markers, adapts opt-in `MockLink asChild` controls,
+and rewrites every complete
 `mock:<id>[#fragment]` value found in `href` or `data-nav-href` after this
 function returns, including when one element has both attributes. The rewrite
 is element-aware and applies to legacy output: logical `href` is valid only on

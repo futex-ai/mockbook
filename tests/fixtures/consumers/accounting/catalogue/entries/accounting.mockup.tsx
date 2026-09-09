@@ -1,6 +1,6 @@
 import React from "react";
 
-import { FirnaCard } from "@firna/ui";
+import { FirnaButton, FirnaCard } from "@firna/ui";
 import {
   defineCollection,
   defineScreen,
@@ -24,6 +24,9 @@ function Dashboard({ compact }: { compact: boolean }) {
       </ReviewIgnore>
       <h1>Accounts overview</h1>
       <MockLink to="accounting-campaign">View campaign</MockLink>
+      <MockLink asChild to="accounting-campaign">
+        <FirnaButton>Open campaign</FirnaButton>
+      </MockLink>
     </FirnaCard>
   );
 }

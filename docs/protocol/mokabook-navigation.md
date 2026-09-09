@@ -19,6 +19,9 @@ asset, external, download, and same-document links.
 
 ## Logical Catalogue Links
 
+The opt-in `MockLink asChild` extension and its static-control adaptation
+contract are specified in [Styled catalogue link controls](./mokabook-link-controls.md).
+
 The target helper API is `mockLink(id, fragment?)` and
 `<MockLink to={id} fragment={fragment}>`. The id and optional fragment remain
 separate authoring concepts: `to` and the first function argument contain only

@@ -13,5 +13,6 @@ delivery steps.
 - [Changes and screen comparisons](./mokabook-changes.md)
 - [Watched development](./mokabook-watch.md)
 - [Catalogue navigation contract](./mokabook-navigation.md)
+- [Styled catalogue link controls](./mokabook-link-controls.md)
 - [Shell design contract](./mokabook-shell-design.md)
 - [CI and npm release contract](./npm-release.md)
