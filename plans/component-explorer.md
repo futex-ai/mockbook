@@ -1,8 +1,7 @@
 # Component Explorer
 
 Status: active; mockup milestones 4, 4a, 4b, 4c, and 7 are completed and ready
-for joint design sign-off. Milestone 4d stabilizes integrated browser verification.
-Component runtime
+for joint design sign-off. Verification follow-up 4d is completed. Component runtime
 implementation remains pending. At the user's request, the mockups precede
 the runtime/backend milestones.
 
@@ -274,7 +273,7 @@ nested-component tabs, highlights, and closing; resize checks also passed when
 opening the deployed artboards directly. The mockup uses a native resize grip;
 the full-width, keyboard-accessible runtime divider remains in Milestone 5.
 
-## Milestone 4d: Stabilize integrated design navigation checks
+## Milestone 4d: Stabilize integrated design navigation checks — completed
 
 CI exposed an existing test sequence that clicks controls in the previous frame
 before the preceding catalogue navigation finishes. Keep real navigation and
@@ -285,9 +284,9 @@ assertions intact while making the test wait for each intended destination.
 - [x] Assert the intermediate destinations before activating their controls;
       document the sequencing rule for in-frame navigation checks.
 - [x] Run focused browser checks and `cargo xtask check`; inspect the diff.
-- [ ] Run `git add -A`, commit using Conventional Commits, and push the branch.
-- [ ] Run `cargo xtask review` after pushing; report findings for user decision.
-- [ ] Record CI and PR handoff after verification finishes.
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [x] Run `cargo xtask review` after pushing; report findings for user decision.
+- [x] Record CI and PR handoff after verification finishes.
 
 Validation: both viewport sequences failed with a delayed real response before
 the correction, then all five design-link checks passed with that delay retained.
@@ -295,6 +294,16 @@ the correction, then all five design-link checks passed with that delay retained
 including package smokes and all formatting/lint/type/generated-output checks.
 Only test sequencing and its documentation changed; runtime source and generated
 artboards remain unchanged from the reviewed implementation.
+
+Commit `4fa47f0` is pushed and its required post-push review completed. The final
+review reports the same stale inventory summaries (Low) and pending delivery
+record (Medium); the former remains for user decision and the latter is closed
+by this record. No implementation findings were reported in either review pass.
+Release Node 24 CI passed the complete gate. The unchanged mainline resource
+watcher test intermittently observed a replacement's temporary missing-file state
+on Node 22 and was retried; CI history and current status are recorded in
+[PR #48](https://github.com/futex-ai/mokabook/pull/48). The published artboards are
+unchanged from the verified Milestone 4c preview.
 
 ## Milestone 5: Implement component pages and inspection
 

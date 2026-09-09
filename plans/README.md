@@ -3,8 +3,7 @@
 ## Active
 
 - [Component Explorer](./component-explorer.md) — all component mockups ready
-  for joint design sign-off; integrated browser verification in progress and
-  runtime implementation pending.
+  for joint design sign-off; runtime implementation pending.
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 
