@@ -4,8 +4,9 @@ import { MissingPane, Pane, CompareGrid } from "../../parts/compare.js";
 import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
 import { Stage } from "../../parts/stage.js";
 import { HighlightToggle, ViewControls } from "./controls.js";
+import { SCREENS, screenIdentity } from "./metadata.js";
 import { INSPECTION_PAGES } from "./destinations.js";
-import { DesignLinks, ExplorerShell } from "./navigation.js";
+import { ExplorerShell } from "./navigation.js";
 import { ScreenDetails } from "./screen_details.js";
 import { ConsumerFrame, type ScreenPageState } from "./screen_preview.js";
 
@@ -17,20 +18,14 @@ export function ScreenPage({
   viewport: ArtboardViewport;
 }) {
   const removed = state === "removed-consumer";
-  const title =
-    state === "empty" || state === "unavailable"
-      ? "Reading room"
-      : state === "consumer"
-        ? "Details"
-        : removed
-          ? "Farewell"
-          : "Welcome";
+  const identity = screenIdentity(state);
+  const { title, id } = SCREENS[identity];
   const highlighting = state === "highlight" || state === "nested";
   return (
     <>
       <ExplorerShell
         design={INSPECTION_PAGES[state]}
-        active={title}
+        active={identity}
         scenario={
           removed ? "removed" : state === "direct-change" ? "screen" : "all"
         }
@@ -40,7 +35,7 @@ export function ScreenPage({
           accessibleControls
           title={title}
           crumbs={["Example", "Screens"]}
-          idChip={`example-${title.toLowerCase().replace(" ", "-")}`}
+          idChip={id}
           comparisonMode={removed ? "side-by-side" : "current"}
           action={<ViewControls viewport={viewport} />}
         />
@@ -92,17 +87,6 @@ export function ScreenPage({
         </Stage>
         {!removed ? <ScreenDetails state={state} /> : null}
       </ExplorerShell>
-      <DesignLinks>
-        <MockLink to="design-component-inspection-direct-change">
-          Independent screen change
-        </MockLink>
-        <MockLink to="design-component-inspection-highlight">
-          Highlight regions
-        </MockLink>
-        <MockLink to="design-component-inspection-nested">
-          Nested selection
-        </MockLink>
-      </DesignLinks>
     </>
   );
 }

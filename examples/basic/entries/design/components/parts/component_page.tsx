@@ -1,12 +1,13 @@
-import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
-import { Stage } from "../../parts/stage.js";
+import type { ArtboardViewport } from "../../parts/shell.js";
+import { actionVariants } from "./action_props.js";
 import {
   ComponentDetails,
   type ComponentPageState,
 } from "./component_details.js";
-import { VariantPicker, ViewControls } from "./controls.js";
+import { ComponentLayout } from "./component_layout.js";
+import { VariantPicker } from "./controls.js";
 import { COMPONENT_PAGES } from "./destinations.js";
-import { DesignLinks, ExplorerShell } from "./navigation.js";
+import { COMPONENT_BY_STATE } from "./metadata.js";
 import {
   ActionExample,
   ComponentCanvas,
@@ -24,58 +25,39 @@ export function ComponentPage({
 }) {
   const comparison = state === "comparison" || state === "removed";
   const changed = comparison || state === "affected";
-  const title =
-    state === "toolbar"
-      ? "Toolbar"
-      : state === "unused"
-        ? "Badge"
-        : state === "hidden"
-          ? "Help hint"
-          : "Action";
   return (
-    <>
-      <ExplorerShell
-        design={COMPONENT_PAGES[state]}
-        active={title}
-        scenario={
-          state === "removed" ? "removed" : changed ? "component" : "all"
-        }
-        viewport={viewport}
-      >
-        <ScreenHead
-          accessibleControls
-          title={title}
-          crumbs={["Example", "Components"]}
-          idChip={title.toLowerCase().replace(" ", "-")}
-          action={<ViewControls viewport={viewport} />}
-          comparisonMode={comparison ? "side-by-side" : "current"}
+    <ComponentLayout
+      design={COMPONENT_PAGES[state]}
+      identity={COMPONENT_BY_STATE[state]}
+      comparison={comparison}
+      scenario={state === "removed" ? "removed" : changed ? "component" : "all"}
+      viewport={viewport}
+      variants={<VariantPicker state={state} />}
+      inspector={<ComponentDetails state={state} />}
+    >
+      {comparison ? (
+        <ComponentComparison
+          removed={state === "removed"}
+          viewport={viewport}
         />
-        <VariantPicker state={state} />
-        <Stage>
-          {comparison ? (
-            <ComponentComparison
-              removed={state === "removed"}
-              viewport={viewport}
-            />
+      ) : (
+        <ComponentCanvas viewport={viewport}>
+          {state === "toolbar" ? (
+            <ToolbarExample />
+          ) : state === "hidden" ? (
+            <p className="ce-empty-copy">
+              This variant has no visible content.
+            </p>
+          ) : state === "unused" ? (
+            <span className="ce-badge">New</span>
           ) : (
-            <ComponentCanvas viewport={viewport}>
-              {state === "toolbar" ? (
-                <ToolbarExample />
-              ) : state === "hidden" ? (
-                <p className="ce-empty-copy">
-                  This variant has no visible content.
-                </p>
-              ) : state === "unused" ? (
-                <span className="ce-badge">New</span>
-              ) : (
-                <ActionExample disabled={state === "disabled"} />
-              )}
-            </ComponentCanvas>
+            <ActionExample
+              {...actionVariants[state === "disabled" ? "disabled" : "default"]
+                .props}
+            />
           )}
-        </Stage>
-        <ComponentDetails state={state} />
-      </ExplorerShell>
-      <DesignLinks />
-    </>
+        </ComponentCanvas>
+      )}
+    </ComponentLayout>
   );
 }

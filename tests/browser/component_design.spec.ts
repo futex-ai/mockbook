@@ -28,7 +28,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
         await expect(page.locator(".mbk-screen-head h2")).toBeVisible();
         await expect(
           page.getByRole("navigation", { name: "Related design pages" }),
-        ).toBeVisible();
+        ).toHaveCount(0);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > window.innerWidth,
         );
@@ -61,6 +61,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
       );
       await expect(page.locator(".ce-canvas button")).toBeDisabled();
       await expect(page.getByLabel("Supplied props")).toContainText("true");
+      await page.getByRole("button", { name: "Usage", exact: true }).click();
       const welcome = page
         .getByRole("region", { name: "Used by", exact: true })
         .getByRole("link", { name: "Welcome" });
@@ -207,6 +208,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
         page.getByRole("button", { name: "Highlight components" }),
       ).toBeDisabled();
       await page.goto(componentDesignUrl("inspection/details", viewport));
+      await page
+        .getByRole("button", { name: "Components", exact: true })
+        .click();
       await page
         .locator(".ce-instance-tree summary")
         .filter({ hasText: "Help hint" })

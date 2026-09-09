@@ -1,6 +1,6 @@
 import { MockLink } from "mokabook";
 
-import { PropValues } from "./component_details.js";
+import { PropValues } from "./prop_values.js";
 import { toolbarPrompt } from "./fixtures.js";
 import type { ScreenPageState } from "./screen_preview.js";
 
@@ -72,6 +72,7 @@ export function InstanceDetails({ state }: { state: ScreenPageState }) {
           </MockLink>
         )}
       </div>
+      {help ? <p className="ce-muted">No visible region</p> : null}
       <details className="ce-slot-details">
         <summary>Slots and ownership</summary>
         <p>

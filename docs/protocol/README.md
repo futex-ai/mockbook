@@ -18,6 +18,8 @@ delivery steps.
 - [Component change attribution](./mokabook-component-changes.md) (approved target)
 - [Component pages and screen inspection](./mokabook-component-explorer.md) (approved target)
 - [Component explorer design catalogue](./mokabook-component-design.md) (mockups delivered; runtime pending)
+- [Component icon inspector design](./mokabook-component-inspector-design.md) (mockups delivered; runtime pending)
+- [Component controls design catalogue](./mokabook-component-controls-design.md) (mockups delivered; runtime pending)
 - [Component controls](./mokabook-component-controls.md) (approved target)
 - [Watched development](./mokabook-watch.md)
 - [Catalogue navigation contract](./mokabook-navigation.md)

@@ -8,7 +8,9 @@
 }
 .ce-design a:focus-visible,
 .ce-design button:focus-visible,
-.ce-design summary:focus-visible {
+.ce-design summary:focus-visible,
+.ce-design input:focus-visible,
+.ce-design select:focus-visible {
   outline: 2px solid var(--mbk-sage-deep);
   outline-offset: 3px;
 }
@@ -29,29 +31,6 @@
 .ce-design .mbk-stage {
   min-height: 225px;
   padding: 24px;
-}
-.ce-design .mbk-details {
-  max-height: 340px;
-  overflow: auto;
-}
-.ce-design .mbk-details-bar {
-  cursor: pointer;
-  display: list-item;
-  margin-left: 20px;
-  padding-left: 4px;
-}
-.ce-design .mbk-details h3 {
-  font-size: 12px;
-  margin: 0 0 10px;
-}
-.ce-design .mbk-details h3 > span {
-  color: var(--chrome-muted);
-  font-size: 11px;
-  font-weight: 400;
-  margin-left: 6px;
-}
-.ce-design .mbk-details p {
-  margin: 0 0 12px;
 }
 .ce-design .mbk-cmp-toolbar {
   flex-shrink: 0;
@@ -195,19 +174,6 @@
 .ce-comparison-evidence summary {
   cursor: pointer;
 }
-.ce-design-links {
-  background: white;
-  border-top: 1px solid var(--chrome-border);
-  display: flex;
-  flex-wrap: wrap;
-  font-family: var(--sans);
-  font-size: 12px;
-  gap: 12px 20px;
-  padding: 20px 24px;
-}
-.ce-design-links a {
-  color: var(--mbk-sage-deep);
-}
 .ce-mobile-location {
   background: white;
   border-bottom: 1px solid var(--chrome-border);
@@ -231,9 +197,6 @@
   color: var(--mbk-sage-deep);
   font-size: 12px;
   padding: 4px 12px;
-}
-.ce-design .mbk-shell--mobile .mbk-details {
-  max-height: none;
 }
 .ce-design .mbk-shell--mobile .ce-view-controls {
   width: 100%;

@@ -1,12 +1,26 @@
 import type { NavigationState } from "../../parts/navigation_states.js";
 import {
   COMPONENT_PAGES,
+  CONTROLS_PAGES,
   INSPECTION_PAGES,
   type ComponentDesignDestination,
 } from "./destinations.js";
 
 /** Shared shell controls do not inherit unrelated Browse transitions. */
 export const COMPONENT_NAVIGATION_STATES = {
+  [CONTROLS_PAGES["default"]]: {},
+  [CONTROLS_PAGES["edited"]]: {},
+  [CONTROLS_PAGES["unset"]]: {},
+  [CONTROLS_PAGES["variant"]]: {},
+  [CONTROLS_PAGES["reset"]]: {},
+  [CONTROLS_PAGES["pending"]]: {},
+  [CONTROLS_PAGES["invalid"]]: {},
+  [CONTROLS_PAGES["error"]]: {},
+  [CONTROLS_PAGES["comparison"]]: {},
+  [CONTROLS_PAGES["readonly"]]: {},
+  [CONTROLS_PAGES["readonly-variant"]]: {},
+  [COMPONENT_PAGES.closed]: {},
+  [INSPECTION_PAGES.closed]: {},
   [COMPONENT_PAGES.default]: {},
   [COMPONENT_PAGES.disabled]: {},
   [COMPONENT_PAGES.comparison]: {},

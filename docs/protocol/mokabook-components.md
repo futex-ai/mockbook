@@ -12,7 +12,7 @@ land. This contract adds an opt-in component entry to the existing catalogue.
 A registered component owns a catalogue page, saved variants, and comparisons.
 Its actual rendered instances connect that page to consuming screens and other
 components. Registration supplies the identity used by previews, automatic
-change attribution, the Details inspector, and highlighting; consumers do not
+change attribution, the shared icon inspector, and highlighting; consumers do not
 maintain separate usage lists or per-screen Review-ignore hashes.
 
 A component-only change appears in Changes as a component entry. Consuming
@@ -170,7 +170,7 @@ Comparison metadata, dependencies, and props contain no timestamps, absolute
 checkout paths, function bodies, or transient controls values. Only data props
 are serialized as values; slots serialize ownership references and rendered
 material, never React elements or executable definitions. Values shown in
-Details come from the generated records. Source metadata is repository-relative
+Inspector values come from the generated records. Source metadata is repository-relative
 and remains secondary to the preview.
 
 Build, Check, watched rebuilds, published output, and packed consumers use the

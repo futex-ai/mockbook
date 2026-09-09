@@ -363,7 +363,9 @@ honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 Tests using the real Git-backed comparison fixture await its final JSON response
 before applying UI assertion deadlines. Cold snapshot generation has a bounded
-30-second wait; the existing UI assertions retain their default deadlines.
+30-second wait tied to the newly triggered request, refresh intent, and its
+redirect chain; stale/background responses cannot satisfy it. The existing UI
+assertions retain their default deadlines.
 
 `cargo xtask check` is the authoritative local gate. It includes formatting,
 lint, typechecking, unit/integration tests, the committed example, package
@@ -432,7 +434,12 @@ Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
 The [component design catalogue](./docs/protocol/mokabook-component-design.md)
-adds mobile and desktop references for component pages and screen inspection.
+adds thirty-one mobile and desktop references for component pages, screen
+inspection, a collapsible icon inspector, and the complete prop-controls states.
+The [controls designs](./docs/protocol/mokabook-component-controls-design.md) show
+saved variants and temporary edits; live preview rendering remains a later
+implementation milestone. The catalogue hierarchy reaches each design without
+adding navigation footers to the artboards.
 
 The design mockups use `MockLink` for supported navigation and state transitions;
 the two example buttons demonstrate `MockLink asChild`. See the

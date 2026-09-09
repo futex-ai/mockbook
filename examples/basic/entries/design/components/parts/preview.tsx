@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { CompareGrid, MissingPane, Pane } from "../../parts/compare.js";
 import type { ArtboardViewport } from "../../parts/shell.js";
+import type { ActionProps } from "./action_props.js";
 import { toolbarPrompt } from "./fixtures.js";
 
 /** The same synthetic Action is composed by component and consuming-screen designs. */
@@ -9,15 +10,20 @@ export function ActionExample({
   before = false,
   disabled = false,
   label = "Continue",
+  cornerRadius,
+  emphasis,
+  hint,
 }: {
   before?: boolean;
-  disabled?: boolean;
-  label?: string;
-}) {
+} & Partial<ActionProps>) {
   return (
     <button
       type="button"
-      className={`ce-action${before ? " ce-action--before" : ""}`}
+      className={`ce-action${before ? " ce-action--before" : ""}${emphasis === "quiet" ? " ce-action--quiet" : ""}`}
+      style={
+        cornerRadius === undefined ? undefined : { borderRadius: cornerRadius }
+      }
+      title={hint}
       disabled={disabled}
     >
       {label}

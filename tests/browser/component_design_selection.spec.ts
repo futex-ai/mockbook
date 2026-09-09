@@ -16,6 +16,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
       ["help", "Help hint", "false"],
     ]) {
       await page.goto(componentDesignUrl(`pages/${route}`, viewport));
+      await page.getByRole("button", { name: "Usage", exact: true }).click();
       await page
         .getByRole("region", { name: "Used by", exact: true })
         .getByRole("link", { name: "Welcome" })
@@ -31,7 +32,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
       );
       if (route === "help")
         await expect(
-          page.getByText("No visible region", { exact: true }),
+          page
+            .getByRole("region", { name: "Selected instance" })
+            .getByText("No visible region", { exact: true }),
         ).toBeVisible();
     }
   });

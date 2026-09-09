@@ -126,7 +126,7 @@ test("every design link resolves to a real same-viewport design artifact without
   const componentDesigns = designs.filter((entry) =>
     entry.id.startsWith("design-component-"),
   );
-  assert.equal(componentDesigns.length, 18);
+  assert.equal(componentDesigns.length, 31);
   assert.equal(designs.length - componentDesigns.length, 24);
   for (const entry of designs) {
     for (const viewport of ["mobile", "desktop"] as const) {
@@ -189,6 +189,8 @@ test("the canonical documented inventory exactly matches the complete design reg
       [
         "docs/protocol/mokabook-shell-design.md",
         "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-inspector-design.md",
+        "docs/protocol/mokabook-component-controls-design.md",
       ].map((file) => fs.readFile(path.join(repositoryRoot, file), "utf8")),
     )
   ).join("\n");

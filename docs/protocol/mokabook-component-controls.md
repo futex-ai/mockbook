@@ -7,6 +7,9 @@ delivers these controls after saved component pages and inspection. Components
 continue to use the [registered authoring boundary](./mokabook-components.md)
 and [explorer shell](./mokabook-component-explorer.md).
 
+The [complete controls mockups](./mokabook-component-controls-design.md) are
+delivered for sign-off with the icon inspector. Only the designs are implemented.
+
 ## Scope And User Behavior
 
 Saved variants work locally and in published static catalogues. Local Serve
@@ -15,8 +18,8 @@ server render. Arbitrary interactive controls in published catalogues would
 require a browser renderer or hosted rendering service and are outside this
 change. No consumer JavaScript runtime is added to static preview frames.
 
-A Controls panel on the component page lists only explicitly declared editable
-props. Data props without controls remain visible in Details and still
+The Props/Controls tab in the shared component inspector lists only explicitly declared editable
+props. Data props without controls remain visible in the inspector and still
 participate in change detection. A control starts from the selected saved
 variant's actual value, updates the preview after validation, and has a label
 derived from declared metadata or the prop name. No invented sample values
@@ -69,7 +72,7 @@ the saved variant. Controls render responses cannot overwrite a comparison,
 another variant, a new viewport/theme, or a different route.
 
 Published pages show the same saved variants and props with controls read-only
-and a secondary message, "Choose a saved variant to explore this component."
+and a secondary message, "Open this catalogue locally to edit props."
 Capability comes from delivery configuration rather than an environment badge.
 Users can browse, inspect, and compare the saved variants normally.
 
@@ -133,7 +136,7 @@ malformed or expired ids. This response never updates the committed manifest or
 publishes watched changes.
 
 Preview documents stay script-disabled. The parent shell swaps only the matching
-preview frame and uses its returned usage records for Details/highlighting.
+preview frame and uses its returned usage records for inspection/highlighting.
 No client-side prop interpolation or arbitrary HTML execution substitutes for
 the consumer renderer. Failed validation/rendering preserves the last valid
 preview, shows an actionable error, and offers retry/reset.

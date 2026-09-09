@@ -4,6 +4,7 @@ import { ActionExample, ToolbarExample } from "./preview.js";
 import { HighlightMask, type InspectionSelection } from "./highlight.js";
 
 export type ScreenPageState =
+  | "closed"
   | "toolbar-selection"
   | "help-selection"
   | "details"

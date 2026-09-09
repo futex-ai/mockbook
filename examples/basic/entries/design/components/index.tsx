@@ -1,10 +1,13 @@
 import { collection, screen } from "mokabook";
 
+import { controlsDesign } from "./controls/index.js";
+import { inspectorScreens } from "./inspector/screens.js";
 import { pageScreens } from "./pages/screens.js";
 import { inspectionScreens } from "./inspection/screens.js";
 import { selectionScreens } from "./inspection/selection/screens.js";
 import { stateScreens } from "./states/screens.js";
 import { ComponentPage } from "./parts/component_page.js";
+import { componentStyleDependencies } from "./parts/styles.js";
 import { componentDesignDocs } from "./parts/fixtures.js";
 
 export function ComponentOverviewDesktop() {
@@ -21,12 +24,7 @@ export const componentDesign = collection({
   title: "Component explorer",
   description:
     "Component pages, saved examples, change attribution, and screen inspection.",
-  dependencies: [
-    "examples/basic/generated/design-components.css",
-    "examples/basic/generated/design-component-inspection.css",
-    "examples/basic/generated/design-component-details.css",
-    "examples/basic/generated/design-review.css",
-  ],
+  dependencies: componentStyleDependencies,
   relatedDocs: componentDesignDocs,
   children: [
     screen({
@@ -39,6 +37,15 @@ export const componentDesign = collection({
       desktop: <ComponentOverviewDesktop />,
       mobile: <ComponentOverviewMobile />,
     }),
+    collection({
+      id: "design-component-inspector",
+      segment: "inspector",
+      title: "Inspector closed",
+      description:
+        "Closed component and screen inspectors, with every icon available to open a panel.",
+      children: inspectorScreens,
+    }),
+    controlsDesign,
     collection({
       id: "design-component-pages",
       segment: "pages",

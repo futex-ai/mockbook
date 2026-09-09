@@ -1,0 +1,101 @@
+/* Shared native icon inspector for component and consuming-screen designs. */
+.ce-inspector {
+  background: white;
+  border-top: 1px solid var(--chrome-border);
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(4, 48px) minmax(0, 1fr);
+  grid-template-rows: 48px auto;
+  min-width: 0;
+  position: relative;
+}
+.ce-inspector > details,
+.ce-inspector > details::details-content {
+  display: contents;
+}
+.ce-inspector > details > summary {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--chrome-muted);
+  cursor: pointer;
+  display: flex;
+  grid-column: var(--tab-column);
+  grid-row: 1;
+  height: 40px;
+  justify-content: center;
+  list-style: none;
+  margin: 4px;
+  width: 40px;
+}
+.ce-inspector > details > summary::-webkit-details-marker {
+  display: none;
+}
+.ce-inspector > details > summary:hover {
+  background: #f4f6f3;
+  color: var(--chrome-ink);
+}
+.ce-inspector > details[open] > summary {
+  background: #edf3ef;
+  border-color: #b9cfc2;
+  color: var(--mbk-sage-deep);
+}
+.ce-inspector-close {
+  align-items: center;
+  border-radius: 5px;
+  color: var(--chrome-muted);
+  display: none;
+  height: 32px;
+  justify-content: center;
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  width: 32px;
+}
+.ce-inspector-close:hover {
+  background: var(--chrome-bg);
+  color: var(--chrome-ink);
+}
+.ce-inspector > details[open] .ce-inspector-close {
+  display: flex;
+}
+.ce-inspector-panel {
+  border-top: 1px solid var(--chrome-border);
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-height: 340px;
+  min-width: 0;
+  overflow: auto;
+  padding: 20px 24px;
+}
+.ce-inspector > details:not([open]) > .ce-inspector-panel {
+  display: none;
+}
+.ce-inspector h3 {
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.ce-inspector h3 > span {
+  color: var(--chrome-muted);
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: 6px;
+}
+.ce-inspector p {
+  margin: 0 0 12px;
+}
+.ce-inspector .ce-usage-list,
+.ce-inspector .ce-props,
+.ce-inspector .ce-instance-tree {
+  max-width: 680px;
+}
+.ce-inspector .ce-affected {
+  border-top: 1px solid var(--chrome-border);
+  margin-top: 20px;
+  padding-top: 18px;
+}
+.ce-design .mbk-shell--mobile .ce-inspector-panel {
+  max-height: none;
+  overflow: visible;
+  padding: 18px 16px;
+}

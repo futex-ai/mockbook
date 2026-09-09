@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   COMPONENT_PAGES,
+  CONTROLS_PAGES,
   INSPECTION_PAGES,
 } from "../examples/basic/entries/design/components/parts/destinations.js";
 import {
@@ -16,9 +17,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
   test(`${viewport}: component controls preserve their own scenario after shell integration`, async () => {
     const destinations = [
       ...Object.values(COMPONENT_PAGES),
+      ...Object.values(CONTROLS_PAGES),
       ...Object.values(INSPECTION_PAGES),
     ];
-    assert.equal(new Set(destinations).size, 18);
+    assert.equal(new Set(destinations).size, 31);
     for (const id of destinations) {
       const { document } = await designDocument(id, viewport);
       assert.equal(

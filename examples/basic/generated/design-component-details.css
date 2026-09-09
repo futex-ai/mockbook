@@ -1,16 +1,4 @@
 /* Component props, usage, and screen instance details in the design catalogue. */
-.ce-component-details {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: 1fr 1fr;
-  padding: 6px 24px 22px;
-}
-.ce-component-details:has(.ce-affected) {
-  grid-template-columns: 1fr 1fr 1.1fr;
-}
-.ce-component-details > section {
-  min-width: 0;
-}
 .ce-props {
   font-size: 12px;
   margin: 0 0 14px;
@@ -70,20 +58,6 @@
   color: var(--chrome-ink-2);
   font-size: 12px;
   max-width: 310px;
-}
-.ce-design .mbk-shell--mobile .ce-component-details {
-  grid-template-columns: 1fr;
-  gap: 22px;
-  padding: 4px 16px 22px;
-}
-.ce-screen-details {
-  display: grid;
-  gap: 28px;
-  grid-template-columns: 1fr 1fr;
-  padding: 6px 24px 20px;
-}
-.ce-screen-details > section {
-  min-width: 0;
 }
 .ce-instance-tree details {
   border-bottom: 1px solid var(--chrome-border);
@@ -151,9 +125,4 @@
 }
 .ce-slot-details p {
   margin-top: 8px !important;
-}
-.ce-design .mbk-shell--mobile .ce-screen-details {
-  gap: 22px;
-  grid-template-columns: 1fr;
-  padding: 6px 16px 20px;
 }

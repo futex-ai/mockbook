@@ -54,4 +54,6 @@ export const welcomeInstances = [
 export const componentDesignDocs = [
   "docs/protocol/mokabook-component-design.md",
   "docs/protocol/mokabook-component-explorer.md",
+  "docs/protocol/mokabook-component-inspector-design.md",
+  "docs/protocol/mokabook-component-controls-design.md",
 ];

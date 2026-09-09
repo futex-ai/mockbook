@@ -1,5 +1,7 @@
 import { defineConfig } from "mokabook";
 
+import { componentStyles } from "./entries/design/components/parts/styles.js";
+
 export default defineConfig({
   colorSchemes: ["light", "dark"],
   entriesDir: "entries",
@@ -34,15 +36,12 @@ export default defineConfig({
   },
   stylesheets: [
     {
+      match: "design/components/controls/**",
+      stylesheets: [...componentStyles, "design-component-controls.css"],
+    },
+    {
       match: "design/components/**",
-      stylesheets: [
-        "design.css",
-        "design-stage.css",
-        "design-review.css",
-        "design-components.css",
-        "design-component-inspection.css",
-        "design-component-details.css",
-      ],
+      stylesheets: componentStyles,
     },
     {
       match: "design/review/**",
@@ -59,6 +58,8 @@ export default defineConfig({
           "examples/basic/generated/design-components.css",
           "examples/basic/generated/design-component-inspection.css",
           "examples/basic/generated/design-component-details.css",
+          "examples/basic/generated/design-component-inspector.css",
+          "examples/basic/generated/design-component-controls.css",
           "examples/basic/generated/design-review.css",
           "examples/basic/generated/design-stage.css",
           "examples/basic/generated/design.css",

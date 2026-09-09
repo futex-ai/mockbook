@@ -40,7 +40,7 @@ export const pageScreens = [
     title: "Component without a visible region",
     colorSchemes: ["light"],
     description:
-      "An invoked Help hint has no visible bounds, with its visibility prop and real consumer still shown in Details.",
+      "An invoked Help hint has no visible bounds, with its visibility prop and real consumer still shown in Props.",
     desktop: <HiddenComponentDesktop />,
     mobile: <HiddenComponentMobile />,
   }),
@@ -50,7 +50,7 @@ export const pageScreens = [
     title: "Saved variant",
     colorSchemes: ["light"],
     description:
-      "Disabled selected, with the actual saved prop value visible in Details.",
+      "Disabled selected, with the actual saved prop value visible in Props.",
     desktop: <SavedVariantDesktop />,
     mobile: <SavedVariantMobile />,
   }),

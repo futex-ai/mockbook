@@ -1,0 +1,51 @@
+import type { ReactNode } from "react";
+
+import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
+import { Stage } from "../../parts/stage.js";
+import { ViewControls } from "./controls.js";
+import type { ComponentDesignDestination } from "./destinations.js";
+import { COMPONENTS, type ComponentId } from "./metadata.js";
+import { ExplorerShell, type ChangeScenario } from "./navigation.js";
+
+/** One component-page shell for saved examples and editable controls designs. */
+export function ComponentLayout({
+  children,
+  comparison = false,
+  design,
+  identity = "action",
+  inspector,
+  scenario = "all",
+  variants,
+  viewport,
+}: {
+  children: ReactNode;
+  comparison?: boolean;
+  design: ComponentDesignDestination;
+  identity?: ComponentId;
+  inspector: ReactNode;
+  scenario?: ChangeScenario;
+  variants: ReactNode;
+  viewport: ArtboardViewport;
+}) {
+  const { title, id } = COMPONENTS[identity];
+  return (
+    <ExplorerShell
+      active={identity}
+      design={design}
+      scenario={scenario}
+      viewport={viewport}
+    >
+      <ScreenHead
+        accessibleControls
+        title={title}
+        crumbs={["Example", "Components"]}
+        idChip={id}
+        action={<ViewControls viewport={viewport} />}
+        comparisonMode={comparison ? "side-by-side" : "current"}
+      />
+      {variants}
+      <Stage>{children}</Stage>
+      {inspector}
+    </ExplorerShell>
+  );
+}

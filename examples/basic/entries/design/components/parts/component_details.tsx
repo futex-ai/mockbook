@@ -1,7 +1,12 @@
 import { MockLink } from "mokabook";
 
-import { DetailsPanel } from "../../parts/details.js";
-import { componentUses, usageViews } from "./fixtures.js";
+import { ComponentInfo } from "./component_info.js";
+import { UsedBy, AffectedScreens } from "./component_usage.js";
+import { toolbarPrompt } from "./fixtures.js";
+import { Inspector } from "./inspector.js";
+import { CONTROLS_PAGES } from "./destinations.js";
+import { COMPONENT_BY_STATE } from "./metadata.js";
+import { ActionPropValues, actionVariants } from "./action_props.js";
 
 export type ComponentPageState =
   | "default"
@@ -11,215 +16,121 @@ export type ComponentPageState =
   | "toolbar"
   | "hidden"
   | "unused"
-  | "removed";
+  | "removed"
+  | "closed";
 
-export function PropValues({
-  disabled = false,
-  label = "Continue",
-}: {
-  disabled?: boolean;
-  label?: string;
-}) {
+export function ComponentChildren({ toolbar = false }: { toolbar?: boolean }) {
   return (
-    <dl className="ce-props" aria-label="Supplied props">
-      <div>
-        <dt>label</dt>
-        <dd>
-          <code>"{label}"</code>
-        </dd>
-      </div>
-      <div>
-        <dt>disabled</dt>
-        <dd>
-          <code>{String(disabled)}</code>
-        </dd>
-      </div>
-    </dl>
-  );
-}
-
-function UsedBy({ state }: { state: ComponentPageState }) {
-  const uses =
-    state === "toolbar" || state === "hidden"
-      ? componentUses.slice(0, 1)
-      : componentUses;
-  const screens = uses.filter((use) => use.kind === "screen");
-  const components = uses.filter((use) => use.kind === "component");
-  return (
-    <section className="ce-usage-section" aria-label="Used by">
+    <section>
       <h3>
-        Used by{" "}
-        <span>
-          {state === "unused"
-            ? "0"
-            : `${screens.length} ${screens.length === 1 ? "screen" : "screens"}${components.length ? ` · ${components.length} component` : ""}`}
-        </span>
+        Components <span>{toolbar ? "1 instance" : "0"}</span>
       </h3>
-      {state === "unused" ? (
-        <p className="ce-empty-copy">No screens or components use Badge yet.</p>
+      {toolbar ? (
+        <>
+          <MockLink to="design-component-overview">
+            Action · Main action ↗
+          </MockLink>
+          <p className="ce-muted">1 instance · Default variant</p>
+        </>
       ) : (
-        <ul className="ce-usage-list">
-          {uses.map((use) => (
-            <li key={use.title}>
-              <MockLink
-                to={
-                  state === "toolbar"
-                    ? "design-component-inspection-toolbar"
-                    : state === "hidden"
-                      ? "design-component-inspection-help"
-                      : use.to
-                }
-              >
-                {use.title}
-                <span aria-hidden="true">↗</span>
-              </MockLink>
-              <span>
-                {state === "toolbar" || state === "hidden"
-                  ? "1 instance · Direct"
-                  : `${use.count} ${use.count === 1 ? "instance" : "instances"} · ${use.via}`}{" "}
-                · {usageViews.length} views
-              </span>
-            </li>
-          ))}
-        </ul>
+        <p className="ce-empty-copy">
+          No registered components are used in this view.
+        </p>
       )}
     </section>
   );
 }
 
-function AffectedScreens({ removed }: { removed: boolean }) {
-  const screens = componentUses.filter((use) => use.kind === "screen");
+function ComponentProps({ state }: { state: ComponentPageState }) {
   return (
-    <section className="ce-affected" aria-label="Affected screens">
-      <h3>
-        Affected screens <span>{screens.length + (removed ? 1 : 0)}</span>
-      </h3>
-      <p>
-        {removed
-          ? "Current screens use Action. Former screens stay available to compare."
-          : "These screens use Action. Their own content and props are unchanged."}
-      </p>
-      <ul className="ce-usage-list">
-        {screens.map((use) => (
-          <li key={use.title}>
-            <MockLink to={use.to}>
-              {use.title}
-              <span aria-hidden="true">↗</span>
-            </MockLink>
-            <span>
-              {use.via} · {use.count}{" "}
-              {use.count === 1 ? "instance" : "instances"}
-            </span>
-          </li>
-        ))}
-        {removed ? (
-          <li>
-            <MockLink to="design-component-removed-consumer">
-              Farewell <span>Removed</span>
-            </MockLink>
-            <span>Previously used the Compact variant</span>
-          </li>
-        ) : null}
-      </ul>
+    <section>
+      <h3>Supplied props</h3>
+      {state === "toolbar" || state === "hidden" || state === "unused" ? (
+        <dl className="ce-props" aria-label="Supplied props">
+          <div>
+            <dt>
+              {state === "toolbar"
+                ? "prompt"
+                : state === "hidden"
+                  ? "visible"
+                  : "label"}
+            </dt>
+            <dd>
+              <code>
+                {state === "toolbar"
+                  ? `"${toolbarPrompt}"`
+                  : state === "hidden"
+                    ? "false"
+                    : '"New"'}
+              </code>
+            </dd>
+          </div>
+        </dl>
+      ) : (
+        <ActionPropValues
+          props={
+            actionVariants[state === "disabled" ? "disabled" : "default"].props
+          }
+        />
+      )}
+      {COMPONENT_BY_STATE[state] === "action" && state !== "removed" ? (
+        <MockLink
+          to={
+            state === "disabled"
+              ? CONTROLS_PAGES.variant
+              : CONTROLS_PAGES.default
+          }
+        >
+          Edit props ↗
+        </MockLink>
+      ) : null}
     </section>
   );
 }
 
 export function ComponentDetails({ state }: { state: ComponentPageState }) {
-  const name =
-    state === "toolbar"
-      ? "Toolbar"
-      : state === "unused"
-        ? "Badge"
-        : state === "hidden"
-          ? "Help hint"
-          : "Action";
+  const changed =
+    state === "affected" || state === "comparison" || state === "removed";
+  const initial =
+    state === "closed"
+      ? "closed"
+      : changed || state === "unused"
+        ? "usage"
+        : state === "disabled" || state === "hidden"
+          ? "props"
+          : "info";
   return (
-    <DetailsPanel open>
-      <div className="ce-component-details">
-        <section>
-          <h3>About {name}</h3>
-          <p>
-            {state === "toolbar"
-              ? "A shared prompt with a single next action."
-              : state === "unused"
-                ? "A short label that draws attention to something new."
-                : state === "hidden"
-                  ? "Contextual help that appears when a reader needs it."
-                  : "A clear next step, shared across screens."}
-          </p>
-          {state === "toolbar" ? (
+    <Inspector
+      initial={initial}
+      panels={[
+        {
+          id: "info",
+          label: "Info",
+          content: <ComponentInfo identity={COMPONENT_BY_STATE[state]} />,
+        },
+        {
+          id: "components",
+          label: "Components",
+          content: <ComponentChildren toolbar={state === "toolbar"} />,
+        },
+        {
+          id: "props",
+          label: "Props",
+          content: <ComponentProps state={state} />,
+        },
+        {
+          id: "usage",
+          label: "Usage",
+          content: (
             <>
-              <h3>Components</h3>
-              <MockLink to="design-component-overview">
-                Action · Main action ↗
-              </MockLink>
-              <p className="ce-muted">1 instance · Default variant</p>
+              <UsedBy state={state} />
+              {changed ? (
+                <AffectedScreens removed={state === "removed"} />
+              ) : null}
             </>
-          ) : state === "hidden" ? (
-            <>
-              <h3>Supplied props</h3>
-              <dl className="ce-props">
-                <div>
-                  <dt>visible</dt>
-                  <dd>
-                    <code>false</code>
-                  </dd>
-                </div>
-              </dl>
-            </>
-          ) : state === "unused" ? (
-            <>
-              <h3>Supplied props</h3>
-              <dl className="ce-props">
-                <div>
-                  <dt>label</dt>
-                  <dd>
-                    <code>"New"</code>
-                  </dd>
-                </div>
-              </dl>
-            </>
-          ) : (
-            <>
-              <h3>Supplied props</h3>
-              <PropValues disabled={state === "disabled"} />
-            </>
-          )}
-          <p className="ce-muted">
-            Source <code>components/{name.replace(" ", "")}.tsx</code>
-          </p>
-          <details className="ce-slot-details">
-            <summary>Source and references</summary>
-            <dl className="ce-props">
-              <div>
-                <dt>Schemes</dt>
-                <dd>Light, Dark</dd>
-              </div>
-              <div>
-                <dt>Tags</dt>
-                <dd>Components</dd>
-              </div>
-              <div>
-                <dt>Related docs</dt>
-                <dd>Component guide</dd>
-              </div>
-              <div>
-                <dt>Dependencies</dt>
-                <dd>
-                  <code>components/{name.replace(" ", "")}.tsx</code>
-                </dd>
-              </div>
-            </dl>
-          </details>
-        </section>
-        <UsedBy state={state} />
-        {state === "affected" ||
-        state === "comparison" ||
-        state === "removed" ? (
-          <AffectedScreens removed={state === "removed"} />
-        ) : null}
-      </div>
-    </DetailsPanel>
+          ),
+        },
+      ]}
+    />
   );
 }

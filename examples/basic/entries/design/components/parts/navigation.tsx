@@ -9,10 +9,20 @@ import {
   type ComponentDesignDestination,
 } from "./destinations.js";
 
+import type { CatalogueIdentity } from "./metadata.js";
+
 export type ChangeScenario = "all" | "component" | "screen" | "removed";
 
-function nodes(scenario: ChangeScenario, active: string): NavNode[] {
-  const reading = active === "Reading room";
+function nodes(
+  scenario: ChangeScenario,
+  active: CatalogueIdentity,
+  design: ComponentDesignDestination,
+): NavNode[] {
+  const reading = active === "reading-room";
+  const destination = (
+    identity: CatalogueIdentity,
+    canonical: ComponentDesignDestination,
+  ) => (active === identity ? design : canonical);
   const screens: NavNode[] =
     scenario === "component"
       ? []
@@ -33,12 +43,14 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
             depth: 1,
             kind: "screen",
             label: scenario === "removed" ? "Farewell" : "Welcome",
-            to:
+            to: destination(
+              scenario === "removed" ? "farewell" : "welcome",
               scenario === "removed"
                 ? INSPECTION_PAGES["removed-consumer"]
                 : scenario === "screen"
                   ? INSPECTION_PAGES["direct-change"]
                   : INSPECTION_PAGES.details,
+            ),
           },
           ...(scenario === "all"
             ? [
@@ -46,7 +58,7 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
                   depth: 1,
                   kind: "screen" as const,
                   label: "Details",
-                  to: INSPECTION_PAGES.consumer,
+                  to: destination("details", INSPECTION_PAGES.consumer),
                 },
               ]
             : []),
@@ -56,7 +68,7 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
                   depth: 1,
                   kind: "screen" as const,
                   label: "Reading room",
-                  to: INSPECTION_PAGES.empty,
+                  to: destination("reading-room", INSPECTION_PAGES.empty),
                 },
               ]
             : []),
@@ -74,12 +86,14 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
       depth: 1,
       kind: "component",
       label: "Action",
-      to:
+      to: destination(
+        "action",
         scenario === "removed"
           ? COMPONENT_PAGES.removed
           : scenario === "all"
             ? COMPONENT_PAGES.default
             : COMPONENT_PAGES.affected,
+      ),
     },
     ...(scenario === "all"
       ? [
@@ -87,19 +101,19 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
             depth: 1,
             kind: "component" as const,
             label: "Toolbar",
-            to: COMPONENT_PAGES.toolbar,
+            to: destination("toolbar", COMPONENT_PAGES.toolbar),
           },
           {
             depth: 1,
             kind: "component" as const,
             label: "Help hint",
-            to: COMPONENT_PAGES.hidden,
+            to: destination("help-hint", COMPONENT_PAGES.hidden),
           },
           {
             depth: 1,
             kind: "component" as const,
             label: "Badge",
-            to: COMPONENT_PAGES.unused,
+            to: destination("badge", COMPONENT_PAGES.unused),
           },
         ]
       : []),
@@ -108,23 +122,23 @@ function nodes(scenario: ChangeScenario, active: string): NavNode[] {
 
 /** Existing shell and navigation composed around the component design scenario. */
 export function ExplorerShell({
-  active = "Action",
+  active = "action",
   children,
   design,
   scenario = "all",
   viewport,
 }: {
-  active?: string;
+  active?: CatalogueIdentity;
   children: ReactNode;
   design: ComponentDesignDestination;
   scenario?: ChangeScenario;
   viewport: ArtboardViewport;
 }) {
   const navProps = {
-    activeLabel: active,
+    activeDestination: design,
     changedCount: scenario === "screen" || scenario === "removed" ? 2 : 1,
     changedOnly: scenario !== "all",
-    nodes: nodes(scenario, active),
+    nodes: nodes(scenario, active, design),
   };
   return (
     <div className="ce-design">
@@ -159,26 +173,5 @@ export function ExplorerShell({
         {children}
       </Shell>
     </div>
-  );
-}
-
-/** Links outside the artboard connect owning pages without engineering copy inside it. */
-export function DesignLinks({ children }: { children?: ReactNode }) {
-  return (
-    <nav className="ce-design-links" aria-label="Related design pages">
-      <MockLink to="design-component-overview">Component explorer</MockLink>
-      <MockLink to="design-component-variants">Saved variants</MockLink>
-      <MockLink to="design-component-comparison">Comparisons</MockLink>
-      <MockLink to="design-component-affected">Affected screens</MockLink>
-      <MockLink to="design-component-inspection-details">
-        Screen inspection
-      </MockLink>
-      <MockLink to="design-component-empty">
-        Empty and unavailable states
-      </MockLink>
-      <MockLink to="design-component-unused">No consumers</MockLink>
-      <MockLink to="design-component-removed">Removed variant</MockLink>
-      {children}
-    </nav>
   );
 }

@@ -2,11 +2,13 @@
 
 ## Delivery Status
 
-The component-page and screen-inspection mockups are delivered by Milestone 4
-of the [component explorer plan](../../plans/component-explorer.md). Runtime
-registration, attribution, and the inspector remain unimplemented. Editable
-controls have their own later design milestone. These screens extend the
-[shell design](./mokabook-shell-design.md) and depict the
+Milestones 4, 4a, 4b, and 7 of the [component explorer plan](../../plans/component-explorer.md)
+deliver the complete mobile/desktop mockup set for sign-off. The
+[icon inspector revision](./mokabook-component-inspector-design.md) and
+[prop controls designs](./mokabook-component-controls-design.md) extend the
+original pages and inspection states. Runtime registration, attribution,
+inspection, and editable preview rendering remain unimplemented. These designs
+extend the [shell design](./mokabook-shell-design.md) and depict the
 [component explorer contract](./mokabook-component-explorer.md).
 
 ## Owning Catalogue
@@ -15,9 +17,12 @@ Source lives under `examples/basic/entries/design/components/`; generated
 artboards live under `examples/basic/generated/design/components/`. The existing
 Design → Mokabook design → Component explorer collection reaches every screen.
 The canonical `overview` screen shows a component page, followed by links to the
-owning child pages outside the artboard. Its three child collections are gallery
+owning child pages outside the artboard. The original Pages, Inspection, and States child collections are gallery
 indexes, each with at most five direct owning screens; inspection also links a nested
-selection gallery with two owning screens. Every screen has a separate
+selection gallery with two owning screens. The Inspector gallery adds two closed
+states. Controls has one canonical parent screen and Editing, States, and
+Published galleries with four, four, and two screens. The linked inspector and
+controls contracts own their additional route inventories. Every screen has a separate
 mobile component and desktop component; there are no new user-flow pages.
 
 | Entry id                                    | Route                                                 | State                                            |
@@ -30,7 +35,7 @@ mobile component and desktop component; there are no new user-flow pages.
 | `design-component-help`                     | `design/components/pages/help.html`                   | Invoked component with no visible region         |
 | `design-component-inspection-details`       | `design/components/inspection/details.html`           | Repeated instances and selected props            |
 | `design-component-inspection-highlight`     | `design/components/inspection/highlight.html`         | Outermost component cutouts                      |
-| `design-component-inspection-nested`        | `design/components/inspection/nested.html`            | Nested Action selected in the screen and Details |
+| `design-component-inspection-nested`        | `design/components/inspection/nested.html`            | Nested Action selected in the screen and Props   |
 | `design-component-inspection-direct-change` | `design/components/inspection/direct-change.html`     | Independent screen prop change; two Changes      |
 | `design-component-inspection-consumer`      | `design/components/inspection/consumer.html`          | A second screen reached from Used by             |
 | `design-component-inspection-toolbar`       | `design/components/inspection/selection/toolbar.html` | Selected container with its own props            |
@@ -41,7 +46,7 @@ mobile component and desktop component; there are no new user-flow pages.
 | `design-component-removed`                  | `design/components/states/removed.html`               | Removed saved variant and former consumer        |
 | `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Retained removed-screen comparison               |
 
-Standalone files insert `.mobile` or `.desktop` before `.html`. All eighteen
+Standalone files insert `.mobile` or `.desktop` before `.html`. All thirty-one component
 screens opt into light documents, matching the existing shell mockups. They
 depict the Light context and retain the shell's Light/Dark selection. Links use
 the existing logical-id navigation contract so they work both directly from
@@ -60,7 +65,7 @@ spans for unsupported controls.
 ## Component Pages
 
 Reuse the existing top bar, navigation tree, screen heading, comparison band,
-stage, segmented controls, and Details disclosure. Components use a small cube
+stage, and segmented controls, adding the shared icon inspector. Components use a small cube
 icon in an authored Components collection. Desktop keeps the resizable navigation;
 mobile keeps the compact header and adds short Screen/Components/Changes links
 above the heading so the relevant destinations and change count remain visible.
@@ -73,11 +78,15 @@ desktop context uses the available width. Canvases have a 10px radius, a light
 border, a small context caption, and a centered component, without device chrome.
 The same `ActionExample` and `ToolbarExample` are reused in consuming screens.
 
-Details places description and supplied props beside Used by, with an additional
-Affected screens column for changed components. Mobile stacks these sections.
+The inspector separates Info (description/source/references), Components (nested
+instances), Props/Controls (supplied values or declared editable fields), and
+Usage (Used by plus Affected screens). Only one panel is open at a time. Click
+its icon again or its close affordance to collapse it; no icon is then selected.
 Props use a definition list and monospace values. Usage rows show screen or
 component titles, direct/transitive relationships, instance counts, and view
-counts derived from the synthetic usage fixture. Source paths remain secondary.
+counts derived from the synthetic usage fixture. Source paths are explicit
+fixture metadata, never derived from display titles. Design navigation belongs
+to the catalogue hierarchy; no design-only footer appears in the artboards.
 
 The Action fixture is used twice in Welcome (directly and through Toolbar), once
 in Details, and once by Toolbar's default variant. Its usage has four contexts:
@@ -91,9 +100,10 @@ side is explicit.
 
 ## Screen Inspection
 
-The existing Details panel adds component groups with native disclosures,
-instance counts, repeated-instance links, a selected-state treatment, supplied
-props, slot/ownership details, and an Open component link. Welcome has four
+The shared inspector puts component groups in Components, with native
+disclosures, counts, and repeated-instance links. Selecting an instance opens
+Props with its supplied values, slot/ownership details, and an Open component
+link. Info and Usage remain available without crowding the selected instance. Welcome has four
 instances: Toolbar, two Actions, and an invisible Help hint. Nested Toolbar
 contents start collapsed and expand in the nested-selection artboard. Help hint
 has an inspection entry and component page, without an invented visible region.
@@ -116,11 +126,14 @@ example and an explicit empty Used by list.
 
 ## Verification And Maintenance
 
-Use the real generator; never hand-edit generated HTML. The three component
+Use the real generator; never hand-edit generated HTML. Four shared component
 stylesheets are hand-authored public inputs, confined to `design/components/**`.
 The component collection declares them as inherited entry dependencies, so edits
-affect only its eighteen design routes. Keep them out of the global
+affect only its thirty-one design routes. The controls stylesheet is scoped
+further to its eleven owning routes, with a matching dependency and watch rule. Keep them out of the global
 `review.sharedImpact` list; watched stylesheet rules still reload their edits.
+Child collection dependency lists replace inherited lists; Controls explicitly
+spreads the shared stylesheet dependency set before adding its own stylesheet.
 Shared fixtures and reusable screen parts live beside the owning screen modules.
 
 `tests/component_design_attribution.test.ts` exercises each component stylesheet

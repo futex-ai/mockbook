@@ -60,7 +60,7 @@ export const inspectionScreens = [
     title: "Select a nested component",
     colorSchemes: ["light"],
     description:
-      "The Toolbar action is selected in Details and in the screen, with its parent content dimmed.",
+      "The Toolbar action is selected in Props and in the screen, with its parent content dimmed.",
     desktop: <NestedSelectionDesktop />,
     mobile: <NestedSelectionMobile />,
   }),

@@ -101,7 +101,7 @@ props against the serialized schema before trusting material keys or usage.
 
 Plain JSON numbers cannot preserve negative zero. Component artifacts therefore
 store data values in the tagged representation below, compatible with the
-existing `reviewMaterialKey` value encoding. Details decodes these values for
+existing `reviewMaterialKey` value encoding. The inspector decodes these values for
 display rather than exposing tuple tags to users.
 
 ```ts

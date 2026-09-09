@@ -2,6 +2,8 @@
 
 Status: active; Milestones 4 and 4a completed. Component runtime implementation
 remains pending; the earlier documentation change delivered the target contract.
+The user requested all component mockups together for sign-off: execute 4b and 7
+now, ahead of the pending runtime/backend milestones.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -177,8 +179,8 @@ the latest mainline design catalogue and its working navigation links.
       after reproducing cold-generation timeouts; retain all behavior checks.
 - [x] Regenerate affected mockups, run focused tests and visual smoke checks,
       then pass `cargo xtask check` and inspect the diff against `origin/main`.
-- [x] Run `git add -A`, commit using Conventional Commits, and push the branch;
-      run `cargo xtask review` after the push and report any new findings.
+- [x] Run `git add -A`, commit using Conventional Commits, and push the branch.
+- [x] Run `cargo xtask review` after the push and report any new findings.
 - [x] Create a pull request against `main` describing the complete branch scope,
       validation, and any remaining review findings.
 
@@ -188,6 +190,37 @@ records the completed post-push review and its four findings for user decision;
 no review-driven code fixes were applied. The pending delivery checklist observed
 during review is now complete. `cargo xtask check` passed with 431 TypeScript,
 111 browser, and 3 Rust tests; Node 22.14/24 CI and the PR preview also passed.
+
+## Milestone 4b: Complete the reviewed inspector mockups
+
+Tags: mockup
+
+Apply the approved visual and review recommendations without reopening earlier
+milestones. Share the inspector across component and consuming-screen designs.
+
+- [x] Specify icon-panel behavior and remove design-only footer navigation from
+      artboards, retaining discoverability through the owning catalogue.
+- [x] Add regressions, then use stable component/screen identities and actual
+      artboard destinations for current-page links, including saved variants.
+- [x] Declare explicit component metadata for labels, ids, sources, and dependencies.
+- [x] Implement the shared Info, Components, Props/Controls, and Usage inspector:
+      open/switch/close, no selected icon when closed, accessible native controls,
+      and distinct mobile/desktop closed-panel artboards.
+- [x] Reproduce stale comparison-response matching; correlate browser waits with
+      the initiating request, its redirects, and refresh intent.
+- [x] Regenerate all affected artboards, preserve existing non-component designs,
+      and verify links, metadata, responsive layout, selection, and keyboard use.
+- [x] Pass focused suites and `cargo xtask check`; inspect the diff and deletions.
+- [x] Run `git add -A`, commit with Conventional Commits, and push the branch.
+- [ ] Run `cargo xtask review` after pushing; report new findings for user decision.
+- [ ] Update PR #48 with the complete mockup sign-off scope and validation.
+
+Mockup implementation and visual verification are complete: 31 owning screens,
+62 mobile/desktop artboards, and all 56 existing mainline HTML files preserved
+byte for byte. `cargo xtask check` passed with 439 TypeScript, 122 browser, and
+3 Rust tests, including build, formatting, lint, typechecking, generated-output,
+package smokes, and Rust checks. Commit/push and post-push review are tracked
+separately above; the review is still pending at this delivery stage.
 
 ## Milestone 5: Implement component pages and inspection
 
@@ -246,15 +279,25 @@ Tags: mockup
 
 Extend the component-page design with local controls and published saved-variant
 behavior before implementing the new controls UI.
+Complete this milestone now with 4b for one design sign-off. The mockups use
+authored fixture states and do not depend on the unimplemented rendering service.
 
-- [ ] Create mobile/desktop screen components for controls, edited values/reset,
+- [x] Create mobile/desktop screen components for controls, edited values/reset,
       pending/error/retry, comparison of the saved variant, and read-only controls.
-- [ ] Reuse the component page and existing inspector patterns; link all states
+- [x] Cover text, boolean, number, select, optional/unset values, and saved-variant
+      switching; use typed shared fixture values for controls and their previews.
+- [x] Reuse the component page and existing inspector patterns; link all states
       from their owning pages and follow screen caps, hierarchy, and flow rules.
-- [ ] Keep copy focused on editing/choosing variants; put prop details in the
+- [x] Keep copy focused on editing/choosing variants; put prop details in the
       inspector and avoid environment labels or renderer implementation copy.
-- [ ] Update design docs; regenerate/check the example, run relevant tests,
+- [x] Add a read-only Disabled state so published variant links preserve their
+      editing boundary, and retain the selected variant when opening Controls.
+- [x] Reproduce and fix the controls canvas width regression; assert it matches
+      the saved component page in both layouts.
+- [x] Update design docs; regenerate/check the example, run relevant tests,
       and visually verify every changed generated page directly from disk.
+- [ ] Include this milestone in 4b's full check, commit/push, post-push review,
+      and PR handoff, with commit/push and review tracked independently.
 
 ## Milestone 8: Implement editable component controls
 

@@ -62,16 +62,19 @@ function navRowStyle(depth: number): CSSProperties {
 }
 
 function NavRow({
+  activeDestination,
   activeLabel,
   node,
 }: {
+  activeDestination?: DesignDestination | undefined;
   activeLabel?: string | undefined;
   node: NavNode;
 }) {
   const isActive =
     node.kind !== "collection" &&
-    activeLabel !== undefined &&
-    node.label === activeLabel;
+    (activeDestination !== undefined
+      ? node.to === activeDestination
+      : activeLabel !== undefined && node.label === activeLabel);
   const className = isActive ? "mbk-nav-row active" : "mbk-nav-row";
   if (node.kind === "collection") {
     return (
@@ -120,6 +123,7 @@ function NavRow({
 }
 
 interface NavTreeProps {
+  activeDestination?: DesignDestination | undefined;
   activeLabel?: string | undefined;
   changedCount?: number | undefined;
   changedOnly?: boolean | undefined;
@@ -128,6 +132,7 @@ interface NavTreeProps {
 }
 
 function CatalogueBody({
+  activeDestination,
   activeLabel,
   changedCount = 3,
   changedOnly,
@@ -167,6 +172,7 @@ function CatalogueBody({
         {(nodes ?? NAV_TREE).map((node, index) => (
           <NavRow
             key={`${node.label}-${index}`}
+            activeDestination={activeDestination}
             activeLabel={activeLabel}
             node={node}
           />
@@ -178,6 +184,7 @@ function CatalogueBody({
 
 /** Persistent desktop catalogue navigation. */
 export function NavTree({
+  activeDestination,
   activeLabel,
   changedCount,
   changedOnly,
@@ -186,6 +193,7 @@ export function NavTree({
   return (
     <nav className="mbk-nav" aria-label="Catalogue">
       <CatalogueBody
+        activeDestination={activeDestination}
         activeLabel={activeLabel}
         changedCount={changedCount}
         changedOnly={changedOnly}
@@ -198,6 +206,7 @@ export function NavTree({
 
 /** Mobile catalogue navigation drawer, shown open. */
 export function NavDrawer({
+  activeDestination,
   activeLabel,
   changedCount,
   changedOnly,
@@ -206,6 +215,7 @@ export function NavDrawer({
   return (
     <nav className="mbk-nav mbk-drawer" aria-label="Catalogue">
       <CatalogueBody
+        activeDestination={activeDestination}
         activeLabel={activeLabel}
         changedCount={changedCount}
         changedOnly={changedOnly}

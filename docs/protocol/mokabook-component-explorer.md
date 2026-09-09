@@ -8,7 +8,7 @@ tracks delivery. This extends the package-owned
 specified in the [component contract](./mokabook-components.md) and
 [component changes contract](./mokabook-component-changes.md).
 
-The [Milestone 4 design catalogue](./mokabook-component-design.md) supplies the
+The [component design catalogue](./mokabook-component-design.md) supplies the
 mobile and desktop visual contract; the runtime behavior below remains a target.
 
 ## Catalogue And Component Pages
@@ -20,7 +20,7 @@ a separate explorer application or automatically invented Components folder is
 not required. The example catalogue should provide an authored Components group.
 
 A component page contains its title, description, selected saved variant,
-preview canvas, viewport/theme selectors, comparison controls, and Details.
+preview canvas, viewport/theme selectors, comparison controls, and an icon inspector.
 The canvas uses the consumer renderer and gives a small component suitable
 space without implying it is a whole phone screen. Mobile/desktop still select
 distinct viewport contexts; controls must not fake scaling or modify consumer
@@ -46,23 +46,28 @@ variant's viewport/theme fragment. Variant selectors and Used by links are
 shell-owned URLs; do not overload the existing logical fragment grammar with
 component prop JSON or variant suffixes.
 
-Details includes source/docs/tags/dependencies, actual supplied variant props,
-and Used by screens/components derived from current usage. A changed component
-also exposes Affected screens from baseline/current evidence. Removed consumers
-link to their retained comparison view. Lists distinguish direct and transitive
-use and show actual instance/view counts without counting reused flow frames as
-additional screen uses. Empty lists have explicit empty states.
+The shared inspector has Info, Components, Props/Controls, and Usage icons.
+Clicking an icon opens its panel or switches the open panel; clicking the active
+icon or Close collapses it. With no panel open, no icon is selected. Info contains
+source/docs/tags/dependencies, Props contains the supplied values, and Usage
+contains Used by screens/components derived from current usage. A changed
+component also exposes Affected screens from baseline/current evidence. Removed
+consumers link to their retained comparison view. Lists distinguish direct and
+transitive use and show actual instance/view counts without counting reused flow
+frames as additional screen uses. Empty lists have explicit empty states. The
+[inspector design contract](./mokabook-component-inspector-design.md) defines the
+shared layout and native mockup behavior; runtime keyboard focus and Escape
+handling belong to the shell implementation.
 
-## Components In Screen Details
+## Components In The Screen Inspector
 
-Every registered screen's existing Details disclosure gains a Components section.
-It lists actual instances for the active viewport and scheme, grouped by
-component, with nested relationships, readable instance labels, supplied data
-props, slot references, and links to the component page. Unrendered conditional
-branches do not appear; null-rendering instances are listed without a visible
-region. An empty usage set says that no registered components are used in this
-view. Legacy/missing metadata says inspection is unavailable, not that usage
-is empty.
+Every registered screen uses the same icon inspector. Its Components panel
+lists actual instances for the active viewport and scheme, grouped by component,
+with nested relationships and readable instance labels. Selecting an instance
+opens Props with supplied data, slot references, and links to its component page.
+Unrendered conditional branches do not appear; null-rendering instances are
+listed without a visible region. An empty usage set says no registered components
+are used in this view. Legacy/missing metadata says inspection is unavailable.
 
 Repeated instances remain individually selectable. Nested component groups start
 collapsed and can be expanded to inspect inner instances. Selecting an instance
@@ -71,7 +76,7 @@ losing the screen's navigation history. Raw source paths and identifiers remain
 secondary metadata; visible labels use the component title and instance label.
 
 Selecting a component-page Used by link opens the owning screen in Current,
-sets its recorded viewport/theme, and selects the instance in Details. Multiple
+sets its recorded viewport/theme, and opens its selected instance in Props. Multiple
 matching occurrences remain selectable. Route query values reference validated
 manifest identities and cannot introduce arbitrary DOM selectors or file paths.
 
@@ -81,14 +86,14 @@ The screen toolbar gains a keyboard-operable Highlight components toggle with
 an accessible pressed state. It starts off. In Current, enabling it dims the
 surrounding screen while registered component regions retain their original
 appearance. Outlines and labels identify visible regions; selecting a region
-selects the corresponding Details entry and opens that disclosure if needed.
-Selecting a Details entry highlights and scrolls its instance into view.
+selects the corresponding instance and opens Props if needed.
+Selecting a Components entry highlights and scrolls its instance into view.
 
 Initially highlight outermost visible component boundaries. Selecting or
 expanding a nested entry focuses that instance so a large shared container does
 not make every nested control indistinguishable. At a nested depth, nonselected
 content is dimmed again. Sibling or repeated instances remain independently
-selectable through outlines and the accessible Details list.
+selectable through outlines and the accessible Components list.
 
 Implement highlighting as shell-owned presentation over validated live DOM
 ranges, with dimming-mask cutouts for the selected regions. Do not set opacity
@@ -100,13 +105,13 @@ Bounds come from the active generated document, support multi-root/text ranges,
 and follow scroll, nested scroll containers, frame resize/expansion, fonts/images
 loading, and viewport/theme swaps. Clip to the visible frame and its clipping
 ancestors; do not highlight unrelated content covered by occluding elements.
-Zero-area/hidden instances remain inspectable in Details without an invented
+Zero-area/hidden instances remain inspectable in the inspector without an invented
 rectangle. Unsupported boundaries report unavailable inspection explicitly.
 
 While the toggle is on, selecting outlined regions inspects them rather than
 following their product links. Normal frame navigation is restored when it is
 off. Escape exits inspection and returns focus to the toggle. Selection is
-exposed through the Details list so neither hover nor pointer precision is
+exposed through the Components list so neither hover nor pointer precision is
 required. Labels must not rely on color alone.
 
 Turning off highlighting removes all masks/listeners and returns the unmodified
@@ -125,7 +130,7 @@ receive no new inspection privileges. Consumer scripts, forms, popups, and top
 navigation remain disabled; do not loosen frame sandbox policy for this feature.
 
 Publishing copies the same validated usage metadata and package-owned inspector
-code, so saved variants, Details, backlinks, and highlighting work without a
+code, so saved variants, inspector panels, backlinks, and highlighting work without a
 development server. Standalone generated fragments retain normal content and
 portable links; they do not require the interactive inspector. Temporary local
 controls are governed separately by the [controls contract](./mokabook-component-controls.md).
@@ -136,13 +141,13 @@ Before UI implementation, extend the existing design catalogue under
 `examples/basic/entries/design` and regenerate its committed HTML. This is
 Mokabook's current owning mockup tree; do not introduce an unrelated Expo app
 or a second mockup generator. Provide mobile and desktop screen components for
-the component page/variants, changed component/Affected screens, screen Details
-usage, highlight selection, and empty/unavailable states. Controls have their
-own later design milestone.
+the component page/variants, changed component/Affected screens, screen inspector
+usage, highlight selection, and empty/unavailable states. The [controls designs](./mokabook-component-controls-design.md) are delivered
+with the inspector revision for the same sign-off; runtime controls remain pending.
 
 Each owning screen-spec page has at most five screens. Split additional states
 into linked child pages, with a canonical screen on nonterminal pages. Reuse
-existing shell/frame/details components and link new screens from the catalogue
+existing shell/frame components and the shared inspector and link new screens from the catalogue
 and related screen/component pages. Flows only compose those existing screens
 and link back to their owners. Keep annotations outside rendered screen areas.
 

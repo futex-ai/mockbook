@@ -2,6 +2,7 @@ import { MockLink } from "mokabook";
 
 import { ViewSwitch, type ArtboardViewport } from "../../parts/shell.js";
 import { SchemeSwitch } from "../../parts/top_bar.js";
+import { COMPONENT_PAGES } from "./destinations.js";
 import type { ComponentPageState } from "./component_details.js";
 
 export function ViewControls({ viewport }: { viewport: ArtboardViewport }) {
@@ -31,7 +32,7 @@ export function VariantPicker({ state }: { state: ComponentPageState }) {
     <nav className="ce-variants" aria-label="Saved variants">
       <span>Variant</span>
       <MockLink
-        to={defaultId}
+        to={!disabled && !removed ? COMPONENT_PAGES[state] : defaultId}
         aria-current={!disabled && !removed ? "page" : undefined}
       >
         Default
