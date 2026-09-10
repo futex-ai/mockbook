@@ -182,6 +182,7 @@ class FakeServerFactory implements CatalogueServerFactory {
       },
       port: 43210,
       publishUpdate: () => undefined,
+      replaceComponentRuntime: () => undefined,
       url: "http://127.0.0.1:43210",
     };
   }
@@ -204,6 +205,7 @@ class UnusedProcessSupervisorFactory implements ProcessSupervisorFactory {
 }
 
 class RecoverableFakeSupervisor implements ProcessSupervisor {
+  replaceComponentRuntime(): void {}
   restarts = 0;
   starts = 0;
 

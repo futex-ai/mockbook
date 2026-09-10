@@ -48,7 +48,10 @@ test("comparison designs use screen context instead of report chrome", async ({
         );
         await expect(page.locator(".mbk-nav-filter-count")).toHaveText("0");
       }
-      await expect(page.locator(".mbk-nav-resize")).toHaveCount(
+      await expect(page.locator(".mbk-nav .mbk-nav-resize")).toHaveCount(
+        viewport === "desktop" ? 1 : 0,
+      );
+      await expect(page.locator(".ce-inspector-resize:visible")).toHaveCount(
         viewport === "desktop" ? 1 : 0,
       );
       await expect(
@@ -68,7 +71,7 @@ test("empty Changes designs retain the selected current screen", async ({
     await expect(page.locator(".mbk-screen-head h2")).toHaveText("Welcome");
     await expect(
       page.getByRole("group", { name: "Comparison mode" }),
-    ).toContainText("Current");
+    ).toHaveCount(0);
     await expect(page.locator(".mbk-nav-filter-count")).toHaveText("0");
   }
 });

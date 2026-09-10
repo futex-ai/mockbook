@@ -106,9 +106,9 @@ light/dark frame source, with first-step-only use-case scope. The builder
 computes route changes from the
 branch point shared with `origin/main`, and both deployment jobs fetch complete
 Git history so that common ancestor can be resolved and the static Browse shell
-always includes the All/Changes filter, including a zero count. Every structured
-screen includes Current / Side by side / Overlay / Difference in the actual
-shell. Publishing prepares the real comparison through the same Git engine as
+always includes the All/Changes filter, including a zero count. Eligible changed screen and component views
+include Current / Side by side / Overlay / Difference in the actual shell;
+known unchanged views show Unmodified without comparison controls. Publishing prepares the real comparison through the same Git engine as
 development, then exports its JSON, isolated snapshots, and their resources
 under one immutable generation path. Static shell metadata addresses that
 generation directly, and the stable comparison redirect remains available.

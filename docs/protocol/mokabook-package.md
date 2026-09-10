@@ -221,11 +221,18 @@ The root package export supplies typed, documented authoring helpers:
 
 - `defineConfig`;
 - `defineScreen`, `defineCollection`, and `defineUseCase`;
+- `defineComponent` and its schema-derived props, variants, and control types;
 - `defineRoot`, `collection`, and `screen` for nested trees;
 - `mockLink` and `MockLink` for id-addressed links;
 - `ReviewIgnore`, `ReviewIgnoreScope`, and `reviewMaterialKey`.
 
 The root also exports the `ColorScheme` type, exactly `"dark" | "light"`.
+
+The [registered component contract](./mokabook-components.md) owns the complete
+`defineComponent` shape, slots, repeated-instance identity, dependencies, saved
+variants, and runtime prop schema. It returns a renderable `Component` facade
+and a registry `entry`; collections can reference that entry like a screen.
+Component pages and controls use the existing consumer renderer and providers.
 
 A screen owns one mobile React node and one desktop React node. A collection is
 structural and owns child ids but no route. A use case owns ordered references
@@ -372,20 +379,38 @@ contract:
 
 ```ts
 import type { ReactNode } from "react";
-import type { ColorScheme, ScreenDefinition, Viewport } from "mokabook";
+import type {
+  ColorScheme,
+  ScreenDefinition,
+  ComponentDefinition,
+  ComponentStyleOwnership,
+  ComponentResourceOwnership,
+  Viewport,
+} from "mokabook";
 
 interface RenderInput {
   colorScheme: ColorScheme;
-  entry: ScreenDefinition;
+  entry: ScreenDefinition | ComponentDefinition;
+  variantId?: string;
+  componentProps?: Readonly<Record<string, unknown>>;
   node: ReactNode;
   stylesheets: readonly string[];
   viewport: Viewport;
 }
 
-export default function render(input: RenderInput): string;
+interface RenderResult {
+  html: string;
+  styles?: readonly ComponentStyleOwnership[];
+  resources?: readonly ComponentResourceOwnership[];
+}
+
+export default function render(input: RenderInput): string | RenderResult;
 ```
 
-The string must contain a complete `<html>` document. Mokabook
+The string or `html` field must contain a complete `<html>` document. Optional
+style/resource records provide exact component ownership; unclaimed or mixed
+material stays conservative. The [component contract](./mokabook-components.md)
+and [attribution contract](./mokabook-component-changes.md) define validation. Mokabook
 serializes Review-ignore markers, adapts opt-in `MockLink asChild` controls,
 and rewrites every complete
 `mock:<id>[#fragment]` value found in `href` or `data-nav-href` after this
@@ -491,7 +516,11 @@ header's source must belong to the current entries or legacy root even when
 that source was just deleted. It never deletes an unknown or foreign-catalogue
 file.
 
-The normative version 3 manifest shape is:
+Catalogues containing registered components emit [manifest v4](./mokabook-component-manifest.md),
+including saved fragments and per-view invocation/ownership records. Catalogues
+without components keep version 3 and its existing bytes; historical readers
+accept v2/v3/v4. The normative version 3 shape below describes that unchanged
+non-component format:
 
 ```ts
 interface ManifestV3 {

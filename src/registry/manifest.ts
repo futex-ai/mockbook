@@ -8,9 +8,12 @@ import type {
 } from "../authoring/types.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
+import { canonicalJson } from "../components/data.js";
+import { componentManifestEntry } from "../components/manifest_build.js";
+import type { ComponentViewRecord } from "../components/manifest_types.js";
 import { analyzeHierarchy } from "./hierarchy.js";
 import { validateManifest } from "./manifest_validation.js";
-import type { ManifestEntry, ManifestLegacyPage, ManifestV3 } from "./types.js";
+import type { ManifestEntry, ManifestLegacyPage, Manifest } from "./types.js";
 import { effectiveColorSchemes } from "./views.js";
 
 /** Canonical generated manifest filename. */
@@ -34,13 +37,15 @@ export function createManifest(
   entries: readonly ResolvedRegistryEntry[],
   legacyPages: readonly ManifestLegacyPage[],
   catalogueSchemes: readonly ColorScheme[],
-): ManifestV3 {
+  componentViews: ReadonlyMap<string, ComponentViewRecord> = new Map(),
+): Manifest {
   const hierarchy = analyzeHierarchy(entries).hierarchy;
   return {
     entries: entries.map((entry) =>
       toManifestEntry(
         entry,
         catalogueSchemes,
+        componentViews,
         hierarchy.ancestorsById
           .get(entry.id)
           ?.map((ancestor) => ancestor.title) ?? [],
@@ -48,19 +53,25 @@ export function createManifest(
     ),
     generatedBy: "mokabook",
     legacyPages: [...legacyPages].sort((left, right) =>
-      left.route.localeCompare(right.route),
+      entries.some((entry) => entry.kind === "component")
+        ? left.route < right.route
+          ? -1
+          : left.route > right.route
+            ? 1
+            : 0
+        : left.route.localeCompare(right.route),
     ),
-    schemaVersion: 3,
-  };
+    schemaVersion: entries.some((entry) => entry.kind === "component") ? 4 : 3,
+  } as Manifest;
 }
 
 /** Serialize a version 3 manifest byte-stably. */
-export function serializeManifest(manifest: ManifestV3): string {
-  return `${JSON.stringify(manifest, null, 2)}\n`;
+export function serializeManifest(manifest: Manifest): string {
+  return `${manifest.schemaVersion === 4 ? canonicalJson(manifest, 2) : JSON.stringify(manifest, null, 2)}\n`;
 }
 
 /** Read canonical output, falling back to the legacy v2 file only when absent. */
-export function readManifest(config: ResolvedConfig): ManifestV3 {
+export function readManifest(config: ResolvedConfig): Manifest {
   const canonicalPath = path.join(config.mockupsDir, MANIFEST_NAME);
   const selection = selectManifestInput(
     fs.existsSync(canonicalPath),
@@ -83,7 +94,7 @@ export function selectManifestInput(
   return { allowV2: true, filename: LEGACY_MANIFEST_NAME };
 }
 
-function readManifestFile(candidate: string, allowV2: boolean): ManifestV3 {
+function readManifestFile(candidate: string, allowV2: boolean): Manifest {
   let value: unknown;
   try {
     value = JSON.parse(fs.readFileSync(candidate, "utf8"));
@@ -100,16 +111,20 @@ function readManifestFile(candidate: string, allowV2: boolean): ManifestV3 {
 }
 
 /** Validate manifest-shaped JSON and normalize temporary version 2 input. */
-export function parseManifest(value: unknown, allowV2 = false): ManifestV3 {
+export function parseManifest(value: unknown, allowV2 = false): Manifest {
   return validateManifest(value, allowV2);
 }
 
 function toManifestEntry(
   entry: ResolvedRegistryEntry,
   catalogueSchemes: readonly ColorScheme[],
+  componentViews: ReadonlyMap<string, ComponentViewRecord>,
   navPath: readonly string[],
 ): ManifestEntry {
   const common = {
+    ...(componentViews.size
+      ? { declaredDependencies: [...new Set(entry.dependencies)].sort() }
+      : {}),
     dependencies: [
       ...new Set([entry.sourceRelativePath, ...entry.dependencies]),
     ].sort(),
@@ -122,6 +137,13 @@ function toManifestEntry(
     sourcePath: entry.sourceRelativePath,
     title: entry.title,
   };
+  if (entry.kind === "component")
+    return componentManifestEntry(
+      entry,
+      common,
+      catalogueSchemes,
+      componentViews,
+    );
   if (entry.kind === "collection")
     return { ...common, childIds: [...entry.childIds], kind: "collection" };
   if (entry.kind === "use-case") {
@@ -149,6 +171,17 @@ function toManifestEntry(
       mobile: fragmentRoute(entry.route, "mobile"),
     },
     kind: "screen",
+    ...(componentViews.size
+      ? {
+          componentViews: ["mobile", "desktop"].flatMap((viewport) =>
+            effectiveColorSchemes(entry, catalogueSchemes).map((scheme) =>
+              componentViews.get(
+                fragmentRoute(entry.route, viewport as Viewport, scheme),
+              )!,
+            ),
+          ),
+        }
+      : {}),
     route: entry.route,
     ...(entry.tags && entry.tags.length > 0 ? { tags: [...entry.tags] } : {}),
     useCaseIds: [...entry.useCaseIds],

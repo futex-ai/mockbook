@@ -13,6 +13,24 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
     "browse.js",
     "diffs.js",
     "diff_views.js",
+    "workspace.js",
+    "component_controls.js",
+    "control_fields.js",
+    "control_transport.js",
+    "control_surface.js",
+    "workspace_events.js",
+    "workspace_variants.js",
+    "workspace_preview.js",
+    "workspace_evidence.js",
+    "prop_display.js",
+    "inspector_resize.js",
+    "inspector_tabs.js",
+    "inspector_panels.js",
+    "component_geometry.js",
+    "component_range_nodes.js",
+    "component_occlusion.js",
+    "component_overlay.js",
+    "component_highlight.js",
     "browse_details.js",
     "browse_links.js",
     "browse_frames.js",
@@ -31,7 +49,7 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
     "tag_filter.js",
   ]) {
     const candidate = fileURLToPath(
-      new URL(`../client/${filename}`, import.meta.url),
+      new URL(`../browser/${filename}`, import.meta.url),
     );
     try {
       modules.set(filename, fs.readFileSync(candidate));

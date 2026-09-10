@@ -24,11 +24,15 @@ export function transformCompatibilityDocuments(
   config: ResolvedConfig,
   graph: LoadedGraph,
   fragmentViews: ReadonlyMap<string, ArtifactView>,
+  retainedRoutes?: readonly string[],
 ): readonly LogicalReferenceRecord[] {
   const byId = new Map(entries.map((entry) => [entry.id, entry]));
   const records: LogicalReferenceRecord[] = [];
   const outputRoutes = [...outputs.keys()];
-  const availableRoutes = availablePublicRoutes(outputRoutes, config);
+  const availableRoutes = availablePublicRoutes(
+    retainedRoutes ?? outputRoutes,
+    config,
+  );
   for (const [route, original] of outputs) {
     const { colorScheme, viewport } =
       fragmentViews.get(route) ?? legacyRouteView(route);

@@ -1,12 +1,9 @@
 import { screen } from "mokabook";
 
 import { DESTINATIONS } from "./parts/destinations.js";
-import { DetailsPanel } from "./parts/details.js";
-import { MiniDetails, MiniWelcome } from "./parts/mini_screens.js";
+import { ExampleWorkspace } from "./parts/example_workspace.js";
 import { NavTree } from "./parts/nav.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
-import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
-import { SchemeSwitch } from "./parts/top_bar.js";
 
 type SchemeViewport = "desktop" | "mobile";
 
@@ -22,14 +19,7 @@ function SchemeHead({
   return (
     <ScreenHead
       action={
-        viewport === "desktop" ? (
-          <ViewSwitch active="both" />
-        ) : (
-          <>
-            <ViewSwitch active="mobile" />
-            <SchemeSwitch active="dark" />
-          </>
-        )
+        <ViewSwitch active={viewport === "desktop" ? "both" : "mobile"} />
       }
       crumbs={["Example", "Screens"]}
       idChip={idChip}
@@ -42,39 +32,20 @@ function DarkSchemeDesktop() {
   return (
     <Shell
       design={DESTINATIONS.darkWelcome}
-      colorScheme="dark"
       viewport="desktop"
       nav={<NavTree activeLabel="Welcome" />}
     >
       <SchemeHead idChip="example-welcome" title="Welcome" viewport="desktop" />
-      <Stage>
-        <PhoneFrame dark label="Mobile">
-          <MiniWelcome compact />
-        </PhoneFrame>
-        <BrowserFrame address="example.test/welcome" dark label="Desktop">
-          <MiniWelcome />
-        </BrowserFrame>
-      </Stage>
-      <DetailsPanel subject="welcome" />
+      <ExampleWorkspace subject="welcome" viewport="desktop" dark />
     </Shell>
   );
 }
 
 function DarkSchemeMobile() {
   return (
-    <Shell
-      design={DESTINATIONS.darkWelcome}
-      colorScheme="dark"
-      viewport="mobile"
-      nav={null}
-    >
+    <Shell design={DESTINATIONS.darkWelcome} viewport="mobile" nav={null}>
       <SchemeHead idChip="example-welcome" title="Welcome" viewport="mobile" />
-      <Stage>
-        <PhoneFrame dark label="Mobile" small>
-          <MiniWelcome compact />
-        </PhoneFrame>
-      </Stage>
-      <DetailsPanel subject="welcome" />
+      <ExampleWorkspace subject="welcome" viewport="mobile" dark />
     </Shell>
   );
 }
@@ -83,39 +54,20 @@ function LightOnlyDesktop() {
   return (
     <Shell
       design={DESTINATIONS.darkDetails}
-      colorScheme="dark"
       viewport="desktop"
       nav={<NavTree activeLabel="Details" />}
     >
       <SchemeHead idChip="example-details" title="Details" viewport="desktop" />
-      <Stage>
-        <PhoneFrame label="Mobile" lightOnly>
-          <MiniDetails compact />
-        </PhoneFrame>
-        <BrowserFrame address="example.test/details" label="Desktop" lightOnly>
-          <MiniDetails />
-        </BrowserFrame>
-      </Stage>
-      <DetailsPanel subject="details" />
+      <ExampleWorkspace subject="details" viewport="desktop" lightOnly />
     </Shell>
   );
 }
 
 function LightOnlyMobile() {
   return (
-    <Shell
-      design={DESTINATIONS.darkDetails}
-      colorScheme="dark"
-      viewport="mobile"
-      nav={null}
-    >
+    <Shell design={DESTINATIONS.darkDetails} viewport="mobile" nav={null}>
       <SchemeHead idChip="example-details" title="Details" viewport="mobile" />
-      <Stage>
-        <PhoneFrame label="Mobile" lightOnly small>
-          <MiniDetails compact />
-        </PhoneFrame>
-      </Stage>
-      <DetailsPanel subject="details" />
+      <ExampleWorkspace subject="details" viewport="mobile" lightOnly />
     </Shell>
   );
 }
@@ -130,7 +82,7 @@ export const browseSchemeScreens = [
     id: "design-browse-dark-scheme",
     mobile: <DarkSchemeMobile />,
     rationale:
-      "Dark applies inside the device screens only (--mbk-dark-screen-bg #121514, --mbk-dark-screen-ink #eef1ef); bezels, the browser bar, and every shell surface stay light so the catalogue frame reads the same in both schemes. Wide layouts carry the switch in the top bar beside the search field; narrow layouts move it into the screen head band beside the viewport control, where the top bar has no room.",
+      "Dark applies inside the device screens only (--mbk-dark-screen-bg #121514, --mbk-dark-screen-ink #eef1ef); bezels, the browser bar, and every shell surface stay light so the catalogue frame reads the same in both schemes. The theme icon sits beside the viewport dropdown in the screen header on both wide and narrow layouts.",
     slug: "dark-scheme",
     title: "Dark scheme selected",
   }),

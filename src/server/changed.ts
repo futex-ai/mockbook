@@ -10,11 +10,16 @@ import {
   type CatalogueHierarchy,
 } from "../registry/hierarchy.js";
 import { readManifest } from "../registry/manifest.js";
-import type { ManifestEntry, ManifestV3 } from "../registry/types.js";
+import type { ManifestEntry, Manifest } from "../registry/types.js";
 import { readBaseManifest } from "../review/base_manifest.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import type { GitClient } from "../review/git.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import { classifyComponents } from "../review/component_classification.js";
+import {
+  FileSystemReviewAssetReader,
+  GitReviewAssetReader,
+} from "../review/assets.js";
 import { changedContentPaths } from "./changed_content.js";
 
 /** Compute routes affected since the base branch point, if available. */
@@ -43,6 +48,24 @@ export async function computeChangedRoutes(
     );
     const manifest = readManifest(config);
     const baseManifest = await readBaseManifest(client, commit, config);
+    if (manifest.schemaVersion === 4 || baseManifest.schemaVersion === 4) {
+      const prefix = toPosixPath(
+        path.relative(config.repoRoot, config.mockupsDir),
+      );
+      const result = await classifyComponents({
+        before: baseManifest,
+        after: manifest,
+        config,
+        baseCommit: commit,
+        baseRef: base,
+        changedPaths: changed,
+        beforeReader: new GitReviewAssetReader(config, client, commit, prefix),
+        afterReader: new FileSystemReviewAssetReader(config),
+      });
+      return result.changes
+        .map((entry) => (entry.after ?? entry.before)!.route)
+        .sort();
+    }
     const contentChanges = await changedContentPaths(
       manifest,
       baseManifest,
@@ -64,8 +87,8 @@ export async function computeChangedRoutes(
 
 /** Match reviewable metadata and repository-relative material fragment paths. */
 export function changedManifestRoutes(
-  manifest: ManifestV3,
-  baseManifest: ManifestV3,
+  manifest: Manifest,
+  baseManifest: Manifest,
   config: ResolvedConfig,
   changedPaths: readonly string[],
 ): readonly string[] {
@@ -77,8 +100,10 @@ export function changedManifestRoutes(
   const baseEntries = new Map(
     baseManifest.entries.map((entry) => [entry.id, entry]),
   );
-  const hierarchy = analyzeHierarchy(manifest.entries).hierarchy;
-  const baseHierarchy = analyzeHierarchy(baseManifest.entries).hierarchy;
+  const hierarchy = analyzeHierarchy<ManifestEntry>(manifest.entries).hierarchy;
+  const baseHierarchy = analyzeHierarchy<ManifestEntry>(
+    baseManifest.entries,
+  ).hierarchy;
   for (const entry of manifest.entries) {
     if (entry.kind === "collection") continue;
     const baseEntry = baseEntries.get(entry.id);
@@ -132,6 +157,17 @@ function routeChangeProjection(
   if (entry.kind === "use-case") {
     return { ...common, route: entry.route, steps: entry.steps };
   }
+  if (entry.kind === "component")
+    return {
+      ...common,
+      route: entry.route,
+      propSchema: entry.propSchema,
+      controls: entry.controls,
+      slots: entry.slots,
+      variants: entry.variants.map(
+        ({ componentViews: _views, ...variant }) => variant,
+      ),
+    };
   return {
     ...common,
     address: entry.address,

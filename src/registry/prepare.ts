@@ -7,7 +7,9 @@ import type {
 import { toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
-import { validateEntry } from "./entry_validation.js";
+import { ComponentValidationError } from "../components/data.js";
+import { validateComponentDefinition } from "../components/definition.js";
+import { problem, validateEntry } from "./entry_validation.js";
 import {
   crossReferenceViolations,
   duplicateViolations,
@@ -39,10 +41,27 @@ export function prepareRegistry(
       sourcePath,
       sourceRelativePath,
     } as ResolvedRegistryEntry;
-    entries.push(entry);
-    violations.push(...validateEntry(entry, config));
+    const metadataViolations = validateEntry(entry, config);
+    violations.push(...metadataViolations);
+    if (entry.kind === "component") {
+      if (metadataViolations.length) return;
+      try {
+        entries.push({
+          ...validateComponentDefinition(entry),
+          sourcePath,
+          sourceRelativePath,
+        });
+      } catch (error) {
+        if (!(error instanceof ComponentValidationError)) throw error;
+        violations.push(problem(entry, "invalid-component", error.message));
+      }
+    } else entries.push(entry);
   });
-  entries.sort(compareEntries);
+  entries.sort(
+    entries.some((entry) => entry.kind === "component")
+      ? compareComponentEntries
+      : compareEntries,
+  );
   violations.push(
     ...duplicateViolations(entries, "id"),
     ...duplicateViolations(entries, "route"),
@@ -66,7 +85,12 @@ function isDefinition(value: unknown): value is RegistryDefinition {
     return false;
   }
   const kind = (value as { kind?: unknown }).kind;
-  return kind === "screen" || kind === "collection" || kind === "use-case";
+  return (
+    kind === "screen" ||
+    kind === "collection" ||
+    kind === "use-case" ||
+    kind === "component"
+  );
 }
 
 function compareEntries(
@@ -90,4 +114,21 @@ function invalidRegistry(
     "build-invalid",
     `catalogue is invalid:\n${ordered.map((item) => `- [${item.code}] ${item.sourceRelativePath}${item.id ? ` (${item.id})` : ""}: ${item.message}`).join("\n")}`,
   );
+}
+
+function compareComponentEntries(
+  left: ResolvedRegistryEntry,
+  right: ResolvedRegistryEntry,
+): number {
+  const leftRoute = left.kind === "collection" ? "" : left.route;
+  const rightRoute = right.kind === "collection" ? "" : right.route;
+  return leftRoute < rightRoute
+    ? -1
+    : leftRoute > rightRoute
+      ? 1
+      : left.id < right.id
+        ? -1
+        : left.id > right.id
+          ? 1
+          : 0;
 }

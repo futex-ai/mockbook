@@ -1,19 +1,24 @@
 import { screen } from "mokabook";
-
+import { PreviewWorkspace } from "./components/parts/workspace.js";
 import { ComparisonStage } from "./parts/compare.js";
 import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
 import { MiniWelcome } from "./parts/mini_screens.js";
 import { ReviewNav } from "./parts/review.js";
-import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
-import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
+import {
+  ScreenHead,
+  Shell,
+  ViewSwitch,
+  type ArtboardViewport,
+} from "./parts/shell.js";
+import { BrowserFrame, PhoneFrame } from "./parts/stage.js";
 
-function ChangesScreen({
+function ChangesPreview({
   overlay,
   viewport,
 }: {
   overlay: boolean;
-  viewport: "mobile" | "desktop";
+  viewport: ArtboardViewport;
 }) {
   const content = (
     <div style={{ position: "relative", isolation: "isolate" }}>
@@ -25,14 +30,22 @@ function ChangesScreen({
       ) : null}
     </div>
   );
-  const framed =
-    viewport === "mobile" ? (
-      <PhoneFrame small>{content}</PhoneFrame>
-    ) : (
-      <BrowserFrame address="example.test/welcome" expandable={!overlay}>
-        {content}
-      </BrowserFrame>
-    );
+  return viewport === "mobile" ? (
+    <PhoneFrame small>{content}</PhoneFrame>
+  ) : (
+    <BrowserFrame address="example.test/welcome" expandable={!overlay}>
+      {content}
+    </BrowserFrame>
+  );
+}
+
+function ChangesScreen({
+  overlay,
+  viewport,
+}: {
+  overlay: boolean;
+  viewport: ArtboardViewport;
+}) {
   return (
     <Shell
       design={overlay ? DESTINATIONS.overlay : DESTINATIONS.current}
@@ -40,20 +53,31 @@ function ChangesScreen({
       nav={<ReviewNav activeTitle="Welcome" />}
     >
       <ScreenHead
+        comparisons
         comparisonMode={overlay ? "overlay" : "current"}
         action={<ViewSwitch active={viewport} />}
         crumbs={["Example", "Screens"]}
         idChip="example-welcome"
         title="Welcome"
       />
-      {overlay ? (
-        <ComparisonStage state="changed" viewport={viewport}>
-          {framed}
-        </ComparisonStage>
-      ) : (
-        <Stage>{framed}</Stage>
-      )}
-      <DetailsPanel subject="welcome" />
+      <PreviewWorkspace
+        stage={!overlay}
+        inspector={
+          <DetailsPanel
+            subject="welcome"
+            comparisonEvidence={overlay ? null : undefined}
+          />
+        }
+        render={(previewViewport) =>
+          overlay ? (
+            <ComparisonStage state="changed" viewport={previewViewport}>
+              <ChangesPreview overlay viewport={previewViewport} />
+            </ComparisonStage>
+          ) : (
+            <ChangesPreview overlay={false} viewport={previewViewport} />
+          )
+        }
+      />
     </Shell>
   );
 }

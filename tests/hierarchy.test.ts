@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { defineCollection, defineScreen } from "../dist/index.js";
 import { createManifest, parseManifest } from "../dist/registry/manifest.js";
-import type { ManifestV3 } from "../dist/registry/types.js";
+import type { Manifest } from "../dist/registry/types.js";
 import type {
   RegistryDefinition,
   ResolvedRegistryEntry,
@@ -157,7 +157,7 @@ function entry(
 }
 
 type MutableManifest = Omit<
-  ManifestV3,
+  Manifest,
   "entries" | "generatedBy" | "schemaVersion"
 > & {
   entries: Array<{
@@ -169,7 +169,7 @@ type MutableManifest = Omit<
   schemaVersion: number;
 };
 
-function hierarchyManifest(): ManifestV3 {
+function hierarchyManifest(): Manifest {
   return createManifest(
     [
       resolved(

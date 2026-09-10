@@ -96,6 +96,7 @@ export function SchemeSwitch() {
 /** The breadcrumb, title, and optional action rendered above a target view. */
 export function ScreenHead(props: {
   action?: ReactNode;
+  status?: ReactNode;
   crumbs: readonly CrumbLink[];
   heading: string;
   id?: string | undefined;
@@ -106,6 +107,7 @@ export function ScreenHead(props: {
         <Crumbs items={props.crumbs} />
         <div className="mbk-title-row">
           <h2>{props.heading}</h2>
+          {props.status}
           {props.id ? (
             <button
               aria-label={`Copy ID ${props.id}`}

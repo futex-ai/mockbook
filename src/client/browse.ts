@@ -1,6 +1,7 @@
 /** Progressive Browse shell enhancement served at /__mokabook/client/browse.js. */
 
 import { installDiffs } from "./diffs.js";
+import { installWorkspace } from "./workspace.js";
 import { createBrowserDetailsPreference } from "./browse_details.js";
 import { createBrowserNavPreference } from "./browse_navigation.js";
 import {
@@ -23,7 +24,7 @@ import {
   selectAndRevealRoute,
 } from "./browse_navigation_state.js";
 import { applyPreviewFragmentQuery } from "./preview_fragment.js";
-import { NavigationSequencer } from "./navigation.js";
+import { isSameBrowseDocument, NavigationSequencer } from "./navigation.js";
 import { browseLinkTarget } from "./browse_links.js";
 import { copyText } from "./clipboard.js";
 import { attachFrameNavigation } from "./frame_navigation.js";
@@ -54,8 +55,20 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   navPreference.apply(doc);
   if (win.history.scrollRestoration) win.history.scrollRestoration = "manual";
   const sequencer = new NavigationSequencer();
-  const diffs = installDiffs(doc, win);
   let restoringHistory = false;
+  let displayedUrl = new URL(win.location.href);
+  const rememberDocument = (): void => {
+    sequencer.cancel();
+    restoringHistory = false;
+    displayedUrl = new URL(win.location.href);
+  };
+  const diffs = installDiffs(doc, win);
+  let disposeWorkspace = installWorkspace(
+    doc,
+    win,
+    diffs.update,
+    rememberDocument,
+  );
   const persistScroll = (): void => {
     win.history.replaceState(
       { scrolls: captureRegionScrolls(doc) } satisfies ScrollState,
@@ -122,12 +135,14 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       return;
     }
     const viewport = currentViewport(doc);
+    disposeWorkspace();
     for (const frame of main.querySelectorAll("iframe")) frame.remove();
     collapseFrame(doc, expandedFrame(doc));
     if (push) persistScroll();
     diffs.reset();
     main.innerHTML = nextMain.innerHTML;
     const finalUrl = response.url || url;
+    displayedUrl = new URL(finalUrl, win.location.href);
     attachFrameNavigation(doc, frameActions);
     applyPreviewFragmentQuery(doc, new URL(finalUrl, win.location.href).search);
     detailsPreference.apply(doc);
@@ -140,6 +155,12 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
         "",
         finalUrl,
       );
+    disposeWorkspace = installWorkspace(
+      doc,
+      win,
+      diffs.update,
+      rememberDocument,
+    );
     selectAndRevealRoute(
       doc,
       new URL(finalUrl, win.location.href).pathname,
@@ -279,6 +300,12 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       state && typeof state.scrolls === "object" && state.scrolls !== null
         ? state.scrolls
         : undefined;
+    if (isSameBrowseDocument(displayedUrl, new URL(win.location.href))) {
+      sequencer.cancel();
+      restoringHistory = false;
+      if (scrolls) restoreRegionScrolls(doc, scrolls);
+      return;
+    }
     restoringHistory = true;
     void navigate(win.location.href, false, scrolls);
   });

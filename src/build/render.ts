@@ -2,11 +2,7 @@ import path from "node:path";
 
 import { minimatch } from "minimatch";
 
-import type {
-  ColorScheme,
-  ResolvedRegistryEntry,
-  ScreenDefinition,
-} from "../authoring/types.js";
+import type { ColorScheme, ResolvedRegistryEntry } from "../authoring/types.js";
 import { encodeUrlPath, toPosixPath } from "../config/paths.js";
 import { isPublicStaticFile } from "../config/public_files.js";
 import type { ResolvedConfig } from "../config/types.js";
@@ -16,6 +12,10 @@ import { serializeReviewSentinels } from "../renderer/sentinels.js";
 import { fragmentRoute } from "../registry/manifest.js";
 import type { ArtifactView } from "../registry/views.js";
 import { effectiveColorSchemes, VIEWPORTS } from "../registry/views.js";
+import type { ComponentGraphRenderer } from "../components/render.js";
+import type { ComponentViewRecord } from "../components/manifest_types.js";
+import { componentFragmentRoute } from "../components/paths.js";
+import { rebaseStyleOwnership } from "../components/style_ownership.js";
 import { generatedHeader } from "./ownership.js";
 
 /** Render every screen view to owned, linked static documents. */
@@ -24,50 +24,87 @@ export function renderFragments(
   renderer: Renderer,
   config: ResolvedConfig,
   fragmentViews: Map<string, ArtifactView>,
+  graphRenderer: ComponentGraphRenderer,
+  componentViews: Map<string, ComponentViewRecord>,
 ): Map<string, string> {
   const outputs = new Map<string, string>();
+  const components = entries.filter((entry) => entry.kind === "component");
   for (const entry of entries) {
-    if (entry.kind !== "screen") continue;
-    for (const viewport of VIEWPORTS) {
-      for (const colorScheme of effectiveColorSchemes(
-        entry,
-        config.colorSchemes,
-      )) {
-        const route = fragmentRoute(entry.route, viewport, colorScheme);
-        const stylesheets = stylesheetsFor(
-          entry.route,
-          route,
-          colorScheme,
-          config,
-        );
-        let rendered: string;
-        try {
-          rendered = renderer({
+    if (entry.kind !== "screen" && entry.kind !== "component") continue;
+    for (const variantId of entry.kind === "component"
+      ? entry.variants.map((variant) => variant.id)
+      : [undefined]) {
+      for (const viewport of VIEWPORTS) {
+        for (const colorScheme of effectiveColorSchemes(
+          entry,
+          config.colorSchemes,
+        )) {
+          const route = variantId
+            ? componentFragmentRoute(
+                entry.route,
+                variantId,
+                viewport,
+                colorScheme,
+              )
+            : fragmentRoute(entry.route, viewport, colorScheme);
+          const stylesheets = stylesheetsFor(
+            entry.route,
+            route,
             colorScheme,
-            entry: entry as ScreenDefinition,
-            node: entry[viewport],
-            stylesheets,
-            viewport,
-          });
-        } catch (error) {
-          throw new MokabookError(
-            "build-invalid",
-            `renderer failed for ${entry.id} (${viewport}, ${colorScheme}): ${errorMessage(error)}`,
-            { cause: error },
+            config,
           );
-        }
-        if (typeof rendered !== "string" || !/<html[\s>]/i.test(rendered)) {
-          throw new MokabookError(
-            "build-invalid",
-            `renderer must return a complete HTML document for ${entry.id} (${viewport}, ${colorScheme})`,
+          let rendered: string;
+          try {
+            const input = {
+              colorScheme,
+              entry,
+              node: entry.kind === "screen" ? entry[viewport] : null,
+              stylesheets,
+              viewport,
+              ...(variantId ? { variantId } : {}),
+            };
+            if (components.length) {
+              const output = graphRenderer(input, renderer, components);
+              rendered = output.html;
+              componentViews.set(route, {
+                ...output.view,
+                styles: rebaseStyleOwnership(
+                  rendered,
+                  generatedHeader(entry.sourceRelativePath) + rendered,
+                  output.view.styles,
+                ),
+              });
+            } else {
+              const result = renderer(input);
+              rendered = typeof result === "string" ? result : result.html;
+              if (
+                typeof result !== "string" &&
+                (result.styles?.length || result.resources?.length)
+              )
+                throw new Error(
+                  "component ownership requires registered components",
+                );
+            }
+          } catch (error) {
+            throw new MokabookError(
+              "build-invalid",
+              `renderer failed for ${entry.id} (${viewport}, ${colorScheme}): ${errorMessage(error)}`,
+              { cause: error },
+            );
+          }
+          if (typeof rendered !== "string" || !/<html[\s>]/i.test(rendered)) {
+            throw new MokabookError(
+              "build-invalid",
+              `renderer must return a complete HTML document for ${entry.id} (${viewport}, ${colorScheme})`,
+            );
+          }
+          addOutput(
+            outputs,
+            route,
+            `${generatedHeader(entry.sourceRelativePath)}${serializeReviewSentinels(rendered)}`,
           );
+          fragmentViews.set(route, { colorScheme, viewport });
         }
-        addOutput(
-          outputs,
-          route,
-          `${generatedHeader(entry.sourceRelativePath)}${serializeReviewSentinels(rendered)}`,
-        );
-        fragmentViews.set(route, { colorScheme, viewport });
       }
     }
   }
@@ -89,7 +126,7 @@ export function addOutput(
   outputs.set(route, content.endsWith("\n") ? content : `${content}\n`);
 }
 
-function stylesheetsFor(
+export function stylesheetsFor(
   catalogueRoute: string,
   fragmentRoute: string,
   colorScheme: ColorScheme,

@@ -1,3 +1,4 @@
+import { componentRuntime } from "../build/component_runtime.js";
 /** Watched Serve coordinates transactional output, resource watches, and its child. */
 
 import { fileURLToPath } from "node:url";
@@ -95,6 +96,10 @@ export async function serveWatched(
       options.port,
     );
     supervisor.onUnexpectedExit((error) => failureGate.notify(error));
+    supervisor.replaceComponentRuntime(
+      componentRuntime(initialCompilation),
+      "stage",
+    );
     port = await supervisor.start();
   } catch (error) {
     await Promise.allSettled([
@@ -145,6 +150,10 @@ export async function serveWatched(
       const previous = watcher;
       activeConfig = nextConfig;
       activeCompilation = nextCompilation;
+      runningSupervisor.replaceComponentRuntime(
+        componentRuntime(nextCompilation),
+        "stage",
+      );
       manifestSignature = JSON.stringify(nextCompilation.manifest);
       watcher = replacement;
       transferred = true;
@@ -183,6 +192,10 @@ export async function serveWatched(
         prepared.adopt();
         activeCompilation = nextCompilation;
         const nextSignature = JSON.stringify(nextCompilation.manifest);
+        runningSupervisor.replaceComponentRuntime(
+          componentRuntime(nextCompilation),
+          nextSignature === manifestSignature ? "live" : "stage",
+        );
         if (nextSignature === manifestSignature) {
           await publishUpdate();
         } else {

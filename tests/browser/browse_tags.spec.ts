@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const detailsRow = 'a[data-nav-row][data-route="screens/details.html"]';
-const inspectorChip = '[data-mokabook-details] [data-mokabook-tag="forms"]';
+const inspectorChip =
+  '[data-inspector-panel="details"] [data-mokabook-tag="forms"]';
 const panel = "#mb-tag-picker";
 const search = "[data-mokabook-search]";
 const toggle = "[data-mokabook-tag-toggle]";

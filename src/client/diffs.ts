@@ -1,6 +1,6 @@
 /** Lazy comparison requests, with cancellation when a user leaves the screen. */
 
-import type { ReviewResult } from "../review/types.js";
+import { parseReviewResult } from "../review/result_validation.js";
 import { renderDiff, type DiffMode, type LoadedDiff } from "./diff_views.js";
 import { readStaticDelivery } from "./static_delivery.js";
 
@@ -39,8 +39,16 @@ export function installDiffs(
     if (mode === "current") {
       stage.replaceChildren();
     } else if (loaded) {
-      renderDiff(doc, stage, loaded, screen.dataset["diffScreen"] ?? "", mode);
+      renderDiff(
+        doc,
+        stage,
+        loaded,
+        screen.dataset["diffScreen"] ?? "",
+        mode,
+        screen.dataset["diffVariant"],
+      );
     }
+    doc.dispatchEvent(new win.Event("mokabook:comparison"));
   };
   const load = async (refresh: boolean): Promise<void> => {
     const target = screen;
@@ -68,7 +76,7 @@ export function installDiffs(
             : "Comparison unavailable",
         );
       }
-      const result = (await response.json()) as ReviewResult;
+      const result = parseReviewResult(await response.json());
       if (
         pending.signal.aborted ||
         !target.isConnected ||
@@ -99,7 +107,9 @@ export function installDiffs(
         const description = doc.createElement("p");
         description.textContent = error.message;
         details.append(summary, description);
-        stage.append(details);
+        details.setAttribute("data-comparison-failure", "");
+        doc.querySelector("[data-comparison-failure]")?.remove();
+        doc.querySelector('[data-inspector-panel="details"]')?.append(details);
       }
     } finally {
       if (request === pending) {

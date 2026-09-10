@@ -1,0 +1,152 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+
+import {
+  compileCatalogue,
+  type Compilation,
+} from "../../dist/build/compile.js";
+import { writeCompilation } from "../../dist/build/transaction.js";
+import { loadConfig } from "../../dist/config/load.js";
+import { classifyComponents } from "../../dist/review/component_classification.js";
+import type { GitClient } from "../../dist/review/git.js";
+import { repositoryRoot } from "./fixture.js";
+
+/** Copy the actual consumer so source-edit tests never mutate the working catalogue. */
+export async function designLibraryFixture(t: {
+  after(fn: () => Promise<void>): void;
+}) {
+  const root = await fs.mkdtemp(
+    path.join(repositoryRoot, ".context/design-library-test-"),
+  );
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  for (const name of [
+    "examples/basic/entries",
+    "examples/basic/generated",
+    "examples/basic/renderer.tsx",
+    "examples/basic/theme.ts",
+    "examples/basic/mokabook.config.ts",
+    "examples/basic/notes.md",
+    "examples/basic/README.md",
+    "docs/protocol",
+    "README.md",
+  ]) {
+    await fs.cp(path.join(repositoryRoot, name), path.join(root, name), {
+      recursive: true,
+    });
+  }
+  const config = await loadConfig(path.join(root, "examples/basic"));
+  const before = await compileCatalogue(config);
+  const resources = new Map<string, string>();
+  for (const file of await fs.readdir(config.mockupsDir, { recursive: true })) {
+    if (file.endsWith(".css"))
+      resources.set(
+        file,
+        await fs.readFile(path.join(config.mockupsDir, file), "utf8"),
+      );
+  }
+  const originals = new Map<string, string>();
+  async function edit(file: string, change: (source: string) => string) {
+    const absolute = path.join(root, file);
+    const source = await fs.readFile(absolute, "utf8");
+    if (!originals.has(file)) originals.set(file, source);
+    const changed = change(source);
+    assert.notEqual(changed, source, `Edit must change ${file}`);
+    await fs.writeFile(absolute, changed);
+  }
+  async function reset() {
+    for (const [file, source] of originals)
+      await fs.writeFile(path.join(root, file), source);
+    originals.clear();
+  }
+  async function compare(after = before, changedPaths = [...originals.keys()]) {
+    const current = new Map(resources);
+    for (const file of changedPaths) {
+      if (file.startsWith("examples/basic/generated/") && file.endsWith(".css"))
+        current.set(
+          file.slice("examples/basic/generated/".length),
+          await fs.readFile(path.join(root, file), "utf8"),
+        );
+    }
+    return classifyComponents({
+      before: before.manifest,
+      after: after.manifest,
+      config,
+      changedPaths,
+      beforeReader: snapshotReader(before, resources),
+      afterReader: snapshotReader(after, current),
+      baseCommit: "a".repeat(40),
+      baseRef: "main",
+    });
+  }
+  const batches: string[][] = [];
+  function git(changedPaths: readonly string[]): GitClient {
+    const files = new Map(
+      [...resources, ...before.outputs].map(([file, contents]) => [
+        `examples/basic/generated/${file}`,
+        contents,
+      ]),
+    );
+    const read = async (_commit: string, file: string) => {
+      const contents = files.get(file);
+      assert.notEqual(contents, undefined, file);
+      return Buffer.from(contents!);
+    };
+    return {
+      mergeBase: async () => "a".repeat(40),
+      changedPaths: async () => changedPaths,
+      fileExists: async (_commit, file) => files.has(file),
+      fileKind: async (_commit, file) =>
+        files.has(file) ? "regular" : "missing",
+      readFile: async (commit, file) => (await read(commit, file)).toString(),
+      readFileBytes: read,
+      readFiles: async (commit, files) => {
+        batches.push([...files]);
+        return new Map(
+          await Promise.all(
+            files.map(
+              async (file) =>
+                [
+                  file,
+                  { kind: "regular" as const, bytes: await read(commit, file) },
+                ] as const,
+            ),
+          ),
+        );
+      },
+    };
+  }
+  return {
+    root,
+    config,
+    before,
+    resources,
+    edit,
+    reset,
+    compare,
+    git,
+    batches,
+    build: () => compileCatalogue(config),
+    write: (compilation: Compilation) => writeCompilation(compilation, config),
+  };
+}
+
+export function snapshotReader(
+  compilation: Compilation,
+  resources: ReadonlyMap<string, string>,
+) {
+  const read = async (file: string) => {
+    const value = compilation.outputs.get(file) ?? resources.get(file);
+    assert.notEqual(value, undefined, file);
+    return Buffer.from(value!);
+  };
+  return {
+    read,
+    readMany: async (files: readonly string[]) =>
+      new Map(
+        await Promise.all(
+          files.map(async (file) => [file, await read(file)] as const),
+        ),
+      ),
+  };
+}

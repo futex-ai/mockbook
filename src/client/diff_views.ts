@@ -31,10 +31,19 @@ export function renderDiff(
   loaded: LoadedDiff,
   route: string,
   mode: DiffMode,
+  variantId?: string,
 ): void {
-  const screen = loaded.result.screens.find(
-    (candidate) => candidate.route === route,
+  const component =
+    loaded.result.schemaVersion === 3
+      ? loaded.result.components.find((candidate) => candidate.route === route)
+      : undefined;
+  const variant = component?.variants.find(
+    (candidate) => candidate.id === variantId,
   );
+  const screen =
+    component && variant
+      ? { ...component, views: variant.views }
+      : loaded.result.screens.find((candidate) => candidate.route === route);
   if (!screen) {
     stage.replaceChildren();
     stage.append(message(doc, "This screen has no comparison available."));
@@ -42,7 +51,7 @@ export function renderDiff(
   }
   const viewport = currentViewport(doc);
   const scheme = currentColorScheme(doc);
-  const key = `${loaded.url}|${route}|${viewport}|${scheme}`;
+  const key = `${loaded.url}|${route}|${variantId ?? ""}|${viewport}|${scheme}`;
   if (stage.dataset["diffKey"] === key && stage.querySelector(".mb-panes")) {
     for (const panes of stage.querySelectorAll<HTMLElement>(".mb-panes")) {
       panes.dataset["compareMode"] = panes.querySelector(".mb-pane-missing")
@@ -67,7 +76,7 @@ export function renderDiff(
     section.className = `mbk-diff-view mbk-diff-${size}`;
     section.dataset["diffViewport"] = size;
     const heading = doc.createElement("h3");
-    heading.textContent = `${size === "mobile" ? "Mobile" : "Desktop"} · ${STATE_LABELS[view.state]}${scheme !== view.colorScheme ? " · Light only" : ""}`;
+    heading.textContent = `${size === "mobile" ? "Mobile" : "Desktop"} · ${component ? STATE_LABELS[view.state].replace(/screen/g, "variant").replace(/Screen/g, "Variant") : STATE_LABELS[view.state]}${scheme !== view.colorScheme ? " · Light only" : ""}`;
     section.append(heading);
     const panes = doc.createElement("div");
     panes.className = "mb-panes";
@@ -80,7 +89,12 @@ export function renderDiff(
     section.append(panes);
     stage.append(section);
   }
-  evidence(doc, stage, screen, loaded.result.baseRef);
+  const details = doc.querySelector<HTMLElement>("[data-workspace-evidence]");
+  if (details && loaded.result.schemaVersion === 2) {
+    details.hidden = false;
+    details.replaceChildren();
+    evidence(doc, details, screen, loaded.result.baseRef);
+  }
 }
 
 function pane(

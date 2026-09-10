@@ -1,3 +1,5 @@
+import type { ComponentDesignDestination } from "../components/parts/destinations.js";
+
 /** Stable catalogue destinations, independent of the depicted product ids. */
 export const DESTINATIONS = {
   home: "design-browse-home",
@@ -27,7 +29,7 @@ export const DESTINATIONS = {
 } as const;
 
 export type DesignDestination =
-  (typeof DESTINATIONS)[keyof typeof DESTINATIONS];
+  (typeof DESTINATIONS)[keyof typeof DESTINATIONS] | ComponentDesignDestination;
 export type ComparisonMode =
   "current" | "side-by-side" | "overlay" | "difference";
 export type DepictedScheme = "light" | "dark";

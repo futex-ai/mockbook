@@ -7,6 +7,7 @@ import {
   duplicateReservedAttributeName,
   type HtmlSourceLocation,
 } from "../navigation/reserved_attributes.js";
+import { componentFragmentRoute } from "../components/paths.js";
 import { fragmentRoute } from "../registry/manifest.js";
 import { effectiveColorSchemes, VIEWPORTS } from "../registry/views.js";
 import type { ResolvedConfig } from "../config/types.js";
@@ -126,15 +127,23 @@ export function validateLogicalFragments(
     checked.add(key);
     const entry = byId.get(record.destination.id);
     const screen =
-      entry?.kind === "screen"
+      entry?.kind === "screen" || entry?.kind === "component"
         ? entry
         : entry?.kind === "use-case" && entry.steps[0]
           ? byId.get(entry.steps[0].screenId)
           : undefined;
-    if (screen?.kind !== "screen") continue;
+    if (screen?.kind !== "screen" && screen?.kind !== "component") continue;
     for (const viewport of VIEWPORTS) {
       for (const scheme of effectiveColorSchemes(screen, config.colorSchemes)) {
-        const route = fragmentRoute(screen.route, viewport, scheme);
+        const route =
+          screen.kind === "component"
+            ? componentFragmentRoute(
+                screen.route,
+                screen.variants[0]!.id,
+                viewport,
+                scheme,
+              )
+            : fragmentRoute(screen.route, viewport, scheme);
         if (!anchorIndex.get(route)?.has(fragment)) {
           throw new MokabookError(
             "build-invalid",

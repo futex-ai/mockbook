@@ -9,7 +9,7 @@
 
 import type { ReactNode } from "react";
 
-function IconSvg(props: { children: ReactNode; size: number }) {
+export function IconSvg(props: { children: ReactNode; size: number }) {
   return (
     <svg
       aria-hidden="true"

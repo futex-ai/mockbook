@@ -8,6 +8,7 @@ export async function inspectConsumerExport(
   relative,
   base,
   expected = [],
+  schemaVersion = 2,
 ) {
   const output = path.join(root, relative);
   const read = (name) => fs.promises.readFile(path.join(output, name), "utf8");
@@ -41,8 +42,11 @@ export async function inspectConsumerExport(
   assert.ok(comparison);
   const review = JSON.parse(await read(comparison));
   assert.equal(review.baseRef, base);
-  assert.equal(review.schemaVersion, 2);
-  for (const screen of review.screens) {
+  assert.equal(review.schemaVersion, schemaVersion);
+  for (const screen of [
+    ...review.screens,
+    ...(review.components ?? []).flatMap((component) => component.variants),
+  ]) {
     for (const view of screen.views) {
       for (const snapshot of [view.beforePath, view.afterPath].filter(Boolean))
         assert.ok(

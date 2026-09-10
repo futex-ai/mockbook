@@ -6,7 +6,7 @@ import { isInside, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import { LEGACY_MANIFEST_NAME, MANIFEST_NAME } from "../registry/manifest.js";
-import type { ManifestV3 } from "../registry/types.js";
+import type { Manifest } from "../registry/types.js";
 import { VIEWPORTS } from "../registry/views.js";
 import {
   FileSystemReviewAssetReader,
@@ -30,8 +30,8 @@ interface FragmentPair {
 
 /** Find material output changes, using live files or an injected captured reader. */
 export async function changedContentPaths(
-  manifest: ManifestV3,
-  baseline: ManifestV3,
+  manifest: Manifest,
+  baseline: Manifest,
   config: ResolvedConfig,
   git: GitClient,
   commit: string,
@@ -114,8 +114,8 @@ export async function changedContentPaths(
 }
 
 function fragmentPairs(
-  manifest: ManifestV3,
-  baseline: ManifestV3,
+  manifest: Manifest,
+  baseline: Manifest,
   changed: ReadonlySet<string>,
 ): FragmentPair[] {
   const bases = new Map(baseline.entries.map((entry) => [entry.id, entry]));

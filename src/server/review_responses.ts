@@ -1,10 +1,10 @@
 /** HTTP response helpers for served Review artifacts. */
 
-import fs from "node:fs";
 import path from "node:path";
 import type { ServerResponse } from "node:http";
 
 import { errorMessage } from "../errors.js";
+import { readConfinedFile } from "./confined_file.js";
 import { contentType, send } from "./respond.js";
 
 /** Redirect to a stable or immutable Review route without caching. */
@@ -26,19 +26,12 @@ export function serveReviewArtifactFile(
   response: ServerResponse,
   method: string,
 ): void {
-  const rootPath = path.resolve(directory);
-  const filePath = path.resolve(rootPath, relative);
-  if (!filePath.startsWith(rootPath + path.sep))
+  const content = readConfinedFile(directory, relative);
+  if (content === undefined)
     return send(response, 404, "text/plain", "Not found", method);
-  let content: Buffer;
-  try {
-    content = fs.readFileSync(filePath);
-  } catch {
-    return send(response, 404, "text/plain", "Not found", method);
-  }
   response.writeHead(200, {
     "cache-control": "no-store",
-    "content-type": contentType(filePath),
+    "content-type": contentType(path.resolve(directory, relative)),
     "x-content-type-options": "nosniff",
   });
   response.end(method === "HEAD" ? undefined : content);

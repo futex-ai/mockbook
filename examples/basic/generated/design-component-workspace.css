@@ -1,0 +1,162 @@
+/* Fixed shell with independently scrolling preview and inspector contents. */
+.ce-design .mbk-shell {
+  height: 100dvh;
+  min-height: 0;
+}
+.ce-design .mbk-main {
+  overflow: auto;
+}
+.ce-design .mbk-main:has(> .ce-workspace) {
+  overflow: hidden;
+}
+.ce-design .mbk-topbar,
+.ce-design .mbk-screen-head {
+  flex-shrink: 0;
+}
+.ce-workspace {
+  container-type: size;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+.ce-preview-region {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+.ce-preview-pane {
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  position: absolute;
+}
+.mbk-shell--mobile .ce-preview-pane {
+  padding-bottom: calc(49px + env(safe-area-inset-bottom));
+}
+.ce-preview-sizer,
+.ce-inspector-resize {
+  display: none;
+}
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-preview-region {
+  flex: 0 0 auto;
+}
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-preview-pane {
+  bottom: 0;
+}
+/* A narrow native sizing box gives the centered handle a 64px pointer target. */
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-preview-sizer {
+  cursor: row-resize;
+  display: block;
+  height: 50cqh;
+  margin-inline: auto;
+  max-height: calc(100cqh - 120px);
+  min-height: 96px;
+  opacity: 0;
+  overflow: hidden;
+  position: relative;
+  resize: vertical;
+  top: 8px;
+  z-index: 1;
+  transform: scaleX(4);
+  width: 16px;
+}
+.mbk-shell--desktop
+  .ce-workspace:has(.ce-inspector > details[open])
+  .ce-inspector-resize {
+  bottom: -8px;
+  display: block;
+  height: 16px;
+  left: calc(50% - 32px);
+  pointer-events: none;
+  position: absolute;
+  width: 64px;
+  z-index: 2;
+}
+.ce-inspector-resize .mbk-nav-resize {
+  cursor: row-resize;
+  inset: 0;
+  width: 100%;
+}
+.ce-inspector-resize .mbk-nav-resize::after {
+  height: 2px;
+  left: 16px;
+  top: 7.5px;
+  width: 32px;
+}
+.ce-design .ce-preview-pane > .mbk-stage {
+  display: block;
+  min-height: 100%;
+  overflow: visible;
+}
+.ce-inspector-dock {
+  flex: 0 0 49px;
+  min-height: 49px;
+  overflow: hidden;
+}
+.ce-inspector-dock:has(.ce-inspector > details[open]) {
+  flex: 1 1 0;
+  min-height: 120px;
+}
+.ce-workspace .ce-inspector {
+  grid-template-rows: 48px 0;
+  height: 100%;
+  min-height: 49px;
+  overflow: hidden;
+}
+.ce-workspace .ce-inspector:has(> details[open]) {
+  grid-template-rows: 48px minmax(0, 1fr);
+}
+.ce-design .ce-workspace .ce-inspector-panel {
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ce-preview-set {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+}
+.ce-preview-view {
+  display: none;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+.ce-preview-view[data-preview-viewport="desktop"] {
+  min-width: 720px;
+}
+.ce-preview-view[data-preview-viewport="mobile"] {
+  min-width: min-content;
+}
+.ce-design:has(.ce-viewport-select option[value="mobile"]:checked)
+  [data-preview-viewport="mobile"],
+.ce-design:has(.ce-viewport-select option[value="desktop"]:checked)
+  [data-preview-viewport="desktop"],
+.ce-design:has(.ce-viewport-select option[value="both"]:checked)
+  .ce-preview-view {
+  display: block;
+}
+.ce-preview-view .ce-canvas--mobile {
+  margin-inline: auto;
+}
+.ce-preview-view > .mbk-frame-mobile {
+  margin-inline: auto;
+}
+.ce-preview-view .mbk-frame-desktop {
+  max-width: none;
+  min-width: 0;
+}

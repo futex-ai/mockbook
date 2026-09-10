@@ -70,8 +70,10 @@ Ignored-only edits, source moves, and dependency/shared-impact evidence alone
 do not add entries. Retain that evidence in comparisons, and do not derive the
 navigation filter by counting materially changed comparison screens.
 
-Keep `ReviewResult.schemaVersion` at 2, all existing states, shared/dependency
-impact, ignored regions, both viewports, and all effective color schemes.
+Use Review schema v3 when either manifest is v4; otherwise retain schema v2.
+Both formats retain all existing states, shared/dependency impact, ignored
+regions, both viewports, and all effective color schemes. See the
+[supported format matrix](./README.md#supported-formats).
 Removed screens remain reachable and current ids win when reused. A route absent
 from a side's manifest follows the existing added/removed rules. A declared but
 missing baseline document, invalid manifest, or unavailable resource fails;
@@ -247,3 +249,12 @@ with no access to repository scripts. Browser tests serve only the completed
 artifact through a basic static file server with no Mokabook routes, rewrite
 rules, Git, or source tree, and verify all static delivery behavior. Retain
 Cloudflare preview regression coverage and the existing build/check/serve gate.
+
+## Registered Components
+
+Component catalogues retain manifest-v4 saved variants and comparison-schema-v3
+evidence, including removed variants and actual affected consumers. The same
+inspector renders in served and exported shells. Export supplies no local render
+capability or token; controls are read-only and make no render requests. The
+existing resource validation, deployment identity, route aliases, reservations,
+transaction, and immutable snapshot rules apply to component pages as well.

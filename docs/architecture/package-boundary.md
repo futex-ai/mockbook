@@ -24,7 +24,8 @@ React Native, React Native Web, `@firna/ui`, Accounting, Juno, or a consumer's
 workspace layout. At build time, React imports are resolved from the consumer's
 config file and every React-bearing source is bundled in one graph.
 
-The renderer is synchronous and returns a complete HTML document. This is the
+The renderer is synchronous and returns a complete HTML document, either as a
+string or as `RenderResult` with optional validated style/resource ownership. This is the
 only place an app should install theme providers, collect React Native Web's
 `AppRegistry` styles, inject product fonts, or establish other render context.
 Those actions depend on app-owned packages and policy, so moving them into the
@@ -34,6 +35,18 @@ Module-resolution configuration is likewise consumer-owned: aliases,
 conditions, package fields, extensions, loaders, and package roots describe the
 consumer component tree. Mokabook validates and applies them without supplying
 React Native Web, Accounting, or Juno defaults.
+
+## Registered Components
+
+Consumers declare component props, saved variants, slots, controls and owned
+resources through the public registration API. Mokabook records actual render
+invocations in the same React graph; import lists do not imply usage. The package
+owns validation, attribution, variant pages and inspection. During local Serve,
+a bounded worker reevaluates the retained successful consumer bundle and renders
+controlled edits through its renderer. Preview documents/resources stay immutable
+and in memory; controls do not change source, committed fragments or Changes.
+Static export carries saved variants and inspection without the local capability.
+See the [component contract](../protocol/mokabook-components.md).
 
 ## Legacy Boundary
 

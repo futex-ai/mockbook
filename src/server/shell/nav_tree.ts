@@ -11,7 +11,7 @@ import type {
 /** A leaf navigation row linking to one viewable route. */
 export interface NavLeafNode {
   entryId?: string;
-  entryKind: "screen" | "use-case" | "page";
+  entryKind: "component" | "screen" | "use-case" | "page";
   key: string;
   kind: "leaf";
   label: string;

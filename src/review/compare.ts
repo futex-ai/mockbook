@@ -9,7 +9,7 @@ import { toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import { dependencyContainsChangedPath } from "../registry/dependency_paths.js";
-import type { ManifestScreen, ManifestV3 } from "../registry/types.js";
+import type { ManifestScreen, Manifest } from "../registry/types.js";
 import { VIEWPORTS } from "../registry/views.js";
 import {
   copySnapshotDependencies,
@@ -17,6 +17,7 @@ import {
   GitReviewAssetReader,
   type ReviewAssetReader,
 } from "./assets.js";
+import { compareComponentCatalogue } from "./component_compare.js";
 import { readBaseManifest } from "./base_manifest.js";
 import { reviewChangedPaths } from "./changed_paths.js";
 import type { GitClient } from "./git.js";
@@ -24,6 +25,7 @@ import { normalizeReviewPair, normalizeSingleDocument } from "./ignore.js";
 import { addArtifactFile, snapshotPath } from "./paths.js";
 import {
   aggregateIgnored,
+  aggregateState,
   fragmentForView,
   fragmentRoutes,
   unionColorSchemes,
@@ -32,7 +34,6 @@ import type {
   ReviewArtifact,
   ReviewArtifactContent,
   ReviewResult,
-  ReviewState,
   ScreenReview,
   ViewReview,
 } from "./types.js";
@@ -65,6 +66,20 @@ export async function compareReview(
     baseCommit,
     mockupsPrefix,
   );
+  if (
+    baseManifest.schemaVersion === 4 ||
+    compilation.manifest.schemaVersion === 4
+  )
+    return compareComponentCatalogue(
+      compilation,
+      baseManifest,
+      config,
+      baseAssetReader,
+      assetReader,
+      changedPaths,
+      baseCommit,
+      baseRef,
+    );
   const files = new Map<string, ReviewArtifactContent>();
   const baseSeeds = new Set<string>();
   const headSeeds = new Set<string>();
@@ -260,25 +275,12 @@ function compareView(
   };
 }
 
-function screenMap(manifest: ManifestV3): Map<string, ManifestScreen> {
+function screenMap(manifest: Manifest): Map<string, ManifestScreen> {
   return new Map(
     manifest.entries
       .filter((entry): entry is ManifestScreen => entry.kind === "screen")
       .map((entry) => [entry.route, entry]),
   );
-}
-
-function aggregateState(states: readonly ReviewState[]): ReviewState {
-  for (const state of [
-    "changed",
-    "added",
-    "removed",
-    "ignored-only",
-    "unchanged",
-  ] as const) {
-    if (states.includes(state)) return state;
-  }
-  return "unchanged";
 }
 
 function digest(content: string): string {

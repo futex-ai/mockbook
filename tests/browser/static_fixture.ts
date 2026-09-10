@@ -14,7 +14,10 @@ import { serveStaticFiles } from "../helpers/static_server.js";
 export async function startStaticFixture(comparisons = false) {
   const source = (changed: boolean) =>
     comparisons
-      ? comparisonEntrySource(changed)
+      ? comparisonEntrySource(changed).replaceAll(
+          "<main>Details</main>",
+          `<main>${changed ? "Current" : "Previous"} details</main>`,
+        )
       : validEntrySource({
           body: `<h1>${changed ? "Current" : "Previous"} home</h1><a href="mock:details#details">Details</a><a href="mock:details#details" target="_blank">New tab</a><a href="mock:details#details" target="reference">Named tab</a>`,
         })

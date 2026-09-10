@@ -1,3 +1,4 @@
+import { receiveComponentRuntime } from "../server/controls/runtime_ipc.js";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -26,7 +27,10 @@ export async function run(
     process.stdout.write(`${packageVersion()}\n`);
     return 0;
   }
-  const config = await loadConfig(cwd, arguments_.config);
+  const runtime = arguments_.retainedRuntime
+    ? await receiveComponentRuntime()
+    : undefined;
+  const config = runtime?.config ?? (await loadConfig(cwd, arguments_.config));
   if (arguments_.command === "export") {
     const result = await runExport(config, {
       outDir: arguments_.out ?? "",
@@ -63,6 +67,7 @@ export async function run(
       base,
       arguments_.updateVersion ?? 1,
       arguments_.strictPort ?? false,
+      runtime,
     );
     return 0;
   }

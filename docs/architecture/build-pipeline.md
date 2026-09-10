@@ -24,7 +24,7 @@ adapt explicit child controls -> resolve mock:id links -> compatibility bridge
 validate markers/links/resources
         |
         v
-mobile/desktop light and optional dark HTML + schema-v3 manifest in memory
+mobile/desktop light and optional dark HTML + schema-v3/v4 manifest in memory
         |
         +---- check: compare with committed bytes, write nothing
         |
@@ -44,7 +44,14 @@ Structured `*.mockup.ts(x)` files, the configured renderer, optional legacy
 TypeScript sources, an optional legacy component adapter, and an optional
 temporary compatibility transformer are imported by a single virtual entry and
 bundled together. The internal bundle is CommonJS so Node-oriented consumer
-dependencies can retain dynamic built-in imports.
+dependencies can retain dynamic built-in imports. Esbuild returns this bundle
+in memory; evaluation creates no temporary module file. A private compilation
+association retains the exact bundle, configuration and accepted artifacts for
+local controls. Serve transfers that runtime over private IPC after successful
+watched builds; failed candidates preserve the last-good graph. A supervised
+worker rerenders one edited view through the same validation pipeline, retaining
+its document and resources only in bounded memory. See the
+[local rendering service](../../src/server/controls/README.md).
 
 An esbuild resolver uses `createRequire(configPath)` for `react`, React
 subpaths, `react-dom`, and React DOM subpaths. Imports of `mokabook` resolve to
@@ -71,17 +78,25 @@ its neutral default. The renderer receives:
 
 ```ts
 interface RenderInput {
-  entry: ScreenDefinition;
+  entry: ScreenDefinition | ComponentDefinition;
+  variantId?: string;
   node: ReactNode;
   stylesheets: readonly string[];
   viewport: "mobile" | "desktop";
   colorScheme: "light" | "dark";
 }
 
-type Renderer = (input: RenderInput) => string;
+type Renderer = (input: RenderInput) => string | RenderResult;
 ```
 
-The returned string must be a complete HTML document. Mokabook
+The returned string, or `RenderResult.html`, must be a complete HTML document.
+The optional structured result supplies exact component style/resource ownership;
+see the [component manifest](../protocol/mokabook-component-manifest.md).
+Registered entries render each saved variant in every configured context through
+the same consumer graph. Wrappers record actual invocations, data, caller-owned
+slots, and layout-neutral ranges. The root saved variant is not its own instance.
+Catalogues containing registered components emit manifest v4; other catalogues
+retain byte-identical v3 output. Mokabook
 converts `ReviewIgnore` templates into inert comments, consumes the paired
 `MockLink asChild` templates to adapt marked controls into native links, and resolves every
 complete value of the form `mock:<id>[#fragment]` found in `href` or
@@ -181,3 +196,13 @@ roots, or by the reserved manifest name. It installs staged files by rename and
 restores backups on error. It refuses to overwrite an unknown or foreign HTML
 file, rejects lexical or symlink-resolved targets beneath authored roots, and
 never recursively replaces the consumer's mixed source/asset root.
+
+## Package Browser Assets
+
+The package build bundles pure schema/codec and comparison validation code into
+browser modules while retaining shared shell and navigation module imports.
+Served and published catalogues load the same allowlisted files from
+`dist/browser`; no consumer runtime is bundled into preview frames. Browser
+packaging fails if a client imports Node-only code. Comparison JSON is decoded
+with the same new-record validator used by its producer; v2 artifacts remain
+supported without adding component suppression.

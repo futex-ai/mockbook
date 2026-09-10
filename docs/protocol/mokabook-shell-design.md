@@ -18,15 +18,17 @@ ancestor disclosure, conditional filter clearing, nearest-row scrolling, the
 `tag:` search term, the details inspector's tag chips, the search field's tag
 control with its picker panel, the mark-only narrow brand, and the top bar's
 stacking above the navigation drawer scrim. Every state recorded here is
-implemented.
+implemented. The separate [component explorer designs](./mokabook-component-design.md)
+are target mockups delivered before their runtime implementation.
 
 ## Design Mockups
 
 The approved screens are authored in `examples/basic/entries/design/` and
-generated under `examples/basic/generated/design/`. This is the canonical
-inventory of existing design-screen ids and logical routes, matching the
+generated under `examples/basic/generated/design/`. This Browse/Changes table
+and the [component design inventory](./mokabook-component-design.md#owning-catalogue)
+together define the complete set of design-screen ids and routes, matching the
 [committed manifest](../../examples/basic/generated/mokabook-manifest.json).
-Update this inventory when design entries change and verify exact id/route
+Update the owning inventory when design entries change and verify exact id/route
 agreement with the manifest. Planned destinations stay in their feature
 contract until their standalone screens are implemented.
 
@@ -54,12 +56,17 @@ contract until their standalone screens are implemented.
 | `design-review-difference`            | `design/review/outcomes/difference.html`           | Blend-mode difference comparison        |
 | `design-review-dark-scheme`           | `design/review/outcomes/dark-scheme.html`          | Dark view compared side by side         |
 | `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Unchanged screen from All with evidence |
-| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only comparison opened from All |
+| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only Current view with evidence |
 | `design-review-empty`                 | `design/review/impact/empty.html`                  | Empty Changes filter retaining Current  |
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
 the rendered screen area.
+
+The component explorer extends this catalogue under `design/components/` with
+component pages, comparisons, affected screens, inspection, controls, and edge
+states. The manifest-backed browser inventory covers every owning screen. Its route index and target visual rules live in
+the [component design contract](./mokabook-component-design.md).
 
 Navigation inside these design artboards uses native `MockLink` anchors. The
 [design mockup links contract](./mokabook-design-links.md) defines canonical
@@ -119,8 +126,7 @@ scrollable region scrolls internally:
   of overlapping mobile and desktop screen outlines), the product name in
   its own `mbk-name` span, a centred search field (max-width 440px, led by a
   15px stroked magnifier icon that holds its size while the field flexes)
-  that flexes down to whatever room the bar leaves it, the color-scheme control
-  when the catalogue has one. Below the breakpoint a menu button opens the
+  that flexes down to whatever room the bar leaves it. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
   retains space; the brand link keeps its accessible name. The decorative mark
   inherits the accent-contrast color and uses two-unit strokes on a 24-unit
@@ -185,15 +191,17 @@ scrollable region scrolls internally:
   a title row: 19px heading plus a monospace ID button labelled `#<id>`. The
   button uses the standard pointer cursor, moves down 1px with an inset shadow
   while pressed, and copies the unprefixed ID without navigating.
-  Screen routes place the right-aligned Mobile/Desktop/Both segmented viewport
-  control in this band.
+  Selected screen routes place one right-aligned group of icon controls here:
+  Mobile/Desktop/Both dropdown, theme toggle, and component highlighting when
+  applicable. Tooltips name each action; the top bar has no theme selector.
 - **Stage** — dotted-grid background (22px radial dots), centred frames with
   40px gap, internal `overflow: auto`, `MOBILE` / `DESKTOP` uppercase frame
   labels, and no separate toolbar above the grid.
-- **Details inspector** — collapsible `<details>` bottom panel, collapsed by
-  default until the user changes it, after which Browse retains that disclosure
-  across routes and reloads: a bar with a rotating chevron, `Details`, and a
-  muted hint; a two-column body (`1.35fr / 1fr`) with description and
+- **Details inspector** — the shared icon footer opens the chosen tab in place;
+  closing it leaves no icon selected. Desktop uses a centered grip on the divider
+  and mobile uses a rounded bottom sheet with an iOS-style grabber. Only panel
+  content scrolls within the bounded workspace. Details contains a two-column
+  body (`1.35fr / 1fr`) with description and
   `Why this screen —` rationale on the left and uppercase-labelled metadata
   rows (Source, Generated, Schemes, Tags, Related docs, Dependencies, Used by)
   on the right. Paths render as monospace chips; use cases render as pill chips
@@ -264,10 +272,10 @@ of those two.
   embedded document cannot occlude it:
   `color-mix(in srgb, var(--mbk-dark-screen-ink) 12%, var(--mbk-dark-screen-bg))`.
   The browser viewport needs none; its light bar already draws that edge.
-- **Control** — a `Light | Dark` `mbk-seg`, shown only when the catalogue has
-  dark fragments. At or above the breakpoint it sits in the top bar between the
-  search field and the end of the bar; below it the top bar has no room, so it
-  renders in the screen head band under the viewport control at full width.
+- **Control** — a theme icon beside the viewport dropdown in the screen header
+  at every width. Authored design pairs navigate through their canonical scheme
+  links. Component designs toggle their local preview; unavailable choices are
+  disabled with an explanation.
 - **Light-only screens** — a screen with no dark render keeps its light frames
   under a dark selection and states the fallback in its frame label, which
   gains an `mbk-frame-scheme-note` span so the caption reads
@@ -276,7 +284,7 @@ of those two.
   A use-case step frame carries the same fallback state but has no label, so it
   shows no scheme caption.
 - **Diff views** — keep the normal viewport and color-scheme controls in the
-  screen heading and top bar. The compact diff band changes only how the
+  screen heading. The compact diff band changes only how the
   selected screen is displayed. Light-only comparisons name their fallback;
   dark styling remains contained within device screens.
 
@@ -295,10 +303,8 @@ The shell has one breakpoint at **56.25rem (900px)**:
   flush under the bar's bottom border with only its lower corners rounded. The
   phone frame scales via `aspect-ratio: 390 / 844` within available width, the
   browser frame drops to 560px height, flow connector lines hide, the details
-  body stacks to one column, and the color-scheme control moves from the top
-  bar into the screen head band. When a screen head cannot fit its title and
-  the controls on one row, they wrap beneath the title and span the available
-  width, stacking the scheme control under the viewport control.
+  body stacks to one column inside its bottom sheet. The grouped view controls
+  stay together in the screen head band and wrap beneath the title when needed.
 
 `prefers-reduced-motion: reduce` disables shell transitions.
 
@@ -308,8 +314,11 @@ The catalogue remains the only shell. A screen has a compact Current / Side by
 side / Overlay / Difference band below its heading. Current is the initial
 state in both All and Changes. Diff selections load snapshots on demand in the
 same main region; controls, navigation, and details stay in place. Refresh and
-retry controls are available after an explicit comparison request. Static
-catalogues without a comparison server omit the band.
+retry controls are available after an explicit comparison request. The target component shell makes the band conditional on actual changes or
+verified affected-consumer evidence. The updated mockups omit it on every Browse,
+shared-impact-only, ignored-only, and empty state. Comparison bands always retain
+an opaque surface and their border. Static catalogues without comparison data
+omit the band.
 
 Both viewports reuse the existing device-frame components. Before and current
 snapshots remain in script-disabled iframes. Overlay composites the current

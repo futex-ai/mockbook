@@ -1,19 +1,13 @@
 import type { ReactNode } from "react";
+import { MockLink } from "mokabook";
+import { inspector } from "../library/inspector/inspector.js";
+import { useDesignInstance } from "../library/composition.js";
+import { MetaRow } from "./metadata_row.js";
 
-import { DesignLink, useDesignNavigation } from "./design_navigation.js";
 import { DESTINATIONS } from "./destinations.js";
-import { ChevronIcon, FlowIcon } from "./icons.js";
+import { FlowIcon } from "./icons.js";
 import { SUBJECTS, type ScreenSubject } from "./subjects.js";
 import { TagChips } from "./tag_filter.js";
-
-function MetaRow({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <div className="mbk-meta-row">
-      <span className="mbk-meta-k">{label}</span>
-      <span className="mbk-meta-v">{children}</span>
-    </div>
-  );
-}
 
 function DetailsBody({
   activeTag,
@@ -33,30 +27,30 @@ function DetailsBody({
         </p>
       </div>
       <div className="mbk-meta">
-        <MetaRow label="Source">
+        <MetaRow name="source" label="Source">
           <code className="mbk-code">{metadata.source}</code>
         </MetaRow>
-        <MetaRow label="Generated">
+        <MetaRow name="generated" label="Generated">
           <code className="mbk-code">{metadata.generated}</code>
         </MetaRow>
-        <MetaRow label="Schemes">{metadata.schemes}</MetaRow>
-        <MetaRow label="Tags">
+        <MetaRow name="schemes" label="Schemes">
+          {metadata.schemes}
+        </MetaRow>
+        <MetaRow name="tags" label="Tags">
           <TagChips activeTag={activeTag} tags={metadata.tags} />
         </MetaRow>
         {subject !== "farewell" ? (
-          <MetaRow label="Related docs">
+          <MetaRow name="related-docs" label="Related docs">
             <span className="mbk-meta-link">Example notes</span>
           </MetaRow>
         ) : null}
         {metadata.tour ? (
-          <MetaRow label="Used by">
+          <MetaRow name="used-by" label="Used by">
             <span className="mbk-chips">
-              <DesignLink to={DESTINATIONS.tour}>
-                <span className="mbk-chip flow">
-                  <FlowIcon size={11} />
-                  Example tour
-                </span>
-              </DesignLink>
+              <MockLink to={DESTINATIONS.tour} className="mbk-chip flow">
+                <FlowIcon size={11} />
+                Example tour
+              </MockLink>
             </span>
           </MetaRow>
         ) : null}
@@ -65,32 +59,50 @@ function DetailsBody({
   );
 }
 
-interface DetailsPanelProps {
-  subject: ScreenSubject;
+type DetailsPanelProps = {
   /** Tag drawn as the selected chip because it is the current search term. */
   activeTag?: string | undefined;
   open?: boolean;
-}
+  comparisonEvidence?: ReactNode;
+} & (
+  | { subject: ScreenSubject; children?: never }
+  | { subject?: never; children: ReactNode }
+);
 
-/** The collapsible details inspector at the foot of the stage. */
-export function DetailsPanel({ activeTag, open, subject }: DetailsPanelProps) {
-  const navigation = useDesignNavigation();
+/** Existing screen metadata in the shared icon inspector. */
+export function DetailsPanel({
+  activeTag,
+  children,
+  comparisonEvidence,
+  open,
+  subject,
+}: DetailsPanelProps) {
+  const evidence = comparisonEvidence !== undefined;
+  const info =
+    subject === undefined ? (
+      children
+    ) : (
+      <>
+        <DetailsBody activeTag={activeTag} subject={subject} />
+        {evidence ? (
+          <section
+            className="mbk-comparison-details"
+            aria-label="Comparison details"
+          >
+            <h3>Comparison details</h3>
+            <p>Compared with the branch point on origin/main.</p>
+            {comparisonEvidence}
+          </section>
+        ) : null}
+      </>
+    );
   return (
-    <section className="mbk-details">
-      <DesignLink to={navigation.inspector}>
-        <div className="mbk-details-bar">
-          <span className={open ? "chev open" : "chev"} aria-hidden="true">
-            <ChevronIcon size={12} />
-          </span>
-          Details
-          <span className="mbk-details-hint">
-            {open
-              ? "Description, rationale, source, related docs, and use cases"
-              : "Show context for this screen"}
-          </span>
-        </div>
-      </DesignLink>
-      {open ? <DetailsBody activeTag={activeTag} subject={subject} /> : null}
-    </section>
+    <inspector.Component
+      mokabookInstance={useDesignInstance("inspector")}
+      tabs={[{ id: "info", label: "Details" }]}
+      initial={open || evidence ? "info" : "closed"}
+      sheetSize="compact"
+      info={info}
+    />
   );
 }

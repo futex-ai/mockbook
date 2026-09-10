@@ -5,9 +5,11 @@ import {
   parseStaticDelivery,
   type StaticDelivery,
 } from "../navigation/delivery.js";
-import type { ManifestScreen, ManifestV3 } from "../registry/types.js";
+import type { Manifest } from "../registry/types.js";
 import type { ReviewArtifact } from "../review/types.js";
-import { createCatalogue } from "../server/catalogue.js";
+import { createCatalogue, catalogueAtBaseline } from "../server/catalogue.js";
+import { parseReviewResult } from "../review/result_validation.js";
+import { canonicalJson } from "../components/data.js";
 import {
   loadBrowserClientModules,
   loadBrowserNavigationModules,
@@ -28,7 +30,7 @@ import { STAGED_DEPLOYMENT_ID } from "./shell_metadata.js";
 export function assembleExport(
   config: ResolvedConfig,
   compilation: Compilation,
-  baseline: ManifestV3,
+  baseline: Manifest,
   comparison: ReviewArtifact,
   publicFiles: ReadonlyMap<string, Buffer>,
   contentChanges: readonly string[],
@@ -38,11 +40,8 @@ export function assembleExport(
   shells: ReadonlyMap<string, StaticDelivery>;
 } {
   const current = createCatalogue(compilation.manifest);
-  const removed = baseline.entries.filter(
-    (entry): entry is ManifestScreen =>
-      entry.kind === "screen" && !current.byRoute.has(entry.route),
-  );
-  const catalogue = createCatalogue(compilation.manifest, removed);
+  const catalogue = catalogueAtBaseline(compilation.manifest, baseline);
+  const removed = [...catalogue.removedScreens, ...catalogue.removedComponents];
   const entries = [...current.byRoute.values(), ...removed];
   const idRoutes: Record<string, string> = Object.create(null) as Record<
     string,
@@ -51,17 +50,18 @@ export function assembleExport(
   for (const entry of [...compilation.manifest.entries, ...removed]) {
     if (entry.kind === "collection") continue;
     if (
-      entry.kind === "screen" &&
-      removed.includes(entry) &&
+      removed.some((candidate) => candidate === entry) &&
       current.byId.has(entry.id)
     )
       continue;
     idRoutes[entry.id] = catalogueViewHref(entry.route);
   }
   const comparisonFiles = new Map(comparison.files);
+  if (comparison.result.schemaVersion === 3)
+    parseReviewResult(comparison.result);
   comparisonFiles.set(
     "review.json",
-    `${JSON.stringify(comparison.result, null, 2)}\n`,
+    `${comparison.result.schemaVersion === 3 ? canonicalJson(comparison.result, 2) : JSON.stringify(comparison.result, null, 2)}\n`,
   );
   const generation = comparisonContentId(comparisonFiles);
   const prefix = `__mokabook/diffs/__generations/${generation}`;
@@ -91,18 +91,29 @@ export function assembleExport(
       );
     inventory.add(`${prefix}/${name}`, bytes);
   }
-  const changes = changedManifestRoutes(
-    compilation.manifest,
-    baseline,
-    config,
-    contentChanges,
-  );
+  const changes =
+    comparison.result.schemaVersion === 3
+      ? comparison.result.changes.map(
+          (item) => (item.after ?? item.before)!.route,
+        )
+      : changedManifestRoutes(
+          compilation.manifest,
+          baseline,
+          config,
+          contentChanges,
+        );
   const context: ShellContext = {
     base: comparison.result.baseRef,
     changedRoutes: [
       ...new Set([...changes, ...removed.map((entry) => entry.route)]),
     ],
     comparisons: true,
+    componentChanges: {
+      baseline,
+      ...(comparison.result.schemaVersion === 3
+        ? { result: comparison.result }
+        : {}),
+    },
     updateVersion: 0,
     delivery,
   };

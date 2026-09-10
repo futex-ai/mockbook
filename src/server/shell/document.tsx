@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
 import { SchemeSwitch } from "./head.js";
-import { BrandIcon, SearchIcon } from "./icons.js";
+import { BrandIcon, IconSvg, SearchIcon } from "./icons.js";
 import { CatalogueNav } from "./nav.js";
 import { SearchTagPicker } from "./tags.js";
 import { ShellMain, viewTitle } from "./views.js";
@@ -26,7 +26,9 @@ function TopBar(props: { catalogue: Catalogue }) {
         data-mokabook-menu=""
         type="button"
       >
-        <span aria-hidden="true">☰</span>
+        <IconSvg size={16}>
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </IconSvg>
       </button>
       <a aria-label="Mokabook" className="mbk-brand" href="/">
         <span aria-hidden="true" className="mbk-mark">

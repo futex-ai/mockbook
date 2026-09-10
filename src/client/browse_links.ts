@@ -1,4 +1,4 @@
-import { isEligibleBrowseLink } from "./navigation.js";
+import { isEligibleBrowseLink, isSameBrowseDocument } from "./navigation.js";
 
 /** Keep native modified/external links outside progressive shell navigation. */
 export function browseLinkTarget(
@@ -19,7 +19,8 @@ export function browseLinkTarget(
       event.button !== 0,
     pathname: url.pathname,
     sameOrigin: url.origin === location.origin,
-    samePageHash: url.pathname === location.pathname && url.hash !== "",
+    samePageHash:
+      isSameBrowseDocument(new URL(location.href), url) && url.hash !== "",
     target: anchor.getAttribute("target") ?? "",
   })
     ? url.href

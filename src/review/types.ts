@@ -1,3 +1,4 @@
+import type { ReviewResultV3 } from "./component_types.js";
 import type { ColorScheme, Viewport } from "../authoring/types.js";
 
 /** Text or binary bytes retained in one static Review artifact. */
@@ -29,7 +30,7 @@ export interface ScreenReview {
 }
 
 /** Deterministic machine-readable Review result. */
-export interface ReviewResult {
+export interface ReviewResultV2 {
   /** Common ancestor shared by HEAD and the configured base ref. */
   baseCommit: string;
   /** Configured ref used to resolve the comparison branch point. */
@@ -51,3 +52,6 @@ export interface ReviewArtifact {
   files: ReadonlyMap<string, ReviewArtifactContent>;
   result: ReviewResult;
 }
+
+/** Versioned comparison payload; legacy consumers retain schema v2. */
+export type ReviewResult = ReviewResultV2 | ReviewResultV3;

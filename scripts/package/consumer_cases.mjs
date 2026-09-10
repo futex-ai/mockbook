@@ -1,3 +1,4 @@
+import { smokeRegisteredComponents } from "./components.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -84,6 +85,7 @@ export async function smokeEsmConsumer(context) {
     exported.screens.find((screen) => screen.id === "packed-home")?.state,
     "changed",
   );
+  await smokeRegisteredComponents(context, root);
 }
 
 export async function smokeNodeNextConsumer(context) {
@@ -227,6 +229,7 @@ export async function smokeAccountingFixture(context) {
     "view/archive/legacy-notice.html",
     "static/app/dashboard.desktop.html",
   ]);
+  await smokeRegisteredComponents(context, root, true);
 }
 
 export async function smokeJunoFixture(context) {

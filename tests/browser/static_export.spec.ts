@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { startStaticFixture } from "./static_fixture.js";
+import { chooseScheme, expectFrameSource } from "./workspace_actions.js";
 
 let site: Awaited<ReturnType<typeof startStaticFixture>>;
 test.beforeAll(async () => {
@@ -88,17 +89,16 @@ test("static search, tags, Changes, details, and flows retain the existing shell
   await page.locator('[data-filter="changed"]').click();
   await expect(page.locator('[data-route="screens/home.html"]')).toBeVisible();
   await page.locator('[data-filter="all"]').click();
-  await page.locator("[data-mokabook-details] summary").click();
-  await expect(page.locator("[data-mokabook-details]")).toHaveAttribute(
-    "open",
-    "",
-  );
-  await page.locator("[data-mokabook-details] summary").click();
+  await page.getByRole("tab", { name: "Details", exact: true }).click();
+  await expect(
+    page.getByRole("tabpanel", { name: "Details", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Details", exact: true }).click();
   await page.locator('[data-route="user-flows/tour.html"]').click();
   await expect(page.locator(".mbk-flow-screen iframe")).toHaveCount(2);
-  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await chooseScheme(page, "dark");
   for (const frame of await page.locator(".mbk-flow-screen iframe").all())
-    await expect(frame).toHaveAttribute("src", /\.dark\.html$/);
+    await expectFrameSource(frame, /\.dark\.html$/);
 });
 
 test("static aliases contain a real screen with JavaScript disabled", async ({

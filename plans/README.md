@@ -7,6 +7,10 @@
 
 ## Completed
 
+- [Reuse Registered Components In Mokabook's Design Catalogue](./mokabook-design-components.md)
+  — delivered and verified; review follow-ups are recorded for the user's decision.
+- [Component Explorer](./component-explorer.md) — delivered and verified;
+  review follow-ups are recorded for the user's decision.
 - [Consumer Static Export](./consumer-static-export.md)
 - [Mokabook Design MockLinks](./mokabook-design-mocklinks.md)
 - [MockLink Child Controls](./mocklink-child-controls.md)

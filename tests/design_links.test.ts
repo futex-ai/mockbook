@@ -44,8 +44,6 @@ for (const viewport of ["mobile", "desktop"] as const) {
         "flow-step-link",
         ["design-browse-screen", "design-browse-details-screen"],
       ],
-      ["design-browse-screen", "mbk-details-bar", ["design-browse-details"]],
-      ["design-browse-details", "mbk-details-bar", ["design-browse-screen"]],
       ["design-browse-details", "flow", ["design-browse-use-case"]],
     ] as const) {
       const { document } = await designDocument(source, viewport);
@@ -123,7 +121,11 @@ test("every design link resolves to a real same-viewport design artifact without
   const designs = manifest.entries.filter(
     (entry) => entry.kind === "screen" && entry.id.startsWith("design-"),
   );
-  assert.equal(designs.length, 24);
+  const componentDesigns = designs.filter((entry) =>
+    entry.id.startsWith("design-component-"),
+  );
+  assert.equal(componentDesigns.length, 32);
+  assert.equal(designs.length - componentDesigns.length, 24);
   for (const entry of designs) {
     for (const viewport of ["mobile", "desktop"] as const) {
       const { document, route } = await designDocument(entry.id, viewport);
@@ -162,26 +164,34 @@ test("every design link resolves to a real same-viewport design artifact without
           );
         }
       }
-      assert.equal(
-        elements(
-          document,
-          (node) =>
-            node.tagName === "button" ||
-            (node.tagName !== "a" && attribute(node, "tabindex") !== undefined),
-        ).length,
-        0,
-        `${entry.id}: misleading keyboard control`,
-      );
+      if (!entry.id.startsWith("design-component-"))
+        assert.equal(
+          elements(
+            document,
+            (node) =>
+              node.tagName === "button" ||
+              (node.tagName !== "a" &&
+                attribute(node, "tabindex") !== undefined),
+          ).length,
+          0,
+          `${entry.id}: misleading keyboard control`,
+        );
     }
   }
 });
 
 test("the canonical documented inventory exactly matches the complete design registry", async () => {
   const { manifest } = await designCatalogue;
-  const spec = await fs.readFile(
-    path.join(repositoryRoot, "docs/protocol/mokabook-shell-design.md"),
-    "utf8",
-  );
+  const spec = (
+    await Promise.all(
+      [
+        "docs/protocol/mokabook-shell-design.md",
+        "docs/protocol/mokabook-component-design.md",
+        "docs/protocol/mokabook-component-inspector-design.md",
+        "docs/protocol/mokabook-component-controls-design.md",
+      ].map((file) => fs.readFile(path.join(repositoryRoot, file), "utf8")),
+    )
+  ).join("\n");
   const documented = [
     ...spec.matchAll(/\|\s*`(design-[^`]+)`\s*\|\s*`([^`]+)`/g),
   ]

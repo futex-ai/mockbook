@@ -3,12 +3,10 @@ import { screen } from "mokabook";
 import { useCaseScreen } from "./browse/views/use-case.js";
 import { DesignNavigation } from "./parts/design_navigation.js";
 import { DESTINATIONS } from "./parts/destinations.js";
-import { DetailsPanel } from "./parts/details.js";
-import { MiniWelcome } from "./parts/mini_screens.js";
+import { ExampleWorkspace } from "./parts/example_workspace.js";
 import { NavDrawer, NavTree } from "./parts/nav.js";
 import { WelcomeHead } from "./parts/screen_heads.js";
 import { Shell } from "./parts/shell.js";
-import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
 import { EmptyState } from "./parts/stage_content.js";
 import { TopBar } from "./parts/top_bar.js";
 
@@ -43,39 +41,20 @@ function SelectedScreenDesktop() {
   return (
     <Shell
       design={DESTINATIONS.welcome}
-      colorScheme="light"
       viewport="desktop"
       nav={<NavTree activeLabel="Welcome" />}
     >
       <WelcomeHead active="both" />
-      <Stage>
-        <PhoneFrame label="Mobile">
-          <MiniWelcome compact />
-        </PhoneFrame>
-        <BrowserFrame address="example.test/welcome" label="Desktop">
-          <MiniWelcome />
-        </BrowserFrame>
-      </Stage>
-      <DetailsPanel subject="welcome" />
+      <ExampleWorkspace subject="welcome" viewport="desktop" />
     </Shell>
   );
 }
 
 function SelectedScreenMobile() {
   return (
-    <Shell
-      design={DESTINATIONS.welcome}
-      colorScheme="light"
-      viewport="mobile"
-      nav={null}
-    >
-      <WelcomeHead active="mobile" scheme="light" />
-      <Stage>
-        <PhoneFrame label="Mobile" small>
-          <MiniWelcome compact />
-        </PhoneFrame>
-      </Stage>
-      <DetailsPanel subject="welcome" />
+    <Shell design={DESTINATIONS.welcome} viewport="mobile" nav={null}>
+      <WelcomeHead active="mobile" />
+      <ExampleWorkspace subject="welcome" viewport="mobile" />
     </Shell>
   );
 }
@@ -88,12 +67,7 @@ function DetailsOpenDesktop() {
       nav={<NavTree activeLabel="Welcome" />}
     >
       <WelcomeHead active="desktop" />
-      <Stage>
-        <BrowserFrame address="example.test/welcome" label="Desktop">
-          <MiniWelcome />
-        </BrowserFrame>
-      </Stage>
-      <DetailsPanel subject="welcome" open />
+      <ExampleWorkspace subject="welcome" viewport="desktop" open />
     </Shell>
   );
 }
@@ -102,7 +76,7 @@ function DetailsOpenMobile() {
   return (
     <Shell design={DESTINATIONS.inspector} viewport="mobile" nav={null}>
       <WelcomeHead active="mobile" />
-      <DetailsPanel subject="welcome" open />
+      <ExampleWorkspace subject="welcome" viewport="mobile" open />
     </Shell>
   );
 }

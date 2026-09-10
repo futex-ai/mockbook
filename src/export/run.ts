@@ -82,15 +82,18 @@ async function generateExport(
       assetReader,
       exclusions,
     );
-    const contentChanges = await changedContentPaths(
-      compilation.manifest,
-      baseline,
-      config,
-      git,
-      commit,
-      changed,
-      assetReader,
-    );
+    const contentChanges =
+      comparison.result.schemaVersion === 3
+        ? []
+        : await changedContentPaths(
+            compilation.manifest,
+            baseline,
+            config,
+            git,
+            commit,
+            changed,
+            assetReader,
+          );
     const site = assembleExport(
       config,
       compilation,

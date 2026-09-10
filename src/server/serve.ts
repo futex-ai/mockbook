@@ -1,3 +1,4 @@
+import { componentRuntime } from "../build/component_runtime.js";
 import { compileCatalogue } from "../build/compile.js";
 import {
   FileSystemGeneratedOutputStore,
@@ -60,14 +61,13 @@ export async function serve(
   dependencies: ServeDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<RunningServe> {
   if (!options.watch) {
-    await dependencies.outputStore.write(
-      await compileCatalogue(config),
-      config,
-    );
+    const compilation = await compileCatalogue(config);
+    await dependencies.outputStore.write(compilation, config);
     const base = options.base ?? config.review.base;
     const changedRoutes = await computeChangedRoutes(config, base);
     const server = await dependencies.serverFactory.start(config, {
       base,
+      componentRuntime: componentRuntime(compilation),
       ...(changedRoutes ? { changedRoutes } : {}),
       port: options.port,
       review: configuredServedReview(config, base),

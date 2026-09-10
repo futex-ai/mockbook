@@ -1,3 +1,5 @@
+import { chooseScheme, chooseViewport } from "./workspace_actions.js";
+import { expectFrameSource } from "./workspace_actions.js";
 import { expect, test, type Page } from "@playwright/test";
 
 const welcomeRow = 'a[data-nav-row][data-route="screens/welcome.html"]';
@@ -6,11 +8,12 @@ const designHomeRow =
   'a[data-nav-row][data-route="design/browse/views/home.html"]';
 const tourRow = 'a[data-nav-row][data-route="user-flows/example-tour.html"]';
 const topBarScheme = ".mbk-topbar [data-mokabook-schemeswitch]";
-const headScheme = ".mbk-screen-head [data-mokabook-schemeswitch]";
+const headScheme = ".mbk-screen-head [data-workspace-scheme]";
 const mobileFrame = ".mbk-frame-mobile iframe";
 const desktopFrame = ".mbk-frame-desktop iframe";
 const darkSurface = "rgb(18, 21, 20)";
-const formsChip = '[data-mokabook-details] [data-mokabook-tag="forms"]';
+const formsChip =
+  '[data-inspector-panel="details"] [data-mokabook-tag="forms"]';
 const accentFill = "rgb(79, 120, 100)";
 
 async function markPage(page: Page): Promise<void> {
@@ -40,29 +43,18 @@ async function openScreensGroup(page: Page): Promise<void> {
   await expect(page.locator(welcomeRow)).toBeVisible();
 }
 
-/** Choose a color scheme from whichever switch the current width reveals. */
-function chooseScheme(
-  page: Page,
-  placement: string,
-  value: "dark" | "light",
-): Promise<void> {
-  return page.click(`${placement} [data-color-scheme-option="${value}"]`);
-}
-
-/** Both switch instances agree on the selection, whichever one is on screen. */
+/** Visible workspace toggle and retained legacy state agree. */
 async function expectSchemeSelected(
   page: Page,
   value: "dark" | "light",
 ): Promise<void> {
-  const other = value === "dark" ? "light" : "dark";
-  for (const placement of [topBarScheme, headScheme]) {
-    await expect(
-      page.locator(`${placement} [data-color-scheme-option="${value}"]`),
-    ).toHaveAttribute("aria-pressed", "true");
-    await expect(
-      page.locator(`${placement} [data-color-scheme-option="${other}"]`),
-    ).toHaveAttribute("aria-pressed", "false");
-  }
+  await expect(page.locator(headScheme)).toHaveAttribute(
+    "aria-pressed",
+    String(value === "dark"),
+  );
+  await expect(
+    page.locator(`${topBarScheme} [data-color-scheme-option="${value}"]`),
+  ).toHaveAttribute("aria-pressed", "true");
 }
 
 function computedStyle(
@@ -220,26 +212,26 @@ test("search matches authored page ids", async ({ page }) => {
 });
 
 test("details starts collapsed and remembers disclosure", async ({ page }) => {
-  const details = page.locator("[data-mokabook-details]");
+  const details = page.locator("[data-workspace-inspector]");
   await page.goto("/view/screens/welcome.html");
-  await expect(details).not.toHaveAttribute("open", "");
-  await details.locator("summary").click();
-  await expect(details).toHaveAttribute("open", "");
+  await expect(details).not.toHaveAttribute("data-open", "true");
+  await page.getByRole("tab", { name: "Details", exact: true }).click();
+  await expect(details).toHaveAttribute("data-open", "true");
 
   await page.click(detailsRow);
   await expect(page.locator("#mb-main h2")).toHaveText("Details");
-  await expect(details).toHaveAttribute("open", "");
+  await expect(details).toHaveAttribute("data-open", "true");
 
   await page.reload();
-  await expect(details).toHaveAttribute("open", "");
+  await expect(details).toHaveAttribute("data-open", "true");
   await page.evaluate(() => {
     document
-      .querySelector<HTMLElement>("[data-mokabook-details] summary")
+      .querySelector<HTMLElement>('[data-inspector-tab="details"]')
       ?.click();
     window.location.assign("/view/screens/welcome.html");
   });
   await page.waitForURL(/\/view\/screens\/welcome\.html$/);
-  await expect(details).not.toHaveAttribute("open", "");
+  await expect(details).not.toHaveAttribute("data-open", "true");
 });
 
 test("searching opens groups and clearing restores their disclosure", async ({
@@ -278,7 +270,7 @@ test("details tag chips enter, keep, and clear their term", async ({
   await expect(page.locator(tourRow)).toBeVisible();
   await markPage(page);
 
-  await page.locator("[data-mokabook-details] summary").click();
+  await page.locator('[data-inspector-tab="details"]').click();
   await page.click(formsChip);
   await expect(page.locator("[data-mokabook-search]")).toHaveValue("tag:forms");
   await expect(page.locator(formsChip)).toHaveClass(/active/);
@@ -336,53 +328,53 @@ test("failed enhancement falls back to native navigation", async ({ page }) => {
 test("viewport controls switch device frames", async ({ page }) => {
   await page.goto("/view/screens/welcome.html");
   await expect(
-    page.locator(".mbk-screen-head [data-mokabook-viewswitch]"),
+    page.locator(".mbk-screen-head [data-workspace-viewport]"),
   ).toBeVisible();
   await expect(page.locator(".mbk-viewbar")).toHaveCount(0);
   await expect(page.locator(".mbk-frame-mobile")).toBeVisible();
   await expect(page.locator(".mbk-frame-desktop")).toBeVisible();
-  await page.click('[data-viewport-option="mobile"]');
+  await chooseViewport(page, "mobile");
   await expect(page.locator(".mbk-frame-mobile")).toBeVisible();
   await expect(page.locator(".mbk-frame-desktop")).toBeHidden();
-  await page.click('[data-viewport-option="desktop"]');
+  await chooseViewport(page, "desktop");
   await expect(page.locator(".mbk-frame-mobile")).toBeHidden();
   await expect(page.locator(".mbk-frame-desktop")).toBeVisible();
 });
 
 test("color scheme switch swaps device frames", async ({ page }) => {
   await page.goto("/view/screens/welcome.html");
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/welcome\.mobile\.html$/,
   );
   await expectSchemeSelected(page, "light");
 
-  await chooseScheme(page, topBarScheme, "dark");
+  await chooseScheme(page, "dark");
   await expect(page.locator("body")).toHaveAttribute(
     "data-mokabook-color-scheme",
     "dark",
   );
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/welcome\.mobile\.dark\.html$/,
   );
-  await expect(page.locator(desktopFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(desktopFrame),
     /screens\/welcome\.desktop\.dark\.html$/,
   );
   await expectSchemeSelected(page, "dark");
 
-  await chooseScheme(page, topBarScheme, "light");
+  await chooseScheme(page, "light");
   await expect(page.locator("body")).toHaveAttribute(
     "data-mokabook-color-scheme",
     "light",
   );
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/welcome\.mobile\.html$/,
   );
-  await expect(page.locator(desktopFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(desktopFrame),
     /screens\/welcome\.desktop\.html$/,
   );
   await expectSchemeSelected(page, "light");
@@ -394,7 +386,7 @@ test("dark device screens keep their surface and edge", async ({ page }) => {
   const phoneScreen = ".mbk-frame-mobile .phone-screen";
   expect(await overlayStyle(page, phoneScreen, "boxShadow")).toBe("none");
 
-  await chooseScheme(page, topBarScheme, "dark");
+  await chooseScheme(page, "dark");
   expect(await computedStyle(page, phoneScreen, "boxShadow")).toBe("none");
   expect(await overlayStyle(page, phoneScreen, "position")).toBe("absolute");
   expect(await overlayStyle(page, phoneScreen, "boxShadow")).toContain("inset");
@@ -411,17 +403,17 @@ test("dark device screens keep their surface and edge", async ({ page }) => {
 
 test("a light-only screen keeps light frames and says so", async ({ page }) => {
   await page.goto("/view/screens/welcome.html");
-  await chooseScheme(page, topBarScheme, "dark");
+  await chooseScheme(page, "dark");
   await page.fill("[data-mokabook-search]", "home");
   await page.click(designHomeRow);
   await expect(page.locator("#mb-main h2")).toHaveText("Home");
 
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /design\/browse\/views\/home\.mobile\.html$/,
   );
-  await expect(page.locator(desktopFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(desktopFrame),
     /design\/browse\/views\/home\.desktop\.html$/,
   );
   await expect(page.locator(".mbk-frame-mobile")).toHaveAttribute(
@@ -445,7 +437,7 @@ test("a light-only screen keeps light frames and says so", async ({ page }) => {
     await overlayStyle(page, ".mbk-frame-mobile .phone-screen", "boxShadow"),
   ).toBe("none");
 
-  await chooseScheme(page, topBarScheme, "light");
+  await chooseScheme(page, "light");
   await expect(note).toBeHidden();
 });
 
@@ -453,19 +445,19 @@ test("use-case steps follow the selected scheme without a caption", async ({
   page,
 }) => {
   await page.goto("/view/screens/welcome.html");
-  await chooseScheme(page, topBarScheme, "dark");
+  await chooseScheme(page, "dark");
   await page.fill("[data-mokabook-search]", "tour");
   await page.click(tourRow);
   await expect(page.locator("#mb-main h2")).toHaveText("Example tour");
 
   const steps = page.locator(".mbk-flow-screen iframe");
   await expect(steps).toHaveCount(2);
-  await expect(steps.nth(0)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    steps.nth(0),
     /screens\/welcome\.desktop\.dark\.html$/,
   );
-  await expect(steps.nth(1)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    steps.nth(1),
     /screens\/details\.desktop\.dark\.html$/,
   );
   await expect(page.locator(".mbk-flow-screen .mbk-frame-label")).toHaveCount(
@@ -475,52 +467,53 @@ test("use-case steps follow the selected scheme without a caption", async ({
 
 test("scheme selection survives progressive navigation", async ({ page }) => {
   await page.goto("/view/screens/welcome.html");
-  await chooseScheme(page, topBarScheme, "dark");
+  await chooseScheme(page, "dark");
   await page.click(detailsRow);
   await expect(page.locator("#mb-main h2")).toHaveText("Details");
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/details\.mobile\.dark\.html$/,
   );
-  await expect(page.locator(desktopFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(desktopFrame),
     /screens\/details\.desktop\.dark\.html$/,
   );
   await expectSchemeSelected(page, "dark");
 
   await page.goBack();
   await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/welcome\.mobile\.dark\.html$/,
   );
   await expectSchemeSelected(page, "dark");
 
   await page.goForward();
   await expect(page.locator("#mb-main h2")).toHaveText("Details");
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/details\.mobile\.dark\.html$/,
   );
 });
 
-test("the scheme control moves with the shell breakpoint", async ({ page }) => {
+test("grouped scheme controls stay beside the title at both widths", async ({
+  page,
+}) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await page.goto("/view/screens/welcome.html");
   await expect(page.locator(topBarScheme)).toBeHidden();
   expect(await computedStyle(page, topBarScheme, "display")).toBe("none");
   await expect(page.locator(headScheme)).toBeVisible();
 
-  await chooseScheme(page, headScheme, "dark");
-  await expect(page.locator(mobileFrame)).toHaveAttribute(
-    "src",
+  await chooseScheme(page, "dark");
+  await expectFrameSource(
+    page.locator(mobileFrame),
     /screens\/welcome\.mobile\.dark\.html$/,
   );
 
   await page.setViewportSize({ height: 800, width: 1_280 });
-  await expect(page.locator(topBarScheme)).toBeVisible();
-  await expect(page.locator(headScheme)).toBeHidden();
-  expect(await computedStyle(page, headScheme, "display")).toBe("none");
+  await expect(page.locator(topBarScheme)).toBeHidden();
+  await expect(page.locator(headScheme)).toBeVisible();
   await expectSchemeSelected(page, "dark");
 });
 

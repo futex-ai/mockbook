@@ -9,6 +9,12 @@ The public [npm package](https://www.npmjs.com/package/mokabook) and executable
 are both named `mokabook`. Releases remain pre-1.0 while the consumer contract
 settles.
 
+Shared components can have their own pages, saved variants and editable props in
+local Serve. Screens record their actual component usage for inspection and
+highlighting. Component implementation edits appear once in Changes; consumers
+are listed as affected, while changes to their supplied props remain screen
+changes. See the [component authoring guide](./src/components/README.md).
+
 ## Use Mokabook
 
 Install Mokabook and its React peers in the repository that owns the screens:
@@ -169,6 +175,10 @@ free. `--port 0` instead asks the operating system to choose a free port.
 Watched Serve keeps the first resolved port for later child restarts so its URL
 stays stable.
 
+Component comparisons batch saved baseline views when Serve starts and when
+Changes refreshes, so startup does not require a separate Git process for every
+screen, variant, viewport and color scheme.
+
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
 without writing and reports missing, stale, or orphan generated files. Browse
@@ -206,8 +216,10 @@ browser, so the Changes rows and count match the files that triggered each
 reload without restarting the server child.
 Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
-Every structured screen has a compact Current / Side by side / Overlay /
-Difference control. It is available from All and Changes, and starts in Current.
+Screens and saved component variants with actual comparison changes offer
+Current / Side by side / Overlay / Difference beneath the heading. The controls
+are available from All and Changes, and start in Current. Known unchanged views
+show Unmodified without a comparison band; unknown evidence has no status badge.
 During development, Mokabook generates comparison snapshots only after a diff
 option is selected; browsing, filtering, and watched reloads do not trigger
 generation. Published catalogues prepare snapshots during publishing, then load
@@ -215,9 +227,9 @@ and render them only after a diff option is selected. Comparisons
 stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
 catalogue available and offer a retry. Navigation and reload return to Current.
-Added and removed screens show explicit missing sides, and unchanged screens
-can still be compared from All. Shared-impact and declared-dependency evidence
-remains in comparison details, including for unchanged screens opened from All.
+Added and removed entries show explicit missing sides. Affected consumers can
+show their real before/after differences without entering Changes. Comparison,
+shared-impact, and declared-dependency evidence stays in the Details inspector.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
 rules, and isolated snapshot dependencies. Its private diagnostic summary counts
@@ -234,6 +246,8 @@ drain generation work before shutdown. The former Review tab, standalone report,
 Consumer documents run in sandboxed frames. Comparisons keep unmodified base/head
 documents in separate snapshot trees and copies their referenced local CSS,
 fonts, and images so comparison artifacts do not depend on the live workspace.
+Served comparison snapshots reject symbolic links at the file, ancestor-directory,
+and retained-root boundaries, and serve only regular files.
 Filesystem-backed Browse and comparison routes reject malformed encoding,
 traversal segments, absolute paths, and forward or backslash separators
 introduced by decoding one original URL segment before resolving a consumer
@@ -267,7 +281,9 @@ explicit diff selection regenerates it. A
 watched reload restores Browse search, filter, current and pre-filter collection
 disclosures, viewport, drawer, and scroll state once on the same durable URL.
 Browse also retains each history entry's latest document position for Back and
-Forward. While Changes filtering is active, route changes preserve collections
+Forward. Skip links and same-document fragment history preserve the current view
+and native focus without reloading it; route and saved-variant query changes
+still restore the matching page. While Changes filtering is active, route changes preserve collections
 the user collapsed and open only the destination's ancestor path. Editing the
 search or filter reveals its current matches. Clearing all filtering restores
 the earlier disclosures, except that a navigated destination's path stays open.
@@ -296,8 +312,9 @@ file and confined to `repoRoot`.
   unrelated authored static HTML under `mockupsDir`. `review` selects the Git
   base ref used to find the branch point,
   internal snapshot directory, and shared-impact globs.
-- `compatibility.readManifestV2` reads Accounting's old manifest only when v3
-  is absent. A temporary `compatibility.transformer` may deterministically
+- `compatibility.readManifestV2` reads the legacy Accounting-format manifest only
+  when `mokabook-manifest.json` is absent. The primary file supports v3 and v4;
+  an invalid primary manifest fails instead of falling back. A temporary `compatibility.transformer` may deterministically
   repair already-authored documents during a consumer cutover; final links,
   resources, and the comment-safe generated source proof are still validated.
 
@@ -387,9 +404,24 @@ inputs such as `examples/basic/theme.ts`; the CLI is rebuilt on every start.
 in Chromium via Playwright; it uses the installed Chrome channel by default and
 honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
-These tests build real Git comparisons and Pages previews. Await generation
-responses before asserting comparison UI, and set preview setup timeouts in
-the setup hook so build time is separate from browser assertions.
+After activating an in-frame design link, assert the outer catalogue URL before
+using the destination's controls. Frame-link enhancement updates the outer shell
+asynchronously; the click alone can return while the previous frame is visible.
+Tests using the real Git-backed comparison fixture await its final JSON response
+before applying UI assertion deadlines. Cold snapshot generation has a bounded
+30-second wait tied to the newly triggered request, refresh intent, and its
+redirect chain; stale/background responses cannot satisfy it. The existing UI
+assertions retain their default deadlines.
+Snapshot-link tests await the selected frame's load and native navigation events
+before checking destination content; a parsed link alone does not mean its
+resources have finished loading. CI uses the Playwright-installed Chromium, and
+retains browser traces and error context when verification fails.
+Pages preview setup timeouts belong in the setup hook, so build time is
+separate from browser assertions.
+Resource-watch tests that replace a file in multiple steps use
+`waitForChangedCount` to wait for the expected Changes count. A newer version
+alone may describe the temporary removal; the helper keeps a bounded wait for
+recovery and reports the last published state if it times out.
 
 `cargo xtask check` is the authoritative local gate. It starts with a live
 dependency audit (`npm run dependencies:check`), then includes formatting,
@@ -544,6 +576,20 @@ proves the consumer contract against a real cross-platform component stack.
 Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
+The [component design catalogue](./docs/protocol/mokabook-component-design.md)
+provides the canonical mobile and desktop inventory for component pages, screen
+inspection, a collapsible icon inspector, and the complete prop-controls states.
+The [controls designs](./docs/protocol/mokabook-component-controls-design.md) show
+saved variants and temporary edits, implemented by the local rendering service. The catalogue hierarchy reaches each design without
+adding navigation footers to the artboards. The [workspace designs](./docs/protocol/mokabook-component-workspace-design.md) add working viewport/theme/highlight controls, a fixed shell with a resizable inspector, entry change-status badges, and comparison evidence inside Details. Unmodified examples and ordinary Browse/tag-picker designs omit comparison tabs;
+eligible comparisons retain an opaque toolbar. The desktop grip sits on its
+divider line.
+
+All 56 design screens reuse the 15 registered components in
+**Design → Shared components**, including the footer tabs panel. The library
+provides 55 saved variants, local prop controls, real usage and component-owned
+change attribution. See the [shared design library guide](./examples/basic/entries/design/library/README.md).
+
 The design mockups use `MockLink` for supported navigation and state transitions;
 the two example buttons demonstrate `MockLink asChild`. See the
 [design mockup links contract](./docs/protocol/mokabook-design-links.md) for
@@ -563,10 +609,23 @@ canonical destinations and the controls that remain visual depictions.
   logical-target grammar and ownership-aware HTML adaptation.
 - [`src/review`](./src/review) — Git extraction, comparison, ignore normalization,
   and isolated comparison snapshots.
+- [`src/components`](./src/components) — public component definitions, schemas,
+  captured input ownership, and manifest-v4 validation.
+- [`examples/basic/entries/design/library`](./examples/basic/entries/design/library/README.md)
+  — shared components used by the design catalogue itself.
 - [`src/legacy`](./src/legacy) — opt-in migration sources and component expansion.
 - [`xtask`](./xtask/README.md) — full repository checks and post-push review.
 
 ### Related Docs
+
+The [registered components contract](./docs/protocol/mokabook-components.md)
+links to the [change attribution](./docs/protocol/mokabook-component-changes.md),
+[pages and inspection](./docs/protocol/mokabook-component-explorer.md), and
+[local prop controls](./docs/protocol/mokabook-component-controls.md) contracts.
+Registration, saved fragments, validated props, change attribution, inspector
+pages, and local editable controls are implemented. Static exports retain saved
+variants, comparisons and read-only inspection. Development plans are indexed
+in the [plans index](./plans/README.md).
 
 - [Protocol index](./docs/protocol/README.md)
 - [Package ownership boundary](./docs/architecture/package-boundary.md)

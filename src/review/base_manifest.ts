@@ -7,7 +7,7 @@ import {
   parseManifest,
   selectManifestInput,
 } from "../registry/manifest.js";
-import type { ManifestV3 } from "../registry/types.js";
+import type { Manifest } from "../registry/types.js";
 import type { GitClient } from "./git.js";
 
 /** Read the canonical base manifest, falling back only when it is absent. */
@@ -15,7 +15,7 @@ export async function readBaseManifest(
   git: GitClient,
   commit: string,
   config: ResolvedConfig,
-): Promise<ManifestV3> {
+): Promise<Manifest> {
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
   const canonicalPath = joinGit(prefix, MANIFEST_NAME);
   const selection = selectManifestInput(

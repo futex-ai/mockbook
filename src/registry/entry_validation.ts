@@ -67,7 +67,7 @@ export function validateEntry(
   } else {
     validateRoute(entry, violations);
   }
-  if (entry.kind === "screen") {
+  if (entry.kind === "screen" || entry.kind === "component") {
     if (entry.colorSchemes !== undefined) {
       const validSchemes = validColorSchemes(entry.colorSchemes);
       if (!validSchemes) {
@@ -91,6 +91,8 @@ export function validateEntry(
         );
       }
     }
+  }
+  if (entry.kind === "screen") {
     if (entry.mobile === null || entry.mobile === undefined) {
       violations.push(
         problem(entry, "missing-render", "mobile render is required"),

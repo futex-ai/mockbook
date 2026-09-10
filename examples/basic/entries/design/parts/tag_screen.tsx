@@ -1,22 +1,41 @@
 import type { DesignDestination } from "./destinations.js";
 import { DESTINATIONS } from "./destinations.js";
-import { DetailsPanel } from "./details.js";
-import { MiniWelcome } from "./mini_screens.js";
+import { ExampleWorkspace } from "./example_workspace.js";
 import { NavTree, type NavNode } from "./nav.js";
 import { WelcomeHead } from "./screen_heads.js";
 import { Shell, type ArtboardViewport } from "./shell.js";
-import { BrowserFrame, PhoneFrame, Stage } from "./stage.js";
 import type { CatalogueTag } from "./tags.js";
 
 function taggedTree(tag: CatalogueTag): readonly NavNode[] {
   const count = tag === "forms" ? 2 : 1;
   return [
-    { count, depth: 0, kind: "collection", label: "Example", open: true },
-    { count, depth: 1, kind: "collection", label: "Screens", open: true },
-    { depth: 2, kind: "screen", label: "Welcome", to: DESTINATIONS.welcome },
+    {
+      key: "example",
+      count,
+      depth: 0,
+      kind: "collection",
+      label: "Example",
+      open: true,
+    },
+    {
+      key: "screens",
+      count,
+      depth: 1,
+      kind: "collection",
+      label: "Screens",
+      open: true,
+    },
+    {
+      key: "welcome",
+      depth: 2,
+      kind: "screen",
+      label: "Welcome",
+      to: DESTINATIONS.welcome,
+    },
     ...(tag === "forms"
       ? [
           {
+            key: "details",
             depth: 2,
             kind: "screen" as const,
             label: "Details",
@@ -54,20 +73,12 @@ export function TagScreen({
       tagPickerOpen={picker}
     >
       <WelcomeHead active={viewport} />
-      <Stage>
-        {viewport === "desktop" ? (
-          <BrowserFrame address="example.test/welcome" label="Desktop">
-            <MiniWelcome />
-          </BrowserFrame>
-        ) : (
-          <PhoneFrame label="Mobile" small>
-            <MiniWelcome compact />
-          </PhoneFrame>
-        )}
-      </Stage>
-      {viewport === "desktop" ? (
-        <DetailsPanel subject="welcome" activeTag={tag} open />
-      ) : null}
+      <ExampleWorkspace
+        subject="welcome"
+        viewport={viewport}
+        activeTag={tag}
+        open={viewport === "desktop"}
+      />
     </Shell>
   );
 }

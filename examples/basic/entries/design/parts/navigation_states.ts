@@ -1,3 +1,4 @@
+import { COMPONENT_NAVIGATION_STATES } from "../components/parts/navigation_states.js";
 import {
   DESTINATIONS as D,
   type ComparisonMode,
@@ -16,7 +17,6 @@ export interface NavigationState {
   all?: DesignDestination;
   changes?: DesignDestination;
   comparison?: Partial<Record<ComparisonMode, DesignDestination>>;
-  inspector?: DesignDestination;
   scheme?: DepictedScheme;
   schemeLinks?: Partial<Record<DepictedScheme, DesignDestination>>;
   tags?: TagState;
@@ -32,20 +32,19 @@ const welcomeModes = {
 };
 const welcomeBrowse: NavigationState = {
   ...welcomeFilters,
-  comparison: welcomeModes,
-  inspector: D.inspector,
   tags: { active: null, picker: false },
 };
 
 /** Canonical states for the entire design registry, never inferred from labels. */
 export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
+  ...COMPONENT_NAVIGATION_STATES,
   [D.home]: {},
   [D.missing]: {},
   [D.navigation]: {},
   [D.tour]: {},
   [D.welcome]: { ...welcomeBrowse, schemeLinks: { dark: D.darkWelcome } },
   [D.details]: { ...detailsFilters, schemeLinks: { dark: D.darkDetails } },
-  [D.inspector]: { ...welcomeBrowse, inspector: D.welcome },
+  [D.inspector]: { ...welcomeBrowse },
   [D.darkWelcome]: {
     ...welcomeFilters,
     scheme: "dark",
@@ -58,27 +57,22 @@ export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
   },
   [D.tagPicker]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: null, picker: true },
   },
   [D.formsPicker]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "forms", picker: true },
   },
   [D.forms]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "forms", picker: false },
   },
   [D.onboarding]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "onboarding", picker: false },
   },
   [D.onboardingPicker]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "onboarding", picker: true },
   },
   [D.current]: { ...welcomeFilters, comparison: welcomeModes },
@@ -96,8 +90,8 @@ export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
     scheme: "dark",
     schemeLinks: { light: D.changed },
   },
-  [D.shared]: { ...welcomeFilters, comparison: { current: D.current } },
-  [D.ignored]: { ...welcomeFilters, comparison: { current: D.current } },
+  [D.shared]: { ...welcomeFilters },
+  [D.ignored]: { ...welcomeFilters },
   [D.empty]: { all: D.welcome },
 };
 
