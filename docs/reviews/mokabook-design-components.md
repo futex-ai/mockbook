@@ -1,5 +1,9 @@
 # Shared Design Component Adoption Review
 
+The later footer/control normalization and its final post-push review are in
+[Shared Design Controls Delivery Review](./mokabook-design-controls.md).
+This record retains the initial adoption evidence and earlier findings.
+
 The implementation at `7dc0d50` adds fifteen registered components and 56 saved
 variants, and adopts them across all 56 existing design screens. The required
 `cargo xtask review` ran after that commit was pushed, against `origin/main`

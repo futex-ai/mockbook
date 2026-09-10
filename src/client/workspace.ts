@@ -32,6 +32,7 @@ export function installWorkspace(
   doc: Document,
   win: Window & typeof globalThis,
   updateDiffs: () => void,
+  onHistoryChange: () => void,
 ): () => void {
   const root = doc.querySelector<HTMLElement>("[data-workspace]");
   const json = root?.querySelector("[data-workspace-data]")?.textContent;
@@ -258,6 +259,7 @@ export function installWorkspace(
       selected = undefined;
       expanded.clear();
       activateVariant();
+      onHistoryChange();
     },
     escape(event) {
       if (highlight) {

@@ -279,7 +279,9 @@ explicit diff selection regenerates it. A
 watched reload restores Browse search, filter, current and pre-filter collection
 disclosures, viewport, drawer, and scroll state once on the same durable URL.
 Browse also retains each history entry's latest document position for Back and
-Forward. While Changes filtering is active, route changes preserve collections
+Forward. Skip links and same-document fragment history preserve the current view
+and native focus without reloading it; route and saved-variant query changes
+still restore the matching page. While Changes filtering is active, route changes preserve collections
 the user collapsed and open only the destination's ancestor path. Editing the
 search or filter reveals its current matches. Clearing all filtering restores
 the earlier disclosures, except that a navigated destination's path stays open.

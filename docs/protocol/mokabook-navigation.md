@@ -224,6 +224,15 @@ details inspector, frames, focus, and status announcement all describe the
 destination. Back and Forward return through those outer route entries and
 restore their route-owned scroll.
 
+Outer same-document links, including the shell's skip link, keep native fragment
+focus and scrolling. Document identity includes origin, pathname and query but
+excludes the hash. A history event within the displayed document must not fetch
+or replace that view, reinstall its workspace, or move focus away from the native
+target. It invalidates any pending route request so an obsolete response cannot
+replace the retained view. Saved scroll positions may be restored without a
+reload. A changed route or query still uses progressive navigation and its
+normal history restoration.
+
 For exported catalogues the shared delivery resolver maps that trusted id to
 the exact `/view/<route>.html` file in shell-owned metadata before fetching or
 opening any context. Development still follows the `/id` redirect. Real static

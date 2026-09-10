@@ -24,18 +24,33 @@ export function isEligibleBrowseLink(candidate: BrowseLinkCandidate): boolean {
   );
 }
 
+/** Fragment navigation stays within one document; route or query changes do not. */
+export function isSameBrowseDocument(current: URL, next: URL): boolean {
+  return (
+    current.origin === next.origin &&
+    current.pathname === next.pathname &&
+    current.search === next.search
+  );
+}
+
 /** Latest-wins request sequencing for overlapping navigations. */
 export class NavigationSequencer {
   #current: AbortController | undefined;
 
   /** Abort the previous request and open a new latest-wins slot. */
   begin(): { isCurrent(): boolean; signal: AbortSignal } {
-    this.#current?.abort();
+    this.cancel();
     const controller = new AbortController();
     this.#current = controller;
     return {
       isCurrent: () => this.#current === controller,
       signal: controller.signal,
     };
+  }
+
+  /** Invalidate outstanding work when history retains the current document. */
+  cancel(): void {
+    this.#current?.abort();
+    this.#current = undefined;
   }
 }

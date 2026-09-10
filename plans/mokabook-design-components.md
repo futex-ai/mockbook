@@ -2,7 +2,7 @@
 
 ## Outcome And Status
 
-Status: implementation and local verification complete; final delivery review pending.
+Status: implementation reviewed; a CI-discovered keyboard navigation race is being fixed.
 Give Mokabook's own design screens real shared component pages, saved
 variants, local controls, generated usage and reliable change attribution.
 
@@ -253,7 +253,7 @@ checks distinguish catalogue build time from individual browser interactions.
 - [x] Repeat the complete local gate after the portability fixes.
 - [x] Verify both supported Node CI jobs after the push.
 
-## Milestone 9: Normalize all footers and view controls
+## Milestone 9: Normalize all footers and view controls — completed
 
 Tags: mockup
 
@@ -281,10 +281,10 @@ saved variant, and the old segmented viewport/theme controls on 10 September.
       preserving valid interactive content inside the shared native panels.
 - [x] Rebuild and check generated output, inspect every changed viewport and
       saved sample directly from disk, test resizing/navigation and update docs.
-- [ ] Run the complete gate, commit and push all source/generated changes, then
+- [x] Run the complete gate, commit and push all source/generated changes, then
       run the required review and report findings without automatic fixes.
 
-## Milestone 10: Validate and deliver
+## Milestone 10: Validate and deliver — completed
 
 Outcome: documented, reproducible implementation ready for review.
 
@@ -297,16 +297,40 @@ Outcome: documented, reproducible implementation ready for review.
 - [x] Finish the full direct-file visual audit and Serve/export smoke checks;
       retain an inventory and evidence in `.context` for every changed page.
 - [x] Run `cargo xtask check`; require all relevant tests and every gate to pass.
-- [ ] Review the diff/deletions against `origin/main`, run `git add -A`, commit
+- [x] Review the diff/deletions against `origin/main`, run `git add -A`, commit
       all completed source/docs/generated files with Conventional Commits and
       push the branch. Newly created files must be included.
-- [ ] After the push, run `cargo xtask review` on the complete diff against
+- [x] After the push, run `cargo xtask review` on the complete diff against
       `origin/main`. Report every finding with severity, context, impact,
       lettered solution options and a recommended scope; do not automatically
       fix review findings.
-- [ ] Tick completed tasks and move this plan's index link to Completed once
+- [x] Tick completed tasks and move this plan's index link to Completed once
       implementation and verification are delivered. Keep review follow-ups
       explicitly recorded for the user's decision.
+
+## Milestone 11: Preserve native same-document history — completed
+
+Tags: ui
+
+Outcome: skip links and fragment Back/Forward retain the existing screen and
+keyboard focus. Node 22 CI exposed an existing race: a fragment history event
+refetches the current catalogue page and can steal focus before Enter activates
+a screen link. This is a runtime behavior correction; no visual design changes
+or backend work are required.
+
+- [x] Capture the failure with a native skip-link/history browser regression.
+- [x] Distinguish document route/query changes from same-document history;
+      preserve native fragment behavior and invalidate superseded requests.
+- [x] Cover URL identity and cancellation, retain route/query history coverage,
+      and update navigation guidance without increasing interaction timeouts.
+
+## Milestone 12: Verify and deliver the CI correction
+
+- [x] Run focused navigation/browser tests and the full `cargo xtask check` gate.
+- [ ] Audit the diff, run `git add -A`, commit all completed work using
+      Conventional Commits and push before running `cargo xtask review` again.
+- [ ] Report review findings without automatic fixes; verify CI and published
+      navigation, then complete the delivery record and plan index.
 
 ## Verification Evidence
 
@@ -314,4 +338,6 @@ The [review and verification record](../docs/reviews/mokabook-design-components.
 retains startup, source attribution, direct-file audit, complete gate and CI
 results. The normalization adds regression coverage for icon-only schemas,
 all-screen viewport selection, native panel opening/resizing and non-overlapping
-full-size phone/desktop previews.
+full-size phone/desktop previews. Its [final delivery review](../docs/reviews/mokabook-design-controls.md)
+records the published smoke results and all six post-push findings with assessed
+recommendations; none was automatically fixed.
