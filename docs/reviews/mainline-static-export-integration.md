@@ -91,6 +91,48 @@ then the entire gate passed with the tracked tree held unchanged. No assertion,
 timeout, or production safety check was weakened. The successful full log is
 `.context/main-integration-final-check-2.log`.
 
-Delivery follows the preservation audit with a Conventional merge commit and
-push, then `cargo xtask review` (pass 10/10). New review findings are reported
-for user selection under the explicit repository rule.
+The preservation audit passed before and after merge commit `7dfc0bc`. Its
+parents are captured source `5332b6d` and main `a0e349a`. All seven newly created
+files were tracked in that commit, which was pushed before `cargo xtask review`
+(pass 10/10). The review completed successfully and returned the finding below.
+No further review cycle or automatic finding fix was performed.
+
+## Review After 7dfc0bc
+
+1. **Low — active migration guidance names an unsupported CLI command.
+   Confirmed, pre-existing documentation drift.** The
+   [active extraction plan](../../plans/app-independent-mokabook-library.md)
+   tells future Accounting cutover work to invoke `build/check/test/serve/review`
+   through the installed executable. The
+   [migration inventory](../migration/accounting-framework-inventory.md) maps
+   Accounting's `review.cjs` to a public `mokabook review` command and labels the
+   behavior as ported. Both files are unchanged from main. The
+   [current command parser](../../src/cli/arguments.ts) rejects `review` and
+   `test`; the supported comparison surfaces are Browse's on-demand diffs and
+   static export. A direct compiled-parser probe confirmed both rejections and
+   retained a passing `export --out` control. Existing
+   [CLI boundary coverage](../../tests/changes.test.ts) also requires rejection
+   of `review` and omission from help.
+
+   Following the stale migration instructions could create scripts or CI jobs
+   that fail immediately. This is not a merge or runtime regression.
+   **A.** Align the active migration steps and inventory with the current CLI,
+   link the canonical contract, and add a focused documentation guard that
+   permits the removed command only in explicitly historical/removal contexts.
+   Preserve the inventory's source baseline and deletion guard while updating
+   its current behavior mappings. **B.** Reintroduce a standalone public Review
+   command. **C.** Keep the old text and mark each stale instruction obsolete.
+   **Recommended: A.** Updating only one reference leaves conflicting guidance;
+   the scoped documentation guard prevents that class of drift without adding
+   a product feature or treating arbitrary historical prose as runnable CLI.
+   B reverses the accepted command boundary, while C leaves future cutover work
+   without current instructions. No plan or inventory edit was made after this
+   review, following the user's explicit rule to report new findings first.
+
+The reviewer found no other actionable correctness, security, app-independence,
+generated-output, server/watch lifecycle, comparison, or changed-document issue.
+Its read-only typecheck, focused ESLint check, and committed whitespace check
+passed. The complete gate had already passed before the merge commit and push;
+the reviewer did not rerun commands that write build or test artifacts.
+The review log is `.context/main-integration-postpush-review.log`, and the
+independent CLI probe is `.context/main-integration-review-validation.log`.
