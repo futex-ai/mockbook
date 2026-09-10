@@ -2,12 +2,13 @@
 
 ## Active
 
-- [Reuse Registered Components In Mokabook's Design Catalogue](./mokabook-design-components.md)
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 
 ## Completed
 
+- [Reuse Registered Components In Mokabook's Design Catalogue](./mokabook-design-components.md)
+  — delivered and verified; review follow-ups are recorded for the user's decision.
 - [Component Explorer](./component-explorer.md) — delivered and verified;
   review follow-ups are recorded for the user's decision.
 - [Consumer Static Export](./consumer-static-export.md)

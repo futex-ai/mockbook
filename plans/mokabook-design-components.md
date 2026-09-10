@@ -2,7 +2,7 @@
 
 ## Outcome And Status
 
-Status: implementation reviewed; a CI-discovered keyboard navigation race is being fixed.
+Status: completed and verified; review follow-ups are recorded for the user's decision.
 Give Mokabook's own design screens real shared component pages, saved
 variants, local controls, generated usage and reliable change attribution.
 
@@ -324,12 +324,12 @@ or backend work are required.
 - [x] Cover URL identity and cancellation, retain route/query history coverage,
       and update navigation guidance without increasing interaction timeouts.
 
-## Milestone 12: Verify and deliver the CI correction
+## Milestone 12: Verify and deliver the CI correction — completed
 
 - [x] Run focused navigation/browser tests and the full `cargo xtask check` gate.
-- [ ] Audit the diff, run `git add -A`, commit all completed work using
+- [x] Audit the diff, run `git add -A`, commit all completed work using
       Conventional Commits and push before running `cargo xtask review` again.
-- [ ] Report review findings without automatic fixes; verify CI and published
+- [x] Report review findings without automatic fixes; verify CI and published
       navigation, then complete the delivery record and plan index.
 
 ## Verification Evidence

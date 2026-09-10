@@ -7,6 +7,12 @@ Low findings, all in the wider component-explorer/runtime work; none concerned
 the footer cleanup itself. The recommendations below were checked against the
 implementation. No review findings were automatically fixed.
 
+The repeated post-push review of the keyboard correction at `aed1d70` confirmed
+the same six findings with the same severities. It added no finding about the
+history correction. The assessed recommendations below still apply, including
+the metadata-only qualification for affected-consumer completeness. Its log is
+`.context/design-keyboard-history-review.log`.
+
 ## Findings
 
 1. **Medium — served Review snapshots follow symbolic links.**
@@ -130,5 +136,18 @@ browser tests and four Rust tests**, with all other gates passing. Focused tests
 also cover cancellation during native Back, route scroll restoration and the
 original keyboard test. Logs: `.context/design-keyboard-history-red-complete.log`,
 `.context/design-keyboard-history-browser-final.log` and
-`.context/design-keyboard-history-full-check.log`. The post-push CI, published
-smoke and repeated review are the remaining delivery checks.
+`.context/design-keyboard-history-full-check.log`.
+
+The corrected [preview deployment](https://github.com/futex-ai/mokabook/actions/runs/34526980834)
+passed desktop/mobile smoke checks: native skip-link history makes no page
+requests, saved-variant Back/Forward remains correct, and the unified footer,
+viewport, read-only props and nested-usage journeys still pass. Evidence:
+`.context/design-keyboard-history-published-smoke.log` and
+`.context/design-modern-controls-published-smoke-final.log`.
+
+Implementation commit `aed1d70` passed [all required CI jobs](https://github.com/futex-ai/mokabook/actions/runs/34526980945):
+Node 22.14, Node 24, macOS, Windows and Required CI. The repeated post-push review
+is complete. All adoption milestones, including the CI correction, are delivered;
+the six review follow-ups remain for the user's decision. The final documentation
+record is validated separately with Markdown formatting, local links and diff
+checks; it makes no implementation changes.
