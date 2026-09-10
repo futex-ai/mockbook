@@ -45,15 +45,22 @@ mokabook                 Alias for `mokabook serve`
 mokabook serve           Serve the catalogue and diffs; watch by default
 mokabook build           Generate static artifacts and the manifest
 mokabook check           Validate source and committed generated output
+mokabook export --out <path>  Build a complete static catalogue for hosting
 mokabook --help          Show commands, options, and config discovery
 mokabook --version       Show the installed package version
 ```
 
 Common options include `--config <path>`. Serve accepts `--port`, `--base`,
-`--watch`, and `--no-watch`. The removed `review` command and `--out` option
-are rejected. Screen comparisons are requested from the catalogue. A flag after
+`--watch`, and `--no-watch`. Export requires `--out` and accepts `--base`;
+`--out` on any other command and the removed `review` command are rejected.
+Screen comparisons are requested from the catalogue. A flag after
 the package name belongs to Mokabook; docs must show npx arguments in a form
 that is unambiguous to current npm.
+
+The consumer `export` command and its config-relative `--out` option follow the
+[static export contract](./mokabook-export.md). It builds first, packages
+comparisons using the configured or overridden Git base, and never uploads.
+It adds no public JavaScript API or hosting-provider dependency.
 
 Serve uses `4173` as its default starting port. An occupied concrete starting
 port advances one at a time through `65535` until binding succeeds; exhausting
@@ -191,8 +198,9 @@ Authored source directories may sit below `mockupsDir` for a `docs/mockups/src`
 layout, but they may not equal each other or the output root; generated routes
 are collision-checked against those sources before writing. Review output must
 not overlap a source or output root in either direction. That rule applies
-equally to configured output, a CLI `--out` override, and the transactional
-writer boundary.
+to configured Review output and the transactional writer boundary. Export's
+required `--out` has the additional source/runtime/ownership confinement rules
+in the [export contract](./mokabook-export.md).
 
 `moduleResolution` has no defaults beyond esbuild's platform behavior. Package
 roots must be in-repository directories containing `package.json`; their

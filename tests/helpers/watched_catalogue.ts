@@ -60,9 +60,11 @@ async function waitForPublished(
 ): Promise<string> {
   const deadline = performance.now() + 20_000;
   let published: string | undefined;
+  let latest: string | undefined;
   while (performance.now() < deadline) {
     try {
       const html = await catalogue(url);
+      latest = html;
       if (version(html) > previous) {
         published = html;
         if (settled(html)) return html;
@@ -82,6 +84,10 @@ async function waitForPublished(
       published === undefined
         ? "no watched update was published"
         : `the last published update had ${changedCount(published) ?? "no"} changed screens`
+    }; waiting after version ${previous}; ${
+      latest === undefined
+        ? "no catalogue response"
+        : `last version ${version(latest)}, Changes ${changedCount(latest) ?? "unavailable"}`
     }`,
   );
 }

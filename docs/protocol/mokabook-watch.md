@@ -46,6 +46,14 @@ automatically; an unrelated file can use an explicit reload, restart, rebuild,
 or ignore rule. Configured inputs and discovered resources take precedence over
 additional rules.
 
+Export markers prove ownership of their listed files, not every descendant of
+the output directory. Ignore inventory-listed files and the marker itself, but
+traverse the output and its subdirectories so later unowned additions still
+reach consumer rules. Owned directory events may be ignored without pruning
+traversal. Active transaction trees and the initialized internal reservation
+namespace remain pruned. Unowned files still make subsequent export replacement
+fail; watch classification does not grant permission to overwrite them.
+
 Source/config watchers become ready before initial compilation begins. Resource
 watches are discovered from the candidate output and become ready before it is
 written. Discovery repeats after readiness to capture newly introduced references
@@ -123,6 +131,15 @@ is a no-op, while a higher `ready` version or `update` event triggers one reload
 and one-shot state recovery. A document without a valid stamp retains
 compatibility behavior in which its first `ready` version establishes the
 baseline.
+
+A filesystem edit composed of multiple operations can publish intermediate
+states: removing a tracked alias may identify a deletion before its replacement
+restores the baseline. A higher version proves a completed watch action, not
+completion of every filesystem operation a caller groups into one edit. Tests
+for a specific result must wait for both a higher version and that semantic
+state within the existing deadline, distinguishing unavailable Changes from an
+available zero count. They must retain subsequent-edit and comparison
+invalidation assertions rather than assuming exactly one publication per edit.
 
 Publishing an update without restarting the child marks its cached comparison
 stale before notifying browsers. Reload restores Current, so comparison work

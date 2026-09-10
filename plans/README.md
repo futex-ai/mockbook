@@ -7,6 +7,7 @@
 
 ## Completed
 
+- [Consumer Static Export](./consumer-static-export.md)
 - [Mokabook Design MockLinks](./mokabook-design-mocklinks.md)
 - [MockLink Child Controls](./mocklink-child-controls.md)
 - [Hierarchy-Inferred Breadcrumbs](./hierarchy-inferred-breadcrumbs.md)

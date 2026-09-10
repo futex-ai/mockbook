@@ -1,50 +1,16 @@
-import fs from "node:fs";
-import path from "node:path";
-
-import { configuredServedReview } from "../../dist/server/review_routes.js";
-
-const comparisonRoute = "/__mokabook/diffs/review.json";
-
-/** Keep publishing isolated from another server's configured comparison output. */
-export function previewComparisonProvider(config, stage) {
-  return configuredServedReview(
-    {
-      ...config,
-      review: { ...config.review, outDir: path.join(stage, ".comparisons") },
-    },
-    "origin/main",
-  );
-}
-
-/** Resolve the same generation the interactive client would request on demand. */
-export async function captureComparison(serverUrl) {
-  const response = await fetch(`${serverUrl}${comparisonRoute}`);
-  if (!response.ok) {
-    const failure = await response.json();
-    throw new Error(`preview comparison failed: ${failure.details}`);
-  }
-  const url = new URL(response.url);
+/** Preserve the repository's existing immutable-generation alias and policy. */
+export function comparisonMetadata(comparisonUrl) {
   if (
-    url.origin !== new URL(serverUrl).origin ||
-    !/^\/__mokabook\/diffs\/__generations\/[A-Za-z0-9-]+\/review\.json$/.test(
-      url.pathname,
+    !/^\/__mokabook\/diffs\/__generations\/[a-f0-9]{64}\/review\.json$/.test(
+      comparisonUrl,
     )
   )
     throw new Error(
       "preview comparison did not resolve an immutable generation",
     );
   return {
-    directory: path.posix.dirname(url.pathname).slice(1),
-    redirect: `${comparisonRoute} ${url.pathname} 302`,
-    result: await response.json(),
+    redirect: `/__mokabook/diffs/review.json ${comparisonUrl} 302`,
+    headers:
+      "/__mokabook/diffs/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n",
   };
-}
-
-/** Move the completed generation into the deployment after the server closes. */
-export async function publishComparison(provider, comparison, stage) {
-  const target = path.join(stage, comparison.directory);
-  await fs.promises.mkdir(path.dirname(target), { recursive: true });
-  await fs.promises.rename(provider.outDir, target);
-  await fs.promises.rm(path.join(target, ".mokabook-review-artifact"));
-  await fs.promises.rm(path.join(target, "summary.md"));
 }

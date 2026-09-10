@@ -2,6 +2,7 @@
 
 import type { ReviewResult } from "../review/types.js";
 import { renderDiff, type DiffMode, type LoadedDiff } from "./diff_views.js";
+import { readStaticDelivery } from "./static_delivery.js";
 
 /** Install one delegated controller on the persistent catalogue document. */
 export function installDiffs(
@@ -51,8 +52,9 @@ export function installDiffs(
     stage.setAttribute("aria-busy", "true");
     stage.textContent = "Loading comparison…";
     try {
+      const delivery = readStaticDelivery(doc);
       const response = await win.fetch(
-        `/__mokabook/diffs/review.json${refresh ? "?refresh=1" : ""}`,
+        `${delivery?.comparisonUrl ?? "/__mokabook/diffs/review.json"}${refresh ? "?refresh=1" : ""}`,
         {
           signal: pending.signal,
           headers: { accept: "application/json" },

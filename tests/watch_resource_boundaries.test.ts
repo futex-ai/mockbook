@@ -83,6 +83,12 @@ test(
       assert.ok(!invalid.paths.has(path.join(fixture.root, "notes.md")));
       await edit(async () => {
         await fs.rm(image);
+        const removed = await waitForChangedCount(
+          running.url,
+          version(html),
+          2,
+        );
+        assert.match(removed, /class="mbk-nav-filter-count">2</);
         await fs.writeFile(image, "<svg/>");
       }, 0);
       await edit(() => link("missing.svg"));

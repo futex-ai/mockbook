@@ -11,6 +11,7 @@ import { VIEWPORTS } from "../registry/views.js";
 import {
   FileSystemReviewAssetReader,
   GitReviewAssetReader,
+  type OptionalReviewAssetReader,
 } from "../review/assets.js";
 import type { GitClient } from "../review/git.js";
 import {
@@ -27,7 +28,7 @@ interface FragmentPair {
   changed: boolean;
 }
 
-/** Find fragments whose content or rendered resources need review, without snapshots. */
+/** Find material output changes, using live files or an injected captured reader. */
 export async function changedContentPaths(
   manifest: ManifestV3,
   baseline: ManifestV3,
@@ -35,6 +36,9 @@ export async function changedContentPaths(
   git: GitClient,
   commit: string,
   changedPaths: readonly string[],
+  headReader: OptionalReviewAssetReader = new FileSystemReviewAssetReader(
+    config,
+  ),
 ): Promise<readonly string[]> {
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
   const repoPath = (route: string) => (prefix ? `${prefix}/${route}` : route);
@@ -55,7 +59,6 @@ export async function changedContentPaths(
   );
   if (publicChanges.size === 0) return [];
   const pairs = fragmentPairs(manifest, baseline, publicChanges);
-  const headReader = new FileSystemReviewAssetReader(config);
   const baseReader = new GitReviewAssetReader(config, git, commit, prefix);
   const result = new Set<string>();
   const documents = new Map<string, string>();

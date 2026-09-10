@@ -14,17 +14,20 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
     "diffs.js",
     "diff_views.js",
     "browse_details.js",
+    "browse_links.js",
     "browse_frames.js",
     "browse_navigation.js",
     "browse_navigation_state.js",
     "frame_navigation.js",
     "browse_state.js",
     "browser.js",
+    "clipboard.js",
     "live_updates.js",
     "navigation.js",
     "navigation-resize.js",
     "preview_fragment.js",
     "search_query.js",
+    "static_delivery.js",
     "tag_filter.js",
   ]) {
     const candidate = fileURLToPath(
@@ -45,7 +48,11 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
 
 /** Load shared pure navigation modules imported by the browser client. */
 export function loadBrowserNavigationModules(): ReadonlyMap<string, Buffer> {
-  return loadModules("../navigation", ["logical.js", "target.js"]);
+  return loadModules("../navigation", [
+    "logical.js",
+    "target.js",
+    "delivery.js",
+  ]);
 }
 
 /** Load the packaged shell fonts before the HTTP server binds. */

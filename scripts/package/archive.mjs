@@ -50,6 +50,11 @@ export function validatePackageReport(report) {
     "dist/index.js",
     "dist/index.d.ts",
     "dist/cli/bin.js",
+    "dist/cli/export.js",
+    "dist/export/run.js",
+    "dist/export/transaction.js",
+    "dist/client/static_delivery.js",
+    "dist/navigation/delivery.js",
     ...ROOT_FILES,
   ]) {
     assert.ok(files.includes(required), `package is missing ${required}`);

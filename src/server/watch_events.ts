@@ -5,6 +5,7 @@ import { minimatch } from "minimatch";
 import { isOwned } from "../build/ownership.js";
 import { isInside, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig, WatchAction } from "../config/types.js";
+import { isExportIgnoredPath } from "../export/ignored.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
 
 const IGNORED_DIRECTORY_NAMES = new Set([
@@ -168,7 +169,8 @@ export function classifyWatchPath(
   if (config.renderer === absolute || config.legacy?.components === absolute)
     return "rebuild";
   const relative = toPosixPath(path.relative(config.repoRoot, absolute));
-  if (isPackageOwnedIgnoredWatchPath(absolute, config)) return "ignore";
+  if (isPackageOwnedIgnoredWatchPath(absolute, config, "event"))
+    return "ignore";
   if ([...resources].some((resource) => isInside(absolute, resource)))
     return "reload";
   const stylesheetPaths = configuredStylesheetPaths(config);
@@ -192,11 +194,13 @@ export function classifyWatchPath(
 export function isPackageOwnedIgnoredWatchPath(
   candidate: string,
   config: ResolvedConfig,
+  mode: "traverse" | "event" = "traverse",
 ): boolean {
   const absolute = path.resolve(candidate);
   if (!isInside(config.repoRoot, absolute)) return false;
   if (isRequiredWatchPath(absolute, config)) return false;
   if (isGeneratedOutputPath(absolute, config)) return true;
+  if (isExportIgnoredPath(absolute, config.repoRoot, mode)) return true;
   if (isInside(config.review.outDir, absolute)) return true;
   const parts = path.relative(config.repoRoot, absolute).split(path.sep);
   return parts.some(

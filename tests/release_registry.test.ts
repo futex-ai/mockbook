@@ -6,20 +6,16 @@ import test from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { repositoryRoot } from "./helpers/fixture.js";
+import {
+  packageReport,
+  type PackageReport,
+} from "./helpers/release_fixture.js";
 
 interface CommandResult {
   code: number | null;
   signal: NodeJS.Signals | null;
   stderr: string;
   stdout: string;
-}
-
-interface PackageReport {
-  files: Array<{ path: string; size: number }>;
-  integrity: string;
-  name: string;
-  shasum: string;
-  version: string;
 }
 
 interface RegistryContractModule {
@@ -178,22 +174,4 @@ async function registryVerifier(): Promise<RegistryVerifierModule> {
     path.join(repositoryRoot, "scripts/release/registry_verifier.mjs"),
   ).href;
   return (await import(url)) as RegistryVerifierModule;
-}
-
-function packageReport(): PackageReport {
-  return {
-    files: [
-      { path: "dist/index.js", size: 1 },
-      { path: "dist/index.d.ts", size: 1 },
-      { path: "dist/cli/bin.js", size: 1 },
-      { path: "README.md", size: 1 },
-      { path: "LICENSE", size: 1 },
-      { path: "CHANGELOG.md", size: 1 },
-      { path: "package.json", size: 1 },
-    ],
-    integrity: `sha512-${"a".repeat(12)}`,
-    name: "mokabook",
-    shasum: "b".repeat(40),
-    version: "1.2.3",
-  };
 }
