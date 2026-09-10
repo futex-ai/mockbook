@@ -71,13 +71,6 @@ body {
   position: relative;
 }
 
-/* The color-scheme switch sits right of the search field. It never
-   compresses, and its tighter pad matches the mode switch height. */
-.mbk-topbar > .mbk-seg {
-  flex-shrink: 0;
-  padding: 2px;
-}
-
 .mbk-modes {
   background: var(--chrome-bg);
   border-radius: 8px;
@@ -140,20 +133,6 @@ body {
   position: absolute;
   top: calc(50% - 16px);
   width: 2px;
-}
-
-.mbk-screen-head > .mbk-seg {
-  margin-left: auto;
-}
-
-.mbk-shell--mobile .mbk-screen-head > .mbk-seg {
-  margin-left: 0;
-  width: 100%;
-}
-
-.mbk-shell--mobile .mbk-screen-head > .mbk-seg > :is(span, a) {
-  flex: 1;
-  text-align: center;
 }
 
 /* ---- Shared segmented control ----------------------------------------- */

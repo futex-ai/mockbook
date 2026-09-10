@@ -22,9 +22,7 @@ export function Inspector({
       mokabookInstance={useDesignInstance("inspector")}
       tabs={panels.map(({ id, label }) => ({ id, label }))}
       initial={initial}
-      presentation="tabs"
       sheetSize="compact"
-      legacyBehavior="native"
       info={panels.find((panel) => panel.id === "info")?.content}
       components={panels.find((panel) => panel.id === "components")?.content}
       props={panels.find((panel) => panel.id === "props")?.content}

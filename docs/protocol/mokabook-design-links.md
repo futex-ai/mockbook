@@ -8,8 +8,10 @@ Implemented in the 24 design screens and two real example screens using
 
 The [component design inventory](./mokabook-component-design.md) extend the
 catalogue with their own state contract and native component/control depictions.
-The existing 24 Browse/Changes designs retain all transitions and non-link
-control behavior specified here. Catalogue-wide link and inventory checks cover
+The existing 24 Browse/Changes designs retain the canonical links below.
+They now share native icon inspector tabs and working viewport dropdowns with
+the component designs; the legacy disclosure links and segmented view controls
+are removed. Catalogue-wide link and inventory checks cover
 both families; component keyboard-control checks live in the component suites.
 
 ## Scope And Ownership
@@ -51,7 +53,10 @@ available. `example-farewell` remains an intentionally absent product entry.
   routing, or consumer scripts as substitutes for `MockLink`.
 - A control without a destination has no `href`, no mock-link marker, and no
   misleading keyboard stop. Keep the selected state visibly identified.
-  Inactive controls must remain non-interactive after static generation.
+  Inactive controls must remain non-interactive after static generation. Native
+  inspector tabs and viewport selections operate in place without navigation.
+  Links inside inspector bodies use ordinary `MockLink` anchors; `asChild`
+  deliberately rejects interactive ancestors including `details`.
 - Keep reusable mockup controls in `entries/design/parts/`. Share the existing
   miniature screens between their owning standalone design screens and the
   depicted use case. Keep new files near 200 lines and below 300 lines.
@@ -77,7 +82,9 @@ completed before link adoption.
 | `design-browse-tag-onboarding`        | `design/browse/states/tags/onboarding.html`        | Welcome, `tag:onboarding`, Welcome retained, picker closed        |
 | `design-browse-tag-onboarding-picker` | `design/browse/states/tags/onboarding-picker.html` | The same onboarding filter with the picker open                   |
 
-`design-browse-details` continues to mean Welcome's expanded inspector;
+`design-browse-details` continues to mean Welcome's expanded inspector and remains
+reachable from its catalogue entry. Opening/closing the Details icon stays on
+the current screen and retains its query;
 `design-browse-light-only` continues to depict Details with dark selected and
 light-only device content. Neither substitutes for the new normal Details view.
 `design-browse-tag-filter` retains its existing route and depicts the forms
@@ -97,7 +104,6 @@ directory and catalogue group without moving the existing page.
 | MiniFarewell: Return to welcome                 | `design-browse-screen`                                                                         |
 | Depicted use-case step reference                | Welcome: `design-browse-screen`; Details: `design-browse-details-screen`                       |
 | Welcome/Details inspector: Example tour         | `design-browse-use-case`                                                                       |
-| Welcome inspector, closed / open                | `design-browse-details` / `design-browse-screen`                                               |
 | Home menu open / drawer close                   | `design-browse-navigation` / `design-browse-home`                                              |
 | Menu from another narrow design                 | Canonical `design-browse-navigation`; selecting a leaf opens that leaf's canonical destination |
 | Welcome All / Changes filter                    | `design-browse-screen` / `design-changes-current`                                              |
@@ -123,8 +129,10 @@ document remain plain text; this change adds no document publishing pipeline.
 
 ## Scheme, Comparison, And Tag States
 
-Expose the scheme control on both endpoints of each pair, using the normal
-wide top-bar and narrow head-band positions:
+Expose the theme icon on both endpoints of each pair in the shared screen-header
+view controls. Its accessible label is “Switch to dark mode” or “Switch to light
+mode”. The top bar contains no theme control. Unsupported pairs use a disabled
+icon with an explanatory tooltip:
 
 | Light state                    | Dark-selected state         |
 | ------------------------------ | --------------------------- |

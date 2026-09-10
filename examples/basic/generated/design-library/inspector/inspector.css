@@ -1,34 +1,5 @@
 /* Exclusive shared-component styles. Global and layout rules stay shared. */
 
-.mbk-details {
-background: var(--chrome-surface);
-  border-top: 1px solid var(--chrome-border);
-  flex-shrink: 0;
-}
-
-.mbk-details-bar {
-align-items: center;
-  color: var(--chrome-ink);
-  display: flex;
-  font-size: 12.5px;
-  font-weight: 700;
-  gap: 9px;
-  padding: 11px 24px;
-}
-
-.mbk-details-bar .chev {
-color: var(--chrome-muted);
-  display: inline-grid;
-  place-items: center;
-}
-
-.mbk-details-hint {
-color: var(--chrome-muted);
-  font-weight: 400;
-  margin-left: auto;
-  text-align: right;
-}
-
 .ce-inspector {
 background: white;
   border-top: 1px solid var(--chrome-border);

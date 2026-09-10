@@ -4,7 +4,6 @@ import { DesignLink } from "../../parts/design_navigation.js";
 import { BrandIcon, SearchIcon, TagIcon } from "../../parts/icons.js";
 import { ViewIcon } from "../../components/parts/view_icons.js";
 import { tagPicker } from "../controls/tag-picker.js";
-import { viewControls } from "../controls/view-controls.js";
 import type { TopBarProps } from "./top-bar.js";
 
 export function TopBarView({
@@ -12,15 +11,12 @@ export function TopBarView({
   placeholder,
   menu,
   menuPresentation,
-  scheme,
-  accessible,
   tags,
   activeTag,
   pickerOpen,
   brandDestination,
   menuDestination,
   pickerDestination,
-  schemeDestinations,
   viewport,
 }: TopBarProps & { viewport: Viewport }) {
   useDesignStyle("top-bar");
@@ -78,16 +74,6 @@ export function TopBarView({
           />
         ) : null}
       </div>
-      {scheme !== undefined && viewport === "desktop" ? (
-        <viewControls.Component
-          mokabookInstance="scheme"
-          selection="desktop"
-          scheme={scheme}
-          presentation="scheme-segments"
-          accessible={accessible}
-          destinations={schemeDestinations}
-        />
-      ) : null}
     </header>
   );
 }

@@ -17,7 +17,7 @@ It contains no Accounting or Juno product screen.
 
 Mokabook's 56 design screens now use 15 registered shared components, including
 the footer tabs panel. Open **Design → Shared components** for Chrome, Controls,
-Inspector and Preview galleries with 56 saved variants, real mobile/desktop
+Inspector and Preview galleries with 55 saved variants, real mobile/desktop
 previews and editable local props. The outer Components and Usage tabs show actual
 recorded relationships; pictured example data inside an artboard stays separate.
 See the [library authoring guide](./entries/design/library/README.md),
@@ -47,11 +47,12 @@ Details action includes its `details` anchor. The no-op handlers let Firna rende
 enabled controls; generated anchors handle the navigation without scripts.
 
 The design screens use the same API for their brand, screen rows, miniature
-content, flow references, inspector, and supported scheme, comparison, and tag
-transitions. These links open canonical design states. Component designs also
-support native viewport/theme/highlight controls and inspector resizing. Other
-viewport/resize controls, copy, refresh, collapse-all, and unsupported combinations
-remain visual depictions.
+content, flow references, and supported scheme, comparison, and tag
+transitions. These links open canonical design states. Every selected screen uses the icon
+footer, native viewport dropdown, desktop inspector resizing and mobile sheet.
+Theme pairs use the icon in the same header group; component designs also
+support native local theme/highlight toggles. Copy, refresh, collapse-all and
+unsupported combinations remain visual depictions.
 The actual outer shell provides its normal runtime controls. See the
 [design mockup links contract](../../docs/protocol/mokabook-design-links.md)
 and the [complete design inventory](../../docs/protocol/mokabook-shell-design.md#design-mockups).
@@ -89,7 +90,8 @@ static mockups; the outer package workspace implements the live component explor
 fields can be edited, and authored state links show the designed outcomes.
 
 A grouped icon toolbar switches Mobile/Desktop/Both previews, light/dark, and
-screen highlighting without navigation. Leaf components omit Nested components;
+screen highlighting. The original Browse/Changes theme pairs retain their
+canonical links; component previews change locally. Leaf components omit Nested components;
 Toolbar demonstrates composition. Unchanged fixtures show Unmodified and omit
 comparison modes. The fixed desktop shell contains separate preview and inspector
 panes; drag the centered grip on the divider line to resize the inspector. Mobile uses a
@@ -132,8 +134,9 @@ A shared implementation edit appears on its component page and lists consuming
 screens as affected; independent screen inputs, slots or instance changes still
 appear in Changes. This is tested against fully registered baseline snapshots.
 
-The remaining mixed component-design sheets are linked by the 32 component-design
-routes and standalone library hosts; the controls sheet additionally remains
+The shared inspector/workspace sheets cover all 56 design screens and standalone
+library hosts. Other mixed component-design sheets remain scoped to the 32
+component-design routes and hosts; the controls sheet additionally remains
 scoped to its eleven owning screen routes. Global `review.sharedImpact` policy is
 unchanged. Actual rendered resource references and generated usage determine the
 scope; regression tests cover each exclusive sheet and the mixed/global sheets.

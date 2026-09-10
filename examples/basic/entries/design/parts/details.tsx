@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
+import { MockLink } from "mokabook";
 import { inspector } from "../library/inspector/inspector.js";
-import { optional, useDesignInstance } from "../library/composition.js";
+import { useDesignInstance } from "../library/composition.js";
 import { MetaRow } from "./metadata_row.js";
 
-import { DesignLink, useDesignNavigation } from "./design_navigation.js";
 import { DESTINATIONS } from "./destinations.js";
 import { FlowIcon } from "./icons.js";
 import { SUBJECTS, type ScreenSubject } from "./subjects.js";
@@ -47,12 +47,10 @@ function DetailsBody({
         {metadata.tour ? (
           <MetaRow name="used-by" label="Used by">
             <span className="mbk-chips">
-              <DesignLink to={DESTINATIONS.tour}>
-                <span className="mbk-chip flow">
-                  <FlowIcon size={11} />
-                  Example tour
-                </span>
-              </DesignLink>
+              <MockLink to={DESTINATIONS.tour} className="mbk-chip flow">
+                <FlowIcon size={11} />
+                Example tour
+              </MockLink>
             </span>
           </MetaRow>
         ) : null}
@@ -71,7 +69,7 @@ type DetailsPanelProps = {
   | { subject?: never; children: ReactNode }
 );
 
-/** The collapsible details inspector at the foot of the stage. */
+/** Existing screen metadata in the shared icon inspector. */
 export function DetailsPanel({
   activeTag,
   children,
@@ -79,7 +77,6 @@ export function DetailsPanel({
   open,
   subject,
 }: DetailsPanelProps) {
-  const navigation = useDesignNavigation();
   const evidence = comparisonEvidence !== undefined;
   const info =
     subject === undefined ? (
@@ -104,12 +101,7 @@ export function DetailsPanel({
       mokabookInstance={useDesignInstance("inspector")}
       tabs={[{ id: "info", label: "Details" }]}
       initial={open || evidence ? "info" : "closed"}
-      presentation="legacy"
       sheetSize="compact"
-      legacyBehavior={
-        subject === undefined ? "native" : evidence ? "evidence" : "linked"
-      }
-      {...optional("legacyDestination", navigation.inspector)}
       info={info}
     />
   );

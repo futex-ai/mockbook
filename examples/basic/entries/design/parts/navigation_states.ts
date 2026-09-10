@@ -17,7 +17,6 @@ export interface NavigationState {
   all?: DesignDestination;
   changes?: DesignDestination;
   comparison?: Partial<Record<ComparisonMode, DesignDestination>>;
-  inspector?: DesignDestination;
   scheme?: DepictedScheme;
   schemeLinks?: Partial<Record<DepictedScheme, DesignDestination>>;
   tags?: TagState;
@@ -33,7 +32,6 @@ const welcomeModes = {
 };
 const welcomeBrowse: NavigationState = {
   ...welcomeFilters,
-  inspector: D.inspector,
   tags: { active: null, picker: false },
 };
 
@@ -46,7 +44,7 @@ export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
   [D.tour]: {},
   [D.welcome]: { ...welcomeBrowse, schemeLinks: { dark: D.darkWelcome } },
   [D.details]: { ...detailsFilters, schemeLinks: { dark: D.darkDetails } },
-  [D.inspector]: { ...welcomeBrowse, inspector: D.welcome },
+  [D.inspector]: { ...welcomeBrowse },
   [D.darkWelcome]: {
     ...welcomeFilters,
     scheme: "dark",
@@ -59,27 +57,22 @@ export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
   },
   [D.tagPicker]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: null, picker: true },
   },
   [D.formsPicker]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "forms", picker: true },
   },
   [D.forms]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "forms", picker: false },
   },
   [D.onboarding]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "onboarding", picker: false },
   },
   [D.onboardingPicker]: {
     ...welcomeBrowse,
-    inspector: D.welcome,
     tags: { active: "onboarding", picker: true },
   },
   [D.current]: { ...welcomeFilters, comparison: welcomeModes },

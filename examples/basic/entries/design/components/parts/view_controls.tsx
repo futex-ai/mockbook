@@ -20,8 +20,6 @@ export function ViewControls({
       mokabookInstance={useDesignInstance("view-controls")}
       selection={viewport}
       scheme="light"
-      presentation="icons"
-      accessible
       destinations={{}}
       {...optional("highlight", highlight?.active)}
       {...optional("unavailable", highlight?.unavailable)}

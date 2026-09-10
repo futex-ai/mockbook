@@ -7,6 +7,7 @@ import {
 import {
   designBaseStyles,
   componentLayoutStyles,
+  workspaceLayoutStyles,
 } from "./entries/design/components/parts/styles.js";
 
 export default defineConfig({
@@ -63,15 +64,17 @@ export default defineConfig({
     },
     {
       match: "design/review/**",
-      stylesheets: withLibraryStyles([
-        "design.css",
-        "design-stage.css",
-        "design-review.css",
-      ]),
+      stylesheets: withLibraryStyles(
+        ["design.css", "design-stage.css", "design-review.css"],
+        workspaceLayoutStyles,
+      ),
     },
     {
       match: "design/**",
-      stylesheets: withLibraryStyles(["design.css", "design-stage.css"]),
+      stylesheets: withLibraryStyles(
+        ["design.css", "design-stage.css"],
+        workspaceLayoutStyles,
+      ),
     },
     {
       match: "**/*.html",

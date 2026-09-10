@@ -18,7 +18,7 @@ export function LibraryHost({
           ?.props
       : undefined);
   const content =
-    slug === "inspector" && props?.presentation !== "legacy" ? (
+    slug === "inspector" ? (
       <PreviewWorkspace inspector={children} render={() => null} />
     ) : slug === "metadata-row" && props?.presentation === "props" ? (
       <dl className="ce-props">{children}</dl>

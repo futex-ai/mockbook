@@ -114,3 +114,68 @@ These were reported before adoption and remain separate from its implementation.
    controls during restarts. **Recommended: A**, with supervisor ordering tests
    and a delayed-restart integration regression covering rebuild/reconfigure.
    See the full [runtime review](./component-explorer-runtime.md).
+
+## Initial Adoption Verification Evidence
+
+- Original 56 screen ids/routes and 112 viewport fragments retained. All 15
+  shared components have real screen consumers; 56 saved variants add 112
+  standalone fragments.
+- Direct-file screenshots cover all 224 design fragments. The initial extraction
+  preserved all 112 original views exactly. The portability fix subsequently
+  aligned native buttons with existing compact mobile comparison links in seven
+  views; the other 105 remain pixel-identical. The seven changes were visually
+  inspected. Evidence lives in `.context/design-library-audit/` and
+  `.context/design-library-ci-visual.log`.
+- Isolated source/CSS edits prove component-only impact, screen-owned data/slots,
+  stable identity/order/removal, metadata-only changes and conservative shared
+  resources. Serve and comparison agree and batch all 248 baseline views once;
+  referenced shared resources are cached and read once each.
+- Browser journeys cover actual nested usage, highlighting, history, local
+  edit/unset/reset, newly visible child styles and exported read-only variants.
+- Plain `npm run dev` in a fresh isolated copy with a committed registered
+  baseline reached HTTP readiness in 29.8 seconds including the package build.
+  Existing child readiness deadlines were unchanged. CSS watch updated direct
+  component membership without adding consumers; source watch rebuilt variants.
+  Evidence: `.context/design-library-startup.log` and its child log.
+
+- Initial `cargo xtask check` passed: 744 Node tests, 193 browser tests and four
+  Rust tests; dependency audit, formatting, lint, types, generated output and
+  packed-consumer checks also passed. Log: `.context/design-library-full-check.log`.
+- The first post-push review and earlier open follow-ups are recorded in
+  this review record, with solution
+  options and independently assessed recommendations. Review findings were not
+  automatically fixed.
+- The repeated complete gate passed with 744 Node tests, 194 browser tests and
+  four Rust tests. Dependency, formatting, lint, type, generated-output, package
+  and Rust checks also passed. Log: `.context/design-library-ci-full-check.log`.
+
+The portability follow-up `87df9b7` passed the required CI jobs on Node 22.14,
+Node 24, macOS and Windows, and its Pages deployment passed desktop/mobile
+published smoke checks. Its post-push `cargo xtask review` repeated the four
+Earlier Follow-ups above; it reported no additional findings. No review fixes
+were applied. CI run: [34506214953](https://github.com/futex-ai/mokabook/actions/runs/34506214953).
+
+## Footer And View-Control Normalization Verification
+
+The requested cleanup removes the legacy footer renderer, its schema fields and
+saved variant, segmented viewport/theme controls, and separate top-bar theme
+placement. The catalogue retains all 56 owning screen ids/routes and fifteen
+shared components, with 55 saved variants. Selected screens share the icon
+inspector and grouped header controls; comparison content stays in Details.
+
+- `cargo xtask check` passed: 747 Node tests, 200 browser tests and four Rust
+  tests. Dependency audit, formatting, lint, types, generated output, packed
+  consumers, Rust formatting/clippy and the Rust file-length audit also passed.
+  Log: `.context/design-modern-controls-final-check.log`.
+- Six new browser regressions cover every selected screen's footer and viewport
+  controls, native opening/closing without scripts, bounded scrolling, mobile
+  sheet expansion, desktop resizing and non-overlapping full-size previews.
+  Three new Node regressions reject the removed schema fields, saved variant
+  and legacy markup throughout the catalogue.
+- All 222 design fragments were opened directly from disk with scripts disabled,
+  checked for missing resources and document overflow, and captured for visual
+  inspection in both viewports. Evidence:
+  `.context/design-modern-controls-final-audit/` and its sibling `.log`.
+- The first full run exposed an obsolete assertion counting every shared resize
+  grip as a navigation grip. It now separately verifies navigation and inspector
+  handles; the focused rerun and complete gate pass.

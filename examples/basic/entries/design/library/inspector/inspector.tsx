@@ -1,6 +1,6 @@
 import { defineComponent, type ComponentProps } from "mokabook";
 import { libraryMetadata } from "../metadata.js";
-import { destination, text } from "../schemas.js";
+import { text } from "../schemas.js";
 import { InspectorView } from "./inspector.view.js";
 
 const propSchema = {
@@ -30,12 +30,7 @@ const propSchema = {
         values: ["info", "components", "props", "usage", "closed"],
       },
     },
-    presentation: { schema: { kind: "enum", values: ["tabs", "legacy"] } },
     sheetSize: { schema: { kind: "enum", values: ["compact", "expanded"] } },
-    legacyBehavior: {
-      schema: { kind: "enum", values: ["linked", "native", "evidence"] },
-    },
-    legacyDestination: destination,
   },
 } as const;
 const slots = ["info", "components", "props", "usage"] as const;
@@ -47,9 +42,7 @@ const sample = {
     { id: "usage", label: "Usage" },
   ],
   initial: "info",
-  presentation: "tabs",
   sheetSize: "compact",
-  legacyBehavior: "native",
   info: <p>A shared action with an optional destination and hint.</p>,
   props: (
     <dl className="ce-props">
@@ -81,14 +74,6 @@ export const inspector = defineComponent({
         value,
       })),
     },
-    presentation: {
-      kind: "select",
-      label: "Presentation",
-      options: [
-        { label: "Tabs", value: "tabs" },
-        { label: "Legacy details", value: "legacy" },
-      ],
-    },
     sheetSize: {
       kind: "select",
       label: "Mobile sheet",
@@ -103,10 +88,5 @@ export const inspector = defineComponent({
     { id: "details", title: "Details", props: sample },
     { id: "props", title: "Props", props: { ...sample, initial: "props" } },
     { id: "closed", title: "Closed", props: { ...sample, initial: "closed" } },
-    {
-      id: "legacy-details",
-      title: "Legacy details",
-      props: { ...sample, presentation: "legacy" },
-    },
   ],
 });

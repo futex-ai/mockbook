@@ -4,7 +4,7 @@
 
 Implemented in the basic consumer. All 56 existing design screens retain their
 112 mobile/desktop fragments and now record shared component instances. Fifteen
-registered components and 56 saved variants live under Design → Shared components,
+registered components and 55 saved variants live under Design → Shared components,
 alongside the separate Example Action and Toolbar.
 
 This contract and the [library inventory](./mokabook-design-component-library.md)
@@ -30,8 +30,11 @@ fixtures keep their separate roles. New usage in the outer inspector comes from
 the real generated manifest, not from those pictured fixtures.
 
 All existing design ids, routes, relationships, mobile/desktop artboards, copy,
-links and supported native controls remain. No new feature redesign is part of
-the migration. New component entry metadata belongs outside the rendered sample;
+links and supported native controls remain. The requested normalization replaces
+the legacy Details disclosure and segmented viewport/theme controls throughout
+the catalogue with the shared icon inspector and view toolbar. The legacy footer
+variant and its presentation/behavior fields are removed, not retained as options.
+New component entry metadata belongs outside the rendered sample;
 samples contain no implementation notes, environment badges or extra footers.
 
 ## Catalogue And Source Ownership
@@ -75,6 +78,22 @@ layout helpers and owning screen components as ordinary composition. Register
 their meaningful constituent controls, panels and frames. A whole-artboard
 component would make initial highlighting select nearly the entire screen and
 would obscure the screen's independent content boundary.
+
+Browse and Changes share the same bounded preview/inspector layout as component
+designs. Desktop keeps the divider resize grip; mobile uses the same icon strip
+and compact/expanded sheet. Only panel content and the preview scroll. Opening
+and closing Details acts locally through its icon; its canonical owning artboard
+remains in the catalogue. Preserve descriptions, metadata, tags and comparison
+evidence when moving the previous disclosure content into its Details slot.
+
+Selected-screen view options appear once, together in the header: a viewport
+dropdown, a theme icon and highlighting where relevant. Remove the old top-bar
+theme placement. Authored light/dark links retain their canonical destinations;
+unsupported transitions stay disabled. Viewport changes select the actual
+mobile/desktop previews without scrolling the whole page. Simultaneous previews
+reserve their intrinsic minimum width and wrap when needed; full-size phone
+frames must never overlap adjacent desktop content. Comparison mode
+segments remain comparison controls and are not removed by this normalization.
 
 Every owning screen keeps its separate desktop/mobile React components. Flows
 continue to compose their owning screen components, with links back to those

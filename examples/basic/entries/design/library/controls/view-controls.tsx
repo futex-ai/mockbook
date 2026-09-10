@@ -1,7 +1,6 @@
 import { defineComponent, type ComponentProps } from "mokabook";
 import { libraryMetadata } from "../metadata.js";
 import {
-  flag,
   optionalFlag,
   previewViewport,
   scheme,
@@ -19,13 +18,7 @@ const propSchema = {
       schema: { kind: "enum", values: ["empty", "unavailable", "comparison"] },
       optional: true,
     },
-    presentation: {
-      schema: {
-        kind: "enum",
-        values: ["icons", "viewport-segments", "scheme-segments"],
-      },
-    },
-    accessible: flag,
+    schemeDisabled: optionalFlag,
     destinations: schemeDestinations,
   },
 } as const;
@@ -33,8 +26,6 @@ export type ViewControlsProps = ComponentProps<typeof propSchema, []>;
 const sample = {
   selection: "desktop",
   scheme: "light",
-  presentation: "icons",
-  accessible: true,
   destinations: {},
 } as const;
 export const viewControls = defineComponent({

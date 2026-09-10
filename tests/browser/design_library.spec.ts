@@ -100,7 +100,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
       }
     });
 
-    test("the legacy footer sample keeps its open content visible", async ({
+    test("the icon footer sample keeps its open content visible", async ({
       page,
     }) => {
       const entry = manifest.entries.find(
@@ -109,8 +109,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
       if (entry?.kind !== "component") throw new Error("Missing footer panel");
       await page.goto(
         fileUrl(
-          entry.variants.find((variant) => variant.id === "legacy-details")!
-            .fragments[viewport],
+          entry.variants.find((variant) => variant.id === "details")!.fragments[
+            viewport
+          ],
         ),
       );
       await expect(

@@ -9,8 +9,6 @@ import {
   destination,
   flag,
   optionalText,
-  scheme,
-  schemeDestinations,
   tagRecords,
   text,
 } from "../schemas.js";
@@ -28,15 +26,12 @@ const propSchema = {
     },
     menu: { schema: { kind: "enum", values: ["none", "open", "close"] } },
     menuPresentation: { schema: { kind: "enum", values: ["text", "icon"] } },
-    scheme: { ...scheme, optional: true },
-    accessible: flag,
     tags: tagRecords,
     activeTag: optionalText,
     pickerOpen: flag,
     brandDestination: destination,
     menuDestination: destination,
     pickerDestination: destination,
-    schemeDestinations,
   },
 } as const;
 export type TopBarProps = ComponentProps<typeof propSchema, []>;
@@ -44,13 +39,11 @@ const sample = {
   placeholder: "Search screens…",
   menu: "open",
   menuPresentation: "text",
-  accessible: false,
   tags: libraryTags,
   pickerOpen: false,
   brandDestination: DESTINATIONS.home,
   menuDestination: DESTINATIONS.navigation,
   pickerDestination: DESTINATIONS.tagPicker,
-  schemeDestinations: {},
 } as const;
 export const topBar = defineComponent({
   ...libraryMetadata(
@@ -70,11 +63,6 @@ export const topBar = defineComponent({
         label: value,
         value,
       })),
-    },
-    scheme: {
-      kind: "select",
-      label: "Theme",
-      options: scheme.schema.values.map((value) => ({ label: value, value })),
     },
   },
   render: (props: TopBarProps, context: ComponentRenderContext) => (

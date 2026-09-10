@@ -1,7 +1,7 @@
 import { useDesignStyle } from "../style_context.js";
 import { useId } from "react";
 import { ViewIcon } from "../../components/parts/view_icons.js";
-import { SelectionControl } from "../../parts/selection_control.js";
+import { DesignLink } from "../../parts/design_navigation.js";
 import type { ViewControlsProps } from "./view-controls.js";
 
 const reasons = {
@@ -14,51 +14,20 @@ const viewportOptions = [
   ["desktop", "Desktop"],
   ["both", "Both"],
 ] as const;
-const schemeOptions = [
-  ["light", "Light"],
-  ["dark", "Dark"],
-] as const;
-
 export function ViewControlsView({
   selection,
   scheme,
   highlight,
   unavailable,
-  presentation,
-  accessible,
+  schemeDisabled,
   destinations,
 }: ViewControlsProps) {
   useDesignStyle("view-controls");
   const reasonId = useId();
-  if (presentation !== "icons") {
-    const schemeOnly = presentation === "scheme-segments";
-    return (
-      <span
-        className="mbk-seg"
-        role="group"
-        aria-label={schemeOnly ? "Color scheme" : "Viewport"}
-      >
-        {schemeOnly
-          ? schemeOptions.map(([key, label]) => (
-              <SelectionControl
-                key={key}
-                active={key === scheme}
-                accessible={accessible}
-                label={label}
-                to={key === scheme ? undefined : destinations[key]}
-              />
-            ))
-          : viewportOptions.map(([key, label]) => (
-              <SelectionControl
-                key={key}
-                active={key === selection}
-                accessible={accessible}
-                label={label}
-              />
-            ))}
-      </span>
-    );
-  }
+  const nextScheme = scheme === "light" ? "dark" : "light";
+  const schemeDestination = schemeDisabled
+    ? undefined
+    : destinations[nextScheme];
   const reason = unavailable ? reasons[unavailable] : undefined;
   return (
     <div
@@ -86,20 +55,39 @@ export function ViewControlsView({
           ))}
         </select>
       </label>
-      <label
-        className="ce-icon-control ce-theme-control"
-        title="Toggle light/dark mode"
-      >
-        <input
-          type="checkbox"
-          role="switch"
-          className="ce-theme-toggle"
-          aria-label="Dark mode"
-          defaultChecked={scheme === "dark"}
-        />
-        <ViewIcon kind="light" />
-        <ViewIcon kind="dark" />
-      </label>
+      {schemeDestination ? (
+        <DesignLink to={schemeDestination}>
+          <span
+            className="ce-icon-control ce-theme-control"
+            data-scheme={scheme}
+            aria-label={`Switch to ${nextScheme} mode`}
+            title={`Switch to ${nextScheme} mode`}
+          >
+            <ViewIcon kind="light" />
+            <ViewIcon kind="dark" />
+          </span>
+        </DesignLink>
+      ) : (
+        <label
+          className="ce-icon-control ce-theme-control"
+          title={
+            schemeDisabled
+              ? "No alternate theme for this view"
+              : "Toggle light/dark mode"
+          }
+        >
+          <input
+            type="checkbox"
+            role="switch"
+            className="ce-theme-toggle"
+            aria-label="Dark mode"
+            defaultChecked={scheme === "dark"}
+            disabled={schemeDisabled}
+          />
+          <ViewIcon kind="light" />
+          <ViewIcon kind="dark" />
+        </label>
+      )}
       {highlight === undefined ? null : (
         <label
           className="ce-icon-control ce-highlight-control"

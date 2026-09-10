@@ -44,8 +44,6 @@ for (const viewport of ["mobile", "desktop"] as const) {
         "flow-step-link",
         ["design-browse-screen", "design-browse-details-screen"],
       ],
-      ["design-browse-screen", "mbk-details-bar", ["design-browse-details"]],
-      ["design-browse-details", "mbk-details-bar", ["design-browse-screen"]],
       ["design-browse-details", "flow", ["design-browse-use-case"]],
     ] as const) {
       const { document } = await designDocument(source, viewport);

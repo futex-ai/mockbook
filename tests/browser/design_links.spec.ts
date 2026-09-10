@@ -23,7 +23,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
     await expect(page).toHaveURL(
       /\/view\/design\/browse\/views\/screen\.html$/,
     );
-    const details = frame.locator(".mbk-shot-link").first();
+    const details = frame.locator(".mbk-shot-link:visible").first();
     await frame.locator(".mbk-brand").focus();
     await tabTo(page, details);
     await expect(details).toHaveCSS("outline-style", "solid");
@@ -46,7 +46,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
     );
     await page.goForward();
     await expect(row).toHaveAttribute("aria-current", "page");
-    await frame.locator(".mbk-shot-link").first().click();
+    await frame.locator(".mbk-shot-link:visible").first().click();
     await expect(page).toHaveURL(
       /\/view\/design\/browse\/views\/screen\.html$/,
     );
@@ -72,23 +72,17 @@ for (const viewport of ["mobile", "desktop"] as const) {
     await page.goto("/view/design/browse/views/screen.html");
     await chooseViewport(page, viewport);
     const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
-    await frame
-      .getByRole("group", { name: "Color scheme" })
-      .getByRole("link", { name: "Dark" })
-      .click();
+    await frame.getByRole("link", { name: "Switch to dark mode" }).click();
     await expect(page).toHaveURL(
       /\/design\/browse\/states\/dark-scheme\.html$/,
     );
-    await frame.locator(".mbk-shot-link").first().click();
+    await frame.locator(".mbk-shot-link:visible").first().click();
     await expect(page).toHaveURL(/\/design\/browse\/states\/light-only\.html$/);
-    await frame
-      .getByRole("group", { name: "Color scheme" })
-      .getByRole("link", { name: "Light" })
-      .click();
+    await frame.getByRole("link", { name: "Switch to light mode" }).click();
     await expect(page).toHaveURL(
       /\/design\/browse\/views\/details-screen\.html$/,
     );
-    await frame.locator(".mbk-shot-link").first().click();
+    await frame.locator(".mbk-shot-link:visible").first().click();
     await expect(page).toHaveURL(/\/design\/browse\/views\/screen\.html$/);
     await frame.locator(".mbk-search-tag").click();
     await expect(page).toHaveURL(

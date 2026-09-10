@@ -14,36 +14,40 @@ import {
 } from "./parts/mini_screens.js";
 
 function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
-  const compact = viewport === "mobile";
   return (
     <ComparePage
       design={DESTINATIONS.changed}
-      colorScheme="light"
       activeTitle="Welcome"
       subject="welcome"
       idChip="example-welcome"
       state="changed"
       title="Welcome"
       viewport={viewport}
-    >
-      <CompareGrid>
-        <Pane label="Before" side="before">
-          <FramedShot address="example.test/welcome" viewport={viewport}>
-            <MiniWelcome compact={compact} />
-          </FramedShot>
-        </Pane>
-        <Pane label="Current" side="after">
-          <FramedShot address="example.test/welcome" viewport={viewport}>
-            <MiniWelcome compact={compact} revised />
-          </FramedShot>
-        </Pane>
-      </CompareGrid>
-    </ComparePage>
+      render={(previewViewport) => (
+        <CompareGrid>
+          <Pane label="Before" side="before">
+            <FramedShot
+              address="example.test/welcome"
+              viewport={previewViewport}
+            >
+              <MiniWelcome compact={previewViewport === "mobile"} />
+            </FramedShot>
+          </Pane>
+          <Pane label="Current" side="after">
+            <FramedShot
+              address="example.test/welcome"
+              viewport={previewViewport}
+            >
+              <MiniWelcome compact={previewViewport === "mobile"} revised />
+            </FramedShot>
+          </Pane>
+        </CompareGrid>
+      )}
+    />
   );
 }
 
 function AddedCompare({ viewport }: { viewport: CompareViewport }) {
-  const compact = viewport === "mobile";
   return (
     <ComparePage
       design={DESTINATIONS.added}
@@ -53,25 +57,28 @@ function AddedCompare({ viewport }: { viewport: CompareViewport }) {
       state="added"
       title="Details"
       viewport={viewport}
-    >
-      <CompareGrid>
-        <MissingPane
-          label="Before"
-          message="This screen was added on this branch."
-          side="before"
-        />
-        <Pane label="Current" side="after">
-          <FramedShot address="example.test/details" viewport={viewport}>
-            <MiniDetails compact={compact} />
-          </FramedShot>
-        </Pane>
-      </CompareGrid>
-    </ComparePage>
+      render={(previewViewport) => (
+        <CompareGrid>
+          <MissingPane
+            label="Before"
+            message="This screen was added on this branch."
+            side="before"
+          />
+          <Pane label="Current" side="after">
+            <FramedShot
+              address="example.test/details"
+              viewport={previewViewport}
+            >
+              <MiniDetails compact={previewViewport === "mobile"} />
+            </FramedShot>
+          </Pane>
+        </CompareGrid>
+      )}
+    />
   );
 }
 
 function RemovedCompare({ viewport }: { viewport: CompareViewport }) {
-  const compact = viewport === "mobile";
   return (
     <ComparePage
       design={DESTINATIONS.removed}
@@ -81,25 +88,28 @@ function RemovedCompare({ viewport }: { viewport: CompareViewport }) {
       state="removed"
       title="Farewell"
       viewport={viewport}
-    >
-      <CompareGrid>
-        <Pane label="Before" side="before">
-          <FramedShot address="example.test/farewell" viewport={viewport}>
-            <MiniFarewell compact={compact} />
-          </FramedShot>
-        </Pane>
-        <MissingPane
-          label="Current"
-          message="This screen was removed on this branch."
-          side="after"
-        />
-      </CompareGrid>
-    </ComparePage>
+      render={(previewViewport) => (
+        <CompareGrid>
+          <Pane label="Before" side="before">
+            <FramedShot
+              address="example.test/farewell"
+              viewport={previewViewport}
+            >
+              <MiniFarewell compact={previewViewport === "mobile"} />
+            </FramedShot>
+          </Pane>
+          <MissingPane
+            label="Current"
+            message="This screen was removed on this branch."
+            side="after"
+          />
+        </CompareGrid>
+      )}
+    />
   );
 }
 
 function DifferenceCompare({ viewport }: { viewport: CompareViewport }) {
-  const compact = viewport === "mobile";
   return (
     <ComparePage
       design={DESTINATIONS.difference}
@@ -110,49 +120,63 @@ function DifferenceCompare({ viewport }: { viewport: CompareViewport }) {
       state="changed"
       title="Welcome"
       viewport={viewport}
-    >
-      <CompareGrid difference>
-        <Pane label="Before" side="before">
-          <FramedShot address="example.test/welcome" viewport={viewport}>
-            <MiniWelcome compact={compact} />
-          </FramedShot>
-        </Pane>
-        <Pane label="Current" side="after">
-          <FramedShot address="example.test/welcome" viewport={viewport}>
-            <MiniWelcome compact={compact} revised />
-          </FramedShot>
-        </Pane>
-      </CompareGrid>
-    </ComparePage>
+      render={(previewViewport) => (
+        <CompareGrid difference>
+          <Pane label="Before" side="before">
+            <FramedShot
+              address="example.test/welcome"
+              viewport={previewViewport}
+            >
+              <MiniWelcome compact={previewViewport === "mobile"} />
+            </FramedShot>
+          </Pane>
+          <Pane label="Current" side="after">
+            <FramedShot
+              address="example.test/welcome"
+              viewport={previewViewport}
+            >
+              <MiniWelcome compact={previewViewport === "mobile"} revised />
+            </FramedShot>
+          </Pane>
+        </CompareGrid>
+      )}
+    />
   );
 }
 
 function DarkViewCompare({ viewport }: { viewport: CompareViewport }) {
-  const compact = viewport === "mobile";
   return (
     <ComparePage
       design={DESTINATIONS.darkChanged}
       activeTitle="Welcome"
       subject="welcome"
-      colorScheme="dark"
       idChip="example-welcome"
       state="changed"
       title="Welcome"
       viewport={viewport}
-    >
-      <CompareGrid>
-        <Pane label="Before" side="before">
-          <FramedShot address="example.test/welcome" dark viewport={viewport}>
-            <MiniWelcome compact={compact} />
-          </FramedShot>
-        </Pane>
-        <Pane label="Current" side="after">
-          <FramedShot address="example.test/welcome" dark viewport={viewport}>
-            <MiniWelcome compact={compact} revised />
-          </FramedShot>
-        </Pane>
-      </CompareGrid>
-    </ComparePage>
+      render={(previewViewport) => (
+        <CompareGrid>
+          <Pane label="Before" side="before">
+            <FramedShot
+              address="example.test/welcome"
+              dark
+              viewport={previewViewport}
+            >
+              <MiniWelcome compact={previewViewport === "mobile"} />
+            </FramedShot>
+          </Pane>
+          <Pane label="Current" side="after">
+            <FramedShot
+              address="example.test/welcome"
+              dark
+              viewport={previewViewport}
+            >
+              <MiniWelcome compact={previewViewport === "mobile"} revised />
+            </FramedShot>
+          </Pane>
+        </CompareGrid>
+      )}
+    />
   );
 }
 
@@ -202,7 +226,7 @@ export const reviewOutcomeScreens = [
     id: "design-review-dark-scheme",
     mobile: <DarkViewCompare viewport="mobile" />,
     rationale:
-      "A screen with a dark render uses the normal Light | Dark and viewport controls while the compact diff band selects its display mode. Dark reaches only inside the compared device screens (--mbk-dark-screen-bg #121514, --mbk-dark-screen-ink #eef1ef); the changed-screens navigation, head band, and the segments themselves stay light. A screen that renders in light only shows no scheme segment, and the head band never repeats the selected scheme in its title.",
+      "A screen with a dark render uses the grouped theme icon and viewport dropdown while the compact diff band selects its display mode. Dark reaches only inside the compared device screens (--mbk-dark-screen-bg #121514, --mbk-dark-screen-ink #eef1ef); the changed-screens navigation, head band, and comparison controls stay light. A screen that renders in light only keeps the theme icon disabled when no alternate state is available, and the head band never repeats the selected scheme in its title.",
     slug: "dark-scheme",
     title: "Dark view compare",
   }),

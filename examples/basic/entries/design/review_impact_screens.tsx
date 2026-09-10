@@ -1,4 +1,5 @@
 import { screen } from "mokabook";
+import { PreviewWorkspace } from "./components/parts/workspace.js";
 
 import { ComparisonStage } from "./parts/compare.js";
 import { DESTINATIONS } from "./parts/destinations.js";
@@ -11,7 +12,7 @@ import {
   SharedImpactCard,
 } from "./parts/review.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
-import { BrowserFrame, PhoneFrame, Stage } from "./parts/stage.js";
+import { BrowserFrame, PhoneFrame } from "./parts/stage.js";
 
 type ReviewViewport = "desktop" | "mobile";
 
@@ -46,12 +47,19 @@ function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
         title="Welcome"
         action={<ViewSwitch active={viewport} />}
       />
-      <ComparisonStage state="unchanged" viewport={viewport}>
-        <WelcomeShot viewport={viewport} comparison={false} />
-      </ComparisonStage>
-      <DetailsPanel
-        subject="welcome"
-        comparisonEvidence={<SharedImpactCard />}
+      <PreviewWorkspace
+        stage={false}
+        inspector={
+          <DetailsPanel
+            subject="welcome"
+            comparisonEvidence={<SharedImpactCard />}
+          />
+        }
+        render={(previewViewport) => (
+          <ComparisonStage state="unchanged" viewport={previewViewport}>
+            <WelcomeShot viewport={previewViewport} comparison={false} />
+          </ComparisonStage>
+        )}
       />
     </Shell>
   );
@@ -70,12 +78,19 @@ function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
         idChip="example-welcome"
         title="Welcome"
       />
-      <ComparisonStage state="ignored-only" viewport={viewport}>
-        <WelcomeShot viewport={viewport} comparison={false} />
-      </ComparisonStage>
-      <DetailsPanel
-        subject="welcome"
-        comparisonEvidence={<IgnoredImpactCard />}
+      <PreviewWorkspace
+        stage={false}
+        inspector={
+          <DetailsPanel
+            subject="welcome"
+            comparisonEvidence={<IgnoredImpactCard />}
+          />
+        }
+        render={(previewViewport) => (
+          <ComparisonStage state="ignored-only" viewport={previewViewport}>
+            <WelcomeShot viewport={previewViewport} comparison={false} />
+          </ComparisonStage>
+        )}
       />
     </Shell>
   );
@@ -99,10 +114,12 @@ function EmptyChanges({ viewport }: { viewport: ReviewViewport }) {
         idChip="example-welcome"
         title="Welcome"
       />
-      <Stage>
-        <WelcomeShot viewport={viewport} comparison={false} />
-      </Stage>
-      <DetailsPanel subject="welcome" />
+      <PreviewWorkspace
+        inspector={<DetailsPanel subject="welcome" />}
+        render={(previewViewport) => (
+          <WelcomeShot viewport={previewViewport} comparison={false} />
+        )}
+      />
     </Shell>
   );
 }

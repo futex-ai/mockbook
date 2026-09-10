@@ -90,15 +90,6 @@ clip-path: inset(50%);
 pointer-events: none;
 }
 
-.ce-viewport-control:has(option[value="mobile"]:checked)
-  [data-view-icon="mobile"],
-.ce-viewport-control:has(option[value="desktop"]:checked)
-  [data-view-icon="desktop"],
-.ce-viewport-control:has(option[value="both"]:checked) [data-view-icon="both"],
-.ce-theme-control:has(:checked) [data-view-icon="dark"] {
-display: block;
-}
-
 .ce-design:has(.ce-theme-toggle:checked) {
 --ce-surface: #1e2521;
   --ce-text: #edf3ef;
@@ -115,4 +106,18 @@ width: auto;
 .ce-design .mbk-shell--mobile .ce-icon-control {
 height: 40px;
   min-width: 40px;
+}
+
+.ce-viewport-control [data-view-icon]:not([data-view-icon="chevron"]),
+.ce-theme-control [data-view-icon="dark"],
+.ce-theme-control:has(:checked) [data-view-icon="light"],
+.ce-theme-control[data-scheme="dark"] [data-view-icon="light"] {
+  display: none;
+}
+.ce-viewport-control:has(option[value="mobile"]:checked) [data-view-icon="mobile"],
+.ce-viewport-control:has(option[value="desktop"]:checked) [data-view-icon="desktop"],
+.ce-viewport-control:has(option[value="both"]:checked) [data-view-icon="both"],
+.ce-theme-control:has(:checked) [data-view-icon="dark"],
+.ce-theme-control[data-scheme="dark"] [data-view-icon="dark"] {
+  display: block;
 }

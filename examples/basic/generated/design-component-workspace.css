@@ -4,6 +4,9 @@
   min-height: 0;
 }
 .ce-design .mbk-main {
+  overflow: auto;
+}
+.ce-design .mbk-main:has(> .ce-workspace) {
   overflow: hidden;
 }
 .ce-design .mbk-topbar,
@@ -135,6 +138,9 @@
 }
 .ce-preview-view[data-preview-viewport="desktop"] {
   min-width: 720px;
+}
+.ce-preview-view[data-preview-viewport="mobile"] {
+  min-width: min-content;
 }
 .ce-design:has(.ce-viewport-select option[value="mobile"]:checked)
   [data-preview-viewport="mobile"],

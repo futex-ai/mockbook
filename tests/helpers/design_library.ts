@@ -15,7 +15,7 @@ export const designLibrary = [
   ["controls", "tag-picker", ["all", "selected", "empty"]],
   ["controls", "tag-chip", ["default", "selected", "inactive"]],
   ["controls", "change-status", ["unmodified", "added", "changed", "removed"]],
-  ["inspector", "inspector", ["details", "props", "closed", "legacy-details"]],
+  ["inspector", "inspector", ["details", "props", "closed"]],
   ["inspector", "metadata-row", ["text", "code", "linked", "tags"]],
   [
     "inspector",

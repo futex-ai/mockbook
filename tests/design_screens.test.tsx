@@ -79,7 +79,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       assert.equal(
         elements(
           document,
-          (node) => attribute(node, "aria-label") === "Color scheme",
+          (node) => attribute(node, "aria-label") === "Switch to dark mode",
         ).length,
         1,
         id,

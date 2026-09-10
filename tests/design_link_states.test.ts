@@ -27,17 +27,20 @@ for (const viewport of ["mobile", "desktop"] as const) {
       ["design-review-changed", "design-review-dark-scheme"],
     ]) {
       for (const [source, target, label] of [
-        [light!, dark!, "Dark"],
-        [dark!, light!, "Light"],
+        [light!, dark!, "Switch to dark mode"],
+        [dark!, light!, "Switch to light mode"],
       ]) {
         const { document } = await designDocument(source!, viewport);
         const group = elements(
           document,
-          (node) => attribute(node, "aria-label") === "Color scheme",
+          (node) => attribute(node, "aria-label") === "Preview options",
         )[0];
         assert.ok(group);
         assert.deepEqual(
-          destinations(elements(group, (node) => node.tagName === "a")),
+          elements(group, (node) => node.tagName === "a").map((node) => [
+            attribute(node, "aria-label"),
+            attribute(node, "data-mokabook-link"),
+          ]),
           [[label, target]],
         );
       }
@@ -96,7 +99,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
         source,
       );
       assert.equal(
-        attribute(byClass(document, "mbk-details-bar")[0]!, "href"),
+        attribute(
+          elements(document, (node) => node.tagName === "summary")[0]!,
+          "href",
+        ),
         undefined,
         source,
       );

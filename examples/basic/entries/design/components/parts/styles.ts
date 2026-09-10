@@ -4,12 +4,15 @@ export const designBaseStyles = [
   "design-stage.css",
   "design-review.css",
 ];
+export const workspaceLayoutStyles = [
+  "design-component-inspector.css",
+  "design-component-workspace.css",
+];
 export const componentLayoutStyles = [
   "design-components.css",
   "design-component-inspection.css",
   "design-component-details.css",
-  "design-component-inspector.css",
-  "design-component-workspace.css",
+  ...workspaceLayoutStyles,
   "design-component-view.css",
 ];
 

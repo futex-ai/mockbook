@@ -2,7 +2,7 @@
 
 ## Outcome And Status
 
-Status: implemented and reviewed; resolving cross-platform verification failures.
+Status: implementation and local verification complete; final delivery review pending.
 Give Mokabook's own design screens real shared component pages, saved
 variants, local controls, generated usage and reliable change attribution.
 
@@ -29,7 +29,8 @@ Contracts:
   authoring marker currently cannot contain a component entry.
 - Keep whole-screen scaffolds, scenario composition, miniature subject screens
   and fixture content separate. Explicit data and slots preserve screen-owned
-  changes and useful highlighting. Preserve both legacy and newer presentations.
+  changes and useful highlighting. Initial adoption preserved both presentations;
+  milestone 9 supersedes that baseline with the requested icon-only cleanup.
 - This is consumer/mockup work under `examples/basic`, not a rewrite of the
   actual package shell. No new dependencies or package API are required by the
   inspected design. UI/mockup milestones below contain no backend work.
@@ -235,7 +236,7 @@ loading after the workspace rule; the original screen did not have this failure.
       standalone variants; rerun mobile close/reopen and resize regressions.
 - [x] Rebuild output, repeat the direct-file visual audit and document the order.
 
-## Milestone 8: Verify portable gallery layout — in progress
+## Milestone 8: Verify portable gallery layout — completed
 
 Tags: mockup
 
@@ -250,9 +251,40 @@ checks distinguish catalogue build time from individual browser interactions.
       asserting its state; preserve the existing hidden-viewport expectations.
 - [x] Run focused browser checks and inspect changed samples directly from disk.
 - [x] Repeat the complete local gate after the portability fixes.
-- [ ] Verify both supported Node CI jobs after the push.
+- [x] Verify both supported Node CI jobs after the push.
 
-## Milestone 9: Validate and deliver
+## Milestone 9: Normalize all footers and view controls
+
+Tags: mockup
+
+Outcome: every selected-screen design uses the shared icon footer and grouped
+view controls.
+The user explicitly authorized removal of the legacy disclosure footer, its
+saved variant, and the old segmented viewport/theme controls on 10 September.
+
+- [x] Update contracts and add failing catalogue/browser regressions for the
+      removed props, variants and markup before changing the implementation.
+- [x] Delete the legacy footer render paths, schema fields, saved variant and
+      obsolete chrome styles; preserve its details and comparison content.
+- [x] Share the bounded preview/inspector layout with all Browse/Changes
+      designs, including desktop resizing and mobile sheets. Keep flows and
+      empty pages scrollable without adding irrelevant panels.
+- [x] Remove segmented viewport/theme presentations and top-bar theme controls;
+      use the shared icon group once per selected screen. Preserve real theme
+      navigation, unavailable states and working viewport selection.
+- [x] Preserve all owning screen ids/routes and incoming navigation; opening
+      or closing Details becomes native icon-panel behavior. Keep the canonical
+      open-details artboard reachable through the catalogue.
+- [x] Reproduce and prevent full-size phone overlap in Both using intrinsic
+      minimum widths in the shared layout, plus a browser geometry regression.
+- [x] Keep inspector-body navigation and tag chips as native `MockLink` anchors,
+      preserving valid interactive content inside the shared native panels.
+- [x] Rebuild and check generated output, inspect every changed viewport and
+      saved sample directly from disk, test resizing/navigation and update docs.
+- [ ] Run the complete gate, commit and push all source/generated changes, then
+      run the required review and report findings without automatic fixes.
+
+## Milestone 10: Validate and deliver
 
 Outcome: documented, reproducible implementation ready for review.
 
@@ -278,34 +310,8 @@ Outcome: documented, reproducible implementation ready for review.
 
 ## Verification Evidence
 
-- Original 56 screen ids/routes and 112 viewport fragments retained. All 15
-  shared components have real screen consumers; 56 saved variants add 112
-  standalone fragments.
-- Direct-file screenshots cover all 224 design fragments. The initial extraction
-  preserved all 112 original views exactly. The portability fix subsequently
-  aligned native buttons with existing compact mobile comparison links in seven
-  views; the other 105 remain pixel-identical. The seven changes were visually
-  inspected. Evidence lives in `.context/design-library-audit/` and
-  `.context/design-library-ci-visual.log`.
-- Isolated source/CSS edits prove component-only impact, screen-owned data/slots,
-  stable identity/order/removal, metadata-only changes and conservative shared
-  resources. Serve and comparison agree and batch all 248 baseline views once;
-  referenced shared resources are cached and read once each.
-- Browser journeys cover actual nested usage, highlighting, history, local
-  edit/unset/reset, newly visible child styles and exported read-only variants.
-- Plain `npm run dev` in a fresh isolated copy with a committed registered
-  baseline reached HTTP readiness in 29.8 seconds including the package build.
-  Existing child readiness deadlines were unchanged. CSS watch updated direct
-  component membership without adding consumers; source watch rebuilt variants.
-  Evidence: `.context/design-library-startup.log` and its child log.
-
-- Initial `cargo xtask check` passed: 744 Node tests, 193 browser tests and four
-  Rust tests; dependency audit, formatting, lint, types, generated output and
-  packed-consumer checks also passed. Log: `.context/design-library-full-check.log`.
-- The first post-push review and earlier open follow-ups are recorded in
-  [the review record](../docs/reviews/mokabook-design-components.md), with solution
-  options and independently assessed recommendations. Review findings were not
-  automatically fixed.
-- The repeated complete gate passed with 744 Node tests, 194 browser tests and
-  four Rust tests. Dependency, formatting, lint, type, generated-output, package
-  and Rust checks also passed. Log: `.context/design-library-ci-full-check.log`.
+The [review and verification record](../docs/reviews/mokabook-design-components.md)
+retains startup, source attribution, direct-file audit, complete gate and CI
+results. The normalization adds regression coverage for icon-only schemas,
+all-screen viewport selection, native panel opening/resizing and non-overlapping
+full-size phone/desktop previews.

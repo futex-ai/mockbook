@@ -21,11 +21,11 @@ Group indexes are pure galleries, containing at most five component entries.
 | chrome / catalogue-navigation | `parts/nav.tsx`, scenario data in `components/parts/navigation.tsx` | `all`, `changes`, `empty`, `drawer`                             |
 | chrome / screen-header        | `parts/shell.tsx: ScreenHead`                                       | `screen`, `component`, `changed`, `removed`                     |
 | controls / comparison-toolbar | `parts/compare.tsx: CompareToolbar`                                 | `current`, `side-by-side`, `overlay`, `difference`              |
-| controls / view-controls      | `components/parts/view_controls.tsx`, existing segmented switches   | `default`, `both`, `highlighted`, `unavailable`                 |
+| controls / view-controls      | `components/parts/view_controls.tsx`, `parts/shell.tsx: ViewSwitch` | `default`, `both`, `highlighted`, `unavailable`                 |
 | controls / tag-picker         | `parts/tag_filter.tsx: TagPicker`                                   | `all`, `selected`, `empty`                                      |
 | controls / tag-chip           | `parts/tag_filter.tsx: TagChips`                                    | `default`, `selected`, `inactive`                               |
 | controls / change-status      | `components/parts/comparison_details.tsx: ChangeStatusBadge`        | `unmodified`, `added`, `changed`, `removed`                     |
-| inspector / inspector         | `parts/details.tsx`, `components/parts/inspector.tsx`               | `details`, `props`, `closed`, `legacy-details`                  |
+| inspector / inspector         | `parts/details.tsx`, `components/parts/inspector.tsx`               | `details`, `props`, `closed`                                    |
 | inspector / metadata-row      | `parts/metadata_row.tsx: MetaRow`, shared details/prop rows         | `text`, `code`, `linked`, `tags`                                |
 | inspector / prop-field        | `components/controls/parts/fields.tsx: field chrome`                | `text`, `boolean`, `invalid-number`, `select`, `optional-unset` |
 | preview / device-frame        | `parts/stage.tsx: PhoneFrame/BrowserFrame`                          | `phone`, `browser`, `dark`, `light-only`                        |
@@ -36,9 +36,9 @@ Group indexes are pure galleries, containing at most five component entries.
 Fixtures for each variant come from the corresponding existing screen state,
 assembled into complete explicit props at declaration time. They may reuse the
 same typed fixture values used by screen adapters. They never import/render the
-complete owning artboard. If an existing component needs a visual presentation
-mode to preserve a screen, represent that mode explicitly instead of changing
-the screen's approved design or making a second implementation.
+complete owning artboard. All selected-screen footers use the icon panel and all
+viewport/theme controls use the grouped icons. The legacy disclosure variant and
+segmented viewport/theme presentations are removed. Comparison-mode segments remain.
 
 ## Data, Slots And Controls
 
@@ -50,10 +50,9 @@ contract, never raw URLs or guessed labels. Existing resource/prop budgets apply
 Controls below use text, boolean, number and primitive enum selections only.
 
 1. **Top bar:** query and placeholder strings; menu state `none/open/close`;
-   existing text/icon menu presentation; optional selected `light/dark` scheme;
-   available tag records, optional active tag, picker-open and accessibility
-   flags; explicit navigation destinations. Controls: query, picker-open, menu
-   state and selected scheme. Brand/search structure belongs to this component;
+   existing text/icon menu presentation; available tag records, optional active
+   tag and picker-open flag; explicit navigation destinations. Controls: query,
+   picker-open and menu state. Theme controls belong in the screen header. Brand/search structure belongs to this component;
    it composes the registered picker and chip. Preserve compact mobile branding.
 2. **Catalogue navigation:** row records with stable key, label, kind
    `collection/screen/component/flow`, depth, optional count/open/destination;
@@ -73,10 +72,12 @@ Controls below use text, boolean, number and primitive enum selections only.
    depiction and current linked/native/inactive behavior for each screen family.
 5. **View controls:** selected preview `mobile/desktop/both`, depicted scheme,
    optional highlight state and unavailable reason `empty/unavailable/comparison`;
-   presentation `icons/viewport-segments/scheme-segments`, accessibility and
-   supported destinations. Controls: selection, scheme, highlight and reason.
-   Preserve existing icon groups and separate segmented placements through the
-   explicit presentations. Do not add a second viewport/theme control to a screen.
+   optional scheme-disabled state and supported theme destinations. Controls:
+   selection, scheme, highlight and reason. The single icon group lives in the
+   screen header: viewport dropdown, theme icon, and optional highlight toggle.
+   Authored theme pairs use canonical links; unsupported pairs stay disabled.
+   Component previews retain native local theme toggling. The dropdown controls
+   actual mobile/desktop previews inside the bounded scrolling workspace.
 6. **Tag picker:** tag records containing stable id, label and optional
    destination, plus optional active id. Controls: optional active tag using
    the existing forms/onboarding examples. Empty input follows the current hidden
@@ -88,13 +89,14 @@ Controls below use text, boolean, number and primitive enum selections only.
    It is a pictured badge; it does not set the actual outer component's change
    status, comparison eligibility or Changes membership.
 9. **Inspector:** ordered plain tabs with id/label, initial tab or `closed`,
-   presentation `tabs/legacy`, initial mobile-sheet size and explicit legacy
-   open/close destinations. Named `info`, `components`, `props`, `usage` slots
-   contain caller-owned bodies. Controls: initial tab, presentation and sheet
-   size. The sample initial-tab control offers only its supplied Details/Props/Usage
-   tabs and Closed. Available tabs follow the provided list; a legacy presentation uses
-   the Details slot. Preserve both existing disclosure and icon-panel behavior,
-   fixed icon strips, resizing and mobile bottom-sheet geometry.
+   initial mobile-sheet size and named `info`, `components`, `props`, `usage`
+   slots containing caller-owned bodies. Controls: initial tab and sheet size.
+   The sample initial-tab control offers only its supplied Details/Props/Usage
+   tabs and Closed. Available tabs follow the provided list. A screen with only
+   metadata supplies Details alone. Opening and closing tabs is native and keeps
+   the current screen and query. The shared workspace supplies desktop resizing
+   and the mobile bottom sheet; the icon strip stays fixed while content scrolls.
+   There are no legacy presentation, behavior or destination props.
 10. **Metadata row:** label plus a `children` slot for text, code, links or tags.
     Control: label. Keep the correct existing `div`/`dl` semantics through an
     explicit `metadata/props` presentation. Registered chips may be supplied by
@@ -161,5 +163,5 @@ The host must not supply hidden scenario data or another full-screen component.
 Adoption tests enumerate the actual owning screen inventory, assert the expected
 component ids per viewport, and verify there are no calls bypassing the registered
 implementations at migrated composition points. Test ids/routes and behavior,
-not raw marker counts. Keep existing visual contracts and meaningful legacy
+not raw marker counts. Keep existing visual contracts and meaningful source
 attribution coverage when replacing old exact counts with the expanded inventory.

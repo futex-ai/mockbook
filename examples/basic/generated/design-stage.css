@@ -103,21 +103,16 @@
   color: #7fae95;
 }
 
-.mbk-details-bar .chev.open svg {
-  transform: rotate(90deg);
-}
-
 .mbk-details-body {
   display: grid;
   gap: 30px;
   grid-template-columns: 1.35fr 1fr;
-  padding: 6px 24px 20px;
+  padding: 0;
 }
 
 .mbk-shell--mobile .mbk-details-body {
   gap: 18px;
   grid-template-columns: 1fr;
-  padding: 6px 16px 18px;
 }
 
 .mbk-details-desc {
@@ -206,4 +201,12 @@
 
 .mbk-flow-screen .browser-frame {
   height: 640px;
+}
+
+.mbk-chip:is(a) {
+  text-decoration: none;
+}
+.mbk-chip:is(a):focus-visible {
+  outline: 2px solid var(--mbk-sage-deep);
+  outline-offset: 3px;
 }

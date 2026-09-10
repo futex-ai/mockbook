@@ -1,9 +1,4 @@
-.ce-viewport-control [data-view-icon]:not([data-view-icon="chevron"]),
-.ce-theme-control [data-view-icon="dark"],
-.ce-scheme-dark {
-  display: none;
-}
-.ce-theme-control:has(:checked) [data-view-icon="light"],
+.ce-scheme-dark,
 .ce-design:has(.ce-theme-toggle:checked) .ce-scheme-light {
   display: none;
 }

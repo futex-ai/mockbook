@@ -126,8 +126,7 @@ scrollable region scrolls internally:
   of overlapping mobile and desktop screen outlines), the product name in
   its own `mbk-name` span, a centred search field (max-width 440px, led by a
   15px stroked magnifier icon that holds its size while the field flexes)
-  that flexes down to whatever room the bar leaves it, the color-scheme control
-  when the catalogue has one. Below the breakpoint a menu button opens the
+  that flexes down to whatever room the bar leaves it. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
   retains space; the brand link keeps its accessible name. The decorative mark
   inherits the accent-contrast color and uses two-unit strokes on a 24-unit
@@ -192,15 +191,17 @@ scrollable region scrolls internally:
   a title row: 19px heading plus a monospace ID button labelled `#<id>`. The
   button uses the standard pointer cursor, moves down 1px with an inset shadow
   while pressed, and copies the unprefixed ID without navigating.
-  Screen routes place the right-aligned Mobile/Desktop/Both segmented viewport
-  control in this band.
+  Selected screen routes place one right-aligned group of icon controls here:
+  Mobile/Desktop/Both dropdown, theme toggle, and component highlighting when
+  applicable. Tooltips name each action; the top bar has no theme selector.
 - **Stage** — dotted-grid background (22px radial dots), centred frames with
   40px gap, internal `overflow: auto`, `MOBILE` / `DESKTOP` uppercase frame
   labels, and no separate toolbar above the grid.
-- **Details inspector** — collapsible `<details>` bottom panel, collapsed by
-  default until the user changes it, after which Browse retains that disclosure
-  across routes and reloads: a bar with a rotating chevron, `Details`, and a
-  muted hint; a two-column body (`1.35fr / 1fr`) with description and
+- **Details inspector** — the shared icon footer opens the chosen tab in place;
+  closing it leaves no icon selected. Desktop uses a centered grip on the divider
+  and mobile uses a rounded bottom sheet with an iOS-style grabber. Only panel
+  content scrolls within the bounded workspace. Details contains a two-column
+  body (`1.35fr / 1fr`) with description and
   `Why this screen —` rationale on the left and uppercase-labelled metadata
   rows (Source, Generated, Schemes, Tags, Related docs, Dependencies, Used by)
   on the right. Paths render as monospace chips; use cases render as pill chips
@@ -271,10 +272,10 @@ of those two.
   embedded document cannot occlude it:
   `color-mix(in srgb, var(--mbk-dark-screen-ink) 12%, var(--mbk-dark-screen-bg))`.
   The browser viewport needs none; its light bar already draws that edge.
-- **Control** — a `Light | Dark` `mbk-seg`, shown only when the catalogue has
-  dark fragments. At or above the breakpoint it sits in the top bar between the
-  search field and the end of the bar; below it the top bar has no room, so it
-  renders in the screen head band under the viewport control at full width.
+- **Control** — a theme icon beside the viewport dropdown in the screen header
+  at every width. Authored design pairs navigate through their canonical scheme
+  links. Component designs toggle their local preview; unavailable choices are
+  disabled with an explanation.
 - **Light-only screens** — a screen with no dark render keeps its light frames
   under a dark selection and states the fallback in its frame label, which
   gains an `mbk-frame-scheme-note` span so the caption reads
@@ -283,7 +284,7 @@ of those two.
   A use-case step frame carries the same fallback state but has no label, so it
   shows no scheme caption.
 - **Diff views** — keep the normal viewport and color-scheme controls in the
-  screen heading and top bar. The compact diff band changes only how the
+  screen heading. The compact diff band changes only how the
   selected screen is displayed. Light-only comparisons name their fallback;
   dark styling remains contained within device screens.
 
@@ -302,10 +303,8 @@ The shell has one breakpoint at **56.25rem (900px)**:
   flush under the bar's bottom border with only its lower corners rounded. The
   phone frame scales via `aspect-ratio: 390 / 844` within available width, the
   browser frame drops to 560px height, flow connector lines hide, the details
-  body stacks to one column, and the color-scheme control moves from the top
-  bar into the screen head band. When a screen head cannot fit its title and
-  the controls on one row, they wrap beneath the title and span the available
-  width, stacking the scheme control under the viewport control.
+  body stacks to one column inside its bottom sheet. The grouped view controls
+  stay together in the screen head band and wrap beneath the title when needed.
 
 `prefers-reduced-motion: reduce` disables shell transitions.
 

@@ -1,18 +1,13 @@
 import type { ReactNode } from "react";
+import { PreviewWorkspace } from "../components/parts/workspace.js";
 
 import { ComparisonStage } from "./compare.js";
 import type { DesignDestination } from "./destinations.js";
 import { DetailsPanel } from "./details.js";
 import { ReviewNav, type ReviewState } from "./review.js";
-import {
-  ScreenHead,
-  Shell,
-  ViewSwitch,
-  type ShellColorScheme,
-} from "./shell.js";
+import { ScreenHead, Shell, ViewSwitch } from "./shell.js";
 import { BrowserFrame, PhoneFrame } from "./stage.js";
 import type { ScreenSubject } from "./subjects.js";
-import { SchemeSwitch } from "./top_bar.js";
 
 export type CompareViewport = "desktop" | "mobile";
 
@@ -20,8 +15,7 @@ interface ComparePageProps {
   design: DesignDestination;
   subject: ScreenSubject;
   activeTitle: string;
-  children: ReactNode;
-  colorScheme?: ShellColorScheme | undefined;
+  render: (viewport: CompareViewport) => ReactNode;
   idChip: string;
   mode?: "difference" | "overlay" | "side-by-side";
   state: ReviewState;
@@ -33,8 +27,7 @@ export function ComparePage({
   design,
   activeTitle,
   subject,
-  children,
-  colorScheme,
+  render,
   idChip,
   mode,
   state,
@@ -45,7 +38,6 @@ export function ComparePage({
     <Shell
       design={design}
       viewport={viewport}
-      colorScheme={colorScheme}
       nav={
         viewport === "desktop" ? <ReviewNav activeTitle={activeTitle} /> : null
       }
@@ -54,23 +46,21 @@ export function ComparePage({
         comparisons={
           state === "added" || state === "changed" || state === "removed"
         }
-        action={
-          <>
-            <ViewSwitch active={viewport} />
-            {colorScheme && viewport === "mobile" ? (
-              <SchemeSwitch active={colorScheme} />
-            ) : null}
-          </>
-        }
+        action={<ViewSwitch active={viewport} />}
         comparisonMode={mode ?? "side-by-side"}
         crumbs={["Example", "Screens"]}
         idChip={idChip}
         title={title}
       />
-      <ComparisonStage state={state} viewport={viewport}>
-        {children}
-      </ComparisonStage>
-      <DetailsPanel subject={subject} comparisonEvidence={null} />
+      <PreviewWorkspace
+        stage={false}
+        inspector={<DetailsPanel subject={subject} comparisonEvidence={null} />}
+        render={(previewViewport) => (
+          <ComparisonStage state={state} viewport={previewViewport}>
+            {render(previewViewport)}
+          </ComparisonStage>
+        )}
+      />
     </Shell>
   );
 }

@@ -18,7 +18,9 @@ screens, stage/workspace layouts and fixture selection as ordinary composition.
 Pass actual screen data at the boundary: labels, destinations, query, selection,
 status and counts. Slots hold caller-owned JSX, including previews, inspector
 bodies and native inputs. Resolve scenario navigation in an adapter before
-calling a component; missing destinations stay non-links.
+calling a component; missing destinations stay non-links. Theme links belong in
+the header view controls. Use ordinary `MockLink` anchors for inspector-body
+links and tag chips so they can live inside native `details` panels.
 
 Use explicit semantic `mokabookInstance` names for repeated siblings. The
 `DesignInstances` context supplies a stable prefix for simultaneous viewport
@@ -39,6 +41,8 @@ An example-only edit must not report implementation impact on every consumer.
 
 Each view calls `useDesignStyle(slug)` when it renders visible owned markup.
 `style_files.ts` supplies the ordered candidate pool to the example configuration.
+The shared preview layout reserves intrinsic mobile widths so full-size phones
+cannot overlap desktop frames when Both is selected.
 The configuration orders shared base styles first, requested component sheets
 next, then context/layout overrides. Keep this explicit order: equal-specificity
 mobile rules must not override bounded workspace scrolling.
@@ -52,8 +56,9 @@ selectors and cross-component layout/state rules stay in the shared design CSS.
 Keep configured watch paths in sync when introducing an owned sheet.
 
 `host.tsx` supplies standalone layout and semantic parents without fixture data.
-The icon inspector uses the ordinary preview workspace for its resizer; the
-legacy disclosure renders outside that icon panel dock. Inline samples retain
+Every inspector uses the ordinary preview workspace for its resizer and mobile
+sheet. Only icon tabs are supported; the legacy disclosure and saved variant
+have been removed. Inline samples retain
 intrinsic width. Compact phone samples fit both viewports; full-size controls
 use the scrollable frame host. Every variant has actual mobile and desktop
 render contexts and uses the design catalogue's light-only scheme policy.
@@ -84,7 +89,7 @@ isolated copies. They distinguish implementation changes, saved metadata changes
 screen inputs/slots/order, exclusive CSS and conservative global dependencies.
 Serve and comparison share the same classification and bounded baseline reads.
 The full-consumer export browser suites give setup three minutes to prepare
-the baseline, export all 248 views and verify input stability.
+the baseline, export all 246 views and verify input stability.
 Individual browser interactions retain the default one-minute limit; this setup
 allowance does not change any server readiness deadline.
 

@@ -11,17 +11,12 @@ import { TopBar } from "./top_bar.js";
 /** Rendering target for a design mockup artboard. */
 export type ArtboardViewport = "desktop" | "mobile";
 
-/** Color scheme depicted as selected for the fragments on the stage. */
-export type ShellColorScheme = "dark" | "light";
-
 interface ShellProps {
   design: DesignDestination;
-  accessibleControls?: boolean | undefined;
   searchPlaceholder?: string | undefined;
   activeTag?: string | undefined;
   aside?: ReactNode;
   children: ReactNode;
-  colorScheme?: ShellColorScheme | undefined;
   menuPresentation?: "text" | "icon" | undefined;
   nav: ReactNode;
   searchValue?: string | undefined;
@@ -31,12 +26,10 @@ interface ShellProps {
 
 /** The Mokabook shell scaffold for one design mockup. */
 export function Shell({
-  accessibleControls,
   activeTag,
   aside,
   children,
   design,
-  colorScheme,
   menuPresentation,
   nav,
   searchValue,
@@ -47,21 +40,21 @@ export function Shell({
   if (viewport === "desktop") {
     return (
       <DesignNavigation design={design}>
-        <div className="mbk-shell mbk-shell--desktop">
-          <TopBar
-            menuPresentation={menuPresentation}
-            accessibleControls={accessibleControls}
-            searchPlaceholder={searchPlaceholder}
-            drawerOpen={design === DESTINATIONS.navigation}
-            activeTag={activeTag}
-            colorScheme={colorScheme}
-            searchValue={searchValue}
-            tagPickerOpen={tagPickerOpen}
-            viewport={viewport}
-          />
-          <div className="mbk-body">
-            {nav}
-            <main className="mbk-main">{children}</main>
+        <div className="ce-design">
+          <div className="mbk-shell mbk-shell--desktop">
+            <TopBar
+              menuPresentation={menuPresentation}
+              searchPlaceholder={searchPlaceholder}
+              drawerOpen={design === DESTINATIONS.navigation}
+              activeTag={activeTag}
+              searchValue={searchValue}
+              tagPickerOpen={tagPickerOpen}
+              viewport={viewport}
+            />
+            <div className="mbk-body">
+              {nav}
+              <main className="mbk-main">{children}</main>
+            </div>
           </div>
         </div>
       </DesignNavigation>
@@ -69,20 +62,20 @@ export function Shell({
   }
   return (
     <DesignNavigation design={design}>
-      <div className="mbk-shell mbk-shell--mobile">
-        <TopBar
-          menuPresentation={menuPresentation}
-          accessibleControls={accessibleControls}
-          searchPlaceholder={searchPlaceholder}
-          drawerOpen={design === DESTINATIONS.navigation}
-          activeTag={activeTag}
-          colorScheme={colorScheme}
-          searchValue={searchValue}
-          tagPickerOpen={tagPickerOpen}
-          viewport={viewport}
-        />
-        <main className="mbk-main">{children}</main>
-        {aside}
+      <div className="ce-design">
+        <div className="mbk-shell mbk-shell--mobile">
+          <TopBar
+            menuPresentation={menuPresentation}
+            searchPlaceholder={searchPlaceholder}
+            drawerOpen={design === DESTINATIONS.navigation}
+            activeTag={activeTag}
+            searchValue={searchValue}
+            tagPickerOpen={tagPickerOpen}
+            viewport={viewport}
+          />
+          <main className="mbk-main">{children}</main>
+          {aside}
+        </div>
       </div>
     </DesignNavigation>
   );
@@ -135,20 +128,21 @@ export function ScreenHead({
 }
 
 interface ViewSwitchProps {
-  accessible?: boolean;
   active: "both" | "desktop" | "mobile";
 }
 
 /** Viewport selection control shown in a selected screen header. */
-export function ViewSwitch({ active, accessible = false }: ViewSwitchProps) {
+export function ViewSwitch({ active }: ViewSwitchProps) {
+  const navigation = useDesignNavigation();
+  const scheme = navigation.scheme ?? "light";
+  const nextScheme = scheme === "light" ? "dark" : "light";
   return (
     <viewControls.Component
       mokabookInstance={useDesignInstance("viewport")}
       selection={active}
-      scheme="light"
-      presentation="viewport-segments"
-      accessible={accessible}
-      destinations={{}}
+      scheme={scheme}
+      schemeDisabled={!navigation.schemeLinks?.[nextScheme]}
+      destinations={navigation.schemeLinks ?? {}}
     />
   );
 }

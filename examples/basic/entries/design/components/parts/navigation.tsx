@@ -174,45 +174,40 @@ export function ExplorerShell({
     nodes: nodes(scenario, active, design),
   };
   return (
-    <div className="ce-design">
-      <Shell
-        menuPresentation="icon"
-        design={design}
-        accessibleControls
-        searchPlaceholder="Search catalogue…"
-        viewport={viewport}
-        nav={<NavTree {...navProps} />}
-      >
-        {viewport === "mobile" ? (
-          <nav className="ce-mobile-location" aria-label="Catalogue shortcuts">
-            <MockLink to="design-component-inspection-details">
-              Screens
+    <Shell
+      menuPresentation="icon"
+      design={design}
+      searchPlaceholder="Search catalogue…"
+      viewport={viewport}
+      nav={<NavTree {...navProps} />}
+    >
+      {viewport === "mobile" ? (
+        <nav className="ce-mobile-location" aria-label="Catalogue shortcuts">
+          <MockLink to="design-component-inspection-details">Screens</MockLink>
+          <MockLink to="design-component-overview">Components</MockLink>
+          {scenario === "all" ? (
+            <span>
+              Changes <span className="ce-change-count">0</span>
+            </span>
+          ) : (
+            <MockLink
+              to={
+                scenario === "added"
+                  ? COMPONENT_PAGES.added
+                  : scenario === "removed"
+                    ? "design-component-removed"
+                    : scenario === "screen"
+                      ? "design-component-inspection-direct-change"
+                      : "design-component-affected"
+              }
+            >
+              Changes{" "}
+              <span className="ce-change-count">{navProps.changedCount}</span>
             </MockLink>
-            <MockLink to="design-component-overview">Components</MockLink>
-            {scenario === "all" ? (
-              <span>
-                Changes <span className="ce-change-count">0</span>
-              </span>
-            ) : (
-              <MockLink
-                to={
-                  scenario === "added"
-                    ? COMPONENT_PAGES.added
-                    : scenario === "removed"
-                      ? "design-component-removed"
-                      : scenario === "screen"
-                        ? "design-component-inspection-direct-change"
-                        : "design-component-affected"
-                }
-              >
-                Changes{" "}
-                <span className="ce-change-count">{navProps.changedCount}</span>
-              </MockLink>
-            )}
-          </nav>
-        ) : null}
-        {children}
-      </Shell>
-    </div>
+          )}
+        </nav>
+      ) : null}
+      {children}
+    </Shell>
   );
 }
