@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
 import { ViewControls } from "./view_controls.js";
 import { PreviewWorkspace } from "./workspace.js";
-import { ChangeStatusBadge } from "./comparison_details.js";
 import type { ChangeStatus } from "./comparison_fixtures.js";
 import type { ComponentDesignDestination } from "./destinations.js";
 import { COMPONENTS, type ComponentId } from "./metadata.js";
@@ -46,7 +45,7 @@ export function ComponentLayout({
         idChip={id}
         action={<ViewControls viewport={viewport} />}
         comparisons={status !== "unmodified"}
-        status={<ChangeStatusBadge status={status} />}
+        status={status}
         comparisonMode={comparison ? "side-by-side" : "current"}
       />
       {variants}

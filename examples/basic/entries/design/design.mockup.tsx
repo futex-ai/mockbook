@@ -119,7 +119,7 @@ const designMockups = defineRoot({
 /** The neutral Mokabook catalogue and Changes design catalogue. */
 export const mockups = [
   defineCollection({
-    childIds: ["design"],
+    childIds: ["design", "design-library"],
     dependencies: DESIGN_DEPENDENCIES,
     description: "Neutral design references for the Mokabook package.",
     id: "design-root",

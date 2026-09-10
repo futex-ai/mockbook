@@ -1,3 +1,4 @@
+import { MetaRow } from "../../parts/metadata_row.js";
 import { MockLink } from "mokabook";
 
 import { PropValues } from "./prop_values.js";
@@ -28,12 +29,13 @@ export function InstanceDetails({ state }: { state: ScreenPageState }) {
       </h3>
       {toolbar || help ? (
         <dl className="ce-props" aria-label="Supplied props">
-          <div>
-            <dt>{toolbar ? "prompt" : "visible"}</dt>
-            <dd>
-              <code>{toolbar ? `"${toolbarPrompt}"` : "false"}</code>
-            </dd>
-          </div>
+          <MetaRow
+            name="selected-prop"
+            label={toolbar ? "prompt" : "visible"}
+            presentation="props"
+          >
+            <code>{toolbar ? `"${toolbarPrompt}"` : "false"}</code>
+          </MetaRow>
         </dl>
       ) : (
         <PropValues

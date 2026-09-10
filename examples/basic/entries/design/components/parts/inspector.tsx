@@ -1,10 +1,7 @@
-import type { CSSProperties, ReactNode } from "react";
-
-import {
-  CloseInspectorIcon,
-  InspectorIcon,
-  type InspectorTab,
-} from "./inspector_icons.js";
+import type { ReactNode } from "react";
+import { inspector } from "../../library/inspector/inspector.js";
+import { useDesignInstance } from "../../library/composition.js";
+import type { InspectorTab } from "./inspector_icons.js";
 
 export interface InspectorPanel {
   id: InspectorTab;
@@ -12,7 +9,7 @@ export interface InspectorPanel {
   content: ReactNode;
 }
 
-/** Exclusive native disclosures keep icon panels usable in script-disabled frames. */
+/** Screen-owned panel bodies cross the shared footer boundary as named slots. */
 export function Inspector({
   panels,
   initial = "info",
@@ -21,38 +18,17 @@ export function Inspector({
   initial?: InspectorTab | "closed";
 }) {
   return (
-    <section className="ce-inspector" aria-label="Inspector">
-      <input
-        type="checkbox"
-        role="switch"
-        className="ce-sheet-expand"
-        aria-label="Expanded inspector"
-        title="Expand or collapse inspector"
-      />
-      {panels.map((panel, index) => (
-        <details
-          key={panel.id}
-          name="component-inspector"
-          data-panel={panel.id}
-          open={initial === panel.id}
-          style={{ "--tab-column": index + 1 } as CSSProperties}
-        >
-          <summary role="button" aria-label={panel.label} title={panel.label}>
-            <InspectorIcon tab={panel.id} />
-            <span
-              className="ce-inspector-close"
-              data-inspector-close=""
-              aria-hidden="true"
-              title="Close inspector"
-            >
-              <CloseInspectorIcon />
-            </span>
-          </summary>
-          <section className="ce-inspector-panel" aria-label={panel.label}>
-            {panel.content}
-          </section>
-        </details>
-      ))}
-    </section>
+    <inspector.Component
+      mokabookInstance={useDesignInstance("inspector")}
+      tabs={panels.map(({ id, label }) => ({ id, label }))}
+      initial={initial}
+      presentation="tabs"
+      sheetSize="compact"
+      legacyBehavior="native"
+      info={panels.find((panel) => panel.id === "info")?.content}
+      components={panels.find((panel) => panel.id === "components")?.content}
+      props={panels.find((panel) => panel.id === "props")?.content}
+      usage={panels.find((panel) => panel.id === "usage")?.content}
+    />
   );
 }

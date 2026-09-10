@@ -1,75 +1,68 @@
 import assert from "node:assert/strict";
-import path from "node:path";
 import test from "node:test";
 
-import { loadConfig } from "../dist/config/load.js";
-import { readManifest } from "../dist/registry/manifest.js";
-import {
-  NodeGitCommandRunner,
-  RepositoryGitClient,
-} from "../dist/review/git.js";
-import { changedManifestRoutes } from "../dist/server/changed.js";
-import { changedContentPaths } from "../dist/server/changed_content.js";
-import { repositoryRoot } from "./helpers/fixture.js";
+import { generatedViews } from "../dist/components/views.js";
+import { designLibraryFixture } from "./helpers/design_library_fixture.js";
 
-const configPromise = loadConfig(path.join(repositoryRoot, "examples/basic"));
-
-async function changedStylesheetRoutes(stylesheet: string) {
-  const config = await configPromise;
-  const manifest = readManifest(config);
-  const fragments = await changedContentPaths(
-    manifest,
-    manifest,
-    config,
-    new RepositoryGitClient(new NodeGitCommandRunner(config.repoRoot)),
-    "HEAD",
-    [`examples/basic/generated/${stylesheet}`],
-  );
-  return changedManifestRoutes(manifest, manifest, config, fragments);
-}
-
-for (const stylesheet of [
-  "design-components.css",
-  "design-component-inspection.css",
-  "design-component-details.css",
-  "design-component-inspector.css",
-  "design-component-workspace.css",
-  "design-component-view.css",
-]) {
-  test(`${stylesheet} changes only the component design routes`, async () => {
-    const config = await configPromise;
-    const manifest = readManifest(config);
-    const componentRoutes = manifest.entries
-      .flatMap((entry) =>
-        entry.kind !== "collection" &&
-        entry.route.startsWith("design/components/")
-          ? [entry.route]
-          : [],
-      )
-      .sort();
-    assert.equal(componentRoutes.length, 32);
-
-    assert.deepEqual(
-      await changedStylesheetRoutes(stylesheet),
-      componentRoutes,
-    );
-  });
-}
-
-test("control stylesheet changes only its eleven owning routes", async () => {
-  const config = await configPromise;
-  const manifest = readManifest(config);
-  const routes = manifest.entries
-    .flatMap((entry) =>
-      entry.kind === "screen" &&
-      entry.route.startsWith("design/components/controls/")
-        ? [entry.route]
-        : [],
-    )
-    .sort();
-  assert.equal(routes.length, 11);
-  assert.deepEqual(
-    await changedStylesheetRoutes("design-component-controls.css"),
-    routes,
-  );
+test("mixed component design styles retain their actual rendered resource scope", async (t) => {
+  const fixture = await designLibraryFixture(t);
+  for (const [stylesheet, screens, components] of [
+    ["design-components.css", 32, 15],
+    ["design-component-inspection.css", 32, 15],
+    ["design-component-details.css", 32, 15],
+    ["design-component-inspector.css", 32, 15],
+    ["design-component-workspace.css", 32, 15],
+    ["design-component-view.css", 32, 15],
+    ["design-component-controls.css", 11, 15],
+    ["design.css", 56, 15],
+    ["design-library.css", 0, 15],
+  ] as const)
+    await t.test(stylesheet, async () => {
+      await fixture.reset();
+      await fixture.edit(
+        `examples/basic/generated/${stylesheet}`,
+        (source) => source + "\n.layout-regression { gap: 17px; }\n",
+      );
+      const expected = fixture.before.manifest.entries.filter((entry) =>
+        generatedViews(entry).some((view) =>
+          fixture.before.outputs.get(view.path)!.includes(`/${stylesheet}"`),
+        ),
+      );
+      assert.equal(
+        expected.filter((entry) => entry.kind === "screen").length,
+        screens,
+      );
+      assert.equal(
+        expected.filter((entry) => entry.kind === "component").length,
+        components,
+      );
+      const result = await fixture.compare();
+      const ids = expected.map((entry) => entry.id);
+      if (stylesheet === "design.css")
+        ids.push(
+          "example-action",
+          "example-details",
+          "example-toolbar",
+          "example-tour",
+          "example-welcome",
+        );
+      assert.deepEqual(
+        result.changes
+          .map((change) => (change.after ?? change.before)!.id)
+          .sort(),
+        ids.sort(),
+      );
+      if (stylesheet !== "design.css")
+        assert.ok(
+          result.changes.every((change) =>
+            (change.after ?? change.before)!.route.startsWith("design/"),
+          ),
+          "unrelated Example content stays unchanged",
+        );
+      else
+        assert.ok(
+          result.sharedImpact.includes("examples/basic/generated/design.css"),
+          "the pre-existing global dependency policy stays conservative",
+        );
+    });
 });

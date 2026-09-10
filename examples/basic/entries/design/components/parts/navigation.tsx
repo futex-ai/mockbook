@@ -10,7 +10,6 @@ import {
 } from "./destinations.js";
 
 import type { CatalogueIdentity } from "./metadata.js";
-import { ViewIcon } from "./view_icons.js";
 
 export type ChangeScenario =
   "all" | "component" | "screen" | "removed" | "added";
@@ -23,6 +22,7 @@ function nodes(
   if (scenario === "added")
     return [
       {
+        key: "components",
         depth: 0,
         kind: "collection",
         label: "Components",
@@ -30,6 +30,7 @@ function nodes(
         open: true,
       },
       {
+        key: "badge",
         depth: 1,
         kind: "component",
         label: "Badge",
@@ -46,6 +47,7 @@ function nodes(
       ? []
       : [
           {
+            key: "screens",
             depth: 0,
             kind: "collection",
             label: "Screens",
@@ -58,6 +60,7 @@ function nodes(
             open: true,
           },
           {
+            key: "selected-screen",
             depth: 1,
             kind: "screen",
             label: scenario === "removed" ? "Farewell" : "Welcome",
@@ -73,6 +76,7 @@ function nodes(
           ...(scenario === "all"
             ? [
                 {
+                  key: "details",
                   depth: 1,
                   kind: "screen" as const,
                   label: "Details",
@@ -83,6 +87,7 @@ function nodes(
           ...(reading
             ? [
                 {
+                  key: "reading-room",
                   depth: 1,
                   kind: "screen" as const,
                   label: "Reading room",
@@ -94,6 +99,7 @@ function nodes(
   return [
     ...screens,
     {
+      key: "components",
       depth: 0,
       kind: "collection",
       label: "Components",
@@ -101,6 +107,7 @@ function nodes(
       open: true,
     },
     {
+      key: "action",
       depth: 1,
       kind: "component",
       label: "Action",
@@ -116,18 +123,21 @@ function nodes(
     ...(scenario === "all"
       ? [
           {
+            key: "toolbar",
             depth: 1,
             kind: "component" as const,
             label: "Toolbar",
             to: destination("toolbar", COMPONENT_PAGES.toolbar),
           },
           {
+            key: "help-hint",
             depth: 1,
             kind: "component" as const,
             label: "Help hint",
             to: destination("help-hint", COMPONENT_PAGES.hidden),
           },
           {
+            key: "badge",
             depth: 1,
             kind: "component" as const,
             label: "Badge",
@@ -166,7 +176,7 @@ export function ExplorerShell({
   return (
     <div className="ce-design">
       <Shell
-        menuIcon={<ViewIcon kind="menu" />}
+        menuPresentation="icon"
         design={design}
         accessibleControls
         searchPlaceholder="Search catalogue…"

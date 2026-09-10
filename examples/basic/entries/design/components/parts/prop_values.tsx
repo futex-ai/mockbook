@@ -1,3 +1,4 @@
+import { MetaRow } from "../../parts/metadata_row.js";
 export function PropValues({
   disabled = false,
   label = "Continue",
@@ -7,18 +8,12 @@ export function PropValues({
 }) {
   return (
     <dl className="ce-props" aria-label="Supplied props">
-      <div>
-        <dt>label</dt>
-        <dd>
-          <code>"{label}"</code>
-        </dd>
-      </div>
-      <div>
-        <dt>disabled</dt>
-        <dd>
-          <code>{String(disabled)}</code>
-        </dd>
-      </div>
+      <MetaRow name="label" label="label" presentation="props">
+        <code>"{label}"</code>
+      </MetaRow>
+      <MetaRow name="disabled" label="disabled" presentation="props">
+        <code>{String(disabled)}</code>
+      </MetaRow>
     </dl>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DesignInstances } from "../../library/composition.js";
 
 import { NavResizeHandle } from "../../parts/nav_resize.js";
 import type { ArtboardViewport } from "../../parts/shell.js";
@@ -29,7 +30,9 @@ export function PreviewWorkspace({
                   className="ce-preview-view"
                   data-preview-viewport={viewport}
                 >
-                  {render(viewport)}
+                  <DesignInstances name={viewport}>
+                    {render(viewport)}
+                  </DesignInstances>
                 </div>
               ))}
             </div>

@@ -1,6 +1,13 @@
 import { defineConfig } from "mokabook";
+import {
+  libraryStyleCandidates,
+  withLibraryStyles,
+} from "./entries/design/library/style_files.js";
 
-import { componentStyles } from "./entries/design/components/parts/styles.js";
+import {
+  designBaseStyles,
+  componentLayoutStyles,
+} from "./entries/design/components/parts/styles.js";
 
 export default defineConfig({
   colorSchemes: ["light", "dark"],
@@ -36,18 +43,36 @@ export default defineConfig({
   },
   stylesheets: [
     {
+      match: "design/library/**",
+      stylesheets: withLibraryStyles(designBaseStyles, [
+        ...componentLayoutStyles,
+        "design-component-controls.css",
+        "design-library.css",
+      ]),
+    },
+    {
       match: "design/components/controls/**",
-      stylesheets: [...componentStyles, "design-component-controls.css"],
+      stylesheets: withLibraryStyles(designBaseStyles, [
+        ...componentLayoutStyles,
+        "design-component-controls.css",
+      ]),
     },
     {
       match: "design/components/**",
-      stylesheets: componentStyles,
+      stylesheets: withLibraryStyles(designBaseStyles, componentLayoutStyles),
     },
     {
       match: "design/review/**",
-      stylesheets: ["design.css", "design-stage.css", "design-review.css"],
+      stylesheets: withLibraryStyles([
+        "design.css",
+        "design-stage.css",
+        "design-review.css",
+      ]),
     },
-    { match: "design/**", stylesheets: ["design.css", "design-stage.css"] },
+    {
+      match: "design/**",
+      stylesheets: withLibraryStyles(["design.css", "design-stage.css"]),
+    },
     {
       match: "**/*.html",
       stylesheets: ["styles.css", "example-components.css"],
@@ -58,6 +83,10 @@ export default defineConfig({
       {
         action: "reload",
         paths: [
+          ...libraryStyleCandidates.map(
+            (file) => "examples/basic/generated/" + file,
+          ),
+          "examples/basic/generated/design-library.css",
           "examples/basic/generated/design-components.css",
           "examples/basic/generated/design-component-inspection.css",
           "examples/basic/generated/design-component-details.css",

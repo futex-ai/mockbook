@@ -576,6 +576,11 @@ adding navigation footers to the artboards. The [workspace designs](./docs/proto
 eligible comparisons retain an opaque toolbar. The desktop grip sits on its
 divider line.
 
+All 56 design screens reuse the 15 registered components in
+**Design → Shared components**, including the footer tabs panel. The library
+provides 56 saved variants, local prop controls, real usage and component-owned
+change attribution. See the [shared design library guide](./examples/basic/entries/design/library/README.md).
+
 The design mockups use `MockLink` for supported navigation and state transitions;
 the two example buttons demonstrate `MockLink asChild`. See the
 [design mockup links contract](./docs/protocol/mokabook-design-links.md) for
@@ -597,6 +602,8 @@ canonical destinations and the controls that remain visual depictions.
   and isolated comparison snapshots.
 - [`src/components`](./src/components) — public component definitions, schemas,
   captured input ownership, and manifest-v4 validation.
+- [`examples/basic/entries/design/library`](./examples/basic/entries/design/library/README.md)
+  — shared components used by the design catalogue itself.
 - [`src/legacy`](./src/legacy) — opt-in migration sources and component expansion.
 - [`xtask`](./xtask/README.md) — full repository checks and post-push review.
 

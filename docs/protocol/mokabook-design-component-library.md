@@ -2,10 +2,11 @@
 
 ## Delivery Status
 
-Planned inventory for [design component adoption](./mokabook-design-components.md),
-not a list of shipped component entries. Existing source paths below are relative
-to `examples/basic/entries/design/`. Move or adapt their actual implementations;
-saved examples must not become a parallel set of lookalikes.
+Delivered inventory for [design component adoption](./mokabook-design-components.md).
+Source paths below are relative to `examples/basic/entries/design/` and identify
+the original composition points, which now delegate to registered implementations
+in `library/{group}/{slug}.view.tsx`. Saved pages and consuming artboards share
+those implementations.
 
 ## Components And Saved Examples
 
@@ -18,14 +19,14 @@ Group indexes are pure galleries, containing at most five component entries.
 | ----------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
 | chrome / top-bar              | `parts/top_bar.tsx`, `parts/tag_filter.tsx`                         | `default`, `search`, `tag-picker`, `drawer-open`                |
 | chrome / catalogue-navigation | `parts/nav.tsx`, scenario data in `components/parts/navigation.tsx` | `all`, `changes`, `empty`, `drawer`                             |
-| chrome / screen-header        | `parts/shell.tsx: ScreenHead/Crumbs`                                | `screen`, `component`, `changed`, `removed`                     |
+| chrome / screen-header        | `parts/shell.tsx: ScreenHead`                                       | `screen`, `component`, `changed`, `removed`                     |
 | controls / comparison-toolbar | `parts/compare.tsx: CompareToolbar`                                 | `current`, `side-by-side`, `overlay`, `difference`              |
 | controls / view-controls      | `components/parts/view_controls.tsx`, existing segmented switches   | `default`, `both`, `highlighted`, `unavailable`                 |
 | controls / tag-picker         | `parts/tag_filter.tsx: TagPicker`                                   | `all`, `selected`, `empty`                                      |
 | controls / tag-chip           | `parts/tag_filter.tsx: TagChips`                                    | `default`, `selected`, `inactive`                               |
 | controls / change-status      | `components/parts/comparison_details.tsx: ChangeStatusBadge`        | `unmodified`, `added`, `changed`, `removed`                     |
 | inspector / inspector         | `parts/details.tsx`, `components/parts/inspector.tsx`               | `details`, `props`, `closed`, `legacy-details`                  |
-| inspector / metadata-row      | `parts/details.tsx: MetaRow`, shared details/prop rows              | `text`, `code`, `linked`, `tags`                                |
+| inspector / metadata-row      | `parts/metadata_row.tsx: MetaRow`, shared details/prop rows         | `text`, `code`, `linked`, `tags`                                |
 | inspector / prop-field        | `components/controls/parts/fields.tsx: field chrome`                | `text`, `boolean`, `invalid-number`, `select`, `optional-unset` |
 | preview / device-frame        | `parts/stage.tsx: PhoneFrame/BrowserFrame`                          | `phone`, `browser`, `dark`, `light-only`                        |
 | preview / comparison-pane     | `parts/compare.tsx: Pane/MissingPane`                               | `before`, `current`, `missing-before`, `missing-current`        |
@@ -90,7 +91,8 @@ Controls below use text, boolean, number and primitive enum selections only.
    presentation `tabs/legacy`, initial mobile-sheet size and explicit legacy
    open/close destinations. Named `info`, `components`, `props`, `usage` slots
    contain caller-owned bodies. Controls: initial tab, presentation and sheet
-   size. Available tabs follow the provided list; a legacy presentation uses
+   size. The sample initial-tab control offers only its supplied Details/Props/Usage
+   tabs and Closed. Available tabs follow the provided list; a legacy presentation uses
    the Details slot. Preserve both existing disclosure and icon-panel behavior,
    fixed icon strips, resizing and mobile bottom-sheet geometry.
 10. **Metadata row:** label plus a `children` slot for text, code, links or tags.
@@ -106,9 +108,9 @@ Controls below use text, boolean, number and primitive enum selections only.
     forms. This is reusable field framing, not a new forms or schema engine.
 12. **Device frame:** device `phone/browser`, optional caption, depicted dark
     state, light-only note, compact-phone and expandable flags, browser address;
-    `children` is the screen-content slot. Controls: device, dark state and
-    address. Depicted device is independent of render viewport. The host must
-    leave enough space to inspect an unscaled frame in either viewport.
+    `children` is the screen-content slot. Controls: device, dark state, compact frame and
+    address. Depicted device is independent of render viewport. Saved phone samples use compact sizing so the whole phone fits both viewports.
+    Turning compact sizing off preserves the full-size frame in a scrolling host.
 13. **Comparison pane:** side `before/after`, label, state `present/missing`,
     optional missing message and `children` slot. Controls: label, state and
     optional message. Missing state hides the content slot and uses the existing

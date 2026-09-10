@@ -144,14 +144,6 @@
   .ce-preview-view {
   display: block;
 }
-.ce-design:has(.ce-viewport-select option[value="both"]:checked)
-  [data-preview-viewport="mobile"] {
-  flex: 0 1 320px;
-}
-.ce-design:has(.ce-viewport-select option[value="both"]:checked)
-  [data-preview-viewport="desktop"] {
-  flex: 1 1 720px;
-}
 .ce-preview-view .ce-canvas--mobile {
   margin-inline: auto;
 }
@@ -161,27 +153,4 @@
 .ce-preview-view .mbk-frame-desktop {
   max-width: none;
   min-width: 0;
-}
-.ce-change-status {
-  border: 1px solid var(--chrome-border);
-  border-radius: 999px;
-  color: var(--chrome-muted);
-  font-size: 11px;
-  font-weight: 400;
-  padding: 3px 9px;
-}
-.ce-added {
-  background: #edf3ef;
-  border-color: #b9cfc2;
-  color: var(--mbk-sage-deep);
-}
-.ce-changed {
-  background: #fff7e6;
-  border-color: #ead6ac;
-  color: #805d1d;
-}
-.ce-removed {
-  background: #fcefee;
-  border-color: #ecc5c1;
-  color: #9b433c;
 }

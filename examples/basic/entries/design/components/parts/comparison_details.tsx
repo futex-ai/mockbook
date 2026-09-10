@@ -1,22 +1,16 @@
+import { MetaRow } from "../../parts/metadata_row.js";
+import { changeStatusBadge } from "../../library/controls/change-status.js";
+import { useDesignInstance } from "../../library/composition.js";
 import { MockLink } from "mokabook";
 
 import type { ChangeStatus, ComparisonFixture } from "./comparison_fixtures.js";
 
-const statusLabels = {
-  unmodified: "Unmodified",
-  added: "Added",
-  changed: "Changed",
-  removed: "Removed",
-} as const;
-
 export function ChangeStatusBadge({ status }: { status: ChangeStatus }) {
   return (
-    <span
-      className={`ce-change-status ce-${status}`}
-      data-change-status={status}
-    >
-      {statusLabels[status]}
-    </span>
+    <changeStatusBadge.Component
+      mokabookInstance={useDesignInstance("status")}
+      status={status}
+    />
   );
 }
 
@@ -40,21 +34,22 @@ export function ComparisonDetails({
       <h3>Comparison details</h3>
       <p className="ce-muted">Compared with the branch point on origin/main.</p>
       <dl className="ce-props">
-        <div>
-          <dt>Change</dt>
-          <dd>{reasons[comparison.reason]}</dd>
-        </div>
+        <MetaRow name="change" label="Change" presentation="props">
+          {reasons[comparison.reason]}
+        </MetaRow>
         {comparison.variant ? (
-          <div>
-            <dt>Saved variant</dt>
-            <dd>{comparison.variant}</dd>
-          </div>
+          <MetaRow
+            name="saved-variant"
+            label="Saved variant"
+            presentation="props"
+          >
+            {comparison.variant}
+          </MetaRow>
         ) : null}
         {comparison.savedPropsUnchanged ? (
-          <div>
-            <dt>Saved props</dt>
-            <dd>Unchanged</dd>
-          </div>
+          <MetaRow name="saved-props" label="Saved props" presentation="props">
+            Unchanged
+          </MetaRow>
         ) : null}
       </dl>
       {prop ? (

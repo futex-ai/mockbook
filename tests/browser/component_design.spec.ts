@@ -26,6 +26,14 @@ for (const viewport of ["desktop", "mobile"] as const) {
           page.locator(`.ce-design .mbk-shell--${viewport}`),
         ).toHaveCount(1);
         await expect(page.locator(".mbk-screen-head h2")).toBeVisible();
+        for (const panel of await page
+          .locator(".ce-workspace details[open] > .ce-inspector-panel")
+          .all()) {
+          await expect(
+            panel,
+            `${route} keeps bounded panel scrolling`,
+          ).toHaveCSS("overflow-y", "auto");
+        }
         await expect(
           page.getByRole("navigation", { name: "Related design pages" }),
         ).toHaveCount(0);

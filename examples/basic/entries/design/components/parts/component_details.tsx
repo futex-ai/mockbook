@@ -1,3 +1,4 @@
+import { MetaRow } from "../../parts/metadata_row.js";
 import { MockLink } from "mokabook";
 
 import { ComponentInfo } from "./component_info.js";
@@ -43,24 +44,25 @@ function ComponentProps({ state }: { state: ComponentPageState }) {
       state === "unused" ||
       state === "added" ? (
         <dl className="ce-props" aria-label="Supplied props">
-          <div>
-            <dt>
-              {state === "toolbar"
+          <MetaRow
+            name="selected-prop"
+            label={
+              state === "toolbar"
                 ? "prompt"
                 : state === "hidden"
                   ? "visible"
-                  : "label"}
-            </dt>
-            <dd>
-              <code>
-                {state === "toolbar"
-                  ? `"${toolbarPrompt}"`
-                  : state === "hidden"
-                    ? "false"
-                    : '"New"'}
-              </code>
-            </dd>
-          </div>
+                  : "label"
+            }
+            presentation="props"
+          >
+            <code>
+              {state === "toolbar"
+                ? `"${toolbarPrompt}"`
+                : state === "hidden"
+                  ? "false"
+                  : '"New"'}
+            </code>
+          </MetaRow>
         </dl>
       ) : (
         <ActionPropValues

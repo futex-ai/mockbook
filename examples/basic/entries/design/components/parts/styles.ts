@@ -1,8 +1,10 @@
 /** Shared styles and dependency identities for every component design collection. */
-export const componentStyles = [
+export const designBaseStyles = [
   "design.css",
   "design-stage.css",
   "design-review.css",
+];
+export const componentLayoutStyles = [
   "design-components.css",
   "design-component-inspection.css",
   "design-component-details.css",
@@ -10,6 +12,8 @@ export const componentStyles = [
   "design-component-workspace.css",
   "design-component-view.css",
 ];
+
+export const componentStyles = [...designBaseStyles, ...componentLayoutStyles];
 
 export const componentStyleDependencies = componentStyles.map(
   (stylesheet) => `examples/basic/generated/${stylesheet}`,

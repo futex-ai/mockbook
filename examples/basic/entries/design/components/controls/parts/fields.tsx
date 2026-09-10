@@ -1,79 +1,111 @@
+import { propField } from "../../../library/inspector/prop-field.js";
+import { optional, useDesignInstance } from "../../../library/composition.js";
 import type { ActionProps } from "../../parts/action_props.js";
 
-/** Native fields are operable in static, script-disabled design frames. */
+/** The screen supplies actual inputs and values; the component owns field framing. */
 export function ControlFields({
   props,
   invalid,
+  idPrefix = "action",
 }: {
   props: ActionProps;
   invalid: boolean;
+  idPrefix?: string;
 }) {
+  const scope = useDesignInstance(idPrefix);
+  const id = (field: string) => idPrefix + "-" + field;
   return (
     <div className="ce-control-fields">
-      <div className="ce-control-row">
-        <label htmlFor="action-label">label</label>
-        <input id="action-label" type="text" defaultValue={props.label} />
-      </div>
-      <div className="ce-control-row">
-        <label htmlFor="action-disabled">disabled</label>
-        <div className="ce-check-value">
+      <propField.Component
+        mokabookInstance={scope + "-label"}
+        label="label"
+        inputId={id("label")}
+        optional={false}
+        supplied
+        control={
+          <input id={id("label")} type="text" defaultValue={props.label} />
+        }
+      />
+      <propField.Component
+        mokabookInstance={scope + "-disabled"}
+        label="disabled"
+        inputId={id("disabled")}
+        optional={false}
+        supplied
+        control={
+          <div className="ce-check-value">
+            <input
+              id={id("disabled")}
+              type="checkbox"
+              defaultChecked={props.disabled}
+            />
+          </div>
+        }
+      />
+      <propField.Component
+        mokabookInstance={scope + "-radius"}
+        label="cornerRadius"
+        inputId={id("radius")}
+        optional={false}
+        supplied
+        {...optional("description", invalid ? undefined : "0–24")}
+        {...optional(
+          "error",
+          invalid ? "Enter a number from 0 to 24." : undefined,
+        )}
+        control={
           <input
-            id="action-disabled"
-            type="checkbox"
-            defaultChecked={props.disabled}
-          />
-        </div>
-      </div>
-      <div className="ce-control-row">
-        <label htmlFor="action-radius">cornerRadius</label>
-        <div>
-          <input
-            id="action-radius"
+            id={id("radius")}
             type="number"
             min={0}
             max={24}
             step={1}
             defaultValue={props.cornerRadius}
             aria-invalid={invalid ? "true" : undefined}
-            aria-describedby={invalid ? "radius-error" : "radius-range"}
+            aria-describedby={
+              id("radius") + (invalid ? "-error" : "-description")
+            }
           />
-          {!invalid ? (
-            <span className="ce-control-hint" id="radius-range">
-              0–24
-            </span>
-          ) : null}
-          {invalid ? (
-            <p id="radius-error" className="ce-field-error">
-              Enter a number from 0 to 24.
-            </p>
-          ) : null}
-        </div>
-      </div>
-      <div className="ce-control-row">
-        <label htmlFor="action-emphasis">emphasis</label>
-        <select id="action-emphasis" defaultValue={props.emphasis}>
-          <option value="strong">Strong</option>
-          <option value="quiet">Quiet</option>
-        </select>
-      </div>
-      <div className="ce-control-row ce-optional-control">
-        <label htmlFor="action-hint">
-          hint <span aria-hidden="true">Optional</span>
-        </label>
-        <div>
-          <label className="ce-check-value">
-            <input type="checkbox" defaultChecked={props.hint !== undefined} />
-            <span>Set hint</span>
-          </label>
-          <input
-            className="ce-hint-value"
-            id="action-hint"
-            type="text"
-            defaultValue={props.hint ?? ""}
-          />
-          <p className="ce-unset-value">Not set</p>
-        </div>
-      </div>
+        }
+      />
+      <propField.Component
+        mokabookInstance={scope + "-emphasis"}
+        label="emphasis"
+        inputId={id("emphasis")}
+        optional={false}
+        supplied
+        control={
+          <select id={id("emphasis")} defaultValue={props.emphasis}>
+            <option value="strong">Strong</option>
+            <option value="quiet">Quiet</option>
+          </select>
+        }
+      />
+      <propField.Component
+        mokabookInstance={scope + "-hint"}
+        label="hint"
+        inputId={id("hint")}
+        optional
+        supplied={props.hint !== undefined}
+        control={
+          <div>
+            <label className="ce-check-value">
+              <input
+                type="checkbox"
+                defaultChecked={props.hint !== undefined}
+              />
+              <span>Set hint</span>
+            </label>
+            <input
+              className="ce-hint-value"
+              id={id("hint")}
+              type="text"
+              defaultValue={props.hint ?? ""}
+            />
+            <p className="ce-unset-value">Not set</p>
+          </div>
+        }
+      />
     </div>
   );
 }

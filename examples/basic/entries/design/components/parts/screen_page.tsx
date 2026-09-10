@@ -8,7 +8,6 @@ import { SCREENS, screenIdentity } from "./metadata.js";
 import { INSPECTION_PAGES } from "./destinations.js";
 import { ExplorerShell } from "./navigation.js";
 import { ScreenDetails } from "./screen_details.js";
-import { ChangeStatusBadge } from "./comparison_details.js";
 import { screenComparison } from "./comparison_fixtures.js";
 import { ConsumerFrame, type ScreenPageState } from "./screen_preview.js";
 
@@ -41,9 +40,7 @@ export function ScreenPage({
           idChip={id}
           comparisonMode={removed ? "side-by-side" : "current"}
           comparisons={comparison !== undefined}
-          status={
-            <ChangeStatusBadge status={comparison?.status ?? "unmodified"} />
-          }
+          status={comparison?.status ?? "unmodified"}
           action={
             <ViewControls
               viewport={viewport}

@@ -15,13 +15,15 @@ styles and the design mockups. Registration and source ownership live in
 `entries/components/action.tsx` and `toolbar.tsx`.
 It contains no Accounting or Juno product screen.
 
-Adoption of registered components inside Mokabook's own design artboards is
-planned. The [design component contract](../../docs/protocol/mokabook-design-components.md)
-and [library inventory](../../docs/protocol/mokabook-design-component-library.md)
-define a Shared components gallery and reuse of headers, navigation, controls,
-inspectors and frames across the existing screens. Those artboards currently
-share ordinary React helpers; their own registered usage is not implemented yet.
-Implementation is tracked in the [plans index](../../plans/README.md).
+Mokabook's 56 design screens now use 15 registered shared components, including
+the footer tabs panel. Open **Design → Shared components** for Chrome, Controls,
+Inspector and Preview galleries with 56 saved variants, real mobile/desktop
+previews and editable local props. The outer Components and Usage tabs show actual
+recorded relationships; pictured example data inside an artboard stays separate.
+See the [library authoring guide](./entries/design/library/README.md),
+[adoption contract](../../docs/protocol/mokabook-design-components.md),
+[library inventory](../../docs/protocol/mokabook-design-component-library.md)
+and [plans index](../../plans/README.md).
 
 The entry definitions use collection membership as their only navigation
 hierarchy. The real `Example` collection owns `Screens` and the example tour;
@@ -122,13 +124,19 @@ grip; mobile keeps its fixed drawer. The component designs reuse the existing sh
 and a shared icon inspector, with synthetic usage fixtures under
 `entries/design/components/parts`. The real examples use the public `defineComponent` API.
 
-Component design stylesheets are linked only from the collection’s thirty-two
-routes and declared as its dependencies for comparison evidence. Changes follows
-the actual rendered CSS references. The styles remain watched for reloads;
-excluding them from global `review.sharedImpact` avoids unrelated dependency
-evidence. A regression suite checks all six shared stylesheets and the
-further-scoped controls stylesheet against the real configuration, generated
-manifest, and rendered resource graph.
+Exclusive component styles live under `generated/design-library/`. Each component
+owns only its view module and stylesheet. A per-render collector emits exclusive
+sheets only when the component actually renders, including transient prop edits.
+Registration/variant/control metadata stays outside implementation dependencies.
+A shared implementation edit appears on its component page and lists consuming
+screens as affected; independent screen inputs, slots or instance changes still
+appear in Changes. This is tested against fully registered baseline snapshots.
+
+The remaining mixed component-design sheets are linked by the 32 component-design
+routes and standalone library hosts; the controls sheet additionally remains
+scoped to its eleven owning screen routes. Global `review.sharedImpact` policy is
+unchanged. Actual rendered resource references and generated usage determine the
+scope; regression tests cover each exclusive sheet and the mixed/global sheets.
 
 The recorded tokens and responsive rules live in the
 [shell design contract](../../docs/protocol/mokabook-shell-design.md); component
@@ -164,7 +172,7 @@ npm run example:check
 npm run preview:build
 ```
 
-Generated HTML and the schema-v3 manifest are committed under `generated/` so
+Generated HTML and the schema-v4 manifest are committed under `generated/` so
 the fixture also exercises stale and deterministic-output checks. The
 hand-authored stylesheets (`styles.css`, `design.css`, `design-stage.css`,
 `design-review.css`, and the component design stylesheets) also live under `generated/` because it doubles as the

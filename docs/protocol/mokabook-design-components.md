@@ -2,14 +2,13 @@
 
 ## Delivery Status
 
-Planned consumer adoption, not implemented. The existing component API, controls,
-usage recording and attribution are available; Mokabook's own design artboards
-currently use ordinary React helpers. The committed example has 56 design
-screens, 112 light-only design fragments and no registered instances in those
-screens. Its two registered entries are the separate Example Action and Toolbar.
+Implemented in the basic consumer. All 56 existing design screens retain their
+112 mobile/desktop fragments and now record shared component instances. Fifteen
+registered components and 56 saved variants live under Design → Shared components,
+alongside the separate Example Action and Toolbar.
 
 This contract and the [library inventory](./mokabook-design-component-library.md)
-define the target for the [adoption plan](../../plans/mokabook-design-components.md).
+define the delivered behavior tracked by the [adoption plan](../../plans/mokabook-design-components.md).
 The existing [shell design](./mokabook-shell-design.md),
 [design links](./mokabook-design-links.md), and component design contracts retain
 their current screen behavior and navigation authority.
@@ -88,6 +87,8 @@ their implementation: Top bar → Tag picker → Tag chip is a required example.
 Screen-provided actions, metadata content and preview documents are slots owned
 by the calling screen. Repeated siblings use stable semantic `mokabookInstance`
 ids (such as a field key or tag id), never array positions or displayed labels.
+Flow adapters require a semantic `name` independent of their destination; two
+steps may reference the same screen, and reordering retains their identities.
 Use slots for multi-root content without adding layout-altering wrappers.
 
 ## Inputs And Standalone Rendering
@@ -131,7 +132,7 @@ turning the whole artboard into a second running application.
 ## Styles And Change Attribution
 
 Mixed files such as `design.css`, `design-stage.css`, `design-review.css` and
-`design-component-*.css` currently contain component, layout and global rules.
+`design-component-*.css` retain shared, layout and global rules after extraction.
 Never declare one of these whole files owned by a single component. Separate
 exclusive component selectors into the inventory's owned sheets; keep global
 tokens, resets, cross-component selectors and screen layout conservatively
@@ -148,13 +149,19 @@ Registration, variant fixtures and controls metadata must not live in an owned
 render module or be declared implementation-impact dependencies. Their imports
 are already observed by the build graph, and their values are compared as entry
 metadata. Declaring their files as implementation dependencies would incorrectly
-create affected consumers for a variant-only edit. Keep all render transformations
-in the view module; registration only references that renderer. Test real source
+create affected consumers for a variant-only edit. Keep render transformations in the view module; registration only forwards
+validated props and the actual viewport to that renderer. Test real source
 edits to saved variants and control labels as well as implementation source edits.
 
 Separate stylesheet loading from review dependency declaration. A typed consumer
 style map describes ordered candidate sheets for each design route and library
 entry, covering its variants and supported control states, descendants and slots.
+All design rules share the ordered exclusive candidate pool in
+`library/style_files.ts`; route rules select their required mixed sheets. The
+pool authorizes descendant and transient rendering without emitting unused CSS.
+Order the configured blocks as shared base styles, exclusive component candidates,
+then context/layout overrides. Equal-specificity mobile component rules must not
+override the workspace’s bounded scrolling.
 Feed it into existing first-matching `config.stylesheets` rules, with specific
 library rules before the broad design fallback. The example renderer uses a
 fresh per-render React style collector: rendered library implementations request

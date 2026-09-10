@@ -11,12 +11,33 @@ import type { CatalogueTag } from "./tags.js";
 function taggedTree(tag: CatalogueTag): readonly NavNode[] {
   const count = tag === "forms" ? 2 : 1;
   return [
-    { count, depth: 0, kind: "collection", label: "Example", open: true },
-    { count, depth: 1, kind: "collection", label: "Screens", open: true },
-    { depth: 2, kind: "screen", label: "Welcome", to: DESTINATIONS.welcome },
+    {
+      key: "example",
+      count,
+      depth: 0,
+      kind: "collection",
+      label: "Example",
+      open: true,
+    },
+    {
+      key: "screens",
+      count,
+      depth: 1,
+      kind: "collection",
+      label: "Screens",
+      open: true,
+    },
+    {
+      key: "welcome",
+      depth: 2,
+      kind: "screen",
+      label: "Welcome",
+      to: DESTINATIONS.welcome,
+    },
     ...(tag === "forms"
       ? [
           {
+            key: "details",
             depth: 2,
             kind: "screen" as const,
             label: "Details",

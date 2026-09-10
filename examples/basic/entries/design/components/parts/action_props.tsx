@@ -1,3 +1,4 @@
+import { MetaRow } from "../../parts/metadata_row.js";
 /** Shared, typed fixture inputs for saved examples and controls designs. */
 export interface ActionProps {
   label: string;
@@ -36,18 +37,28 @@ export const actionVariants: Record<
   },
 };
 
+const fieldIds: Record<keyof ActionProps, string> = {
+  label: "label",
+  disabled: "disabled",
+  cornerRadius: "corner-radius",
+  emphasis: "emphasis",
+  hint: "hint",
+};
+
 export function ActionPropValues({ props }: { props: ActionProps }) {
   return (
     <dl className="ce-props" aria-label="Supplied props">
-      {Object.entries({ ...props, hint: props.hint }).map(([key, value]) => (
-        <div key={key}>
-          <dt>{key}</dt>
-          <dd>
-            <code>
-              {value === undefined ? "Not set" : JSON.stringify(value)}
-            </code>
-          </dd>
-        </div>
+      {(Object.keys(fieldIds) as (keyof ActionProps)[]).map((key) => (
+        <MetaRow
+          key={key}
+          name={fieldIds[key]}
+          label={key}
+          presentation="props"
+        >
+          <code>
+            {props[key] === undefined ? "Not set" : JSON.stringify(props[key])}
+          </code>
+        </MetaRow>
       ))}
     </dl>
   );

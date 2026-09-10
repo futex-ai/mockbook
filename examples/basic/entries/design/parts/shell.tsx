@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 
-import { CompareToolbar } from "./compare.js";
-import { DesignLink, DesignNavigation } from "./design_navigation.js";
+import { screenHeader } from "../library/chrome/screen-header.js";
+import { viewControls } from "../library/controls/view-controls.js";
+import { optional, useDesignInstance } from "../library/composition.js";
+import type { ChangeStatus } from "../components/parts/comparison_fixtures.js";
+import { DesignNavigation, useDesignNavigation } from "./design_navigation.js";
 import { DESTINATIONS, type DesignDestination } from "./destinations.js";
 import { TopBar } from "./top_bar.js";
-import { SelectionControl } from "./selection_control.js";
 
 /** Rendering target for a design mockup artboard. */
 export type ArtboardViewport = "desktop" | "mobile";
@@ -20,7 +22,7 @@ interface ShellProps {
   aside?: ReactNode;
   children: ReactNode;
   colorScheme?: ShellColorScheme | undefined;
-  menuIcon?: ReactNode;
+  menuPresentation?: "text" | "icon" | undefined;
   nav: ReactNode;
   searchValue?: string | undefined;
   tagPickerOpen?: boolean | undefined;
@@ -35,7 +37,7 @@ export function Shell({
   children,
   design,
   colorScheme,
-  menuIcon,
+  menuPresentation,
   nav,
   searchValue,
   searchPlaceholder,
@@ -47,7 +49,7 @@ export function Shell({
       <DesignNavigation design={design}>
         <div className="mbk-shell mbk-shell--desktop">
           <TopBar
-            menuIcon={menuIcon}
+            menuPresentation={menuPresentation}
             accessibleControls={accessibleControls}
             searchPlaceholder={searchPlaceholder}
             drawerOpen={design === DESTINATIONS.navigation}
@@ -69,7 +71,7 @@ export function Shell({
     <DesignNavigation design={design}>
       <div className="mbk-shell mbk-shell--mobile">
         <TopBar
-          menuIcon={menuIcon}
+          menuPresentation={menuPresentation}
           accessibleControls={accessibleControls}
           searchPlaceholder={searchPlaceholder}
           drawerOpen={design === DESTINATIONS.navigation}
@@ -86,28 +88,6 @@ export function Shell({
   );
 }
 
-interface CrumbsProps {
-  items: readonly string[];
-}
-
-/** Ancestor collection trail above a routed catalogue view. */
-export function Crumbs({ items }: CrumbsProps) {
-  return (
-    <nav className="mbk-crumbs" aria-label="Catalogue location">
-      <DesignLink to={DESTINATIONS.home}>
-        <span>Catalogue home</span>
-      </DesignLink>
-      <span className="sep">›</span>
-      {items.map((item, index) => (
-        <span key={item}>
-          {index > 0 ? <span className="sep">›</span> : null}
-          {item}
-        </span>
-      ))}
-    </nav>
-  );
-}
-
 interface ScreenHeadProps {
   accessibleControls?: boolean;
   action?: ReactNode;
@@ -115,7 +95,7 @@ interface ScreenHeadProps {
   idChip?: string;
   comparisonMode?: "current" | "difference" | "overlay" | "side-by-side";
   comparisons?: boolean;
-  status?: ReactNode;
+  status?: ChangeStatus;
   title: string;
 }
 
@@ -130,30 +110,27 @@ export function ScreenHead({
   status,
   title,
 }: ScreenHeadProps) {
+  const navigation = useDesignNavigation();
   return (
-    <>
-      <div className="mbk-screen-head">
-        <div>
-          <Crumbs items={crumbs} />
-          <div className="mbk-title-row">
-            <h2>{title}</h2>
-            {idChip ? (
-              <span aria-label={`ID ${idChip}`} className="mbk-idchip">
-                #{idChip}
-              </span>
-            ) : null}
-            {status}
-          </div>
-        </div>
-        {action}
-      </div>
-      {idChip && comparisons ? (
-        <CompareToolbar
-          mode={comparisonMode ?? "current"}
-          accessible={accessibleControls}
-        />
-      ) : null}
-    </>
+    <screenHeader.Component
+      mokabookInstance={useDesignInstance("header")}
+      title={title}
+      crumbs={[
+        {
+          key: "home",
+          label: "Catalogue home",
+          destination: DESTINATIONS.home,
+        },
+        ...crumbs.map((item) => ({ key: item, label: item })),
+      ]}
+      comparisons={comparisons}
+      mode={comparisonMode ?? "current"}
+      accessible={accessibleControls ?? false}
+      destinations={navigation.comparison ?? {}}
+      {...optional("idChip", idChip)}
+      {...optional("status", status)}
+      actions={action}
+    />
   );
 }
 
@@ -164,22 +141,14 @@ interface ViewSwitchProps {
 
 /** Viewport selection control shown in a selected screen header. */
 export function ViewSwitch({ active, accessible = false }: ViewSwitchProps) {
-  const options: readonly { key: ViewSwitchProps["active"]; label: string }[] =
-    [
-      { key: "mobile", label: "Mobile" },
-      { key: "desktop", label: "Desktop" },
-      { key: "both", label: "Both" },
-    ];
   return (
-    <span className="mbk-seg" role="group" aria-label="Viewport">
-      {options.map((option) => (
-        <SelectionControl
-          key={option.key}
-          active={option.key === active}
-          accessible={accessible}
-          label={option.label}
-        />
-      ))}
-    </span>
+    <viewControls.Component
+      mokabookInstance={useDesignInstance("viewport")}
+      selection={active}
+      scheme="light"
+      presentation="viewport-segments"
+      accessible={accessible}
+      destinations={{}}
+    />
   );
 }

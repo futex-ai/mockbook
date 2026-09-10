@@ -2,8 +2,8 @@
 
 ## Outcome And Status
 
-Status: planned; the contract and inventory are complete. Implementation has not
-started. Give Mokabook's own design screens real shared component pages, saved
+Status: implementation and verification complete; post-push review pending.
+Give Mokabook's own design screens real shared component pages, saved
 variants, local controls, generated usage and reliable change attribution.
 
 Contracts:
@@ -55,181 +55,199 @@ Outcome: a concrete library inventory and migration contract ready for review.
 - [x] Create this plan after completing the protocol documents, index it under
       Active, and link the planned work from the protocol/example documentation.
 
-## Milestone 2: Add the shared component pages
+## Milestone 2: Add the shared component pages — completed
 
 Tags: mockup
 
 Outcome: each proposed component can be reviewed independently in both viewports,
 using the same implementation that existing design screens will adopt.
 
-- [ ] Capture the existing screen id/route set and mobile/desktop visual baseline.
+- [x] Capture the existing screen id/route set and mobile/desktop visual baseline.
       Add failing inventory/variant assertions before registering the new entries.
-- [ ] Create `entries/design/library/library.mockup.ts` with the four flat gallery
+- [x] Create `entries/design/library/library.mockup.ts` with the four flat gallery
       collections and 15 inventory component entries. Add `design-library` to
       `design-root.childIds`; preserve all existing navigation groups and ids.
-- [ ] Extract actual implementations into small modules under the corresponding
+- [x] Extract actual implementations into small modules under the corresponding
       `library/{group}/{slug}.view.tsx` paths, separate from registration/variant
       metadata. Retain current screen adapters while migration is incomplete;
       component pages must already use the extracted implementation.
-- [ ] Define typed data schemas and declared slots from the inventory. Remove
+- [x] Define typed data schemas and declared slots from the inventory. Remove
       callback/render-prop and nested React-node data at registered boundaries;
       make navigation/state inputs explicit and preserve absent destinations.
-- [ ] Author every specified saved variant with complete fixture props and
+- [x] Preserve explicitly narrow navigation artboards through recorded layout
+      props. Keep independent footer tab groups isolated when repeated.
+- [x] Preserve intrinsic badge sizing in standalone hosts and decouple flow-step
+      identities from destinations so repeated destinations remain valid.
+- [x] Author every specified saved variant with complete fixture props and
       concrete slots. Add the supported local controls, including unset/reset
       behavior, without new complex-data editors or hidden fixture lookup props.
-- [ ] Provide minimal standalone hosts using the existing renderer/providers,
+- [x] Provide minimal standalone hosts using the existing renderer/providers,
       correct design tokens and sufficient space for panels, popovers and frames.
       Use light-only component entries and real mobile/desktop contexts.
-- [ ] Register nested library composition where applicable, including Top bar →
+- [x] Register nested library composition where applicable, including Top bar →
       Tag picker → Tag chip. Keep unique semantic identities for repeated children.
-- [ ] Keep component samples connected through their real catalogue collection,
+- [x] Keep component samples connected through their real catalogue collection,
       with metadata outside the rendered sample. Show one selected variant;
       preserve page hierarchy and gallery limits without extra artboard footers.
-- [ ] Build/check generated output, run focused rendering/authoring tests and
+- [x] Build/check generated output, run focused rendering/authoring tests and
       type checks, and open every new variant fragment directly from disk.
       Review desktop/mobile samples and local prop editing before bulk adoption.
 
-## Milestone 3: Establish exclusive component style ownership
+## Milestone 3: Establish exclusive component style ownership — completed
 
 Tags: mockup
 
 Outcome: style ownership is verified with registered consumers; unmigrated
 artboards retain conservative change detection until they adopt the wrappers.
 
-- [ ] Add regressions distinguishing an exclusive component stylesheet edit,
+- [x] Add regressions distinguishing an exclusive component stylesheet edit,
       a global token edit and a screen-layout edit in isolated registered-consumer
       fixtures using the real library implementations.
-- [ ] Extract only exclusively owned selectors into
+- [x] Extract only exclusively owned selectors into
       `generated/design-library/{group}/{slug}.css`. Keep mixed selectors,
       global tokens, layout rules and shared icons conservatively attributed.
       Preserve cascade order, focus rings and all original selector behavior.
-- [ ] Declare exact component implementation/CSS ownership and matching
+- [x] Declare exact component implementation/CSS ownership and matching
       dependencies. Keep registration, variants and controls metadata out of
       implementation-impact dependencies; their imports remain watched. Keep
       scenario data, navigation tables and shared helpers outside exclusive
       ownership. Assert this distinction in manifest/dependency tests.
-- [ ] Remove redundant exact component-file declarations from screen/ancestor
+- [x] Remove redundant exact component-file declarations from screen/ancestor
       dependencies when migrating those rules; retain genuine layout/global
       dependencies. Never claim a whole mixed sheet or directory for convenience.
-- [ ] Create the typed ordered candidate stylesheet map for library routes and
+- [x] Create the typed ordered candidate stylesheet map for library routes and
       owning screen routes, including reachable variants, prop edits and slots.
       Wire specific rules ahead of the existing first-match design fallback;
       avoid shipping every library sheet to every artboard.
-- [ ] Add the example renderer's per-render style collector and register sheets
+- [x] Add the example renderer's per-render style collector and register sheets
       at actual component rendering sites. Retain required shared sheets and
       configured ordering/validated hrefs; reject unconfigured requests. Test
       absent/populated nested components and concurrent/transient renders so
       unused child CSS and leaked collection state cannot invent direct changes.
-- [ ] Observe extracted public CSS through the existing watch/resource setup.
+- [x] Observe extracted public CSS through the existing watch/resource setup.
       Confirm styles load from disk, Serve and an export with confined paths.
-- [ ] Verify `:has()` state, inherited tokens, icon/caret alignment, mobile
+- [x] Verify `:has()` state, inherited tokens, icon/caret alignment, mobile
       sheets and inspector grips in both standalone and existing screen contexts.
       Rebuild/check outputs and inspect every changed fragment before proceeding.
 
-## Milestone 4: Migrate Browse, Changes and use-case designs
+## Milestone 4: Migrate Browse, Changes and use-case designs — completed
 
 Tags: mockup
 
 Outcome: the 24 existing Browse/Changes designs consume the shared library while
 retaining their approved states, links and separate owning screen components.
 
-- [ ] Add failing per-screen usage expectations for headers, navigation, tags,
+- [x] Add failing per-screen usage expectations for headers, navigation, tags,
       comparison controls, frames, metadata, empty states and flow steps.
-- [ ] Adapt `Shell`, `TopBar`, `NavTree/NavDrawer`, `ScreenHead`, tag helpers,
+- [x] Adapt `Shell`, `TopBar`, `NavTree/NavDrawer`, `ScreenHead`, tag helpers,
       `DetailsPanel`, comparison helpers and frames to registered components.
       Retain lightweight scenario adapters and unregistered screen/layout roots.
-- [ ] Pass actual query, title, active rows, destinations, status, counters,
+- [x] Pass actual query, title, active rows, destinations, status, counters,
       addresses and content through data/slots. Preserve the existing explicit
       navigation tables and deliberately inactive controls, including removed
       screens and unsupported comparison/scheme/tag combinations.
-- [ ] Keep device selection independent of artboard viewport. Reuse the existing
+- [x] Keep device selection independent of artboard viewport. Reuse the existing
       owning miniature screens inside frame/flow slots and retain reference links.
-- [ ] Preserve comparison eligibility, opaque bands, dark-selection/light-only
+- [x] Preserve comparison eligibility, opaque bands, dark-selection/light-only
       depictions, drawer behavior, scroll containment and all incoming/return links.
-- [ ] Assert generated usage identities and meaningful Components/Usage panels
+- [x] Assert generated usage identities and meaningful Components/Usage panels
       for both viewports; verify Top bar nested usage through the tag-picker state.
-- [ ] Build/check outputs and run existing Browse, design-link, portable-link,
+- [x] Build/check outputs and run existing Browse, design-link, portable-link,
       comparison eligibility and navigation suites. Open all changed fragments
       directly from disk and smoke-test the real outer shell on both viewports.
 
-## Milestone 5: Migrate component explorer, inspection and controls designs
+## Milestone 5: Migrate component explorer, inspection and controls designs — completed
 
 Tags: mockup
 
 Outcome: all 56 owning design screens use the same registered library; the real
 outer inspector shows usage across the full design catalogue.
 
-- [ ] Add failing usage expectations for all 32 component design states and
+- [x] Add failing usage expectations for all 32 component design states and
       for shared components consumed across both old and new screen families.
-- [ ] Adopt the same navigation/header/status/view-controls and frame/comparison
+- [x] Adopt the same navigation/header/status/view-controls and frame/comparison
       components in `ExplorerShell`, `ComponentLayout` and screen layouts.
       Preserve ordinary preview/workspace composition and the depicted subject
       fixtures; do not replace entire artboards with opaque component variants.
-- [ ] Convert `InspectorPanel.content` arrays to a plain ordered tab description
+- [x] Convert `InspectorPanel.content` arrays to a plain ordered tab description
       plus named body slots. Reuse the inspector and metadata rows in every
       details/props/usage/closed/selected state, retaining each screen's initial tab.
-- [ ] Reuse prop-field framing across control states. Keep typed fixture values,
+- [x] Reuse prop-field framing across control states. Keep typed fixture values,
       validation messages, read-only/loading/error/reset outcomes and actual input
       elements in explicit caller data/slots. Verify unique label/input/error ids.
-- [ ] Use stable semantic instance ids for fields, tabs, tags and repeated panes.
+- [x] Use stable semantic instance ids for fields, tabs, tags and repeated panes.
       Ensure nested children and caller-owned slot children retain correct owners.
-- [ ] Remove duplicate migrated markup/style implementations while preserving
+- [x] Remove duplicate migrated markup/style implementations while preserving
       source entry points and supported scenarios. All migrated adapters must
       delegate to registered wrappers; small decorative helpers may stay ordinary.
-- [ ] Keep pictured component usage/highlight demonstrations distinct from real
+- [x] Keep pictured component usage/highlight demonstrations distinct from real
       outer usage. Validate the latter solely against generated instance records.
-- [ ] Build/check output; run component design, inspector, controls, resizing,
+- [x] Build/check output; run component design, inspector, controls, resizing,
       geometry, selection and navigation tests. Inspect every changed fragment
       on disk and smoke-test the complete connected design catalogue.
 
-## Milestone 6: Prove reuse and attribution end to end
+## Milestone 6: Prove reuse and attribution end to end — completed
 
 Tags: mockup
 
 Outcome: actual component edits, screen edits, usage and published inspection
 behave consistently across the completed design catalogue.
 
-- [ ] Assert preservation of the original id/route set, both viewports and every
+- [x] Assert preservation of the original id/route set, both viewports and every
       specified library variant. Each component must have real direct or nested
       screen consumers, and all owning artboards must record expected usage.
-- [ ] Add a focused adoption guard against bypassing registered renderers at
+- [x] Add a focused adoption guard against bypassing registered renderers at
       migrated composition points; pair it with generated usage assertions so
       testing does not rely on import spelling or raw marker counts alone.
-- [ ] Exercise isolated, fully registered baseline/current snapshots: component
+- [x] Exercise isolated, fully registered baseline/current snapshots: component
       markup/CSS edits, nested chip edits, changed screen inputs/destinations,
       changed slots, repeated-instance reorder/removal and saved-variant edits.
-- [ ] Change actual variant/controls metadata source files and assert component
+- [x] Change actual variant/controls metadata source files and assert component
       Changes without invented affected consumers. Test hidden-child CSS and
       populated-child CSS separately across the parent's saved variants.
-- [ ] Verify direct Changes and affected consumers against the contract across
+- [x] Verify direct Changes and affected consumers against the contract across
       Browse/watch, generated comparison results and static export. Preserve
       conservative global/style-layout changes and unrelated Example behavior.
-- [ ] Update legacy stylesheet assertions to component-aware expectations while
+- [x] Update legacy stylesheet assertions to component-aware expectations while
       retaining meaningful mixed/global resource coverage. Treat initial adoption
       differences as real structural changes rather than adding blanket ignores.
-- [ ] Browser-smoke a design screen → Components → shared component → Usage →
+- [x] Browser-smoke a design screen → Components → shared component → Usage →
       consuming screen journey, including nested selection and actual highlighting.
       Verify dimming geometry, Escape, Back/Forward and both viewport contexts.
-- [ ] Test local prop edit/reset/variant changes and unchanged source/output/
+- [x] Test local prop edit/reset/variant changes and unchanged source/output/
       comparison state. Test saved variants and read-only inspection after export.
-- [ ] Measure plain `npm run dev` with the expanded catalogue and a registered
+- [x] Measure plain `npm run dev` with the expanded catalogue and a registered
       Git baseline. Retain bounded baseline-read command counts and existing
       readiness deadlines; investigate any new bottleneck through the milestone
       separation rule instead of masking it with larger timeouts.
 
-## Milestone 7: Validate and deliver
+## Milestone 7: Preserve layout overrides after style extraction — completed
+
+Tags: mockup
+
+Outcome: bounded inspector panels retain scrolling regardless of which exclusive
+component sheets are requested. The full gate exposed a mobile overflow override
+loading after the workspace rule; the original screen did not have this failure.
+
+- [x] Split configuration into ordered base, component and layout blocks, keeping
+      layout overrides after requested exclusive component sheets.
+- [x] Assert scrollable open panels across all 32 component artboards and the
+      standalone variants; rerun mobile close/reopen and resize regressions.
+- [x] Rebuild output, repeat the direct-file visual audit and document the order.
+
+## Milestone 8: Validate and deliver
 
 Outcome: documented, reproducible implementation ready for review.
 
-- [ ] Update protocol delivery status, the example README and relevant source
+- [x] Update protocol delivery status, the example README and relevant source
       guidance with the implemented library, ownership rules and contribution
       workflow. Reconcile this plan's scope with the completed implementation.
-- [ ] Run `npm run build`, `npm run example:build`, `npm run example:check`,
+- [x] Run `npm run build`, `npm run example:build`, `npm run example:check`,
       focused tests and type checks. Commit matching generated HTML/manifest
       output; do not hand-edit generated HTML as the source of truth.
-- [ ] Finish the full direct-file visual audit and Serve/export smoke checks;
+- [x] Finish the full direct-file visual audit and Serve/export smoke checks;
       retain an inventory and evidence in `.context` for every changed page.
-- [ ] Run `cargo xtask check`; require all relevant tests and every gate to pass.
+- [x] Run `cargo xtask check`; require all relevant tests and every gate to pass.
 - [ ] Review the diff/deletions against `origin/main`, run `git add -A`, commit
       all completed source/docs/generated files with Conventional Commits and
       push the branch. Newly created files must be included.
@@ -241,6 +259,27 @@ Outcome: documented, reproducible implementation ready for review.
       implementation and verification are delivered. Keep review follow-ups
       explicitly recorded for the user's decision.
 
-For this initial documentation-only delivery, validate Markdown, local links and
-the diff instead of running `cargo xtask check`; commit and push the plan/specs,
-then run the required post-push review. Do not mark implementation tasks complete.
+## Verification Evidence
+
+- Original 56 screen ids/routes and 112 viewport fragments retained. All 15
+  shared components have real screen consumers; 56 saved variants add 112
+  standalone fragments.
+- Direct-file screenshots cover all 224 design fragments. The existing-screen
+  pixel comparison found all 112 original views identical after restoring the
+  explicit base/component/layout stylesheet order. Evidence lives in
+  `.context/design-library-audit/`.
+- Isolated source/CSS edits prove component-only impact, screen-owned data/slots,
+  stable identity/order/removal, metadata-only changes and conservative shared
+  resources. Serve and comparison agree and batch all 248 baseline views once;
+  referenced shared resources are cached and read once each.
+- Browser journeys cover actual nested usage, highlighting, history, local
+  edit/unset/reset, newly visible child styles and exported read-only variants.
+- Plain `npm run dev` in a fresh isolated copy with a committed registered
+  baseline reached HTTP readiness in 29.8 seconds including the package build.
+  Existing child readiness deadlines were unchanged. CSS watch updated direct
+  component membership without adding consumers; source watch rebuilt variants.
+  Evidence: `.context/design-library-startup.log` and its child log.
+
+- Final `cargo xtask check` passed: 744 Node tests, 193 browser tests and four
+  Rust tests; dependency audit, formatting, lint, types, generated output and
+  packed-consumer checks also passed. Log: `.context/design-library-full-check.log`.

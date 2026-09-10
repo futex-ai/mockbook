@@ -1,0 +1,101 @@
+import {
+  defineComponent,
+  type ComponentProps,
+  type ComponentRenderContext,
+} from "mokabook";
+import { DESTINATIONS } from "../../parts/destinations.js";
+import { libraryMetadata } from "../metadata.js";
+import {
+  destination,
+  flag,
+  optionalText,
+  scheme,
+  schemeDestinations,
+  tagRecords,
+  text,
+} from "../schemas.js";
+import { libraryTags } from "../controls/tag-picker.js";
+import { TopBarView } from "./top-bar.view.js";
+
+const propSchema = {
+  kind: "object",
+  properties: {
+    query: optionalText,
+    placeholder: text,
+    viewport: {
+      schema: { kind: "enum", values: ["mobile", "desktop"] },
+      optional: true,
+    },
+    menu: { schema: { kind: "enum", values: ["none", "open", "close"] } },
+    menuPresentation: { schema: { kind: "enum", values: ["text", "icon"] } },
+    scheme: { ...scheme, optional: true },
+    accessible: flag,
+    tags: tagRecords,
+    activeTag: optionalText,
+    pickerOpen: flag,
+    brandDestination: destination,
+    menuDestination: destination,
+    pickerDestination: destination,
+    schemeDestinations,
+  },
+} as const;
+export type TopBarProps = ComponentProps<typeof propSchema, []>;
+const sample = {
+  placeholder: "Search screens…",
+  menu: "open",
+  menuPresentation: "text",
+  accessible: false,
+  tags: libraryTags,
+  pickerOpen: false,
+  brandDestination: DESTINATIONS.home,
+  menuDestination: DESTINATIONS.navigation,
+  pickerDestination: DESTINATIONS.tagPicker,
+  schemeDestinations: {},
+} as const;
+export const topBar = defineComponent({
+  ...libraryMetadata(
+    "chrome",
+    "top-bar",
+    "Top bar",
+    "Branding, search, catalogue navigation and tag filtering.",
+  ),
+  propSchema,
+  controls: {
+    query: { kind: "text", label: "Query" },
+    pickerOpen: { kind: "boolean", label: "Tag picker open" },
+    menu: {
+      kind: "select",
+      label: "Menu",
+      options: propSchema.properties.menu.schema.values.map((value) => ({
+        label: value,
+        value,
+      })),
+    },
+    scheme: {
+      kind: "select",
+      label: "Theme",
+      options: scheme.schema.values.map((value) => ({ label: value, value })),
+    },
+  },
+  render: (props: TopBarProps, context: ComponentRenderContext) => (
+    <TopBarView {...props} viewport={props.viewport ?? context.viewport} />
+  ),
+  variants: [
+    { id: "default", title: "Default", props: sample },
+    {
+      id: "search",
+      title: "Search",
+      props: { ...sample, query: "tag:forms", activeTag: "forms" },
+    },
+    {
+      id: "tag-picker",
+      title: "Tag picker",
+      props: { ...sample, pickerOpen: true },
+    },
+    {
+      id: "drawer-open",
+      title: "Drawer open",
+      props: { ...sample, menu: "close", menuDestination: DESTINATIONS.home },
+    },
+  ],
+});
