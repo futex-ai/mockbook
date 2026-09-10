@@ -1,10 +1,11 @@
 # Component Explorer
 
-Status: active; the design feedback and component runtime are implemented and
-the complete verification gate passes. Commit/push and post-push review
-are in progress. Milestone 4h audited all 112 design artboards and corrected the
-divider and comparison eligibility. The public API, saved pages, attribution,
-inspection, static export and local controls now share the approved contracts.
+Status: completed; the design feedback and component runtime are implemented,
+verified, committed, pushed, and reviewed. Milestone 4h audited all 112 design
+artboards and corrected the divider and comparison eligibility. The public API,
+saved pages, attribution, inspection, static export and local controls are
+delivered. Review follow-ups remain for the user's decision in the
+[runtime review record](../docs/reviews/component-explorer-runtime.md).
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -622,26 +623,33 @@ audit opened all 136 generated HTML views directly from disk and inspected all
 exercised and visually checked, including edited values, dark mode, Usage links,
 and nested Toolbar highlighting. No verification blockers remain.
 
-## Milestone 10: Commit, push, and review implementation
+## Milestone 10: Commit, push, and review implementation — completed
 
 Deliver the validated implementation through the mandatory post-push review.
 
 - [x] Before integration, capture the source tip, fetch main, and audit its
       additions; preserve mainline features and resolve conflicts path by path.
-- [ ] After tests and `cargo xtask check` pass, inspect the full diff and
+- [x] After tests and `cargo xtask check` pass, inspect the full diff and
       deletions against `origin/main`, then run `git add -A` so new sources,
       tests, docs, and generated files all enter the review diff.
-- [ ] Commit using Conventional Commits with a title of at most 50 characters
+- [x] Commit using Conventional Commits with a title of at most 50 characters
       and a descriptive body; inspect the committed diff and push the branch.
-- [ ] Run `cargo xtask review` after that push. Do not automatically fix findings.
+- [x] Run `cargo xtask review` after that push. Do not automatically fix findings.
       Report every item with severity, feature/code context, impact of doing
       nothing, lettered options, and a recommended scope, considering reusable
       validation, tests, or architectural prevention of the same class of issue.
-- [ ] Record validation and review disposition, complete the milestones only
+- [x] Record validation and review disposition, complete the milestones only
       when their tasks are done, and move this plan from Active to Completed.
       Validate and commit/push any final delivery-record update separately.
 
-Documentation-only plan/protocol changes use AGENTS.md's exception: validate
-changed Markdown and review the diff instead of running `cargo xtask check`,
-then commit, push, and run `cargo xtask review`. This does not complete the
-implementation milestones or move the plan out of Active.
+Implementation commit `f27b8ae` contains the integration with main `a0e349a`,
+preserving the captured source tip `b68e84a` as its other parent. Its full check,
+post-push review, green Node 22/24 and macOS/Windows CI, and published mobile and
+desktop smokes are recorded in the [delivery review](../docs/reviews/component-explorer-runtime.md).
+[PR #48](https://github.com/futex-ai/mokabook/pull/48) now describes the complete
+implementation. Review follow-ups are recorded separately; none were
+automatically fixed.
+
+Documentation-only delivery updates use AGENTS.md's exception: validate changed
+Markdown and review the diff instead of repeating `cargo xtask check`, then
+commit, push, and run the required post-push review.
