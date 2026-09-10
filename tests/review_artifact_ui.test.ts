@@ -36,6 +36,38 @@ const result: ReviewResult = {
   ],
 };
 
+test("component summary titles are literal single-line Markdown", () => {
+  const summary = summaryMarkdown({
+    ...result,
+    schemaVersion: 3,
+    screens: [],
+    components: [],
+    affectedConsumers: [],
+    changes: [
+      {
+        kind: "component",
+        after: {
+          id: "action",
+          route: "components/action.html",
+          title:
+            "Action\r\n## Approved [link](https://example.com) <b> &amp; `code` *bold*",
+        },
+        reasons: [{ kind: "added" }],
+      },
+    ],
+  });
+  assert.equal(
+    summary.split("\n").filter((line) => line.startsWith("- ")).length,
+    1,
+  );
+  assert.ok(
+    summary.includes(
+      String.raw`Action \#\# Approved \[link\]\(https://example\.com\) \<b\> &amp;amp; \`code\` \*bold\*`,
+    ),
+  );
+  assert.doesNotMatch(summary, /^## Approved/m);
+});
+
 test("comparison artifacts contain data and snapshots without a separate UI", () => {
   const snapshots = new Map([
     ["snapshots/base/home.html", "<main>Before</main>"],

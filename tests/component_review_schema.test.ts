@@ -29,6 +29,7 @@ test("component comparison schemas reject invalid membership, sides, references 
     result,
     fixture.before.manifest,
     fixture.after.manifest,
+    new Set(["action"]),
   );
   for (const tamper of [
     (value: typeof result) =>
@@ -70,7 +71,48 @@ test("component comparison schemas reject invalid membership, sides, references 
         invalidSource,
         fixture.before.manifest,
         fixture.after.manifest,
+        new Set(["action"]),
       ),
     /review/i,
   );
+  for (const retained of [[], result.affectedConsumers.slice(1)]) {
+    assert.throws(
+      () =>
+        validateComponentReviewSources(
+          { ...result, affectedConsumers: retained },
+          fixture.before.manifest,
+          fixture.after.manifest,
+          new Set(["action"]),
+        ),
+      /review/i,
+    );
+  }
 });
+
+for (const [name, change] of [
+  [
+    "saved props",
+    (s: string) =>
+      s.replace('props: { label: "Continue" }', 'props: { label: "Next" }'),
+  ],
+  ["controls", (s: string) => s.replace("maxLength: 80", "maxLength: 100")],
+] as const)
+  test(`source coverage does not invent consumers for ${name}`, async (t) => {
+    const fixture = await componentReviewFixture(t, change);
+    const { result } = await compareReview(
+      fixture.after,
+      fixture.config,
+      fixture.git,
+      "main",
+    );
+    assert.equal(result.schemaVersion, 3);
+    if (result.schemaVersion !== 3) return;
+    assert.equal(result.changes.length, 1);
+    assert.deepEqual(result.affectedConsumers, []);
+    validateComponentReviewSources(
+      result,
+      fixture.before.manifest,
+      fixture.after.manifest,
+      new Set(),
+    );
+  });

@@ -30,7 +30,9 @@ Render `<action.Component label="Save" />` in a screen. Give repeated siblings
 distinct `mokabookInstance` values; stable ids preserve their identity across
 edits. Registered children inside another registered component appear in its
 Nested components tab. React content belongs in declared `slots`; data belongs
-in `propSchema`. The schema infers TypeScript props and validates actual values.
+in `propSchema`. The schema infers TypeScript props and validates actual values. Registry preparation
+revalidates exported definitions and snapshots component data before rendering,
+so malformed or mutated variants and controls produce author diagnostics.
 
 Variants are explicit named examples, never inferred from screenshots or every
 combination of controls. Both viewports and every configured scheme are built

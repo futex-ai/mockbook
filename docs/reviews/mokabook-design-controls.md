@@ -1,5 +1,9 @@
 # Shared Design Controls Delivery Review
 
+The user subsequently authorized the six fixes below and the latest CI repair.
+The original assessments remain as review history; the remediation record at
+the end describes the follow-up implementation and verification.
+
 The footer and view-control normalization is committed and pushed as `4e81ca0`.
 After the push, `cargo xtask review` inspected the complete committed branch
 against `origin/main` at `a0e349a`, read-only. It reported four Medium and two
@@ -151,3 +155,44 @@ is complete. All adoption milestones, including the CI correction, are delivered
 the six review follow-ups remain for the user's decision. The final documentation
 record is validated separately with Markdown formatting, local links and diff
 checks; it makes no implementation changes.
+
+## Authorized Remediation
+
+The six findings are addressed at their shared boundaries:
+
+- Snapshot reads reject linked files, linked ancestor directories, non-regular
+  files and paths outside the retained root. The regression reproduced an
+  outside file being served before the fix.
+- The classifier supplies its implementation-impact evidence to source
+  validation, which requires the complete affected-consumer set. Every caller
+  now receives a validated result; saved-prop/control metadata regressions keep
+  consumers empty. This avoids inventing impact from all changed components.
+- Supervisor runtime delivery explicitly distinguishes staging from live
+  replacement. Delayed rebuild/reconfiguration tests reproduced both mixed
+  generations; a startup test reproduced a staged graph replacing the graph
+  selected when the child spawned. Same-manifest live replacement still works.
+- Registry preparation shares authoring validation and snapshots component data
+  before rendering. Forged/mutated definitions now produce useful diagnostics
+  instead of internal TypeErrors.
+- Diagnostic summaries escape authored titles on one line and protect code-span
+  refs/paths. Original values remain intact in comparison JSON.
+- Current protocol status and format guidance is aligned with implemented
+  authoring, manifest v3/v4 and Review v2/v3 behavior. A format matrix and focused
+  documentation checks cover registration and removal across comparison sides.
+
+CI run `34528864136` failed only the mobile native snapshot-link journey on
+Node 22.14; 749 Node tests and 202 other browser tests passed. The intermittent
+failure did not recur in five focused and 200 diagnostic local runs, including
+CPU throttling and delayed stylesheet responses. The test now waits for snapshot
+load and native navigation events before asserting destination content. CI uses
+the Playwright-installed Chromium, and failed jobs upload retained browser
+traces/error context for diagnosis. No test is skipped or retried automatically.
+
+Regression evidence: `.context/review-snapshot-red.log`,
+`.context/review-registry-summary-red.log`, `.context/review-coverage-red.log`,
+`.context/review-runtime-red.log`. The first focused gate passed 48 tests; the
+snapshot journey passed three mobile and three desktop runs. The final
+`cargo xtask check` passed with **764 Node tests, 203 browser tests and four Rust
+tests**, including audit, formatting, lint, types, generated output, packed
+consumer smokes and all Rust gates. Log: `.context/review-ci-full-check.log`.
+Post-push review and CI results are reported with delivery.

@@ -187,6 +187,11 @@ and nosniff headers and a fixed validated MIME type, preserving frame sandboxing
 
 Watched registry/config replacement invalidates the old generation, stops or
 discards its queued work, and only swaps to a fully validated replacement graph.
+When the manifest is unchanged, apply the new runtime to the live child before
+publishing the update. A changed manifest or reconfiguration stages it for the
+next child, leaving the old catalogue and its controls paired through shutdown.
+Capture the startup runtime when spawning, so later staging cannot change a
+child's initial IPC response while it waits for readiness.
 Failed candidate builds retain the last-good registry/renderer and its controls.
 Server shutdown stops admission, rejects queued work, terminates the worker,
 and cleans transient artifacts. Controls cannot delay ordinary catalogue

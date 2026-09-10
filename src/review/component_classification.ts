@@ -9,6 +9,7 @@ import type { ResolvedConfig } from "../config/types.js";
 import type { Manifest } from "../registry/types.js";
 import type { ReviewAssetReader } from "./assets.js";
 import { affectedConsumers } from "./component_affected.js";
+import { validateComponentReviewSources } from "./component_result_sources.js";
 import {
   address,
   ComponentDependencyPolicy,
@@ -277,7 +278,7 @@ export async function classifyComponents(
       lexical(a.kind, b.kind) ||
       lexical((a.after ?? a.before)!.id, (b.after ?? b.before)!.id),
   );
-  return {
+  const result: ReviewResultV3 = {
     schemaVersion: 3,
     baseCommit: input.baseCommit,
     baseRef: input.baseRef,
@@ -289,4 +290,6 @@ export async function classifyComponents(
     affectedConsumers: affectedConsumers(before, after, impacting),
     ignoredImpact: aggregateIgnored(screens),
   };
+  validateComponentReviewSources(result, before, after, impacting);
+  return result;
 }

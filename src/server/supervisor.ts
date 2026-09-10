@@ -52,7 +52,11 @@ export class NodeChildFactory implements ChildFactory {
 
 /** Restartable child interface used by watched Serve. */
 export interface ProcessSupervisor {
-  replaceComponentRuntime(runtime: ComponentRuntime): void;
+  /** Stage the next child's graph, or update a child whose catalogue is unchanged. */
+  replaceComponentRuntime(
+    runtime: ComponentRuntime,
+    delivery: "stage" | "live",
+  ): void;
   close(): Promise<void>;
   notifyUpdate(changedRoutes: readonly string[] | undefined): void;
   /** Register the watched-runtime handler for a post-readiness child failure. */
@@ -109,6 +113,7 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
     const resolvedPort = this.#resolvedPort;
     const port = resolvedPort ?? this.requestedPort;
     this.#updateVersion += 1;
+    const runtime = this.#runtime;
     const child = this.factory.spawn([
       ...this.baseArguments,
       ...(this.#runtime ? ["--retained-runtime"] : []),
@@ -125,9 +130,9 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
         typeof message === "object" &&
         "type" in message &&
         message.type === "component-runtime-request" &&
-        this.#runtime
+        runtime
       )
-        child.send({ type: "component-runtime", runtime: this.#runtime });
+        child.send({ type: "component-runtime", runtime });
     });
     try {
       const readyPort = await waitForReady(child, (error) => {
@@ -150,9 +155,13 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
     return this.start();
   }
 
-  replaceComponentRuntime(runtime: ComponentRuntime): void {
+  replaceComponentRuntime(
+    runtime: ComponentRuntime,
+    delivery: "stage" | "live",
+  ): void {
     this.#runtime = runtime;
-    this.#child?.send({ type: "component-runtime", runtime });
+    if (delivery === "live")
+      this.#child?.send({ type: "component-runtime", runtime });
   }
 
   notifyUpdate(changedRoutes: readonly string[] | undefined): void {

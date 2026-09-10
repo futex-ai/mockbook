@@ -42,8 +42,8 @@ alter surrounding layout without changing any screen-owned markup.
 Browse, watched Changes updates, comparison JSON, and published catalogues use
 one materiality policy. A raw generated HTML path appearing in Git is candidate
 evidence, not sufficient reason to classify a registered consumer as changed.
-The current `changedManifestRoutes` raw-file logic must be integrated with the
-same ownership-aware comparison used by detailed comparisons.
+Component catalogues use the same ownership-aware classifier for Browse and
+detailed comparisons; unregistered catalogues retain `changedManifestRoutes`.
 
 Lightweight Browse classification reads committed/current manifests, validated
 usage metadata, and required fragment material from the Git branch point. It

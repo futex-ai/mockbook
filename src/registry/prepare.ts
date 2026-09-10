@@ -7,7 +7,9 @@ import type {
 import { toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
-import { validateEntry } from "./entry_validation.js";
+import { ComponentValidationError } from "../components/data.js";
+import { validateComponentDefinition } from "../components/definition.js";
+import { problem, validateEntry } from "./entry_validation.js";
 import {
   crossReferenceViolations,
   duplicateViolations,
@@ -39,8 +41,21 @@ export function prepareRegistry(
       sourcePath,
       sourceRelativePath,
     } as ResolvedRegistryEntry;
-    entries.push(entry);
-    violations.push(...validateEntry(entry, config));
+    const metadataViolations = validateEntry(entry, config);
+    violations.push(...metadataViolations);
+    if (entry.kind === "component") {
+      if (metadataViolations.length) return;
+      try {
+        entries.push({
+          ...validateComponentDefinition(entry),
+          sourcePath,
+          sourceRelativePath,
+        });
+      } catch (error) {
+        if (!(error instanceof ComponentValidationError)) throw error;
+        violations.push(problem(entry, "invalid-component", error.message));
+      }
+    } else entries.push(entry);
   });
   entries.sort(
     entries.some((entry) => entry.kind === "component")

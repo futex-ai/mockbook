@@ -1,9 +1,9 @@
 # Changes and screen comparisons
 
-The approved [component attribution extension](./mokabook-component-changes.md)
-is planned, not implemented. It will keep component-only consumers out of
-Changes while linking them from the component's Affected screens list. The
-current screen and manual Review-ignore behavior remains documented below.
+The implemented [component attribution extension](./mokabook-component-changes.md)
+keeps component-only consumers out of Changes while linking them from the
+component's Affected screens list. Screen and manual Review-ignore behavior
+remains documented below.
 
 The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report

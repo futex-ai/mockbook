@@ -155,11 +155,11 @@ then validated and encoded using this shared policy before rendering.
 
 ## Implementation Evidence
 
-Implement one schema validator/codec shared by authoring, manifest parsing,
-material-key verification, and local controls; do not maintain four inferred
-schemas. Add accepted/rejected contract fixtures for required/optional fields,
+One implemented schema validator/codec serves authoring, manifest parsing,
+material-key verification, and local controls. Accepted/rejected contract
+fixtures cover required/optional fields,
 all schema kinds, null/unions, nested arrays/objects, unknown/reserved keys,
 negative zero, mutation isolation, cycles/accessors, and validation limits.
-Add codec round-trip, integer-looking key order, and hash-agreement tests and negative TypeScript cases for
-wrappers, variants, adapters, and controls. These are implementation TODOs in
-the active plan; this documentation change does not claim a shipped validator.
+Codec round-trip, integer-looking key order, hash-agreement tests and negative
+TypeScript cases cover wrappers, variants, adapters, and controls. These suites
+run in the required verification gate.

@@ -22,13 +22,13 @@ its count unless they have an independent screen change. See the
 
 ## Authoring Boundary
 
-The root package gains `defineComponent`. It returns an `entry` for the
+The root package exports `defineComponent`. It returns an `entry` for the
 `mockups` export and a typed `Component` wrapper for composition. The wrapper
 uses the consumer's real component through a render adapter. A consumer can
 re-export that wrapper once from its mockup component module and use ordinary
 JSX throughout its screens.
 
-The target API is illustrated below; it is not available in the current package:
+Register an adapter and its saved examples with the public API:
 
 ```tsx
 const action = defineComponent({
@@ -75,6 +75,12 @@ const submit = (
   />
 );
 ```
+
+Registry preparation repeats the authoring helper's component validation on
+every exported definition, including forged objects and definitions mutated
+after registration. It snapshots schemas, controls and saved data before
+rendering. Invalid exports fail with source-attributed component diagnostics
+before output generation; helper branding alone is not validation.
 
 The input includes the common entry metadata, a stable relative `.html` route,
 `propSchema`, `render`, and a nonempty ordered `variants` list. `tags`,

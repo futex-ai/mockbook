@@ -2,6 +2,7 @@
 
 import { parseReviewResult } from "./result_validation.js";
 import { canonicalJson } from "../components/data.js";
+import { markdownCode, markdownText } from "./markdown.js";
 
 import type {
   ReviewArtifact,
@@ -36,11 +37,11 @@ export function summaryMarkdown(result: ReviewResult): string {
   if (result.schemaVersion === 3)
     return `## Mokabook Review
 
-Base: \`${result.baseRef}\` (\`${result.baseCommit.slice(0, 12)}\`)
+Base: ${markdownCode(result.baseRef)} (${markdownCode(result.baseCommit.slice(0, 12))})
 
 Changes: ${result.changes.length}; screens: ${result.screens.length}; components: ${result.components.length}; affected consumers: ${result.affectedConsumers.length}.
 
-${result.changes.map((change) => `- ${change.kind}: ${(change.after ?? change.before)!.title} (${change.reasons.map((reason) => reason.kind).join(", ")})`).join("\n")}
+${result.changes.map((change) => `- ${change.kind}: ${markdownText((change.after ?? change.before)!.title)} (${change.reasons.map((reason) => reason.kind).join(", ")})`).join("\n")}
 `;
   const outputChanges = result.screens.filter(hasOutputChange).length;
   const impactEvidence = result.screens.filter(
@@ -53,7 +54,7 @@ ${result.changes.map((change) => `- ${change.kind}: ${(change.after ?? change.be
   const lines = [
     "## Mokabook Review",
     "",
-    `Base: \`${result.baseRef}\` (\`${result.baseCommit.slice(0, 12)}\`)`,
+    `Base: ${markdownCode(result.baseRef)} (${markdownCode(result.baseCommit.slice(0, 12))})`,
     "",
     `Screens: ${result.screens.length}; output changes: ${outputChanges}; changed: ${counts.get("changed") ?? 0}; added: ${counts.get("added") ?? 0}; removed: ${counts.get("removed") ?? 0}; ignored-only: ${counts.get("ignored-only") ?? 0}; impact evidence: ${impactEvidence}; impact-only: ${impactOnly}.`,
     "",
@@ -63,7 +64,7 @@ ${result.changes.map((change) => `- ${change.kind}: ${(change.after ?? change.be
     lines.push(
       "",
       "Shared-impact paths:",
-      ...result.sharedImpact.map((item) => `- \`${item}\``),
+      ...result.sharedImpact.map((item) => `- ${markdownCode(item)}`),
     );
   }
   return `${lines.join("\n")}\n`;

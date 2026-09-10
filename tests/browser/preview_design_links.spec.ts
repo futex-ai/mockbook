@@ -95,13 +95,28 @@ for (const viewport of ["mobile", "desktop"] as const) {
       "href",
       `./details.${viewport}.html#details`,
     );
-    await next.click();
+    const snapshot = await (await iframe.elementHandle())?.contentFrame();
+    if (!snapshot) throw new Error("The current snapshot frame is missing");
+    await snapshot.waitForLoadState("load");
+    await iframe.scrollIntoViewIfNeeded();
+    await Promise.all([
+      snapshot.waitForURL(
+        new RegExp(`/details\\.${viewport}(?:\\.html)?#details$`),
+        { waitUntil: "load" },
+      ),
+      next.click(),
+    ]);
     await expect(page).toHaveURL(`${preview.url}/view/screens/welcome`);
     await expect(frame.locator("main#details")).toBeVisible();
-    await frame
-      .locator('a[data-mokabook-link-control="button"]')
-      .filter({ hasText: "Return to welcome" })
-      .click();
+    await Promise.all([
+      snapshot.waitForURL(new RegExp(`/welcome\\.${viewport}(?:\\.html)?$`), {
+        waitUntil: "load",
+      }),
+      frame
+        .locator('a[data-mokabook-link-control="button"]')
+        .filter({ hasText: "Return to welcome" })
+        .click(),
+    ]);
     await expect(frame.locator("main#welcome")).toBeVisible();
     await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
   });

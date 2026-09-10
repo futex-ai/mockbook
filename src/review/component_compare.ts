@@ -7,7 +7,6 @@ import {
   type GitReviewAssetReader,
   type ReviewAssetReader,
 } from "./assets.js";
-import { validateComponentReviewSources } from "./component_result_sources.js";
 import { classifyComponents } from "./component_classification.js";
 import { addArtifactFile, snapshotPath } from "./paths.js";
 import type { ReviewArtifact, ReviewArtifactContent } from "./types.js";
@@ -51,7 +50,6 @@ export async function compareComponentCatalogue(
     baseCommit,
     baseRef,
   });
-  validateComponentReviewSources(result, baseline, compilation.manifest);
   const files = new Map<string, ReviewArtifactContent>();
   for (const route of basePaths)
     addArtifactFile(

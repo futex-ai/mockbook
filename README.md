@@ -246,6 +246,8 @@ drain generation work before shutdown. The former Review tab, standalone report,
 Consumer documents run in sandboxed frames. Comparisons keep unmodified base/head
 documents in separate snapshot trees and copies their referenced local CSS,
 fonts, and images so comparison artifacts do not depend on the live workspace.
+Served comparison snapshots reject symbolic links at the file, ancestor-directory,
+and retained-root boundaries, and serve only regular files.
 Filesystem-backed Browse and comparison routes reject malformed encoding,
 traversal segments, absolute paths, and forward or backslash separators
 introduced by decoding one original URL segment before resolving a consumer
@@ -310,8 +312,9 @@ file and confined to `repoRoot`.
   unrelated authored static HTML under `mockupsDir`. `review` selects the Git
   base ref used to find the branch point,
   internal snapshot directory, and shared-impact globs.
-- `compatibility.readManifestV2` reads Accounting's old manifest only when v3
-  is absent. A temporary `compatibility.transformer` may deterministically
+- `compatibility.readManifestV2` reads the legacy Accounting-format manifest only
+  when `mokabook-manifest.json` is absent. The primary file supports v3 and v4;
+  an invalid primary manifest fails instead of falling back. A temporary `compatibility.transformer` may deterministically
   repair already-authored documents during a consumer cutover; final links,
   resources, and the comment-safe generated source proof are still validated.
 
@@ -409,6 +412,10 @@ before applying UI assertion deadlines. Cold snapshot generation has a bounded
 30-second wait tied to the newly triggered request, refresh intent, and its
 redirect chain; stale/background responses cannot satisfy it. The existing UI
 assertions retain their default deadlines.
+Snapshot-link tests await the selected frame's load and native navigation events
+before checking destination content; a parsed link alone does not mean its
+resources have finished loading. CI uses the Playwright-installed Chromium, and
+retains browser traces and error context when verification fails.
 Pages preview setup timeouts belong in the setup hook, so build time is
 separate from browser assertions.
 Resource-watch tests that replace a file in multiple steps use

@@ -10,7 +10,6 @@ import {
 import { readBaseManifest } from "../review/base_manifest.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import { classifyComponents } from "../review/component_classification.js";
-import { validateComponentReviewSources } from "../review/component_result_sources.js";
 import type { ReviewResultV3 } from "../review/component_types.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
 
@@ -105,7 +104,6 @@ export class RepositoryComponentChanges implements ComponentChangeSource {
       ),
       afterReader: new FileSystemReviewAssetReader(this.config),
     });
-    validateComponentReviewSources(result, baseline, this.manifest);
     return { baseline, result };
   }
 }

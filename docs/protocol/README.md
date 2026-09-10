@@ -8,6 +8,23 @@ packed consumer verification, CI, and npm release automation are implemented.
 The first public release and downstream Accounting cutover remain external
 delivery steps.
 
+## Supported Formats
+
+| Catalogue                     | Generated manifest | Comparison result |
+| ----------------------------- | ------------------ | ----------------- |
+| Without registered components | 3                  | 2                 |
+| With registered components    | 4                  | 3                 |
+
+The current generated manifest is v4 only when it contains registered
+components; comparisons use v3 whenever either side is v4. Removing all
+components therefore restores a v3 current manifest while retaining a v3
+comparison against the earlier v4 baseline. The primary
+`mokabook-manifest.json` reader accepts manifest v3 and v4. Explicit
+`compatibility.readManifestV2` permits the legacy Accounting-format fallback
+only when the primary file is absent, never when it is invalid.
+
+## Contracts
+
 - [Package and authoring contract](./mokabook-package.md)
 - [Build and Browse runtime](./mokabook-runtime.md)
 - [Changes and screen comparisons](./mokabook-changes.md)

@@ -96,7 +96,10 @@ export async function serveWatched(
       options.port,
     );
     supervisor.onUnexpectedExit((error) => failureGate.notify(error));
-    supervisor.replaceComponentRuntime(componentRuntime(initialCompilation));
+    supervisor.replaceComponentRuntime(
+      componentRuntime(initialCompilation),
+      "stage",
+    );
     port = await supervisor.start();
   } catch (error) {
     await Promise.allSettled([
@@ -149,6 +152,7 @@ export async function serveWatched(
       activeCompilation = nextCompilation;
       runningSupervisor.replaceComponentRuntime(
         componentRuntime(nextCompilation),
+        "stage",
       );
       manifestSignature = JSON.stringify(nextCompilation.manifest);
       watcher = replacement;
@@ -187,10 +191,11 @@ export async function serveWatched(
       try {
         prepared.adopt();
         activeCompilation = nextCompilation;
+        const nextSignature = JSON.stringify(nextCompilation.manifest);
         runningSupervisor.replaceComponentRuntime(
           componentRuntime(nextCompilation),
+          nextSignature === manifestSignature ? "live" : "stage",
         );
-        const nextSignature = JSON.stringify(nextCompilation.manifest);
         if (nextSignature === manifestSignature) {
           await publishUpdate();
         } else {

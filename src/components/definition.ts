@@ -25,7 +25,10 @@ export function defineComponent<
   >;
 }
 
-function validateComponentDefinition(input: unknown): ComponentDefinition {
+/** Validate and snapshot a definition at both authoring and registry boundaries. */
+export function validateComponentDefinition(
+  input: unknown,
+): ComponentDefinition {
   plainKeys(input, "Component");
   const value = input as ComponentDefinition;
   const at = `Component ${String(value.id)}`;

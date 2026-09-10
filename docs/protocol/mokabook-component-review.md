@@ -185,6 +185,14 @@ reasons must match the source manifests' use-case steps. Unknown fields in new
 structures, inconsistent sides, duplicate records/reasons, missing view evidence,
 and invalid values fail rather than being silently dropped.
 
+Source validation also receives the implementation-impact set computed from
+the classifier's paired material, unchanged inputs and dependency policy. It
+requires exact equality with the complete affected-consumer evidence derived
+from that set and both manifests. Neither a subset nor the set of every changed
+component is sufficient: saved-variant/control metadata edits can be direct
+changes without implementation impact. Every classification path performs this
+validation before returning results, including lightweight Browse updates.
+
 Entry ids and routes use normal catalogue validation. Snapshot paths are exact
 artifact-root-relative paths under `snapshots/before/` or `snapshots/after/`,
 as appropriate, retaining the selected fragment's relative path. Reject absolute
@@ -192,6 +200,12 @@ paths, traversal, encoded separators, source-root access, and non-regular files
 using existing snapshot/resource validation. Props in variant addresses use
 the corresponding side's schema and canonical wire codec. Instance keys are
 opaque validated identifiers and never become filesystem paths or selectors.
+
+Serving retained snapshots repeats regular-file and confinement checks at
+request time. Symlinks at the retained root, any descendant directory, or the
+file itself return 404, including artifacts modified after generation.
+Diagnostic Markdown renders authored titles as escaped single-line text and
+uses safe code-span delimiters for refs and paths; JSON retains original values.
 
 Lexical ordering uses UTF-16 code units, not a locale-sensitive collator.
 Sort screens by route and components by id. Variants follow current authored

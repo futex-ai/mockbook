@@ -1,5 +1,4 @@
 import { variantAddress } from "./component_pairing.js";
-import { canonicalJson } from "../components/data.js";
 import { generatedViews } from "../components/views.js";
 import type { Manifest } from "../registry/types.js";
 import { affectedConsumers } from "./component_affected.js";
@@ -15,6 +14,7 @@ export function validateComponentReviewSources(
   result: ReviewResultV3,
   before: Manifest,
   after: Manifest,
+  implementationImpact: ReadonlySet<string>,
 ): void {
   parseReviewResult(result);
   const pairs = entryPairs(before, after);
@@ -119,25 +119,10 @@ export function validateComponentReviewSources(
       }
     }
   }
-  const changedComponents = new Set(
-    result.changes
-      .filter((entry) => entry.kind === "component")
-      .map((entry) => (entry.after ?? entry.before)!.id),
+  requireEqual(
+    result.affectedConsumers,
+    affectedConsumers(before, after, implementationImpact),
   );
-  const possible = new Map(
-    affectedConsumers(before, after, changedComponents).map((item) => [
-      `${item.changedComponentId}:${canonicalJson(item.consumer)}`,
-      item,
-    ]),
-  );
-  for (const consumer of result.affectedConsumers) {
-    const expected = possible.get(
-      `${consumer.changedComponentId}:${canonicalJson(consumer.consumer)}`,
-    );
-    if (!expected)
-      reviewInvalid("affected consumer is absent from the source usage");
-    requireEqual(consumer, expected);
-  }
 }
 function validateViews(
   views: readonly ViewReview[],
