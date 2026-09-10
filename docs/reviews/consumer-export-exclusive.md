@@ -5,6 +5,10 @@ The user approved both findings in the
 implementation on [PR #49](https://github.com/futex-ai/mokabook/pull/49), without
 reopening completed milestones or authorizing an automatic new-finding cycle.
 
+The user subsequently approved the separate dependency item below. Its
+[focused follow-up](./dependency-security.md) tracks that work and supersedes
+the historical decision-needed status in this record.
+
 ## Approved Findings
 
 1. **High — Concurrent export destinations could be replaced.** Group:

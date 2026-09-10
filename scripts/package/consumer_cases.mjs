@@ -21,6 +21,18 @@ export async function smokeEsmConsumer(context) {
     context.archivePath,
     consumerPackage("packed-esm-consumer", context, true),
   );
+  await runCommand(
+    "npm",
+    [
+      "audit",
+      "--audit-level=low",
+      "--omit=dev",
+      "--include=prod",
+      "--include=optional",
+      "--include=peer",
+    ],
+    { cwd: root },
+  );
   await runCommand("node", ["verify-api.mjs"], { cwd: root });
   const help = await runBin(root, ["--help"]);
   assert.match(help.stdout, /mokabook build/);

@@ -391,10 +391,14 @@ These tests build real Git comparisons and Pages previews. Await generation
 responses before asserting comparison UI, and set preview setup timeouts in
 the setup hook so build time is separate from browser assertions.
 
-`cargo xtask check` is the authoritative local gate. It includes formatting,
+`cargo xtask check` is the authoritative local gate. It starts with a live
+dependency audit (`npm run dependencies:check`), then includes formatting,
 lint, typechecking, unit/integration tests, the committed example, package
 allowlist and license checks, clean packed ESM/NodeNext/npx/Accounting/Juno
-consumers, Chromium tests, and all Rust checks.
+consumers, Chromium tests, and all Rust checks. It also audits the freshly
+resolved packed consumer's production dependencies. Registry access is required;
+known advisories or registry errors fail verification. See the
+[dependency security contract](./docs/protocol/dependency-security.md).
 `npm test` limits test-file parallelism to four workers to keep subprocess-heavy
 fixtures within their existing startup deadlines on shared developer machines.
 All tests still run, including their explicit concurrent-writer and race cases.

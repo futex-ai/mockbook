@@ -23,3 +23,5 @@ delivery steps.
 - [Shell design contract](./mokabook-shell-design.md)
 - [Design mockup links](./mokabook-design-links.md)
 - [CI and npm release contract](./npm-release.md)
+- [Dependency security](./dependency-security.md) — advisory gates, targeted
+  updates, temporary overrides, and packed-consumer audit coverage.

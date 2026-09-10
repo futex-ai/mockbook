@@ -29,8 +29,10 @@ bridge is lazy and does not load for build/check/serve or help.
 ## Local Verification
 
 `cargo xtask check` is the complete repository and release gate. It delegates
-to deterministic npm scripts and includes:
+to npm scripts and includes:
 
+- a live audit of all workspace dependency categories, failing on any known
+  advisory or registry error;
 - formatting and lint checks;
 - TypeScript typechecking with no unexplained source exclusions;
 - unit and integration tests with a 100% pass rate;
@@ -39,6 +41,7 @@ to deterministic npm scripts and includes:
 - package-file inspection with `npm pack --dry-run --json`;
 - packed-tarball installs in clean ESM, NodeNext, Accounting-shaped, and
   Juno-shaped consumers;
+- a production-dependency audit of the freshly resolved packed ESM consumer;
 - local-npx and clean-cache npx-style execution from the packed artifact;
 - consumer exports from the installed CLI, including custom configs/bases,
   cross-platform renderers, legacy pages, and the compiled static client graph;
@@ -122,10 +125,9 @@ Closing a same-repository pull request marks its sticky comment inactive and
 attempts to delete all Cloudflare deployments carrying that PR branch alias.
 Cleanup failures retain the deployment and report why rather than hiding the
 failure. Superseded runs for the same main ref or pull request are cancelled.
-All workflow actions use immutable commit hashes, Wrangler is lockfile-pinned,
-and its vulnerable transitive `sharp` release is overridden with the fixed
-release targeted by that override. Re-run the dependency audit for current
-advisories; an earlier override is not evidence that the whole tree is audit-clean.
+All workflow actions use immutable commit hashes and Wrangler is lockfile-pinned.
+The [dependency security contract](./dependency-security.md) owns the audit
+gate and scoped Miniflare overrides, including their removal conditions.
 
 ## Release Management
 
