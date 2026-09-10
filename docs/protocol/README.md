@@ -33,6 +33,9 @@ delivery steps.
 - [Styled catalogue link controls](./mokabook-link-controls.md)
 - [Shell design contract](./mokabook-shell-design.md)
 - [Design mockup links](./mokabook-design-links.md)
+- [Registered components in Mokabook's design catalogue](./mokabook-design-components.md)
+  — planned adoption and ownership rules, with the
+  [component library inventory](./mokabook-design-component-library.md).
 - [CI and npm release contract](./npm-release.md)
 - [Dependency security](./dependency-security.md) — advisory gates, targeted
   updates, temporary overrides, and packed-consumer audit coverage.

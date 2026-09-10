@@ -2,6 +2,7 @@
 
 ## Active
 
+- [Reuse Registered Components In Mokabook's Design Catalogue](./mokabook-design-components.md)
 - [App-Independent Mokabook Npm Library](./app-independent-mokabook-library.md)
 - [Accounting Shell Design Parity](./accounting-shell-design-parity.md)
 

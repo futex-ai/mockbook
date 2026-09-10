@@ -15,6 +15,14 @@ styles and the design mockups. Registration and source ownership live in
 `entries/components/action.tsx` and `toolbar.tsx`.
 It contains no Accounting or Juno product screen.
 
+Adoption of registered components inside Mokabook's own design artboards is
+planned. The [design component contract](../../docs/protocol/mokabook-design-components.md)
+and [library inventory](../../docs/protocol/mokabook-design-component-library.md)
+define a Shared components gallery and reuse of headers, navigation, controls,
+inspectors and frames across the existing screens. Those artboards currently
+share ordinary React helpers; their own registered usage is not implemented yet.
+Implementation is tracked in the [plans index](../../plans/README.md).
+
 The entry definitions use collection membership as their only navigation
 hierarchy. The real `Example` collection owns `Screens` and the example tour;
 the real `Design` collection owns the `Mokabook design` tree. Those parent
