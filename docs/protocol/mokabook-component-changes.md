@@ -2,10 +2,9 @@
 
 ## Delivery Status
 
-Approved target, not implemented. The [component explorer plan](../../plans/component-explorer.md)
-tracks delivery. This extends the existing
-[Changes and comparisons contract](./mokabook-changes.md) for registered
-components; unrelated catalogue and legacy behavior remains intact.
+The classifier, Browse/watch cache, comparison artifacts, and static exporter
+share this attribution policy. The [component explorer plan](../../plans/component-explorer.md)
+records delivery. Unregistered catalogue and legacy behavior remains intact.
 
 ## Changes Membership
 
@@ -111,7 +110,8 @@ Shared ownership by several registered components is allowed and affects each.
 A changed component-owned path is attributed to its component entries and
 their affected consumers. Its presence in a broad `review.sharedImpact` glob
 or containing screen dependency directory must not re-add those consumers to
-Changes. An explicitly declared exact direct screen dependency, screen-owned
+Changes. The v4 `declaredDependencies` record distinguishes explicit paths from automatic
+source attribution. An explicitly declared exact direct screen dependency, screen-owned
 material change, or additional unowned changed path remains independent
 evidence and keeps the screen in Changes.
 
@@ -144,7 +144,11 @@ remain metadata changes. Screen route pairing retains the existing contract.
 New/removed components and variants retain explicit missing comparison sides.
 Union baseline/current usage so removing a component does not erase its former
 consumers. A component with no saved variant affected by an implementation edit
-can still be changed through declared implementation dependencies; do not
+can still be changed through declared implementation dependencies or a proven
+implementation difference at a paired actual invocation with unchanged inputs.
+For that invocation, retain parent-owned child inputs and exclude caller-owned
+slots using the same ownership policy as saved variants. Metadata-only edits
+do not invent affected consumers. Do not
 invent a variant representing every possible prop combination.
 
 When either side lacks validated component metadata, compare its real content
@@ -163,3 +167,8 @@ markers, unchanged-render prop edits, both viewports/themes, owned external and
 head styles, shared-impact overlap, independent screen edits, historical
 manifests, removed consumers, and concurrent watched updates. Component styling
 must remain visibly changed in an affected screen's comparison.
+
+Dependency declaration provenance is attribution input, not display metadata.
+Changing declarations without a matching changed resource, or registering an
+unrelated component in a previously component-free catalogue, must not add an
+otherwise unchanged screen or component to Changes.

@@ -47,7 +47,7 @@
 .mbk-shell--desktop
   .ce-workspace:has(.ce-inspector > details[open])
   .ce-preview-pane {
-  bottom: 16px;
+  bottom: 0;
 }
 /* A narrow native sizing box gives the centered handle a 64px pointer target. */
 .mbk-shell--desktop
@@ -61,20 +61,24 @@
   min-height: 96px;
   opacity: 0;
   overflow: hidden;
+  position: relative;
   resize: vertical;
+  top: 8px;
+  z-index: 1;
   transform: scaleX(4);
   width: 16px;
 }
 .mbk-shell--desktop
   .ce-workspace:has(.ce-inspector > details[open])
   .ce-inspector-resize {
-  bottom: 0;
+  bottom: -8px;
   display: block;
   height: 16px;
   left: calc(50% - 32px);
   pointer-events: none;
   position: absolute;
   width: 64px;
+  z-index: 2;
 }
 .ce-inspector-resize .mbk-nav-resize {
   cursor: row-resize;
@@ -84,7 +88,7 @@
 .ce-inspector-resize .mbk-nav-resize::after {
   height: 2px;
   left: 16px;
-  top: 7px;
+  top: 7.5px;
   width: 32px;
 }
 .ce-design .ce-preview-pane > .mbk-stage {

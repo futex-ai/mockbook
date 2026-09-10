@@ -1,6 +1,10 @@
+import type { ComponentRuntime } from "../build/component_runtime.js";
+import type { RenderCapability } from "../components/render_types.js";
+import { ComponentRenderService } from "./controls/service.js";
+import { handleControls, localHost } from "./controls/http.js";
+import { redirectId, renderView } from "./view_routes.js";
 import http, { type ServerResponse } from "node:http";
 
-import { encodeUrlPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import { readManifest } from "../registry/manifest.js";
@@ -10,19 +14,28 @@ import {
   serveFontAsset,
   type ServedAssets,
 } from "./browser_assets.js";
-import { createCatalogue, type Catalogue } from "./catalogue.js";
+import {
+  ComponentChangeCache,
+  RepositoryComponentChanges,
+  type ComponentChangeSource,
+  type ComponentChangeSnapshot,
+} from "./component_changes.js";
+import {
+  catalogueAtBaseline,
+  createCatalogue,
+  type Catalogue,
+} from "./catalogue.js";
 import {
   loadBrowserClientModules,
   loadBrowserNavigationModules,
   loadShellFontAssets,
 } from "./client_modules.js";
-import { homePage, notFoundPage, viewPage } from "./pages.js";
+import { homePage, notFoundPage } from "./pages.js";
 import { removedScreens } from "./removed_screens.js";
-import { requestedFragment, withFragmentQuery } from "./fragments.js";
 import { listenOnAvailablePort } from "./ports.js";
-import { safeDecode, safeDecodePath, send } from "./respond.js";
+import { send } from "./respond.js";
 import { ReviewRoutes, type ServedReview } from "./review_routes.js";
-import { shellContext, type ShellContext } from "./shell/context.js";
+import { shellContext } from "./shell/context.js";
 import { SHELL_CSS } from "./shell/css.js";
 import { serveStatic } from "./static_routes.js";
 import type { CatalogueUpdate } from "./update_messages.js";
@@ -30,7 +43,10 @@ import type { CatalogueUpdate } from "./update_messages.js";
 /** Options for one deterministic server child. */
 export interface ServerOptions {
   base: string;
+  componentRuntime?: ComponentRuntime;
   changedRoutes?: readonly string[];
+  /** Read-only component classification source for the immutable server generation. */
+  componentChangeSource?: ComponentChangeSource;
   port: number;
   /** Enables on-demand comparison JSON and isolated snapshots. */
   review?: ServedReview;
@@ -42,6 +58,7 @@ export interface ServerOptions {
 export interface RunningServer {
   close(): Promise<void>;
   publishUpdate(update?: CatalogueUpdate): void;
+  replaceComponentRuntime(runtime: ComponentRuntime): void;
   port: number;
   url: string;
 }
@@ -52,6 +69,9 @@ export async function startCatalogueServer(
   options: ServerOptions,
 ): Promise<RunningServer> {
   const manifest = readManifest(config);
+  const controls = options.componentRuntime
+    ? new ComponentRenderService(options.componentRuntime)
+    : undefined;
   const removed = options.review
     ? await removedScreens(config, manifest, options.base)
     : [];
@@ -63,22 +83,61 @@ export async function startCatalogueServer(
   const reviewRoutes = options.review
     ? new ReviewRoutes(options.review)
     : undefined;
+  const componentChanges = new ComponentChangeCache(
+    options.componentChangeSource ??
+      new RepositoryComponentChanges(config, manifest, options.base),
+  );
   let changedRoutes = options.changedRoutes;
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
-    handleRequest(
-      request.url ?? "/",
-      request.method ?? "GET",
-      response,
-      catalogue,
-      config,
-      options.base,
-      () => changedRoutes,
-      streams,
-      { clientModules, fontAssets, navigationModules },
-      () => updateVersion,
-      reviewRoutes,
-    );
+    if (controls && !localHost(request))
+      return send(
+        response,
+        403,
+        "text/plain",
+        "This request is not allowed.",
+        request.method ?? "GET",
+      );
+    if (controls && request.url?.startsWith("/__mokabook/components/")) {
+      void handleControls(request, response, controls);
+      return;
+    }
+    const requestedVersion = updateVersion;
+    const requestedChanges = changedRoutes;
+    const serve = (snapshot?: ComponentChangeSnapshot) =>
+      handleRequest(
+        request.url ?? "/",
+        request.method ?? "GET",
+        response,
+        snapshot ? catalogueAtBaseline(manifest, snapshot.baseline) : catalogue,
+        config,
+        options.base,
+        () => requestedChanges,
+        streams,
+        { clientModules, fontAssets, navigationModules },
+        () => requestedVersion,
+        reviewRoutes,
+        snapshot,
+        controls?.capability(),
+      );
+    if (
+      request.url === "/" ||
+      request.url?.startsWith("/view/") ||
+      request.url?.startsWith("/id/")
+    )
+      void componentChanges
+        .read(requestedVersion)
+        .then(serve)
+        .catch(() =>
+          send(
+            response,
+            500,
+            "text/plain",
+            "Catalogue unavailable",
+            request.method ?? "GET",
+          ),
+        );
+    else serve();
   });
   await listenOnAvailablePort(
     server,
@@ -100,12 +159,19 @@ export async function startCatalogueServer(
         server.close((error) => (error ? reject(error) : resolve()));
       });
       const reviewClosing = reviewRoutes?.close() ?? Promise.resolve();
-      const results = await Promise.allSettled([serverClosing, reviewClosing]);
+      const results = await Promise.allSettled([
+        serverClosing,
+        reviewClosing,
+        controls?.close(),
+      ]);
       for (const result of results) {
         if (result.status === "rejected") throw result.reason;
       }
     },
     port: address.port,
+    replaceComponentRuntime(runtime): void {
+      controls?.replace(runtime);
+    },
     publishUpdate(update = {}): void {
       const nextVersion = update.version ?? updateVersion + 1;
       if (!Number.isSafeInteger(nextVersion) || nextVersion <= updateVersion)
@@ -115,6 +181,7 @@ export async function startCatalogueServer(
       }
       updateVersion = nextVersion;
       reviewRoutes?.invalidate();
+      componentChanges.invalidate();
       const payload = `event: update\ndata: ${updateVersion}\n\n`;
       for (const stream of streams) stream.write(payload);
     },
@@ -134,25 +201,36 @@ function handleRequest(
   assets: ServedAssets,
   currentVersion: () => number,
   reviewRoutes?: ReviewRoutes,
+  componentChanges?: ComponentChangeSnapshot,
+  renderCapability?: RenderCapability,
 ): void {
   if (method !== "GET" && method !== "HEAD")
     return send(response, 405, "text/plain", "Method not allowed", method);
   const url = new URL(rawUrl, "http://mokabook.invalid");
   const requestVersion = currentVersion();
-  const changed = currentChangedRoutes();
+  const changed = componentChanges?.result
+    ? componentChanges.result.changes.map(
+        (entry) => (entry.after ?? entry.before)!.route,
+      )
+    : currentChangedRoutes();
   const context = shellContext(
     base,
     changed
       ? [
           ...new Set([
             ...changed,
-            ...catalogue.removedScreens.map((screen) => screen.route),
+            ...[
+              ...catalogue.removedScreens,
+              ...catalogue.removedComponents,
+            ].map((entry) => entry.route),
           ]),
         ]
       : undefined,
     requestVersion,
   );
+  if (renderCapability) context.renderCapability = renderCapability;
   context.comparisons = reviewRoutes !== undefined;
+  if (componentChanges) context.componentChanges = componentChanges;
   if (url.pathname === "/")
     return send(
       response,
@@ -226,85 +304,6 @@ function handleRequest(
     404,
     "text/html",
     notFoundPage(url.pathname, catalogue, context),
-    method,
-  );
-}
-
-function redirectId(
-  response: ServerResponse,
-  url: URL,
-  encodedId: string,
-  catalogue: Catalogue,
-  config: ResolvedConfig,
-  context: ShellContext,
-  method: string,
-): void {
-  const entry = catalogue.byId.get(safeDecode(encodedId));
-  if (!entry || entry.kind === "collection")
-    return send(
-      response,
-      404,
-      "text/html",
-      notFoundPage(encodedId, catalogue, context),
-      method,
-    );
-  const fragment = requestedFragment(url, entry, catalogue, config);
-  if (fragment === null) {
-    return send(response, 400, "text/plain", "Invalid fragment query", method);
-  }
-  response.writeHead(302, {
-    location: withFragmentQuery(
-      `/view/${encodeUrlPath(entry.route)}`,
-      fragment,
-    ),
-  });
-  response.end();
-}
-
-function renderView(
-  response: ServerResponse,
-  url: URL,
-  encodedRoute: string,
-  catalogue: Catalogue,
-  config: ResolvedConfig,
-  context: ShellContext,
-  method: string,
-): void {
-  const route = safeDecodePath(encodedRoute);
-  const entry = route
-    ? (catalogue.byRoute.get(route) ??
-      catalogue.removedScreens.find((screen) => screen.route === route))
-    : undefined;
-  if (!entry)
-    return send(
-      response,
-      404,
-      "text/html",
-      notFoundPage(encodedRoute, catalogue, context),
-      method,
-    );
-  const manifestEntry = "kind" in entry ? entry : undefined;
-  const removed = catalogue.removedScreens.some(
-    (screen) => screen.route === route,
-  );
-  const fragment = removed
-    ? url.searchParams.has("fragment")
-      ? null
-      : undefined
-    : requestedFragment(url, manifestEntry, catalogue, config);
-  if (fragment === null) {
-    return send(response, 400, "text/plain", "Invalid fragment query", method);
-  }
-  const viewContext = {
-    ...context,
-    ...(route ? { activeRoute: route } : {}),
-    ...(fragment ? { fragment } : {}),
-  };
-  return send(
-    response,
-    200,
-    "text/html",
-    viewPage(entry, catalogue, viewContext),
     method,
   );
 }

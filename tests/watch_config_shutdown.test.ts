@@ -177,6 +177,7 @@ class FakeSupervisorFactory implements ProcessSupervisorFactory {
 }
 
 class FakeSupervisor implements ProcessSupervisor {
+  replaceComponentRuntime(): void {}
   closed = false;
   restarts = 0;
 

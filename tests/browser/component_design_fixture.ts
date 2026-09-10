@@ -1,42 +1,21 @@
+import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import type { ManifestV3 } from "../../dist/registry/types.js";
+
 import { repositoryRoot } from "../helpers/fixture.js";
 
-export const componentDesignRoutes = [
-  "overview",
-  "inspector/component",
-  "inspector/screen",
-  "controls/overview",
-  "controls/editing/edited",
-  "controls/editing/unset",
-  "controls/editing/variant",
-  "controls/editing/reset",
-  "controls/states/pending",
-  "controls/states/invalid",
-  "controls/states/error",
-  "controls/states/comparison",
-  "controls/published/default",
-  "controls/published/variant",
-  "pages/variants",
-  "pages/comparison",
-  "pages/affected",
-  "pages/toolbar",
-  "pages/help",
-  "inspection/details",
-  "inspection/highlight",
-  "inspection/nested",
-  "inspection/direct-change",
-  "inspection/consumer",
-  "inspection/selection/toolbar",
-  "inspection/selection/help",
-  "states/empty",
-  "states/unavailable",
-  "states/unused",
-  "states/additions/added",
-  "states/removed",
-  "states/removed-consumer",
-];
+const generated = path.join(repositoryRoot, "examples/basic/generated");
+const manifest = JSON.parse(
+  fs.readFileSync(path.join(generated, "mokabook-manifest.json"), "utf8"),
+) as ManifestV3;
+
+export const componentDesignRoutes = manifest.entries.flatMap((entry) =>
+  entry.kind === "screen" && entry.route.startsWith("design/components/")
+    ? [entry.route.slice("design/components/".length, -".html".length)]
+    : [],
+);
 
 export function componentDesignUrl(route: string, viewport: string): string {
   return pathToFileURL(

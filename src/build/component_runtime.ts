@@ -1,0 +1,34 @@
+/** The last successfully compiled consumer graph, passed to Serve only in memory. */
+import { randomBytes } from "node:crypto";
+import type { Compilation } from "./compile.js";
+import { consumerBundle, type ConsumerBundle } from "./consumer_bundle.js";
+import type { LoadedGraph } from "./load_graph.js";
+import type { ResolvedConfig } from "../config/types.js";
+import type { Manifest } from "../registry/types.js";
+
+export interface ComponentRuntime {
+  bundle: ConsumerBundle;
+  config: ResolvedConfig;
+  generation: string;
+  manifest: Manifest;
+  outputs: readonly (readonly [string, string])[];
+}
+const runtimes = new WeakMap<Compilation, ComponentRuntime>();
+export function rememberRuntime(
+  compilation: Compilation,
+  graph: LoadedGraph,
+  config: ResolvedConfig,
+): void {
+  runtimes.set(compilation, {
+    bundle: consumerBundle(graph),
+    config,
+    generation: randomBytes(16).toString("hex"),
+    manifest: compilation.manifest,
+    outputs: [...compilation.outputs],
+  });
+}
+export function componentRuntime(compilation: Compilation): ComponentRuntime {
+  const runtime = runtimes.get(compilation);
+  if (!runtime) throw new Error("Compilation has no retained consumer runtime");
+  return runtime;
+}

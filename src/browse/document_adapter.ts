@@ -1,5 +1,6 @@
 import { parse } from "parse5";
 
+import { validateComponentRanges } from "../components/ranges.js";
 import { hasGeneratedOwnershipHeader } from "../build/ownership.js";
 import { MokabookError } from "../errors.js";
 import { logicalMarker, parseLogicalMarker } from "../navigation/logical.js";
@@ -57,6 +58,8 @@ export function adaptBrowseDocument(
       "trusted Browse document has a missing or mismatched ownership header",
     );
   }
+  if (trusted.componentView)
+    validateComponentRanges(content, trusted.componentView.ranges);
   const replacements: Replacement[] = [];
   const nodes: HtmlNode[] = [];
   let baseTarget: string | undefined;

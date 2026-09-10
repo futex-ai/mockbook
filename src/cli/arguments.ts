@@ -1,7 +1,8 @@
 import { MokabookError } from "../errors.js";
 
 /** Supported user-visible and hidden process commands. */
-export type CliCommand = "__serve-child" | "build" | "check" | "serve";
+export type CliCommand =
+  "__serve-child" | "build" | "check" | "export" | "serve";
 
 /** Fully validated CLI arguments. */
 export interface CliArguments {
@@ -9,8 +10,10 @@ export interface CliArguments {
   command: CliCommand;
   config?: string;
   help: boolean;
+  out?: string;
   port?: number;
   strictPort?: boolean;
+  retainedRuntime?: boolean;
   updateVersion?: number;
   version: boolean;
   watch?: boolean;
@@ -20,6 +23,7 @@ const COMMANDS = new Set<CliCommand>([
   "__serve-child",
   "build",
   "check",
+  "export",
   "serve",
 ]);
 
@@ -41,9 +45,11 @@ export function parseArguments(argv: readonly string[]): CliArguments {
     else if (option === "--version" || option === "-v") parsed.version = true;
     else if (option === "--watch") parsed.watch = true;
     else if (option === "--no-watch") parsed.watch = false;
+    else if (option === "--retained-runtime") parsed.retainedRuntime = true;
     else if (option === "--strict-port") parsed.strictPort = true;
     else if (option === "--config") parsed.config = takeValue(option, values);
     else if (option === "--base") parsed.base = takeValue(option, values);
+    else if (option === "--out") parsed.out = takeValue(option, values);
     else if (option === "--port")
       parsed.port = parsePort(takeValue(option, values));
     else if (option === "--update-version")
@@ -86,6 +92,22 @@ function parsePort(value: string): number {
 }
 
 function validateCommandOptions(arguments_: CliArguments): void {
+  if (arguments_.retainedRuntime && arguments_.command !== "__serve-child")
+    throw new MokabookError(
+      "cli-invalid",
+      "--retained-runtime is reserved for the watched server child",
+    );
+  if (arguments_.out !== undefined && arguments_.command !== "export")
+    throw new MokabookError("cli-invalid", "--out belongs to export");
+  if (arguments_.out?.trim() === "")
+    throw new MokabookError("cli-invalid", "--out requires a value");
+  if (
+    arguments_.command === "export" &&
+    arguments_.out === undefined &&
+    !arguments_.help &&
+    !arguments_.version
+  )
+    throw new MokabookError("cli-invalid", "--out is required for export");
   const serve =
     arguments_.command === "serve" || arguments_.command === "__serve-child";
   if (
@@ -117,6 +139,9 @@ function validateCommandOptions(arguments_: CliArguments): void {
   }
   if (arguments_.command === "build" || arguments_.command === "check") {
     if (arguments_.base !== undefined)
-      throw new MokabookError("cli-invalid", "--base belongs to serve");
+      throw new MokabookError(
+        "cli-invalid",
+        "--base belongs to serve or export",
+      );
   }
 }

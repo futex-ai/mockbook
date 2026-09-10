@@ -42,7 +42,11 @@ export function prepareRegistry(
     entries.push(entry);
     violations.push(...validateEntry(entry, config));
   });
-  entries.sort(compareEntries);
+  entries.sort(
+    entries.some((entry) => entry.kind === "component")
+      ? compareComponentEntries
+      : compareEntries,
+  );
   violations.push(
     ...duplicateViolations(entries, "id"),
     ...duplicateViolations(entries, "route"),
@@ -66,7 +70,12 @@ function isDefinition(value: unknown): value is RegistryDefinition {
     return false;
   }
   const kind = (value as { kind?: unknown }).kind;
-  return kind === "screen" || kind === "collection" || kind === "use-case";
+  return (
+    kind === "screen" ||
+    kind === "collection" ||
+    kind === "use-case" ||
+    kind === "component"
+  );
 }
 
 function compareEntries(
@@ -90,4 +99,21 @@ function invalidRegistry(
     "build-invalid",
     `catalogue is invalid:\n${ordered.map((item) => `- [${item.code}] ${item.sourceRelativePath}${item.id ? ` (${item.id})` : ""}: ${item.message}`).join("\n")}`,
   );
+}
+
+function compareComponentEntries(
+  left: ResolvedRegistryEntry,
+  right: ResolvedRegistryEntry,
+): number {
+  const leftRoute = left.kind === "collection" ? "" : left.route;
+  const rightRoute = right.kind === "collection" ? "" : right.route;
+  return leftRoute < rightRoute
+    ? -1
+    : leftRoute > rightRoute
+      ? 1
+      : left.id < right.id
+        ? -1
+        : left.id > right.id
+          ? 1
+          : 0;
 }

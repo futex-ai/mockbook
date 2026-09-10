@@ -167,6 +167,7 @@ class CountingSupervisorFactory implements ProcessSupervisorFactory {
 }
 
 class CountingSupervisor implements ProcessSupervisor {
+  replaceComponentRuntime(): void {}
   restarts = 0;
   updates = 0;
 

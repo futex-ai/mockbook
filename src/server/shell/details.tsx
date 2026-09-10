@@ -9,7 +9,7 @@
 import type { ReactNode } from "react";
 
 import type { ColorScheme } from "../../authoring/types.js";
-import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { ManifestScreen, ManifestUseCase } from "../../registry/types.js";
 import type { Catalogue } from "../catalogue.js";
 import { ChevronIcon, FlowIcon } from "./icons.js";
@@ -93,7 +93,7 @@ function UsedByChips(props: {
         {useCases.map((useCase) => (
           <a
             className="mbk-chip flow"
-            href={`/view/${encodeUrlPath(useCase.route)}`}
+            href={catalogueViewHref(useCase.route)}
             key={useCase.id}
           >
             <FlowIcon size={11} />
@@ -105,7 +105,10 @@ function UsedByChips(props: {
   );
 }
 
-function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
+export function EntryDetailsBody(props: {
+  catalogue: Catalogue;
+  entry: RoutedEntry;
+}) {
   const entry = props.entry;
   return (
     <div className="mbk-details-body">
@@ -114,7 +117,7 @@ function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
         {entry.rationale ? (
           <p className="mbk-details-rationale">
             <span className="k">
-              Why this {entry.kind === "use-case" ? "flow" : "screen"} —{" "}
+              Why this {entry.kind === "use-case" ? "flow" : entry.kind} —{" "}
             </span>
             {entry.rationale}
           </p>

@@ -1,3 +1,4 @@
+import { chooseViewport } from "./workspace_actions.js";
 import { expect, test } from "@playwright/test";
 
 import { loadComparison } from "./comparison_actions.js";
@@ -22,7 +23,7 @@ test("Changes keeps resized navigation across diff modes and screen navigation",
   });
   await page.goto(`${fixture.url}/view/screens/home.html`);
   await page.locator('[data-filter="changed"]').click();
-  await page.getByRole("button", { name: "Desktop", exact: true }).click();
+  await chooseViewport(page, "desktop");
   const nav = page.locator("[data-mokabook-nav]");
   const handle = page.getByRole("separator", {
     name: "Resize navigation panel",

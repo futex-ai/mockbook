@@ -4,8 +4,7 @@
 
 Milestones 4c, 4f, and 4g of the [component explorer plan](../../plans/component-explorer.md)
 revise the existing component, controls, and consuming-screen artboards after
-design feedback. It changes the mockups; the package-owned runtime remains a
-later milestone. The existing owning routes and mobile/desktop screen components
+design feedback. The package-owned runtime implements the same layout. The existing owning routes and mobile/desktop screen components
 remain the review entry points.
 
 ## View Controls
@@ -49,7 +48,8 @@ siblings on desktop; their contents may scroll independently without an enclosin
 scroll region. The inspector's icon strip stays visible while its content scrolls.
 
 On desktop, use the navigation divider's centered short-line handle, rotated to
-resize vertically. There is no diagonal corner grip or thick colored border.
+resize vertically. The grip center sits on the divider border, with no vertical gap.
+There is no diagonal corner grip or thick colored border.
 The native sizing element sits behind the preview with its hit area centered
 on the divider; it changes layout height without consumer scripts. Both panes
 have minimum heights. Closing restores the preview's space; reopening retains
@@ -77,6 +77,11 @@ components, including Action, omit this tab. Screen pages retain their Component
 tab, including the existing explicit empty and unavailable states.
 
 ## Comparison Availability
+
+Across the complete design catalogue, comparison controls require an explicit
+change state; the shared header defaults to omitting them. Their band always has
+an opaque background. Browse/tag-picker, shared-impact-only, ignored-only, and
+empty designs retain Current without comparison controls.
 
 All is a catalogue filter, not evidence that the selected example changed.
 Known examples show Added, Changed, Removed, or Unmodified beside the title,

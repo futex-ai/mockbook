@@ -13,6 +13,18 @@ test("desktop inspector uses a centered divider with real bounded resizing", asy
   const inspector = page.locator(".ce-inspector");
   const before = (await inspector.boundingBox())!;
   const grip = (await divider.boundingBox())!;
+  const mark = await divider.locator(".mbk-nav-resize").evaluate((node) => {
+    const style = getComputedStyle(node, "::after");
+    return (
+      node.getBoundingClientRect().y +
+      parseFloat(style.top) +
+      parseFloat(style.height) / 2
+    );
+  });
+  expect(mark, "grip sits on the inspector border").toBeCloseTo(
+    before.y + 0.5,
+    0,
+  );
   const shell = (await page.locator(".ce-workspace").boundingBox())!;
   expect(grip.x + grip.width / 2).toBeCloseTo(shell.x + shell.width / 2, 0);
   await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);

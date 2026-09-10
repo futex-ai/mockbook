@@ -23,7 +23,11 @@ import { runReview } from "../dist/review/run.js";
 import { writeReviewArtifact } from "../dist/review/write.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import type { Compilation } from "../dist/build/compile.js";
-import type { ManifestScreen, ManifestV3 } from "../dist/registry/types.js";
+import type {
+  ManifestScreen,
+  Manifest,
+  ManifestV3,
+} from "../dist/registry/types.js";
 import {
   createFixture,
   removeFixture,
@@ -466,7 +470,7 @@ function fakeGit(files: ReadonlyMap<string, string>): GitClient {
 }
 
 function filesForCompilation(
-  manifest: ManifestV3,
+  manifest: Manifest,
   compilation: Compilation,
 ): Map<string, string> {
   const files = new Map<string, string>([
@@ -479,7 +483,9 @@ function filesForCompilation(
   return files;
 }
 
-function withoutDarkFragments(manifest: ManifestV3): ManifestV3 {
+function withoutDarkFragments(manifest: Manifest): ManifestV3 {
+  assert.equal(manifest.schemaVersion, 3);
+  if (manifest.schemaVersion !== 3) throw new Error("fixture must remain v3");
   return {
     ...manifest,
     entries: manifest.entries.map((entry) => {

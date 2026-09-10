@@ -237,7 +237,7 @@ function useCase(
 }
 
 function manifest(
-  entries: readonly ManifestEntry[],
+  entries: readonly Exclude<ManifestEntry, { kind: "component" }>[],
   legacyPages: readonly ManifestLegacyPage[] = [],
 ): ManifestV3 {
   return { entries, generatedBy: "mokabook", legacyPages, schemaVersion: 3 };

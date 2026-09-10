@@ -5,10 +5,19 @@ import type { ReactNode } from "react";
 import { BrowserFrame, PhoneFrame } from "./frames.js";
 
 /** Keep the live screen available while a requested comparison loads. */
-export function DiffScreen(props: { children: ReactNode; route: string }) {
+export function DiffScreen(props: {
+  children: ReactNode;
+  route: string;
+  eligible?: boolean;
+  component?: boolean;
+}) {
   return (
-    <section className="mbk-diff-screen" data-diff-screen={props.route}>
-      <div className="mbk-diff-toolbar">
+    <section
+      className="mbk-diff-screen"
+      data-diff-screen={props.route}
+      data-diff-component={props.component ? "" : undefined}
+    >
+      <div className="mbk-diff-toolbar" hidden={props.eligible === false}>
         <span aria-label="Comparison mode" className="mbk-seg" role="group">
           {[
             ["current", "Current"],
@@ -46,12 +55,16 @@ export function DiffScreen(props: { children: ReactNode; route: string }) {
         data-diff-stage=""
         hidden
       />
-      <template data-diff-template="mobile">
-        <PhoneFrame />
-      </template>
-      <template data-diff-template="desktop">
-        <BrowserFrame address={props.route} expandable={false} />
-      </template>
+      {!props.component ? (
+        <>
+          <template data-diff-template="mobile">
+            <PhoneFrame />
+          </template>
+          <template data-diff-template="desktop">
+            <BrowserFrame address={props.route} expandable={false} />
+          </template>
+        </>
+      ) : null}
     </section>
   );
 }

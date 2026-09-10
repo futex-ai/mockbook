@@ -2,14 +2,11 @@
 
 ## Delivery Status
 
-Approved target, not implemented. The [component explorer plan](../../plans/component-explorer.md)
-tracks delivery. This extends the package-owned
-[Browse shell](./mokabook-shell-design.md); authoring and attribution are
-specified in the [component contract](./mokabook-components.md) and
-[component changes contract](./mokabook-component-changes.md).
-
-The [component design catalogue](./mokabook-component-design.md) supplies the
-mobile and desktop visual contract; the runtime behavior below remains a target.
+The shared component and screen workspace is implemented in Serve and static
+exports: saved variants, usage, comparison evidence, highlighting, and a resizable
+icon inspector. Local Serve additionally provides editable controls. See the
+[component contract](./mokabook-components.md), [attribution contract](./mokabook-component-changes.md),
+and [component design catalogue](./mokabook-component-design.md).
 
 ## Catalogue And Component Pages
 
@@ -172,7 +169,7 @@ Mokabook's current owning mockup tree; do not introduce an unrelated Expo app
 or a second mockup generator. Provide mobile and desktop screen components for
 the component page/variants, changed component/Affected screens, screen inspector
 usage, highlight selection, and empty/unavailable states. The [controls designs](./mokabook-component-controls-design.md) are delivered
-with the inspector revision for the same sign-off; runtime controls remain pending.
+with the inspector revision; local Serve implements those controls.
 
 Each owning screen-spec page has at most five screens. Split additional states
 into linked child pages, with a canonical screen on nonterminal pages. Reuse

@@ -1,3 +1,4 @@
+import type { ComponentRuntime } from "../build/component_runtime.js";
 import { fork, type ChildProcess } from "node:child_process";
 
 import { MokabookError, errorMessage } from "../errors.js";
@@ -51,6 +52,7 @@ export class NodeChildFactory implements ChildFactory {
 
 /** Restartable child interface used by watched Serve. */
 export interface ProcessSupervisor {
+  replaceComponentRuntime(runtime: ComponentRuntime): void;
   close(): Promise<void>;
   notifyUpdate(changedRoutes: readonly string[] | undefined): void;
   /** Register the watched-runtime handler for a post-readiness child failure. */
@@ -89,6 +91,7 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   #unexpectedExit: ((error: Error) => void) | undefined;
   #resolvedPort: number | undefined;
   #updateVersion = 0;
+  #runtime: ComponentRuntime | undefined;
 
   constructor(
     private readonly factory: ChildFactory,
@@ -108,6 +111,7 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
     this.#updateVersion += 1;
     const child = this.factory.spawn([
       ...this.baseArguments,
+      ...(this.#runtime ? ["--retained-runtime"] : []),
       "--port",
       String(port),
       ...(resolvedPort === undefined ? [] : ["--strict-port"]),
@@ -115,6 +119,16 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
       String(this.#updateVersion),
     ]);
     this.#child = child;
+    child.onMessage((message) => {
+      if (
+        message &&
+        typeof message === "object" &&
+        "type" in message &&
+        message.type === "component-runtime-request" &&
+        this.#runtime
+      )
+        child.send({ type: "component-runtime", runtime: this.#runtime });
+    });
     try {
       const readyPort = await waitForReady(child, (error) => {
         if (this.#child !== child) return;
@@ -134,6 +148,11 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   async restart(): Promise<number> {
     await this.close();
     return this.start();
+  }
+
+  replaceComponentRuntime(runtime: ComponentRuntime): void {
+    this.#runtime = runtime;
+    this.#child?.send({ type: "component-runtime", runtime });
   }
 
   notifyUpdate(changedRoutes: readonly string[] | undefined): void {

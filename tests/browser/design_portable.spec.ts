@@ -66,6 +66,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
         : { width: 1440, height: 1000 },
     );
     await page.goto(design("browse/views/screen", viewport));
+    await page.goto(design("review/controls/current", viewport));
     const toolbar = page.getByRole("group", { name: "Comparison mode" });
     const current = toolbar.getByText("Current", { exact: true });
     const side = toolbar.getByRole("link", { name: "Side by side" });
@@ -73,6 +74,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
     const sideBounds = await side.boundingBox();
     expect(currentBounds?.height).toBe(sideBounds?.height);
     expect((sideBounds?.width ?? 0) > 70).toBe(true);
+    await page.goto(design("browse/views/screen", viewport));
     if (viewport === "desktop") {
       const row = page.locator(".mbk-nav-row.active");
       await expect(row).toHaveCSS("display", "flex");

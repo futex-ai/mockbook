@@ -6,7 +6,7 @@ Implemented in the 24 design screens and two real example screens using
 `MockLink` and `MockLink asChild`. Verification and delivery are tracked by the
 [implementation plan](../../plans/mokabook-design-mocklinks.md).
 
-The eighteen [component designs](./mokabook-component-design.md) extend the
+The [component design inventory](./mokabook-component-design.md) extend the
 catalogue with their own state contract and native component/control depictions.
 The existing 24 Browse/Changes designs retain all transitions and non-link
 control behavior specified here. Catalogue-wide link and inventory checks cover
@@ -134,22 +134,19 @@ wide top-bar and narrow head-band positions:
 
 The Welcome light comparison controls map Side by side to
 `design-review-changed`, Overlay to `design-changes-overlay`, and Difference
-to `design-review-difference`. Browse Welcome in light mode offers those diff
-destinations as well. Each comparison destination depicts Changes selected;
+to `design-review-difference`. These controls appear in the explicit changed
+Welcome states; Browse and tag-picker states omit them. Each comparison destination depicts Changes selected;
 its Current action returns to `design-changes-current`. Current is already
-selected in `design-browse-screen` and `design-changes-current`, so it has no
+selected in `design-changes-current`, so it has no
 transition there. Returning to All uses the navigation table above.
 
 Added Details offers Current as `design-browse-details-screen`; removed
 Farewell has no Current destination. Other modes on Added/Removed, other modes
-on the dark comparison, and alternative modes on shared-impact/ignored-only
-scenarios have no matching authored state and remain non-link depictions.
-Shared-impact/ignored-only can return to Welcome Current. They must never use
-a generic Welcome-mode mapping that silently changes the depicted subject or
-comparison classification. Their existing routes remain available in the real
-outer catalogue. A future interactive mode needs its own contract and owning
-screen first. The empty Changes fixture keeps its Current selection and All
-escape; it does not link a diff option to a changed-screen scenario.
+on the dark comparison have no matching authored state and remain non-link
+depictions. Shared-impact/ignored-only and empty Changes keep a Current preview
+without comparison modes; factual evidence lives in Details. Their existing
+routes and All escape remain available. A future interactive mode needs its
+own contract and owning screen first.
 
 Tag interactions are restricted to the canonical Welcome light states:
 

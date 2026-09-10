@@ -33,7 +33,6 @@ const welcomeModes = {
 };
 const welcomeBrowse: NavigationState = {
   ...welcomeFilters,
-  comparison: welcomeModes,
   inspector: D.inspector,
   tags: { active: null, picker: false },
 };
@@ -98,8 +97,8 @@ export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
     scheme: "dark",
     schemeLinks: { light: D.changed },
   },
-  [D.shared]: { ...welcomeFilters, comparison: { current: D.current } },
-  [D.ignored]: { ...welcomeFilters, comparison: { current: D.current } },
+  [D.shared]: { ...welcomeFilters },
+  [D.ignored]: { ...welcomeFilters },
   [D.empty]: { all: D.welcome },
 };
 

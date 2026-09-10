@@ -7,9 +7,11 @@ import type { ReactNode } from "react";
 
 import type { Viewport } from "../../authoring/types.js";
 import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { ManifestScreen, ManifestUseCase } from "../../registry/types.js";
 import type { Catalogue } from "../catalogue.js";
 import { BrowserFrame, PhoneFrame } from "./frames.js";
+import { ComponentStage } from "./component_stage.js";
 import type { RouteTarget } from "./target.js";
 
 /** Served URLs a frame swaps between; both absent in a light-only catalogue. */
@@ -112,6 +114,7 @@ function FramesStage(props: {
           <iframe
             className="mbk-frag"
             data-mokabook-fragment-frame=""
+            data-workspace-frame="mobile"
             data-fragment-dark={mobile.dark}
             data-fragment-light={mobile.light}
             sandbox="allow-same-origin"
@@ -129,6 +132,7 @@ function FramesStage(props: {
           <iframe
             className="mbk-frag"
             data-mokabook-fragment-frame=""
+            data-workspace-frame="desktop"
             data-fragment-dark={desktop.dark}
             data-fragment-light={desktop.light}
             sandbox="allow-same-origin"
@@ -196,7 +200,7 @@ function UseCaseFlowStage(props: {
                   {screen ? (
                     <a
                       className="flow-step-link"
-                      href={`/view/${encodeUrlPath(screen.route)}`}
+                      href={catalogueViewHref(screen.route)}
                     >
                       This screen in the catalogue: {screen.title} →
                     </a>
@@ -244,6 +248,8 @@ export function TargetStage(props: {
     );
   }
   const entry = props.target.entry;
+  if (entry.kind === "component")
+    return <ComponentStage variant={entry.variants[0]!} title={entry.title} />;
   return entry.kind === "screen" ? (
     <FramesStage
       {...(props.fragment ? { fragment: props.fragment } : {})}

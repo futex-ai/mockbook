@@ -126,7 +126,7 @@ export function ScreenHead({
   crumbs,
   idChip,
   comparisonMode,
-  comparisons = true,
+  comparisons = false,
   status,
   title,
 }: ScreenHeadProps) {

@@ -69,6 +69,7 @@ type DetailsPanelProps = {
   /** Tag drawn as the selected chip because it is the current search term. */
   activeTag?: string | undefined;
   open?: boolean;
+  comparisonEvidence?: ReactNode;
 } & (
   | { subject: ScreenSubject; children?: never }
   | { subject?: never; children: ReactNode }
@@ -78,6 +79,7 @@ type DetailsPanelProps = {
 export function DetailsPanel({
   activeTag,
   children,
+  comparisonEvidence,
   open,
   subject,
 }: DetailsPanelProps) {
@@ -88,6 +90,22 @@ export function DetailsPanel({
         <summary className="mbk-details-bar">Details</summary>
         {children}
       </details>
+    );
+  }
+  if (comparisonEvidence !== undefined) {
+    return (
+      <section className="mbk-details">
+        <div className="mbk-details-bar">Details</div>
+        <DetailsBody activeTag={activeTag} subject={subject} />
+        <section
+          className="mbk-comparison-details"
+          aria-label="Comparison details"
+        >
+          <h3>Comparison details</h3>
+          <p>Compared with the branch point on origin/main.</p>
+          {comparisonEvidence}
+        </section>
+      </section>
     );
   }
   return (

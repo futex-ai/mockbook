@@ -218,6 +218,7 @@ class FakeSupervisorFactory implements ProcessSupervisorFactory {
 }
 
 class FakeSupervisor implements ProcessSupervisor {
+  replaceComponentRuntime(): void {}
   restarts = 0;
 
   async close(): Promise<void> {}

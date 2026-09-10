@@ -20,6 +20,21 @@ fragment transport, ownership-aware preview adaptation, and active-tree
 disclosure are implemented. Their delivery history is recorded in the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
+## Component Workspaces
+
+Registered components extend this runtime with saved variant pages, nested usage,
+actual screen instances, and local prop editing. The [explorer contract](./mokabook-component-explorer.md)
+owns the icon inspector, bounded panes, desktop resizing, mobile bottom sheet,
+viewport/theme controls, and authenticated highlighting. The [controls contract](./mokabook-component-controls.md)
+owns the private same-origin endpoint, bounded worker, immutable memory previews,
+last-good watched generation, and no-output/no-reload editing boundary. Exported
+workspaces retain saved variants and inspection with read-only props.
+
+[Component attribution](./mokabook-component-changes.md) separates directly changed
+entries from affected consumers. Watch, Browse and export share that calculation;
+a component implementation edit cannot add its otherwise unchanged screens to
+Changes. Screen-owned prop and slot changes still count as screen changes.
+
 ## Build
 
 `mokabook build` performs this transaction:
@@ -62,6 +77,14 @@ The failure report groups problems by class and tells the author whether to run
 `mokabook build` or edit source/config. `check` never rewrites output.
 
 ## Catalogue And Routes
+
+`mokabook export --out <directory>` uses the same build, catalogue, shell, and
+comparison engines to create a complete static site. Its separate output
+transaction, Git prerequisites, path ownership, and input-consistency checks
+are defined by [Consumer static export](./mokabook-export.md). Exact file routes,
+real directory-index id aliases, static delivery metadata, and lazy immutable
+comparisons are defined by [Static export delivery](./mokabook-export-delivery.md).
+No server or watcher is started for export; served behavior below is unchanged.
 
 Browse validates the manifest before binding its listening port. It exposes:
 

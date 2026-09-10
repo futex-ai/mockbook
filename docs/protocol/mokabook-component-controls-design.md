@@ -5,8 +5,8 @@
 Approved mockup scope for Milestone 7 of the
 [component explorer plan](../../plans/component-explorer.md), delivered together
 with the [inspector revision](./mokabook-component-inspector-design.md) for one
-sign-off. These are authored design states. The component registration API,
-rendering service, and editable runtime controls remain unimplemented.
+sign-off. These authored design states are implemented by the component registration API,
+local rendering service, and editable runtime controls.
 
 ## Controls Panel
 

@@ -68,7 +68,7 @@ test("empty Changes designs retain the selected current screen", async ({
     await expect(page.locator(".mbk-screen-head h2")).toHaveText("Welcome");
     await expect(
       page.getByRole("group", { name: "Comparison mode" }),
-    ).toContainText("Current");
+    ).toHaveCount(0);
     await expect(page.locator(".mbk-nav-filter-count")).toHaveText("0");
   }
 });

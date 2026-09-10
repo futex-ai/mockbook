@@ -1,7 +1,15 @@
+import type { RenderCapability } from "../../components/render_types.js";
+import type { ComponentChangeSnapshot } from "../component_changes.js";
+
 /** Server-side context shared by every served Mokabook shell page. */
+
+import type { StaticDelivery } from "../../navigation/delivery.js";
 
 /** Server-side context shared by every shell page. */
 export interface ShellContext {
+  renderCapability?: RenderCapability;
+  /** Validated delivery information for a static export. */
+  delivery?: StaticDelivery;
   /** Route of the currently selected catalogue entry, when one is active. */
   activeRoute?: string;
   /** Review comparison base ref for the serve session. */
@@ -10,6 +18,8 @@ export interface ShellContext {
   changedRoutes?: readonly string[];
   /** Whether on-demand comparison serving is available. */
   comparisons?: boolean;
+  /** Validated lightweight component evidence, independent of snapshots. */
+  componentChanges?: ComponentChangeSnapshot;
   /** Validated logical fragment applied to the routed target's frames. */
   fragment?: string;
   /** Update-stream version captured when this page request began. */

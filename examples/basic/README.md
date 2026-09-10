@@ -4,6 +4,15 @@ This is a synthetic external-consumer fixture. It contains two distinct mobile
 and desktop product-style screens built with `@firna/ui` controls, nested
 collections, one use case, id-addressed links, a Firna renderer adapter, local
 stylesheets, light and dark product fragments, and a safe Review-ignore region.
+The Example → Components collection contains real registered Action and Toolbar
+components. Both product screens use Action repeatedly, directly and inside the
+Toolbar, with caller-owned slots. Action has Default, Disabled and Secondary
+variants plus text, boolean, number, optional hint and emphasis controls; Toolbar
+has an editable title and nested Action instances. Open Props in local Serve to
+edit them. Published exports provide the same saved examples read-only.
+`example-components.css` declares exact shared ownership, separate from global
+styles and the design mockups. Registration and source ownership live in
+`entries/components/action.tsx` and `toolbar.tsx`.
 It contains no Accounting or Juno product screen.
 
 The entry definitions use collection membership as their only navigation
@@ -66,17 +75,16 @@ repeated/nested inspection, highlighting, and empty or removed states. The share
 mockups include edited/reset, optional, loading, validation, retry, comparison,
 and published saved-variant states. Every
 screen has distinct mobile and desktop components. The component designs are
-static mockups; the component runtime and live preview rendering are later milestones. Native
-fields can be edited, and authored state links show the planned outcomes.
+static mockups; the outer package workspace implements the live component explorer. Native
+fields can be edited, and authored state links show the designed outcomes.
 
 A grouped icon toolbar switches Mobile/Desktop/Both previews, light/dark, and
 screen highlighting without navigation. Leaf components omit Nested components;
 Toolbar demonstrates composition. Unchanged fixtures show Unmodified and omit
 comparison modes. The fixed desktop shell contains separate preview and inspector
-panes; drag the centered divider grip to resize the inspector. Mobile uses a
+panes; drag the centered grip on the divider line to resize the inspector. Mobile uses a
 rounded bottom sheet over the preview, with an iOS-style grabber that toggles
-compact/expanded heights by touch, click, or Space. Pan gestures belong to the
-later runtime milestone. In both layouts, the icon strip stays visible while the
+compact/expanded heights by touch, click, or Space. The runtime also supports pan gestures. In both layouts, the icon strip stays visible while the
 active content scrolls; closing and reopening retains edits. Viewport carets,
 the mobile menu, and the Usage icon use centered SVGs. Known entries show
 Added, Changed, Removed, or Unmodified; removing a variant marks its surviving
@@ -104,7 +112,7 @@ Design headers retain the approved screen-stack logo: 17px overlapping mobile
 and desktop outlines in a 24px sage square. Desktop keeps the navigation resize
 grip; mobile keeps its fixed drawer. The component designs reuse the existing shell, frames, controls,
 and a shared icon inspector, with synthetic usage fixtures under
-`entries/design/components/parts`. No component feature is added to the public API.
+`entries/design/components/parts`. The real examples use the public `defineComponent` API.
 
 Component design stylesheets are linked only from the collection’s thirty-two
 routes and declared as its dependencies for comparison evidence. Changes follows
@@ -122,8 +130,10 @@ routes, fixture relationships, mask geometry, and delivery status live in the
 [controls design](../../docs/protocol/mokabook-component-controls-design.md), and
 [workspace design](../../docs/protocol/mokabook-component-workspace-design.md).
 
-The shared-impact and ignored-only comparison examples open from All with zero
-Changes. Dependency evidence remains available in comparison details, while
+All unchanged Browse designs, including the tag picker, omit comparison controls.
+Changed, added, and removed designs retain an opaque comparison band. The
+shared-impact and ignored-only examples open from All with zero Changes and one
+Current preview. Dependency evidence remains available in Details, while
 unchanged output and paired ignored-only edits do not fill the review list.
 
 From the repository root:
@@ -150,8 +160,8 @@ Generated HTML and the schema-v3 manifest are committed under `generated/` so
 the fixture also exercises stale and deterministic-output checks. The
 hand-authored stylesheets (`styles.css`, `design.css`, `design-stage.css`,
 `design-review.css`, and the component design stylesheets) also live under `generated/` because it doubles as the
-public static root. `preview:build` snapshots this catalogue through the real
-server into `.context/mokabook-preview` for Cloudflare Pages; it is the same
+public static root. `preview:build` exports this catalogue through the shared
+package engine into `.context/mokabook-preview` for Cloudflare Pages; it is the same
 artifact used by the main and pull-request preview workflow. The snapshot
 compares the catalogue with its branch point on `origin/main` and preserves
 the catalogue's All/Changes filter, Light/Dark switch, client assets, and light/dark
@@ -164,3 +174,14 @@ before/after resources, including removed-screen pages; browsers request those
 snapshots only after a comparison option is selected. Links inside the design frames navigate between authored artboards; their
 pictured comparison controls do not request actual comparison snapshots. There is no separate Review
 section or comparison CLI command.
+
+For an ordinary static host, use the consumer command instead of the Pages adapter:
+
+```bash
+node dist/cli/bin.js export --config examples/basic/mokabook.config.ts --out ../../.context/mokabook-site
+```
+
+Output is config-relative. This command builds the example itself, retains exact
+`.html` URLs and real `/id/<id>/index.html` aliases, and needs no provider rewrites.
+Both exports require the configured Git baseline and committed baseline output.
+See the [consumer publishing recipe](../../README.md#export-and-publish-a-consumer-build).

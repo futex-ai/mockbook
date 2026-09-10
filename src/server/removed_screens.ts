@@ -1,14 +1,14 @@
 /** Preserve access to removed screens without generating comparison snapshots. */
 
 import type { ResolvedConfig } from "../config/types.js";
-import type { ManifestScreen, ManifestV3 } from "../registry/types.js";
+import type { ManifestScreen, Manifest } from "../registry/types.js";
 import { readBaseManifest } from "../review/base_manifest.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
 
 /** Read only baseline metadata for screens absent from the current catalogue. */
 export async function removedScreens(
   config: ResolvedConfig,
-  manifest: ManifestV3,
+  manifest: Manifest,
   base: string,
 ): Promise<readonly ManifestScreen[]> {
   try {

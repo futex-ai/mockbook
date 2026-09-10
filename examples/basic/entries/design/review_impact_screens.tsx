@@ -1,6 +1,6 @@
 import { screen } from "mokabook";
 
-import { CompareGrid, ComparisonStage, Pane } from "./parts/compare.js";
+import { ComparisonStage } from "./parts/compare.js";
 import { DESTINATIONS } from "./parts/destinations.js";
 import { DetailsPanel } from "./parts/details.js";
 import { MiniWelcome } from "./parts/mini_screens.js";
@@ -44,24 +44,15 @@ function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
         crumbs={["Example", "Screens"]}
         idChip="example-welcome"
         title="Welcome"
-        comparisonMode="side-by-side"
         action={<ViewSwitch active={viewport} />}
       />
-      <ComparisonStage
-        state="unchanged"
-        viewport={viewport}
-        evidence={<SharedImpactCard />}
-      >
-        <CompareGrid>
-          <Pane label="Before" side="before">
-            <WelcomeShot viewport={viewport} />
-          </Pane>
-          <Pane label="Current" side="after">
-            <WelcomeShot viewport={viewport} />
-          </Pane>
-        </CompareGrid>
+      <ComparisonStage state="unchanged" viewport={viewport}>
+        <WelcomeShot viewport={viewport} comparison={false} />
       </ComparisonStage>
-      <DetailsPanel subject="welcome" />
+      <DetailsPanel
+        subject="welcome"
+        comparisonEvidence={<SharedImpactCard />}
+      />
     </Shell>
   );
 }
@@ -75,26 +66,17 @@ function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
     >
       <ScreenHead
         action={<ViewSwitch active={viewport} />}
-        comparisonMode="side-by-side"
         crumbs={["Example", "Screens"]}
         idChip="example-welcome"
         title="Welcome"
       />
-      <ComparisonStage
-        state="ignored-only"
-        viewport={viewport}
-        evidence={<IgnoredImpactCard />}
-      >
-        <CompareGrid>
-          <Pane label="Before" side="before">
-            <WelcomeShot viewport={viewport} />
-          </Pane>
-          <Pane label="Current" side="after">
-            <WelcomeShot viewport={viewport} />
-          </Pane>
-        </CompareGrid>
+      <ComparisonStage state="ignored-only" viewport={viewport}>
+        <WelcomeShot viewport={viewport} comparison={false} />
       </ComparisonStage>
-      <DetailsPanel subject="welcome" />
+      <DetailsPanel
+        subject="welcome"
+        comparisonEvidence={<IgnoredImpactCard />}
+      />
     </Shell>
   );
 }

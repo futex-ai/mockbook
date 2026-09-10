@@ -56,7 +56,7 @@ contract until their standalone screens are implemented.
 | `design-review-difference`            | `design/review/outcomes/difference.html`           | Blend-mode difference comparison        |
 | `design-review-dark-scheme`           | `design/review/outcomes/dark-scheme.html`          | Dark view compared side by side         |
 | `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Unchanged screen from All with evidence |
-| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only comparison opened from All |
+| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only Current view with evidence |
 | `design-review-empty`                 | `design/review/impact/empty.html`                  | Empty Changes filter retaining Current  |
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
@@ -64,8 +64,8 @@ notes live in entry descriptions, rationale, and related docs — never inside
 the rendered screen area.
 
 The component explorer extends this catalogue under `design/components/` with
-eighteen owning screens for component pages, comparisons, affected screens,
-inspection, and edge states. Its route index and target visual rules live in
+component pages, comparisons, affected screens, inspection, controls, and edge
+states. The manifest-backed browser inventory covers every owning screen. Its route index and target visual rules live in
 the [component design contract](./mokabook-component-design.md).
 
 Navigation inside these design artboards uses native `MockLink` anchors. The
@@ -315,8 +315,11 @@ The catalogue remains the only shell. A screen has a compact Current / Side by
 side / Overlay / Difference band below its heading. Current is the initial
 state in both All and Changes. Diff selections load snapshots on demand in the
 same main region; controls, navigation, and details stay in place. Refresh and
-retry controls are available after an explicit comparison request. Static
-catalogues without a comparison server omit the band.
+retry controls are available after an explicit comparison request. The target component shell makes the band conditional on actual changes or
+verified affected-consumer evidence. The updated mockups omit it on every Browse,
+shared-impact-only, ignored-only, and empty state. Comparison bands always retain
+an opaque surface and their border. Static catalogues without comparison data
+omit the band.
 
 Both viewports reuse the existing device-frame components. Before and current
 snapshots remain in script-disabled iframes. Overlay composites the current

@@ -1,6 +1,7 @@
 /** Progressive Browse shell enhancement served at /__mokabook/client/browse.js. */
 
 import { installDiffs } from "./diffs.js";
+import { installWorkspace } from "./workspace.js";
 import { createBrowserDetailsPreference } from "./browse_details.js";
 import { createBrowserNavPreference } from "./browse_navigation.js";
 import {
@@ -23,8 +24,15 @@ import {
   selectAndRevealRoute,
 } from "./browse_navigation_state.js";
 import { applyPreviewFragmentQuery } from "./preview_fragment.js";
-import { isEligibleBrowseLink, NavigationSequencer } from "./navigation.js";
+import { NavigationSequencer } from "./navigation.js";
+import { browseLinkTarget } from "./browse_links.js";
+import { copyText } from "./clipboard.js";
 import { attachFrameNavigation } from "./frame_navigation.js";
+import {
+  adoptStaticDelivery,
+  documentFrameHref,
+  normalizeStaticAlias,
+} from "./static_delivery.js";
 import {
   handleTagControlClick,
   handleTagPickerKeydown,
@@ -35,26 +43,11 @@ interface ScrollState {
   scrolls?: Record<string, number>;
 }
 
-function copyText(doc: Document, text: string): void {
-  const clipboard = doc.defaultView?.navigator.clipboard;
-  if (clipboard) {
-    void clipboard.writeText(text).catch(() => undefined);
-    return;
-  }
-  const area = doc.createElement("textarea");
-  area.value = text;
-  area.style.position = "fixed";
-  area.style.opacity = "0";
-  doc.body.appendChild(area);
-  area.select();
-  doc.execCommand("copy");
-  area.remove();
-}
-
 function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   const shell = doc.querySelector<HTMLElement>("[data-mokabook-shell]");
   const main = doc.querySelector<HTMLElement>("[data-mokabook-view]");
   if (!shell || !main) return;
+  normalizeStaticAlias(doc, win);
   applyPreviewFragmentQuery(doc, win.location.search);
   const detailsPreference = createBrowserDetailsPreference(win);
   const navPreference = createBrowserNavPreference(win);
@@ -63,6 +56,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   if (win.history.scrollRestoration) win.history.scrollRestoration = "manual";
   const sequencer = new NavigationSequencer();
   const diffs = installDiffs(doc, win);
+  let disposeWorkspace = installWorkspace(doc, win, diffs.update);
   let restoringHistory = false;
   const persistScroll = (): void => {
     win.history.replaceState(
@@ -125,11 +119,12 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
     if (!slot.isCurrent()) return;
     const parsed = new win.DOMParser().parseFromString(text, "text/html");
     const nextMain = parsed.querySelector("[data-mokabook-view]");
-    if (!nextMain) {
+    if (!nextMain || !adoptStaticDelivery(doc, parsed)) {
       win.location.assign(url);
       return;
     }
     const viewport = currentViewport(doc);
+    disposeWorkspace();
     for (const frame of main.querySelectorAll("iframe")) frame.remove();
     collapseFrame(doc, expandedFrame(doc));
     if (push) persistScroll();
@@ -148,6 +143,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
         "",
         finalUrl,
       );
+    disposeWorkspace = installWorkspace(doc, win, diffs.update);
     selectAndRevealRoute(
       doc,
       new URL(finalUrl, win.location.href).pathname,
@@ -170,10 +166,12 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   };
   const frameActions = {
     navigate: (href: string): void => {
-      void navigate(href, true);
+      const target = documentFrameHref(doc, href);
+      if (target) void navigate(target, true);
     },
     open: (href: string, target: string): void => {
-      win.open(href, target, "noopener");
+      const url = documentFrameHref(doc, href);
+      if (url) win.open(url, target, "noopener");
     },
   };
 
@@ -243,25 +241,10 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       event.preventDefault();
       return;
     }
-    const anchor = target.closest("a");
-    if (!anchor || event.defaultPrevented) return;
-    const url = new URL(anchor.href, win.location.href);
-    const eligible = isEligibleBrowseLink({
-      download: anchor.hasAttribute("download"),
-      modified:
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        event.button !== 0,
-      pathname: url.pathname,
-      sameOrigin: url.origin === win.location.origin,
-      samePageHash: url.pathname === win.location.pathname && url.hash !== "",
-      target: anchor.getAttribute("target") ?? "",
-    });
-    if (!eligible) return;
+    const url = browseLinkTarget(event, target, win.location);
+    if (!url) return;
     event.preventDefault();
-    void navigate(url.href, true);
+    void navigate(url, true);
   });
 
   doc.addEventListener("keydown", (event) => {

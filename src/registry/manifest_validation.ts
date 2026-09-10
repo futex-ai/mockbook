@@ -1,11 +1,16 @@
+import {
+  componentFragmentPaths,
+  validateManifestComponent,
+  validateManifestComponentUsage,
+} from "../components/manifest_validation.js";
 import { MokabookError } from "../errors.js";
 import { isSafeCatalogueRoute, isSafeRepositoryPath } from "../config/paths.js";
 import { isCatalogueId } from "../navigation/logical.js";
 import { validateManifestRelationships } from "./manifest_relationships.js";
-import type { ManifestV3 } from "./types.js";
+import type { Manifest } from "./types.js";
 
 /** Validate unknown manifest JSON and normalize temporary schema version 2. */
-export function validateManifest(value: unknown, allowV2: boolean): ManifestV3 {
+export function validateManifest(value: unknown, allowV2: boolean): Manifest {
   if (
     !record(value) ||
     !Array.isArray(value.entries) ||
@@ -20,10 +25,13 @@ export function validateManifest(value: unknown, allowV2: boolean): ManifestV3 {
     value.schemaVersion === 2 && allowV2
       ? { ...value, generatedBy: "mokabook", schemaVersion: 3 }
       : value;
-  if (normalized.schemaVersion !== 3 || normalized.generatedBy !== "mokabook") {
+  if (
+    (normalized.schemaVersion !== 3 && normalized.schemaVersion !== 4) ||
+    normalized.generatedBy !== "mokabook"
+  ) {
     throw new MokabookError(
       "manifest-invalid",
-      "expected Mokabook manifest schema version 3",
+      "expected Mokabook manifest schema version 3 or 4",
     );
   }
   const entries: Record<string, unknown>[] = [];
@@ -45,7 +53,7 @@ export function validateManifest(value: unknown, allowV2: boolean): ManifestV3 {
     if (!isCatalogueId(id)) {
       throw new MokabookError("manifest-invalid", `invalid manifest id: ${id}`);
     }
-    validateEntry(entry);
+    validateEntry(entry, normalized.schemaVersion === 4);
     if (byId.has(id)) {
       throw new MokabookError(
         "manifest-invalid",
@@ -67,12 +75,22 @@ export function validateManifest(value: unknown, allowV2: boolean): ManifestV3 {
   const outputRoutes = validateFragmentRoutes(entries, routes);
   validateLegacyPages(value.legacyPages, outputRoutes);
   validateManifestRelationships(entries, byId);
-  return normalized as unknown as ManifestV3;
+  const manifest = normalized as unknown as Manifest;
+  validateManifestComponentUsage(manifest);
+  return manifest;
 }
 
-function validateEntry(entry: Record<string, unknown>): void {
+function validateEntry(
+  entry: Record<string, unknown>,
+  components: boolean,
+): void {
   const kind = entry.kind;
-  if (kind !== "collection" && kind !== "screen" && kind !== "use-case") {
+  if (
+    kind !== "collection" &&
+    kind !== "screen" &&
+    kind !== "use-case" &&
+    !(components && kind === "component")
+  ) {
     throw new MokabookError(
       "manifest-invalid",
       `invalid manifest kind for ${String(entry.id)}`,
@@ -131,7 +149,8 @@ function validateEntry(entry: Record<string, unknown>): void {
       `${String(entry.id)} has invalid tags`,
     );
   }
-  if (kind === "screen") validateScreen(entry);
+  if (kind === "component") validateManifestComponent(entry);
+  else if (kind === "screen") validateScreen(entry);
   else validateUseCase(entry);
 }
 
@@ -226,6 +245,17 @@ function validateFragmentRoutes(
 ): Set<string> {
   const outputRoutes = new Set(routedEntries);
   for (const entry of entries) {
+    if (entry.kind === "component") {
+      for (const fragment of componentFragmentPaths(entry)) {
+        if (outputRoutes.has(fragment))
+          throw new MokabookError(
+            "manifest-invalid",
+            `colliding component fragment: ${fragment}`,
+          );
+        outputRoutes.add(fragment);
+      }
+      continue;
+    }
     if (entry.kind !== "screen" || !record(entry.fragments)) continue;
     for (const viewport of ["mobile", "desktop"] as const) {
       const fragment = entry.fragments[viewport] as string;

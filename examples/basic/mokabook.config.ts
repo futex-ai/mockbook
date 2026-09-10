@@ -48,7 +48,10 @@ export default defineConfig({
       stylesheets: ["design.css", "design-stage.css", "design-review.css"],
     },
     { match: "design/**", stylesheets: ["design.css", "design-stage.css"] },
-    { match: "**/*.html", stylesheets: ["styles.css"] },
+    {
+      match: "**/*.html",
+      stylesheets: ["styles.css", "example-components.css"],
+    },
   ],
   watch: {
     rules: [
@@ -66,6 +69,7 @@ export default defineConfig({
           "examples/basic/generated/design-stage.css",
           "examples/basic/generated/design.css",
           "examples/basic/generated/styles.css",
+          "examples/basic/generated/example-components.css",
         ],
       },
     ],

@@ -133,7 +133,7 @@ export function projectRealPath(candidate: string): string {
     missingParts.unshift(path.basename(existing));
     existing = parent;
   }
-  return path.resolve(fs.realpathSync(existing), ...missingParts);
+  return path.resolve(fs.realpathSync.native(existing), ...missingParts);
 }
 
 function lexicallyExists(candidate: string): boolean {

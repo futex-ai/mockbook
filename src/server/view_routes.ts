@@ -1,0 +1,91 @@
+import type { ServerResponse } from "node:http";
+
+import { encodeUrlPath } from "../config/paths.js";
+import type { ResolvedConfig } from "../config/types.js";
+import type { Catalogue } from "./catalogue.js";
+import { requestedFragment, withFragmentQuery } from "./fragments.js";
+import { notFoundPage, viewPage } from "./pages.js";
+import { safeDecode, safeDecodePath, send } from "./respond.js";
+import type { ShellContext } from "./shell/context.js";
+
+export function redirectId(
+  response: ServerResponse,
+  url: URL,
+  encodedId: string,
+  catalogue: Catalogue,
+  config: ResolvedConfig,
+  context: ShellContext,
+  method: string,
+): void {
+  const entry = catalogue.byId.get(safeDecode(encodedId));
+  if (!entry || entry.kind === "collection")
+    return send(
+      response,
+      404,
+      "text/html",
+      notFoundPage(encodedId, catalogue, context),
+      method,
+    );
+  const fragment = requestedFragment(url, entry, catalogue, config);
+  if (fragment === null) {
+    return send(response, 400, "text/plain", "Invalid fragment query", method);
+  }
+  response.writeHead(302, {
+    location: withFragmentQuery(
+      `/view/${encodeUrlPath(entry.route)}`,
+      fragment,
+    ),
+  });
+  response.end();
+}
+
+export function renderView(
+  response: ServerResponse,
+  url: URL,
+  encodedRoute: string,
+  catalogue: Catalogue,
+  config: ResolvedConfig,
+  context: ShellContext,
+  method: string,
+): void {
+  const route = safeDecodePath(encodedRoute);
+  const entry = route
+    ? (catalogue.byRoute.get(route) ??
+      [...catalogue.removedScreens, ...catalogue.removedComponents].find(
+        (entry) => entry.route === route,
+      ))
+    : undefined;
+  if (!entry)
+    return send(
+      response,
+      404,
+      "text/html",
+      notFoundPage(encodedRoute, catalogue, context),
+      method,
+    );
+  const manifestEntry = "kind" in entry ? entry : undefined;
+  const removed = [
+    ...catalogue.removedScreens,
+    ...catalogue.removedComponents,
+  ].some((screen) => screen.route === route);
+  const fragment = removed
+    ? url.searchParams.has("fragment")
+      ? null
+      : undefined
+    : requestedFragment(url, manifestEntry, catalogue, config);
+  if (fragment === null) {
+    return send(response, 400, "text/plain", "Invalid fragment query", method);
+  }
+  const viewContext = {
+    ...context,
+    ...(route ? { activeRoute: route } : {}),
+    ...(fragment ? { fragment } : {}),
+  };
+  return send(
+    response,
+    200,
+    "text/html",
+    viewPage(entry, catalogue, viewContext),
+    method,
+  );
+}

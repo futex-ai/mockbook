@@ -2,13 +2,11 @@
 
 ## Delivery Status
 
-Approved target, not implemented. The [component explorer plan](../../plans/component-explorer.md)
-delivers these controls after saved component pages and inspection. Components
-continue to use the [registered authoring boundary](./mokabook-components.md)
-and [explorer shell](./mokabook-component-explorer.md).
-
-The [complete controls mockups](./mokabook-component-controls-design.md) are
-delivered for sign-off with the icon inspector. Only the designs are implemented.
+Local Serve implements temporary prop editing through the registered consumer
+renderer. Published catalogues keep saved variants and read-only controls. The
+[controls mockups](./mokabook-component-controls-design.md) and
+[component explorer plan](../../plans/component-explorer.md) describe the same
+shared icon inspector and lifecycle.
 
 ## Scope And User Behavior
 

@@ -2,7 +2,8 @@
 
 ## Delivery Status
 
-Approved target, not implemented. These are the normative manifest-v4 interfaces
+Manifest-v4 generation, validation, Serve, and static export are implemented
+through the public `defineComponent` API. These are the normative interfaces
 for the [component contract](./mokabook-components.md). `ManifestEntryBase`,
 `ManifestScreen`, `ManifestCollection`, `ManifestUseCase`, `ManifestLegacyPage`,
 and `Viewport` retain the [v3 contract](./mokabook-package.md) and the named
@@ -21,8 +22,9 @@ interface ManifestV4 {
   legacyPages: readonly ManifestLegacyPage[];
 }
 
-type ManifestEntryV4 =
-  ManifestCollection | ManifestUseCase | ManifestScreenV4 | ManifestComponent;
+type ManifestEntryV4 = (
+  ManifestCollection | ManifestUseCase | ManifestScreenV4 | ManifestComponent
+) & { declaredDependencies: readonly string[] };
 
 interface ManifestScreenV4 extends ManifestScreen {
   componentViews: readonly ComponentViewRecord[];
@@ -53,7 +55,13 @@ interface ManifestComponentVariant {
 ```
 
 Common entry metadata keeps v3 meaning, including source attribution and
-hierarchy-derived `navPath`. Variant props contain only validated data; supplied
+hierarchy-derived `navPath`. Every v4 entry also requires `declaredDependencies`,
+the sorted unique paths explicitly authored in its definition. `dependencies`
+remains exactly their union with `sourcePath`. Keeping both prevents automatically
+added source attribution from masquerading as an exact direct-screen dependency;
+an explicit declaration of that same source path is still represented. Both
+lists use normal path validation; `ownedDependencies` is a subset of the declared
+list. Historical v3 data has no inferred declaration provenance. Variant props contain only validated data; supplied
 slot names reference declared slots and contain no React values. Every component
 has at least one variant, with unique kebab-case ids in authored order. The first
 is the default; all variants use the component's same effective scheme set.

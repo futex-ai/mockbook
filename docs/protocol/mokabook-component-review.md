@@ -2,8 +2,8 @@
 
 ## Delivery Status
 
-Approved target, not implemented. This specifies the component-aware Review
-schema v3 required by [change attribution](./mokabook-component-changes.md).
+The producer, source validator, artifact publisher, exporter, and browser decoder
+implement this component-aware Review schema v3 for [change attribution](./mokabook-component-changes.md).
 `ReviewResult`, `ScreenReview`, `ViewReview`, and `ReviewState` refer to the
 existing [schema-v2 contract](./mokabook-changes.md) and
 [named result interfaces](../../src/review/types.ts). Manifest/usage types come
@@ -113,6 +113,13 @@ Component variants contain their own view unions. `ViewReview.beforePath` and
 views have the existing explicit missing-side states. Aggregate states retain
 the current precedence: changed, added, removed, ignored-only, unchanged. A
 metadata/dependency-only entry can have unchanged rendered view states.
+
+View states describe the complete retained render after the existing manual-ignore
+rules, including changed component-owned resources. Component ownership controls
+direct Changes reasons separately; it never invents an `ignored-only` state for
+a component-only edit. An affected-only screen or parent component can therefore
+have changed view results without a Changes row. Caller input changes can have
+unchanged view results when the current renderer does not display that prop.
 
 All registered components appear in `components`, even if unchanged or unused.
 All current/base screens appear in `screens`, including affected-only screens.

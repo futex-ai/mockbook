@@ -13,22 +13,43 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
     "browse.js",
     "diffs.js",
     "diff_views.js",
+    "workspace.js",
+    "component_controls.js",
+    "control_fields.js",
+    "control_transport.js",
+    "control_surface.js",
+    "workspace_events.js",
+    "workspace_variants.js",
+    "workspace_preview.js",
+    "workspace_evidence.js",
+    "prop_display.js",
+    "inspector_resize.js",
+    "inspector_tabs.js",
+    "inspector_panels.js",
+    "component_geometry.js",
+    "component_range_nodes.js",
+    "component_occlusion.js",
+    "component_overlay.js",
+    "component_highlight.js",
     "browse_details.js",
+    "browse_links.js",
     "browse_frames.js",
     "browse_navigation.js",
     "browse_navigation_state.js",
     "frame_navigation.js",
     "browse_state.js",
     "browser.js",
+    "clipboard.js",
     "live_updates.js",
     "navigation.js",
     "navigation-resize.js",
     "preview_fragment.js",
     "search_query.js",
+    "static_delivery.js",
     "tag_filter.js",
   ]) {
     const candidate = fileURLToPath(
-      new URL(`../client/${filename}`, import.meta.url),
+      new URL(`../browser/${filename}`, import.meta.url),
     );
     try {
       modules.set(filename, fs.readFileSync(candidate));
@@ -45,7 +66,11 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
 
 /** Load shared pure navigation modules imported by the browser client. */
 export function loadBrowserNavigationModules(): ReadonlyMap<string, Buffer> {
-  return loadModules("../navigation", ["logical.js", "target.js"]);
+  return loadModules("../navigation", [
+    "logical.js",
+    "target.js",
+    "delivery.js",
+  ]);
 }
 
 /** Load the packaged shell fonts before the HTTP server binds. */

@@ -2,10 +2,10 @@
 
 ## Delivery Status
 
-Approved target, not implemented. The [component explorer plan](../../plans/component-explorer.md)
-tracks delivery. Existing package, renderer, manifest, and Review-ignore
-contracts remain the implemented behavior until the corresponding milestones
-land. This contract adds an opt-in component entry to the existing catalogue.
+The public `defineComponent` API, saved variants, ownership attribution,
+explorer, inspection, and local controls are implemented. The
+[component explorer plan](../../plans/component-explorer.md) records delivery.
+Existing unregistered catalogues retain their output and Review-ignore behavior.
 
 ## Product Contract
 

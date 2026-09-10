@@ -84,6 +84,11 @@ export function captureBrowseState(
     closedCollectionIds,
     colorScheme: currentColorScheme(doc),
     detailsOpen:
+      (doc.querySelector<HTMLElement>("[data-workspace-inspector]")
+        ? doc.querySelector<HTMLElement>("[data-workspace-inspector]")?.dataset[
+            "open"
+          ] === "true"
+        : undefined) ??
       doc.querySelector<HTMLDetailsElement>("[data-mokabook-details]")?.open ??
       false,
     drawerOpen: shell.dataset["drawer"] === "open",
@@ -139,6 +144,13 @@ export function restoreBrowseState(
     "[data-mokabook-details]",
   );
   if (details) details.open = state.detailsOpen;
+  const inspector = doc.querySelector<HTMLElement>(
+    "[data-workspace-inspector]",
+  );
+  if (inspector) {
+    inspector.dataset["open"] = String(state.detailsOpen);
+    doc.dispatchEvent(new win.Event("mokabook:inspector-restore"));
+  }
   setDrawer(shell, state.drawerOpen);
   setViewport(doc, state.viewport);
   setColorScheme(doc, state.colorScheme);
@@ -260,8 +272,15 @@ export function setColorScheme(doc: Document, value: BrowseColorScheme): void {
     const dark = frame.getAttribute("data-fragment-dark");
     const light = frame.getAttribute("data-fragment-light");
     const next = scheme === "dark" && dark ? dark : light;
-    if (next && frame.getAttribute("src") !== next)
-      frame.setAttribute("src", next);
+    if (
+      next &&
+      (frame.getAttribute("data-fragment-current") ??
+        frame.getAttribute("src")) !== next
+    ) {
+      const target = frame as HTMLIFrameElement;
+      target.contentWindow?.location.replace(new URL(next, doc.URL).href);
+      frame.setAttribute("data-fragment-current", next);
+    }
   }
 }
 

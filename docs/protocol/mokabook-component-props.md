@@ -2,7 +2,8 @@
 
 ## Delivery Status
 
-Approved target, not implemented. This completes the runtime input contract for
+The shared runtime validator, canonical codec, and schema-derived authoring types
+are implemented and shared by the public authoring API and local controls. This defines the input contract for
 [registered components](./mokabook-components.md), following the approved review
 recommendations in the [component explorer plan](../../plans/component-explorer.md).
 

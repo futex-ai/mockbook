@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 
-import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { Catalogue } from "../catalogue.js";
 import {
   legacyCrumbTrail,
@@ -22,10 +22,7 @@ function Crumbs(props: { items: readonly CrumbLink[] }) {
         <span key={`${item.label}-${index}`}>
           {index > 0 ? <span className="sep">›</span> : null}
           {item.route ? (
-            <a
-              className="mbk-crumb-link"
-              href={`/view/${encodeUrlPath(item.route)}`}
-            >
+            <a className="mbk-crumb-link" href={catalogueViewHref(item.route)}>
               {item.label}
             </a>
           ) : (
@@ -99,6 +96,7 @@ export function SchemeSwitch() {
 /** The breadcrumb, title, and optional action rendered above a target view. */
 export function ScreenHead(props: {
   action?: ReactNode;
+  status?: ReactNode;
   crumbs: readonly CrumbLink[];
   heading: string;
   id?: string | undefined;
@@ -109,6 +107,7 @@ export function ScreenHead(props: {
         <Crumbs items={props.crumbs} />
         <div className="mbk-title-row">
           <h2>{props.heading}</h2>
+          {props.status}
           {props.id ? (
             <button
               aria-label={`Copy ID ${props.id}`}

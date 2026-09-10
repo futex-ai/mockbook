@@ -1,3 +1,5 @@
+import { expectFrameSource } from "./workspace_actions.js";
+import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -84,20 +86,18 @@ test("watched serve rebuilds and reloads after an authored change", async ({
   await page.fill("[data-mokabook-search]", "html");
   await expect(screens).toHaveAttribute("open", "");
   await expect(archive).toHaveAttribute("open", "");
-  await page.click('[data-viewport-option="mobile"]');
-  await page.click(
-    '.mbk-topbar [data-mokabook-schemeswitch] [data-color-scheme-option="dark"]',
-  );
-  await expect(page.locator(".mbk-frame-mobile iframe")).toHaveAttribute(
-    "src",
+  await chooseViewport(page, "mobile");
+  await chooseScheme(page, "dark");
+  await expectFrameSource(
+    page.locator(".mbk-frame-mobile iframe"),
     /screens\/home\.mobile\.dark\.html$/,
   );
-  const details = page.locator("[data-mokabook-details]");
-  await expect(details).not.toHaveAttribute("open", "");
-  await details.locator("summary").click();
-  await expect(details).toHaveAttribute("open", "");
-  await details.locator("summary").click();
-  await expect(details).not.toHaveAttribute("open", "");
+  const details = page.locator("[data-workspace-inspector]");
+  await expect(details).not.toHaveAttribute("data-open", "true");
+  await page.getByRole("tab", { name: "Details", exact: true }).click();
+  await expect(details).toHaveAttribute("data-open", "true");
+  await page.getByRole("tab", { name: "Details", exact: true }).click();
+  await expect(details).not.toHaveAttribute("data-open", "true");
   await page.setViewportSize({ height: 900, width: 420 });
   await page.click("[data-mokabook-menu]");
   await fs.promises.writeFile(
@@ -133,16 +133,15 @@ test("watched serve rebuilds and reloads after an authored change", async ({
     "data-mokabook-color-scheme",
     "dark",
   );
-  await expect(page.locator(".mbk-frame-mobile iframe")).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(".mbk-frame-mobile iframe"),
     /screens\/home\.mobile\.dark\.html$/,
   );
-  await expect(
-    page.locator(
-      '.mbk-screen-head [data-mokabook-schemeswitch] [data-color-scheme-option="dark"]',
-    ),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(details).not.toHaveAttribute("open", "");
+  await expect(page.locator("[data-workspace-scheme]")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(details).not.toHaveAttribute("data-open", "true");
   await expect(page.locator("[data-mokabook-shell]")).toHaveAttribute(
     "data-drawer",
     "open",

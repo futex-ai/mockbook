@@ -14,6 +14,7 @@ import {
 } from "./head.js";
 import { EmptyStage, TargetStage } from "./stages.js";
 import type { RouteTarget } from "./target.js";
+import { ComponentWorkspace } from "./workspace.js";
 
 /** One renderable Mokabook shell state. */
 export type ShellView =
@@ -89,17 +90,24 @@ function TargetView(props: {
 function HomeView(props: { catalogue: Catalogue }) {
   const entries = props.catalogue.manifest.entries;
   const screens = entries.filter((entry) => entry.kind === "screen").length;
+  const components = entries.filter(
+    (entry) => entry.kind === "component",
+  ).length;
   const useCases = entries.filter((entry) => entry.kind === "use-case").length;
   const pages = props.catalogue.manifest.legacyPages.length;
   return (
     <EmptyStage heading="Mokabook">
       <p>
-        Browse the mockup catalogue: expand folders and choose a screen or user
-        flow from the navigation.
+        Browse the mockup catalogue: expand folders and choose a screen,
+        component or user flow from the navigation.
       </p>
       <p className="mbk-empty-note">
-        {screens} structured screen{screens === 1 ? "" : "s"} · {useCases} user
-        flow{useCases === 1 ? "" : "s"} · {pages} catalogue page
+        {screens} screen{screens === 1 ? "" : "s"}
+        {components
+          ? ` · ${components} component${components === 1 ? "" : "s"}`
+          : ""}{" "}
+        · {useCases} user flow{useCases === 1 ? "" : "s"} · {pages} catalogue
+        page
         {pages === 1 ? "" : "s"}
       </p>
     </EmptyStage>
@@ -161,14 +169,23 @@ export function ShellMain(props: {
         <MissingView requested={props.view.requested} />
       ) : null}
       {props.view.kind === "target" ? (
-        <TargetView
-          catalogue={props.catalogue}
-          comparisons={props.context.comparisons ?? false}
-          {...(props.context.fragment
-            ? { fragment: props.context.fragment }
-            : {})}
-          target={props.view.target}
-        />
+        props.view.target.kind === "entry" &&
+        props.view.target.entry.kind !== "use-case" ? (
+          <ComponentWorkspace
+            catalogue={props.catalogue}
+            context={props.context}
+            entry={props.view.target.entry}
+          />
+        ) : (
+          <TargetView
+            catalogue={props.catalogue}
+            comparisons={props.context.comparisons ?? false}
+            {...(props.context.fragment
+              ? { fragment: props.context.fragment }
+              : {})}
+            target={props.view.target}
+          />
+        )
       ) : null}
     </main>
   );

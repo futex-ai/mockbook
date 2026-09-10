@@ -126,6 +126,7 @@ function virtualEntryContents(
       ? [`export { compatibilityTransformer };`]
       : []),
     `export { renderer };`,
+    `export { renderWithComponents } from ${quote(runtimeModule("../components/render.js", "../components/render.tsx"))};`,
   ].join("\n");
 }
 
@@ -138,6 +139,8 @@ function attributedApiContents(
     `import * as api from ${quote(indexPath)};`,
     `import { __attributeDefinition as attribute } from ${quote(definitionsPath)};`,
     `const source = ${quote(sourceRelativePath)};`,
+    `import { defineComponent as registerComponent } from ${quote(runtimeModule("../components/definition.js", "../components/definition.ts"))};`,
+    `export const defineComponent = (input) => { const value = registerComponent(input); value.entry.definedIn = source; return value; };`,
     `export const defineScreen = (input) => attribute(api.defineScreen(input), source);`,
     `export const defineCollection = (input) => attribute(api.defineCollection(input), source);`,
     `export const defineUseCase = (input) => attribute(api.defineUseCase(input), source);`,

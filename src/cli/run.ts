@@ -1,3 +1,4 @@
+import { receiveComponentRuntime } from "../server/controls/runtime_ipc.js";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +9,7 @@ import { MokabookError } from "../errors.js";
 import { runServerChild } from "../server/child.js";
 import { serve, type RunningServe } from "../server/serve.js";
 import { parseArguments } from "./arguments.js";
+import { runExport } from "./export.js";
 import { HELP } from "./help.js";
 
 /** Execute one CLI invocation and return its process exit code. */
@@ -25,7 +27,20 @@ export async function run(
     process.stdout.write(`${packageVersion()}\n`);
     return 0;
   }
-  const config = await loadConfig(cwd, arguments_.config);
+  const runtime = arguments_.retainedRuntime
+    ? await receiveComponentRuntime()
+    : undefined;
+  const config = runtime?.config ?? (await loadConfig(cwd, arguments_.config));
+  if (arguments_.command === "export") {
+    const result = await runExport(config, {
+      outDir: arguments_.out ?? "",
+      ...(arguments_.base !== undefined ? { base: arguments_.base } : {}),
+    });
+    process.stdout.write(
+      `Exported Mokabook to ${result.outDir}.\nDeploy this directory at your site's root with your hosting provider.\n`,
+    );
+    return 0;
+  }
   const outputStore = new FileSystemGeneratedOutputStore();
   if (arguments_.command === "build") {
     const compilation = await compileCatalogue(config);
@@ -52,6 +67,7 @@ export async function run(
       base,
       arguments_.updateVersion ?? 1,
       arguments_.strictPort ?? false,
+      runtime,
     );
     return 0;
   }

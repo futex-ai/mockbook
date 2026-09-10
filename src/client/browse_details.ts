@@ -18,6 +18,11 @@ export class DetailsDisclosurePreference {
     this.#open = this.read();
   }
 
+  /** The last explicit choice, shared by the icon inspector and legacy details. */
+  get preferredOpen(): boolean | undefined {
+    return this.#open;
+  }
+
   /** Apply an explicit preference to the current route's details panel. */
   apply(doc: Document): void {
     const details = doc.querySelector<HTMLDetailsElement>(

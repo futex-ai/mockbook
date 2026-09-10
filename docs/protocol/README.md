@@ -11,20 +11,28 @@ delivery steps.
 - [Package and authoring contract](./mokabook-package.md)
 - [Build and Browse runtime](./mokabook-runtime.md)
 - [Changes and screen comparisons](./mokabook-changes.md)
-- [Registered components](./mokabook-components.md) (approved target)
-- [Component runtime prop schema](./mokabook-component-props.md) (approved target)
-- [Component manifest v4 schema](./mokabook-component-manifest.md) (approved target)
-- [Component comparison v3 schema](./mokabook-component-review.md) (approved target)
-- [Component change attribution](./mokabook-component-changes.md) (approved target)
-- [Component pages and screen inspection](./mokabook-component-explorer.md) (approved target)
-- [Component explorer design catalogue](./mokabook-component-design.md) (mockups delivered; runtime pending)
-- [Component icon inspector design](./mokabook-component-inspector-design.md) (mockups delivered; runtime pending)
-- [Component controls design catalogue](./mokabook-component-controls-design.md) (mockups delivered; runtime pending)
+- [Registered components](./mokabook-components.md)
+- [Component runtime prop schema](./mokabook-component-props.md)
+- [Component manifest v4 schema](./mokabook-component-manifest.md)
+- [Component comparison v3 schema](./mokabook-component-review.md)
+- [Component change attribution](./mokabook-component-changes.md)
+- [Component pages and screen inspection](./mokabook-component-explorer.md)
+- [Component explorer design catalogue](./mokabook-component-design.md)
+- [Component icon inspector design](./mokabook-component-inspector-design.md)
+- [Component controls design catalogue](./mokabook-component-controls-design.md)
 - [Component workspace design](./mokabook-component-workspace-design.md) (view controls, resizing, and comparison eligibility)
-- [Component controls](./mokabook-component-controls.md) (approved target)
+- [Component controls](./mokabook-component-controls.md)
+- [Consumer static export](./mokabook-export.md) — consumer CLI and
+  transactional artifact-generation contract.
+- [Static export delivery](./mokabook-export-delivery.md) — portable
+  hosting, navigation, and comparison behavior.
+- [Export recovery](./mokabook-export-recovery.md) — backup ownership,
+  concurrent destination changes, bounded cleanup, and failure reporting.
 - [Watched development](./mokabook-watch.md)
 - [Catalogue navigation contract](./mokabook-navigation.md)
 - [Styled catalogue link controls](./mokabook-link-controls.md)
 - [Shell design contract](./mokabook-shell-design.md)
 - [Design mockup links](./mokabook-design-links.md)
 - [CI and npm release contract](./npm-release.md)
+- [Dependency security](./dependency-security.md) — advisory gates, targeted
+  updates, temporary overrides, and packed-consumer audit coverage.

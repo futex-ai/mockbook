@@ -7,7 +7,8 @@ deliver the complete mobile/desktop mockup set for sign-off. The
 [icon inspector revision](./mokabook-component-inspector-design.md) and
 [prop controls designs](./mokabook-component-controls-design.md) extend the
 original pages and inspection states. The [workspace revision](./mokabook-component-workspace-design.md) owns the grouped view controls, bounded panes, resizable inspector, and comparison eligibility. Runtime registration, attribution,
-inspection, and editable preview rendering remain unimplemented. These designs
+inspection, and local editable previews implement these designs. Published
+catalogues expose read-only saved props. These designs
 extend the [shell design](./mokabook-shell-design.md) and depict the
 [component explorer contract](./mokabook-component-explorer.md).
 
@@ -52,7 +53,7 @@ screens opt into light documents, matching the existing shell mockups. They
 start in the Light context and expose a native preview theme toggle. Links use
 the existing logical-id navigation contract so they work both directly from
 disk and in Browse. State links demonstrate navigation between mockups; static
-depictions of shell controls do not implement the future runtime inspector.
+depictions of shell controls do not implement the separate runtime inspector.
 
 The shared shell retains the [existing design navigation](./mokabook-design-links.md)
 for brand, home breadcrumb, and the canonical mobile drawer. Component artboards

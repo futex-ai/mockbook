@@ -17,6 +17,17 @@ Mokabook owns navigation between catalogue entries. Consumers continue to own
 their product's application routes and the behavior of ordinary document,
 asset, external, download, and same-document links.
 
+## Component Navigation
+
+Registered component ids share the existing catalogue namespace. Portable links
+resolve to the first saved variant in the effective viewport and color scheme;
+Browse opens the component page at its default variant. The [explorer contract](./mokabook-component-explorer.md)
+owns saved-variant and usage queries, removed variants, and selecting an actual
+consumer instance. View/theme swaps replace iframe history; outer Back/Forward
+continues between catalogue pages and saved variants. Only authenticated immediate
+frames receive inspection/link enhancement. Temporary control documents retain
+the same script-disabled boundary and do not grant nested frames shell access.
+
 ## Logical Catalogue Links
 
 The opt-in `MockLink asChild` extension and its static-control adaptation
@@ -212,6 +223,12 @@ canonical `/view/<route>[?fragment=...]` URL; the title, breadcrumbs, heading,
 details inspector, frames, focus, and status announcement all describe the
 destination. Back and Forward return through those outer route entries and
 restore their route-owned scroll.
+
+For exported catalogues the shared delivery resolver maps that trusted id to
+the exact `/view/<route>.html` file in shell-owned metadata before fetching or
+opening any context. Development still follows the `/id` redirect. Real static
+id aliases show full content without JavaScript and normalize their history
+entry progressively; see [Static export delivery](./mokabook-export-delivery.md).
 
 The same trusted parent enhancement exclusively handles modified pointer
 activation and explicit non-self targets after validating the marker and

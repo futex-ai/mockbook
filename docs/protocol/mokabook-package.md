@@ -45,15 +45,22 @@ mokabook                 Alias for `mokabook serve`
 mokabook serve           Serve the catalogue and diffs; watch by default
 mokabook build           Generate static artifacts and the manifest
 mokabook check           Validate source and committed generated output
+mokabook export --out <path>  Build a complete static catalogue for hosting
 mokabook --help          Show commands, options, and config discovery
 mokabook --version       Show the installed package version
 ```
 
 Common options include `--config <path>`. Serve accepts `--port`, `--base`,
-`--watch`, and `--no-watch`. The removed `review` command and `--out` option
-are rejected. Screen comparisons are requested from the catalogue. A flag after
+`--watch`, and `--no-watch`. Export requires `--out` and accepts `--base`;
+`--out` on any other command and the removed `review` command are rejected.
+Screen comparisons are requested from the catalogue. A flag after
 the package name belongs to Mokabook; docs must show npx arguments in a form
 that is unambiguous to current npm.
+
+The consumer `export` command and its config-relative `--out` option follow the
+[static export contract](./mokabook-export.md). It builds first, packages
+comparisons using the configured or overridden Git base, and never uploads.
+It adds no public JavaScript API or hosting-provider dependency.
 
 Serve uses `4173` as its default starting port. An occupied concrete starting
 port advances one at a time through `65535` until binding succeeds; exhausting
@@ -191,8 +198,9 @@ Authored source directories may sit below `mockupsDir` for a `docs/mockups/src`
 layout, but they may not equal each other or the output root; generated routes
 are collision-checked against those sources before writing. Review output must
 not overlap a source or output root in either direction. That rule applies
-equally to configured output, a CLI `--out` override, and the transactional
-writer boundary.
+to configured Review output and the transactional writer boundary. Export's
+required `--out` has the additional source/runtime/ownership confinement rules
+in the [export contract](./mokabook-export.md).
 
 `moduleResolution` has no defaults beyond esbuild's platform behavior. Package
 roots must be in-repository directories containing `package.json`; their
@@ -213,11 +221,18 @@ The root package export supplies typed, documented authoring helpers:
 
 - `defineConfig`;
 - `defineScreen`, `defineCollection`, and `defineUseCase`;
+- `defineComponent` and its schema-derived props, variants, and control types;
 - `defineRoot`, `collection`, and `screen` for nested trees;
 - `mockLink` and `MockLink` for id-addressed links;
 - `ReviewIgnore`, `ReviewIgnoreScope`, and `reviewMaterialKey`.
 
 The root also exports the `ColorScheme` type, exactly `"dark" | "light"`.
+
+The [registered component contract](./mokabook-components.md) owns the complete
+`defineComponent` shape, slots, repeated-instance identity, dependencies, saved
+variants, and runtime prop schema. It returns a renderable `Component` facade
+and a registry `entry`; collections can reference that entry like a screen.
+Component pages and controls use the existing consumer renderer and providers.
 
 A screen owns one mobile React node and one desktop React node. A collection is
 structural and owns child ids but no route. A use case owns ordered references
@@ -364,20 +379,38 @@ contract:
 
 ```ts
 import type { ReactNode } from "react";
-import type { ColorScheme, ScreenDefinition, Viewport } from "mokabook";
+import type {
+  ColorScheme,
+  ScreenDefinition,
+  ComponentDefinition,
+  ComponentStyleOwnership,
+  ComponentResourceOwnership,
+  Viewport,
+} from "mokabook";
 
 interface RenderInput {
   colorScheme: ColorScheme;
-  entry: ScreenDefinition;
+  entry: ScreenDefinition | ComponentDefinition;
+  variantId?: string;
+  componentProps?: Readonly<Record<string, unknown>>;
   node: ReactNode;
   stylesheets: readonly string[];
   viewport: Viewport;
 }
 
-export default function render(input: RenderInput): string;
+interface RenderResult {
+  html: string;
+  styles?: readonly ComponentStyleOwnership[];
+  resources?: readonly ComponentResourceOwnership[];
+}
+
+export default function render(input: RenderInput): string | RenderResult;
 ```
 
-The string must contain a complete `<html>` document. Mokabook
+The string or `html` field must contain a complete `<html>` document. Optional
+style/resource records provide exact component ownership; unclaimed or mixed
+material stays conservative. The [component contract](./mokabook-components.md)
+and [attribution contract](./mokabook-component-changes.md) define validation. Mokabook
 serializes Review-ignore markers, adapts opt-in `MockLink asChild` controls,
 and rewrites every complete
 `mock:<id>[#fragment]` value found in `href` or `data-nav-href` after this
@@ -483,7 +516,11 @@ header's source must belong to the current entries or legacy root even when
 that source was just deleted. It never deletes an unknown or foreign-catalogue
 file.
 
-The normative version 3 manifest shape is:
+Catalogues containing registered components emit [manifest v4](./mokabook-component-manifest.md),
+including saved fragments and per-view invocation/ownership records. Catalogues
+without components keep version 3 and its existing bytes; historical readers
+accept v2/v3/v4. The normative version 3 shape below describes that unchanged
+non-component format:
 
 ```ts
 interface ManifestV3 {

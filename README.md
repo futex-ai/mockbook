@@ -1,13 +1,19 @@
 # Mokabook
 
 Mokabook turns React-authored mobile and desktop mockups into committed static
-HTML, serves the resulting catalogue during development, and compares screens
+HTML, exports complete catalogues for hosting, serves them during development, and compares screens
 with their Git baseline on demand. It is app-independent: product screens, component libraries,
 themes, styles, and compatibility adapters stay in the consuming repository.
 
 The public [npm package](https://www.npmjs.com/package/mokabook) and executable
 are both named `mokabook`. Releases remain pre-1.0 while the consumer contract
 settles.
+
+Shared components can have their own pages, saved variants and editable props in
+local Serve. Screens record their actual component usage for inspection and
+highlighting. Component implementation edits appear once in Changes; consumers
+are listed as affected, while changes to their supplied props remain screen
+changes. See the [component authoring guide](./src/components/README.md).
 
 ## Use Mokabook
 
@@ -144,22 +150,24 @@ npx mokabook                         # build, serve, and watch
 npx mokabook serve --no-watch --port 0
 npx mokabook build
 npx mokabook check
+npx mokabook export --out .context/mokabook-site
 ```
 
 Options follow the command, so an explicit config is
 `npx mokabook build --config path/to/mokabook.config.ts`. With a local
 development dependency, `npx --no-install mokabook` guarantees npm does not
-fall back to the registry. After the first release, a clean machine may use
+fall back to the registry. A clean machine may use
 `npx --package mokabook mokabook` without adding a dependency.
 
-| Command              | Outcome                                                   |
-| -------------------- | --------------------------------------------------------- |
-| `mokabook`           | Build, serve, and watch using a stable development URL    |
-| `mokabook serve`     | Serve the catalogue and on-demand diffs; watch by default |
-| `mokabook build`     | Validate and transactionally write generated output       |
-| `mokabook check`     | Compare expected and committed bytes without writing      |
-| `mokabook --help`    | Show commands and their supported options                 |
-| `mokabook --version` | Print the installed package version                       |
+| Command                        | Outcome                                                   |
+| ------------------------------ | --------------------------------------------------------- |
+| `mokabook`                     | Build, serve, and watch using a stable development URL    |
+| `mokabook serve`               | Serve the catalogue and on-demand diffs; watch by default |
+| `mokabook build`               | Validate and transactionally write generated output       |
+| `mokabook check`               | Compare expected and committed bytes without writing      |
+| `mokabook export --out <path>` | Build a complete static catalogue for your host           |
+| `mokabook --help`              | Show commands and their supported options                 |
+| `mokabook --version`           | Print the installed package version                       |
 
 Serve starts at port `4173`. If that port, or a concrete `--port` value, is
 already occupied, Mokabook tries each following port in order until one is
@@ -204,8 +212,10 @@ browser, so the Changes rows and count match the files that triggered each
 reload without restarting the server child.
 Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
-Every structured screen has a compact Current / Side by side / Overlay /
-Difference control. It is available from All and Changes, and starts in Current.
+Screens and saved component variants with actual comparison changes offer
+Current / Side by side / Overlay / Difference beneath the heading. The controls
+are available from All and Changes, and start in Current. Known unchanged views
+show Unmodified without a comparison band; unknown evidence has no status badge.
 During development, Mokabook generates comparison snapshots only after a diff
 option is selected; browsing, filtering, and watched reloads do not trigger
 generation. Published catalogues prepare snapshots during publishing, then load
@@ -213,9 +223,9 @@ and render them only after a diff option is selected. Comparisons
 stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
 catalogue available and offer a retry. Navigation and reload return to Current.
-Added and removed screens show explicit missing sides, and unchanged screens
-can still be compared from All. Shared-impact and declared-dependency evidence
-remains in comparison details, including for unchanged screens opened from All.
+Added and removed entries show explicit missing sides. Affected consumers can
+show their real before/after differences without entering Changes. Comparison,
+shared-impact, and declared-dependency evidence stays in the Details inspector.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
 rules, and isolated snapshot dependencies. Its private diagnostic summary counts
@@ -226,7 +236,8 @@ Overlays use 50% opacity; Difference
 uses CSS blending, without inventing pixel measurements. Immutable generations
 keep snapshots coherent during refresh, retain replaced resources briefly, and
 drain generation work before shutdown. The former Review tab, standalone report,
-`mokabook review` command, and `--out` option have been removed.
+`mokabook review` command, and its report-output option have been removed.
+`--out` is supported only by the separate `export` command.
 
 Consumer documents run in sandboxed frames. Comparisons keep unmodified base/head
 documents in separate snapshot trees and copies their referenced local CSS,
@@ -342,6 +353,14 @@ forcing React peers to the consumer's one runtime.
   portable.
 - **A watched edit fails:** fix the reported candidate build/config error. The
   last-good server remains active and adopts the next valid change.
+- **Export cannot find its baseline:** fetch the configured base with enough
+  Git history and retain its committed manifest/fragments. Export never fetches
+  history and does not silently omit comparisons.
+- **Export refuses its destination:** choose a missing/empty directory outside
+  source, generated, dependency, and comparison roots. Keep unrelated files out
+  of owned exports. For a retained reservation, confirm no export is running,
+  inspect its stage/backup, and recover the previous site before moving an
+  abandoned reservation. Never delete a live writer's reservation.
 
 ## Developer Setup
 
@@ -391,21 +410,98 @@ Resource-watch tests that replace a file in multiple steps use
 alone may describe the temporary removal; the helper keeps a bounded wait for
 recovery and reports the last published state if it times out.
 
-`cargo xtask check` is the authoritative local gate. It includes formatting,
+`cargo xtask check` is the authoritative local gate. It starts with a live
+dependency audit (`npm run dependencies:check`), then includes formatting,
 lint, typechecking, unit/integration tests, the committed example, package
 allowlist and license checks, clean packed ESM/NodeNext/npx/Accounting/Juno
-consumers, Chromium tests, and all Rust checks.
+consumers, Chromium tests, and all Rust checks. It also audits the freshly
+resolved packed consumer's production dependencies. Registry access is required;
+known advisories or registry errors fail verification. See the
+[dependency security contract](./docs/protocol/dependency-security.md).
+`npm test` limits test-file parallelism to four workers to keep subprocess-heavy
+fixtures within their existing startup deadlines on shared developer machines.
+All tests still run, including their explicit concurrent-writer and race cases.
+Watcher tests use `tests/helpers/watched_catalogue.ts` to await a newer version
+and the expected Changes state within the existing deadline. Multi-operation
+edits can publish intermediate states; the first newer version alone does not
+prove that an entire replacement or repair has completed.
+
+## Export And Publish A Consumer Build
+
+From the consumer repository, run:
+
+```bash
+npx mokabook export --out .context/mokabook-site
+# For a config under tools/, write tools/site/ and select another Git base:
+npx mokabook export --config tools/mokabook.config.ts --out site --base main
+```
+
+Export builds first, then packages the complete catalogue, real id aliases,
+assets, and Git comparisons. `--out` is required and config-relative, not
+working-directory-relative; absolute paths must remain inside `repoRoot`.
+`--base` overrides `review.base` (default `origin/main`). The Git branch point
+must contain the committed manifest and required fragments/assets; CI should
+check out full history. Normal build validation, including nonempty registry
+requirements, still applies.
+
+Configured package roots nested inside `mockupsDir` are excluded from both
+current assets and comparison snapshots. A package root equal to `mockupsDir`
+is rejected; use a separate public output directory. Local navigation links
+must also target existing document anchors.
+
+Deploy the directory's contents with your own hosting provider. Mokabook does
+not upload files or manage hosting credentials. Serve it at the HTTP(S) origin
+root with correct MIME types and directory indexes; no Mokabook process, Git,
+source tree, or rewrite rules are needed there. Subpath hosting and `file://`
+catalogue browsing are unsupported. Configure shell and mutable-asset revalidation and comparison
+`Cache-Control: no-store` / `X-Content-Type-Options: nosniff` headers, and deploy
+atomically to avoid mixed builds. External HTTP(S) resources stay external, so
+not every catalogue is offline-capable.
+
+Comparisons load only after selection. Refresh reads the same exported
+generation; deploy a new export and reload the page for new results. Re-export
+replaces only owned output and restores the previous site on pre-install
+failure when recovery is safe. If another process recreates the destination,
+both it and the captured backup are preserved for manual recovery. Generated
+fragments already written by the build step remain updated
+if the later export fails. See the [export contract](./docs/protocol/mokabook-export.md)
+and [hosting contract](./docs/protocol/mokabook-export-delivery.md).
+
+Output must retain the directory identity inspected before the build. Even an
+empty or correctly marked directory created later is left untouched. Capture,
+installation, and recovery use OS-enforced exclusive moves on Linux, macOS,
+and Windows. Keep optional platform dependencies installed for the native
+bridge; unsupported platforms or filesystems fail without a replacing fallback.
+
+Each complete export has its own content-derived deployment identity, separate
+from comparison generations. Navigation from an old tab performs a full reload
+when the deployed catalogue, assets, or host aliases change, even if the
+comparison files are unchanged. Within one deployment, navigation remains
+progressive. Hosting must revalidate mutable files so that reload can fetch them.
+
+Concurrent exports to filesystem aliases of the same destination share one
+reservation. The internal `.mokabook-export-reservations` directory retains
+small ownership metadata after cleanup; keep authored files out of it. Old
+hashed reservations require explicit recovery after confirming no writer is
+active. Unlisted files inside an exported site remain eligible for configured
+watch rules and prevent replacement until moved elsewhere.
+
+Backup cleanup deletes only validated files. Unexpected additions stop cleanup
+and remain available for recovery; the newly installed site stays in place.
+Errors report both the original failure and any cleanup failure, including the
+remaining paths. A partially cleaned backup may no longer contain every old
+generated file. See the [recovery contract](./docs/protocol/mokabook-export-recovery.md).
 
 ## Preview Deployments
 
 `npm run preview:build` turns the real `examples/basic` Browse catalogue into a
-static Cloudflare Pages artifact at `.context/mokabook-preview`. It snapshots
-every catalogue route through Mokabook's HTTP server, copies the package shell
+static Cloudflare Pages artifact at `.context/mokabook-preview`. Its thin
+repository adapter uses the same export engine to render every route and copy the package shell
 and adapted public example assets, preserves id redirects, and excludes the
 development-only live-reload connection. Static routes authenticate the same
 generated link markers as served Browse, and a single validated `fragment`
 query is applied progressively to current and light/dark frame sources. The
-snapshot compares the catalogue with `origin/main`, so Browse includes its
+snapshot uses the example's configured base (`origin/main`), so Browse includes its
 All/Changes filter even when the changed count is zero. The artifact is not
 part of the npm package. Published screens include the same Current / Side by
 side / Overlay / Difference controls as development. Publishing packages the
@@ -414,6 +510,14 @@ them only after a diff selection. Removed screens retain their Changes rows and
 comparison pages. Refresh reads the currently published comparison, and a new
 deployment publishes new snapshots. A failed comparison prevents deployment and
 preserves the previous local artifact.
+
+The preview adapter's extensionless URLs must not collide with another file,
+directory, or alias, including case-only differences. A collision stops export
+before replacing the previous site; choose distinct routes or public-file names.
+Preview output must remain below `.context` in both lexical and resolved paths.
+A symlinked scratch root is supported within the repository's safe boundaries,
+but an inner symlink cannot redirect output elsewhere. The same checks run before
+generation and before installation, and the resolved destination is pinned.
 
 The Preview workflow deploys `main` to the Cloudflare Pages project `mokabook`
 at `https://mokabook.pages.dev`. Same-repository, non-release pull requests use
@@ -446,8 +550,10 @@ already-published version, and publishes through npm trusted publishing. A
 bounded post-publish check tolerates npm metadata, tarball, dist-tag, and
 signature propagation before proving the registry artifact. A manual
 `publish_ref` retries only an existing tag. See the
-[release protocol](./docs/protocol/npm-release.md) for the one-time `0.0.0`
-bootstrap and maintainer settings; do not add an npm write token to GitHub.
+[release protocol](./docs/protocol/npm-release.md) for the current release/retry
+procedure and maintainer settings. Package versions are release-managed;
+bootstrap is completed history, not a step to repeat. Do not add an npm write
+token to GitHub.
 
 The synthetic fixture at [`examples/basic`](./examples/basic/README.md) proves
 custom rendering, stylesheets, id links, collections, use cases, and
@@ -458,12 +564,13 @@ Its `Design` catalogue holds the approved catalogue and Changes mockups
 recorded by the
 [shell design contract](./docs/protocol/mokabook-shell-design.md).
 The [component design catalogue](./docs/protocol/mokabook-component-design.md)
-adds thirty-two mobile and desktop references for component pages, screen
+provides the canonical mobile and desktop inventory for component pages, screen
 inspection, a collapsible icon inspector, and the complete prop-controls states.
 The [controls designs](./docs/protocol/mokabook-component-controls-design.md) show
-saved variants and temporary edits; live preview rendering remains a later
-implementation milestone. The catalogue hierarchy reaches each design without
-adding navigation footers to the artboards. The [workspace designs](./docs/protocol/mokabook-component-workspace-design.md) add working viewport/theme/highlight controls, a fixed shell with a resizable inspector, entry change-status badges, and comparison evidence inside Details. Unmodified examples omit comparison tabs.
+saved variants and temporary edits, implemented by the local rendering service. The catalogue hierarchy reaches each design without
+adding navigation footers to the artboards. The [workspace designs](./docs/protocol/mokabook-component-workspace-design.md) add working viewport/theme/highlight controls, a fixed shell with a resizable inspector, entry change-status badges, and comparison evidence inside Details. Unmodified examples and ordinary Browse/tag-picker designs omit comparison tabs;
+eligible comparisons retain an opaque toolbar. The desktop grip sits on its
+divider line.
 
 The design mockups use `MockLink` for supported navigation and state transitions;
 the two example buttons demonstrate `MockLink asChild`. See the
@@ -484,17 +591,21 @@ canonical destinations and the controls that remain visual depictions.
   logical-target grammar and ownership-aware HTML adaptation.
 - [`src/review`](./src/review) — Git extraction, comparison, ignore normalization,
   and isolated comparison snapshots.
+- [`src/components`](./src/components) — public component definitions, schemas,
+  captured input ownership, and manifest-v4 validation.
 - [`src/legacy`](./src/legacy) — opt-in migration sources and component expansion.
 - [`xtask`](./xtask/README.md) — full repository checks and post-push review.
 
 ### Related Docs
 
-The planned [registered components contract](./docs/protocol/mokabook-components.md)
+The [registered components contract](./docs/protocol/mokabook-components.md)
 links to the [change attribution](./docs/protocol/mokabook-component-changes.md),
 [pages and inspection](./docs/protocol/mokabook-component-explorer.md), and
 [local prop controls](./docs/protocol/mokabook-component-controls.md) contracts.
-These features are not implemented yet; delivery is tracked in the
-[plans index](./plans/README.md).
+Registration, saved fragments, validated props, change attribution, inspector
+pages, and local editable controls are implemented. Static exports retain saved
+variants, comparisons and read-only inspection. Development plans are indexed
+in the [plans index](./plans/README.md).
 
 - [Protocol index](./docs/protocol/README.md)
 - [Package ownership boundary](./docs/architecture/package-boundary.md)

@@ -62,12 +62,10 @@ const STATE_LABELS: Record<ReviewState, string> = {
 /** Comparison status and secondary evidence share the scrollable screen stage. */
 export function ComparisonStage({
   children,
-  evidence,
   state,
   viewport,
 }: {
   children: ReactNode;
-  evidence?: ReactNode;
   state: ReviewState;
   viewport: "mobile" | "desktop";
 }) {
@@ -77,11 +75,6 @@ export function ComparisonStage({
         {viewport === "mobile" ? "Mobile" : "Desktop"} · {STATE_LABELS[state]}
       </h3>
       {children}
-      <details className="mbk-comparison-details" open={evidence !== undefined}>
-        <summary>Comparison details</summary>
-        <p>Compared with the branch point on origin/main.</p>
-        {evidence}
-      </details>
     </section>
   );
 }

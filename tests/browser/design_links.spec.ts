@@ -1,3 +1,4 @@
+import { chooseViewport } from "./workspace_actions.js";
 import { setTimeout } from "node:timers/promises";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -16,7 +17,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
   }) => {
     await page.setViewportSize({ width: 1600, height: 1000 });
     await page.goto("/view/design/browse/views/home.html");
-    await page.locator(`[data-viewport-option="${viewport}"]`).click();
+    await chooseViewport(page, viewport);
     const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
     await frame.locator(".mbk-empty-link").click();
     await expect(page).toHaveURL(
@@ -69,7 +70,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
     });
     await page.setViewportSize({ width: 1600, height: 1000 });
     await page.goto("/view/design/browse/views/screen.html");
-    await page.locator(`[data-viewport-option="${viewport}"]`).click();
+    await chooseViewport(page, viewport);
     const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
     await frame
       .getByRole("group", { name: "Color scheme" })
@@ -108,6 +109,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       .getByRole("link", { name: "forms", exact: true })
       .click();
     await expect(page).toHaveURL(/\/design\/browse\/views\/screen\.html$/);
+    await page.goto("/view/design/review/controls/current.html");
     await frame
       .getByRole("group", { name: "Comparison mode" })
       .getByRole("link", { name: "Side by side" })

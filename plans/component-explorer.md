@@ -1,9 +1,10 @@
 # Component Explorer
 
-Status: active; mockup milestones 4, 4a, 4b, 4c, 4f, 4g, and 7 are completed
-and ready for joint design sign-off. Verification follow-ups 4d and 4e are
-completed. Component runtime implementation remains pending. At the user's
-request, the mockups precede the runtime/backend milestones.
+Status: active; the design feedback and component runtime are implemented and
+the complete verification gate passes. Commit/push and post-push review
+are in progress. Milestone 4h audited all 112 design artboards and corrected the
+divider and comparison eligibility. The public API, saved pages, attribution,
+inspection, static export and local controls now share the approved contracts.
 
 Implement the approved [component authoring contract](../docs/protocol/mokabook-components.md),
 [change attribution](../docs/protocol/mokabook-component-changes.md),
@@ -18,8 +19,7 @@ from directly changed screens to their use cases remains intact.
 
 Scope includes the Mokabook package, protocol docs, existing design catalogue,
 consumer fixtures, and served/published verification. Saved variants work in
-both delivery modes. Editable props use local server rendering in a later
-milestone. A browser React runtime, hosted arbitrary rendering, downstream app
+both delivery modes. Editable props use local server rendering. A browser React runtime, hosted arbitrary rendering, downstream app
 migrations, and publishing an npm release are outside this change.
 
 ## Execution Rules
@@ -70,63 +70,69 @@ This adds a documentation milestone without reopening completed Milestone 1.
 - [x] Validate changed Markdown, local links, and the normative TypeScript
       declarations. Keep feature code unimplemented and the plan Active.
 
-## Milestone 2: Build component registration and ownership
+## Milestone 2: Build component registration and ownership — completed
 
 Deliver tested internal authoring/build support while current public catalogues
 continue to work. Standalone generated fixtures prove the component renders.
 
-- [ ] Implement typed/runtime-validated definitions, variants, controls metadata,
+- [x] Implement typed/runtime-validated definitions, variants, controls metadata,
       slot declarations, component wrappers, and explicit repeated-instance ids.
-- [ ] Share the explicit prop-schema validator and canonical codec across all
+- [x] Share the explicit prop-schema validator and canonical codec across all
       callers; test rejected JS/TS inputs, optional/uncontrolled fields, unions,
       nested values, key round trips, negative zero, and mutation isolation.
-- [ ] Extend source attribution, collection validation, discovery, and the
+- [x] Preserve explicit dependency provenance in v4 so source attribution cannot
+      create false exact-screen dependency evidence, including explicit overlaps.
+- [x] Extend source attribution, collection validation, discovery, and the
       single consumer graph without inferring usage from import lists.
-- [ ] Capture actual per-view instances, input material, caller-owned slots,
+- [x] Capture actual per-view instances, input material, caller-owned slots,
       parent/owner relationships, order, and layout-neutral DOM ranges.
-- [ ] Verify deterministic fixed-size instance/slot keys through deep nesting
+- [x] Verify deterministic fixed-size instance/slot keys through deep nesting
       and forwarding; reject invalid digests and conflicting duplicate records.
-- [ ] Extend the existing renderer for components and optional style/resource
+- [x] Extend the existing renderer for components and optional style/resource
       ownership, retaining plain-string renderers and consumer theme providers.
-- [ ] Generate variant fragments and manifest v4; retain v3 output bytes for
+- [x] Generate variant fragments and manifest v4; retain v3 output bytes for
       unregistered catalogues and existing v2/v3 baseline readers.
-- [ ] Implement the normative manifest types/validator with shared accepted and
+- [x] Implement the normative manifest types/validator with shared accepted and
       rejected fixtures, reference/path checks, and deterministic serialization.
-- [ ] Validate nested/multi-root/text/null boundaries, reserved metadata,
+- [x] Validate nested/multi-root/text/null boundaries, reserved metadata,
       compatibility transforms, owned dependencies, and unsupported inputs.
-- [ ] Extend transactional output, collision/orphan checks, links, variant
+- [x] Extend transactional output, collision/orphan checks, links, variant
       resources, and id destinations through existing shared validation.
-- [ ] Add unit/integration fixtures for duplicate/missing identities, slots,
+- [x] Add unit/integration fixtures for duplicate/missing identities, slots,
       repeated/nested instances, invalid metadata, both viewports/themes,
       renderer failures, and unregistered/legacy compatibility; build and run
       focused tests and standalone rendering smoke checks.
 
-## Milestone 3: Attribute changes and publish component data
+## Milestone 3: Attribute changes and publish component data — completed
 
 Deliver one tested classification policy and complete comparison artifacts,
 with lightweight Browse detection and no eagerly generated snapshots.
 
-- [ ] Add failing regressions for a component-only edit currently flagging its
+- [x] Add failing regressions for a component-only edit currently flagging its
       consumers through raw generated paths, broad dependencies, or shared impact.
-- [ ] Implement owner-aware normalization and input comparison; retain slot
+- [x] Implement owner-aware normalization and input comparison; retain slot
       material, repeated-instance order, empty instances, and one-sided adoption.
-- [ ] Compare component variants without suppressing their own root; classify
+- [x] Attribute implementation changes observed only at actual consumer props,
+      while preserving metadata-only affected eligibility and manual-ignore adoption.
+- [x] Compare component variants without suppressing their own root; classify
       nested child implementation and parent-supplied input changes separately.
-- [ ] Integrate owned source/assets/head styles and conservative mixed/global
+- [x] Integrate owned source/assets/head styles and conservative mixed/global
       evidence without globally removing existing dependency or ignore rules.
-- [ ] Make Browse, watch updates, comparison results, counts, and use-case
+- [x] Keep complete-render view states separate from direct Changes reasons;
+      component suppression must not masquerade as a manual ignore.
+- [x] Make Browse, watch updates, comparison results, counts, and use-case
       propagation use the same direct-change/affected distinction.
-- [ ] Generate component results and baseline/current affected-consumer links,
+- [x] Generate component results and baseline/current affected-consumer links,
       including transitive use, removed screens/components/variants, and explicit
       missing sides; keep before/after documents and assets unmodified.
-- [ ] Extend served/published data and artifact packaging, historical schema
+- [x] Extend served/published data and artifact packaging, historical schema
       readers, immutable generations, and cache invalidation for component views.
-- [ ] Implement the normative result schema and Changes reasons; share fixtures
+- [x] Implement the normative result schema and Changes reasons; share fixtures
       across producers/readers to prove exact membership, sides, and usage chains.
-- [ ] Test every attribution-contract table row, unchanged-render prop changes,
+- [x] Test every attribution-contract table row, unchanged-render prop changes,
       slots, simultaneous component/screen edits, asset-only changes, migration,
       light/dark/mobile/desktop, and no snapshot work from ordinary browsing.
-- [ ] Run focused suites and comparison/build smoke checks; prove published
+- [x] Run focused suites and comparison/build smoke checks; prove published
       component data and isolated resources agree with local classification.
 
 ## Milestone 4: Design component pages and screen inspection — completed
@@ -429,69 +435,110 @@ remain intact.
 The [preview deployment](https://github.com/futex-ai/mokabook/actions/runs/34406794146)
 succeeded.
 
-## Milestone 5: Implement component pages and inspection
+## Milestone 4h: Divider alignment and comparison eligibility — completed
+
+Tags: mockup
+
+Apply the latest design feedback across the complete owning-screen inventory.
+
+- [x] Add failing divider-line and catalogue-wide comparison regressions.
+- [x] Center the desktop grip on its divider and preserve bounded resizing.
+- [x] Require explicit changes before showing comparisons; retain their opaque
+      background, remove irrelevant controls from all Browse/unchanged designs,
+      and keep comparison evidence in Details.
+- [x] Derive the browser design inventory from the manifest and link secondary
+      docs to the canonical inventory instead of maintaining stale counts.
+- [x] Regenerate, run focused tests, and visually inspect every owning artboard.
+
+## Milestone 5: Implement component pages and inspection — completed
 
 Tags: ui
 
 Deliver the designed shell against the validated backend records. No backend
 or rendering-contract changes belong in this milestone.
 
-- [ ] Reuse shell navigation, search/tags, Details, preview, and comparison
+- [x] Reuse shell navigation, search/tags, Details, preview, and comparison
       components; add component entries, saved-variant selection, and suitable
       canvases with viewport/theme and URL/history behavior.
-- [ ] Implement the grouped viewport/theme/highlight icon controls with working
+- [x] Ensure fragment swaps replace iframe history so Back/Forward navigates
+      saved variants and catalogue pages without hidden frame-history stops.
+- [x] Implement the grouped viewport/theme/highlight icon controls with working
       Mobile/Desktop/Both contexts and comparison eligibility from real evidence;
       show Unmodified only for known unchanged saved examples.
-- [ ] Render Added/Changed/Removed/Unmodified entry badges and factual comparison
+- [x] Render Added/Changed/Removed/Unmodified entry badges and factual comparison
       Details from validated records and paired props; keep entry/variant status
       distinct and explain disabled highlighting with its specific reason.
-- [ ] Keep shell headers and inspector icons fixed around desktop sibling panes;
+- [x] Keep shell headers and inspector icons fixed around desktop sibling panes;
       implement the centered full-width draggable, keyboard-accessible divider,
       bounded sizing, and close/reopen behavior from the workspace design.
-- [ ] Implement the mobile bottom sheet over the preview, with safe-area spacing,
+- [x] Implement the mobile bottom sheet over the preview, with safe-area spacing,
       an iOS-style grabber, pan gestures, compact/expanded snap heights, accessible
       size changes, fixed tabs, and retained edits when closing/reopening.
-- [ ] Show Nested components only for component pages with recorded children;
+- [x] Show Nested components only for component pages with recorded children;
       preserve explicit empty/unavailable inspection on screen pages.
-- [ ] Render Used by/Affected screens from actual current/baseline evidence,
+- [x] Render Used by/Affected screens from actual current/baseline evidence,
       including removed consumers and links into the correct screen instance.
-- [ ] Add the screen Details component tree, counts, props/slots, instance
+- [x] Add the screen Details component tree, counts, props/slots, instance
       selection, and explicit empty/unavailable states for the active view.
-- [ ] Add the Highlight components toggle, mask/outline/label presentation,
+- [x] Add the Highlight components toggle, mask/outline/label presentation,
       nested drill-down, and two-way selection between DOM regions and Details.
-- [ ] Track multi-root/text bounds, clipping, nested scroll, frame resize,
+- [x] Track multi-root/text bounds, clipping, nested scroll, frame resize,
       expansion, fonts/images, viewport/theme swaps, and null/hidden instances
       without changing consumer layout, styles, or inherited opacity.
-- [ ] Implement keyboard selection, focus return/Escape, inspection click
+- [x] Implement keyboard selection, focus return/Escape, inspection click
       handling, comparison exclusion, and full listener/mask cleanup on navigation.
-- [ ] Use the same package inspector in served/published shells, preserving
-      authenticated immediate-frame access and script-disabled consumer frames.
-- [ ] Add real-shell browser tests for responsive pages, variants/comparisons,
+- [x] Add real-shell browser tests for responsive pages, variants/comparisons,
       actual metadata, highlight geometry, accessibility, history, and cleanup;
-      smoke-test local and published saved-variant workflows against mockups.
+      smoke-test local saved-variant workflows against mockups.
 
-## Milestone 6: Add the local controls rendering service
+## Milestone 5a: Integrate component data with static export — completed
+
+Main added the consumer export engine while the workspace UI was being built.
+Extend that backend before completing the published inspector work.
+
+- [x] Preserve main's export transaction, delivery identities, security boundaries,
+      static aliases, reference closure, captured inputs, tests, and packaging.
+- [x] Export current and removed components, variants and consumers from v4
+      manifests and v3 comparisons, with the shared direct Changes policy.
+- [x] Supply validated baseline/current workspace evidence without snapshot work
+      outside the explicit export/comparison lifecycle.
+- [x] Add component export regressions, build, and run export integration tests.
+
+## Milestone 5b: Complete the published component workspace — completed
+
+Tags: ui
+
+Complete the UI tasks that depend on the new export engine's component support.
+
+- [x] Use the same package inspector in served/published shells, preserving
+      authenticated immediate-frame access and script-disabled consumer frames.
+- [x] Preserve static deployment checks, aliases and immutable comparison URLs
+      through component variants, Usage links, view controls, and history.
+- [x] Smoke-test published saved variants and inspection against both mockup
+      layouts; test missing/removed variants, comparisons and listener cleanup.
+
+## Milestone 6: Add the local controls rendering service — completed
 
 Deliver bounded temporary rendering through the existing consumer graph; keep
 the endpoint inactive in published output and independent of generated files.
 
-- [ ] Implement the typed control schema, overrides/unset validation, generation
+- [x] Implement the typed control schema, overrides/unset validation, generation
       checks, and render request/result/error contracts from the controls spec.
-- [ ] Add the private POST endpoint with Host/origin/token validation, method,
+- [x] Add the private POST endpoint with Host/origin/token validation, method,
       body-size, unknown-prop, and component/variant/view enforcement.
-- [ ] Reuse consumer adapters/providers and the full marker/link/resource
+- [x] Reuse consumer adapters/providers and the full marker/link/resource
       validation pipeline in a supervised worker with bounded jobs and timeout.
-- [ ] Return immutable transient preview URLs and usage records; implement
+- [x] Return immutable transient preview URLs and usage records; implement
       memory-only bundles, count/byte/lifetime bounds, expiration, valid resource
       resolution, no-store/nosniff headers, and cleanup without disk spill.
-- [ ] Integrate successful/failed watched replacement, stale-generation handling,
+- [x] Integrate successful/failed watched replacement, stale-generation handling,
       cancellation, worker recovery, and shutdown with the last-good lifecycle.
-- [ ] Test control types/presets, malformed or unauthorized requests, unchanged
+- [x] Test control types/presets, malformed or unauthorized requests, unchanged
       committed output, queue/artifact limits, failure/timeout/restart, and shutdown.
-- [ ] Assert controls create no filesystem output, Git changes, watch events,
+- [x] Assert controls create no filesystem output, Git changes, watch events,
       rebuild/reload loops, Check orphans, or publication entries, including with
       a repository-root watch rule; verify memory is released on shutdown.
-- [ ] Build and smoke-test real consumer rerenders while browsing/watching;
+- [x] Build and smoke-test real consumer rerenders while browsing/watching;
       prove static publishing has no rendering endpoint or background requests.
 
 ## Milestone 7: Design editable component controls — completed
@@ -501,7 +548,7 @@ Tags: mockup
 Extend the component-page design with local controls and published saved-variant
 behavior before implementing the new controls UI.
 Delivered with 4b for one design sign-off. The mockups use
-authored fixture states and do not depend on the unimplemented rendering service.
+authored fixture states independent of the runtime rendering service.
 
 - [x] Create mobile/desktop screen components for controls, edited values/reset,
       pending/error/retry, comparison of the saved variant, and read-only controls.
@@ -520,51 +567,66 @@ authored fixture states and do not depend on the unimplemented rendering service
 - [x] Include this milestone in 4b's full check, commit/push, post-push review,
       and PR handoff, with commit/push and review tracked independently.
 
-## Milestone 8: Implement editable component controls
+## Milestone 8: Implement editable component controls — completed
 
 Tags: ui
 
 Connect the designed controls to the existing local rendering service without
 introducing backend work or altering committed variant comparison semantics.
 
-- [ ] Render text/boolean/number/select controls and optional/unset states from
+- [x] Render text/boolean/number/select controls and optional/unset states from
       real definitions; implement validation, debounce, reset, and preset choices.
-- [ ] Manage temporary props across viewport/theme changes and discard them on
+- [x] Manage temporary props across viewport/theme changes and discard them on
       variant change, navigation, reload, or entry into saved-variant comparison.
-- [ ] Handle pending/error/retry/expiration and sequence/generation cancellation
+- [x] Handle pending/error/retry/expiration and sequence/generation cancellation
       while retaining the last valid preview and matching inspector metadata.
-- [ ] Keep published controls read-only, with functional saved variants and no
+- [x] Keep published controls read-only, with functional saved variants and no
       requests to local render endpoints; use capability data rather than badges.
-- [ ] Add browser tests and local/published smoke checks for real prop updates,
+- [x] Add browser tests and local/published smoke checks for real prop updates,
       rapid edits, stale responses, reset, navigation, comparisons, failure, and
       responsive keyboard access. Verify the UI against both mockup variants.
 
-## Milestone 9: Integrate the public API and verify delivery
+Implementation verification so far: component build/attribution and schema suites,
+real desktop/mobile inspection and static export browsers, private HTTP/queue/store
+contracts, and a watched hung-render/failed-candidate/recovery smoke test pass.
+Additional regressions cover dependency-only/adoption Changes and cancelling the
+first pending edit when switching context. Final full verification is Milestone 9.
+
+## Milestone 9: Integrate the public API and verify delivery — completed
 
 Enable the complete capability, prove real consumer integration, and bring
 documentation into alignment with the tested implementation.
 
-- [ ] Export the now-complete public authoring API and types; add clean packed
+- [x] Export the now-complete public authoring API and types; add clean packed
       ESM/NodeNext and cross-platform consumer coverage using actual components.
-- [ ] Extend the basic consumer fixture with a shared component used by multiple
+- [x] Extend the basic consumer fixture with a shared component used by multiple
       screens, repeated/nested usage, slots, owned styles, and saved variants.
-- [ ] Update the package README, example README, build architecture, and current
+- [x] Update the package README, example README, build architecture, and current
       package/runtime/navigation/Changes/shell protocols with delivered behavior,
       adoption instructions, and static-controls limitations. Retain target status
       on any behavior still incomplete.
-- [ ] Exercise source/style/prop edits through watched Serve; confirm matching
+- [x] Exercise source/style/prop edits through watched Serve; confirm matching
       Changes counts, affected links, comparisons, and unchanged source artifacts
       during controls edits. Build and smoke-test the published catalogue.
-- [ ] Run relevant unit/integration/browser/package suites, example build/check,
+- [x] Run relevant unit/integration/browser/package suites, example build/check,
       lint, formatting, typechecking, and `cargo xtask check` with a 100% pass rate.
       Run Rust fmt/clippy/tests when Rust changes; fix compile failures and retry
       progressing timeouts. Record commands and any real blockers.
+
+`cargo xtask check` passed all 693 TypeScript unit/integration tests, 179 Chromium
+browser tests, and 4 Rust tests, plus dependency auditing, formatting, lint,
+typechecking, deterministic example verification, package validation and packed
+consumer smokes, Rust fmt/clippy, and the file-length audit. The final visual
+audit opened all 136 generated HTML views directly from disk and inspected all
+23 paired contact sheets. Actual mobile and desktop Action controls were also
+exercised and visually checked, including edited values, dark mode, Usage links,
+and nested Toolbar highlighting. No verification blockers remain.
 
 ## Milestone 10: Commit, push, and review implementation
 
 Deliver the validated implementation through the mandatory post-push review.
 
-- [ ] Before integration, capture the source tip, fetch main, and audit its
+- [x] Before integration, capture the source tip, fetch main, and audit its
       additions; preserve mainline features and resolve conflicts path by path.
 - [ ] After tests and `cargo xtask check` pass, inspect the full diff and
       deletions against `origin/main`, then run `git add -A` so new sources,

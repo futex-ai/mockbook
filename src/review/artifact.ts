@@ -1,5 +1,8 @@
 /** Retain comparison JSON, snapshots, and a diagnostic summary. */
 
+import { parseReviewResult } from "./result_validation.js";
+import { canonicalJson } from "../components/data.js";
+
 import type {
   ReviewArtifact,
   ReviewArtifactContent,
@@ -12,19 +15,33 @@ import { addArtifactFile } from "./paths.js";
 export function renderReviewArtifact(
   artifact: ReviewArtifact,
 ): ReadonlyMap<string, ReviewArtifactContent> {
+  if (artifact.result.schemaVersion === 3) parseReviewResult(artifact.result);
   const files = new Map(artifact.files);
   addArtifactFile(
     files,
     "review.json",
-    `${JSON.stringify(artifact.result, null, 2)}\n`,
+    `${artifact.result.schemaVersion === 3 ? canonicalJson(artifact.result, 2) : JSON.stringify(artifact.result, null, 2)}\n`,
   );
   addArtifactFile(files, "summary.md", summaryMarkdown(artifact.result));
-  addArtifactFile(files, ".mokabook-review-artifact", "schemaVersion=2\n");
+  addArtifactFile(
+    files,
+    ".mokabook-review-artifact",
+    `schemaVersion=${artifact.result.schemaVersion}\n`,
+  );
   return files;
 }
 
 /** Create a concise deterministic CI summary. */
 export function summaryMarkdown(result: ReviewResult): string {
+  if (result.schemaVersion === 3)
+    return `## Mokabook Review
+
+Base: \`${result.baseRef}\` (\`${result.baseCommit.slice(0, 12)}\`)
+
+Changes: ${result.changes.length}; screens: ${result.screens.length}; components: ${result.components.length}; affected consumers: ${result.affectedConsumers.length}.
+
+${result.changes.map((change) => `- ${change.kind}: ${(change.after ?? change.before)!.title} (${change.reasons.map((reason) => reason.kind).join(", ")})`).join("\n")}
+`;
   const outputChanges = result.screens.filter(hasOutputChange).length;
   const impactEvidence = result.screens.filter(
     (screen) => screen.sharedImpact.length > 0,

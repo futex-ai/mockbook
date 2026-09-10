@@ -1,14 +1,13 @@
-import fs from "node:fs";
-import { createRequire } from "node:module";
-import os from "node:os";
 import path from "node:path";
 
 import { build } from "esbuild";
+import { evaluateBundle, rememberBundle } from "./consumer_bundle.js";
 
 import type { RegistryDefinition } from "../authoring/types.js";
 import type { CompatibilityTransformer } from "../compatibility/types.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
+import type { ComponentGraphRenderer } from "../components/render.js";
 import type { Renderer } from "../renderer/types.js";
 import { discoverEntryModules, discoverLegacySources } from "./discovery.js";
 import {
@@ -39,6 +38,7 @@ export interface LoadedGraph {
     attributes: Readonly<Record<string, string>>,
   ) => string;
   renderer: Renderer;
+  renderWithComponents: ComponentGraphRenderer;
 }
 
 /** Bundle and import all React-bearing consumer modules as one graph. */
@@ -52,12 +52,13 @@ export async function loadConsumerGraph(
   const legacySources = allLegacy.filter(
     (source) => !source.endsWith(".source.html"),
   );
-  const temporaryDir = await fs.promises.mkdtemp(
-    path.join(os.tmpdir(), "mokabook-graph-"),
+  const outputPath = path.join(
+    path.dirname(config.configPath),
+    ".mokabook-consumer.cjs",
   );
-  const outputPath = path.join(temporaryDir, "consumer.cjs");
   try {
-    await build({
+    const built = await build({
+      write: false,
       absWorkingDir: path.dirname(config.configPath),
       alias: config.moduleResolution.aliases,
       bundle: true,
@@ -85,17 +86,12 @@ export async function loadConsumerGraph(
         : {}),
       target: "node22",
     });
-    const imported = createRequire(import.meta.url)(outputPath) as {
-      compatibilityTransformer?: unknown;
-      definitions: unknown[];
-      legacy: Array<{
-        exports: Record<string, unknown>;
-        sourcePath: string;
-        sourceRelativePath: string;
-      }>;
-      renderLegacyComponent?: unknown;
-      renderer: unknown;
+    const bundle = {
+      code: built.outputFiles!.find((file) => file.path === outputPath)!.text,
+      filename: outputPath,
+      entrySources,
     };
+    const imported = evaluateBundle(bundle);
     if (typeof imported.renderer !== "function") {
       throw new MokabookError(
         "build-invalid",
@@ -111,7 +107,7 @@ export async function loadConsumerGraph(
         "compatibility transformer module must default-export a function",
       );
     }
-    return {
+    const graph: LoadedGraph = {
       ...(typeof imported.compatibilityTransformer === "function"
         ? {
             compatibilityTransformer:
@@ -130,7 +126,10 @@ export async function loadConsumerGraph(
           }
         : {}),
       renderer: imported.renderer as Renderer,
+      renderWithComponents: imported.renderWithComponents,
     };
+    rememberBundle(graph, bundle);
+    return graph;
   } catch (error) {
     if (error instanceof MokabookError) throw error;
     throw new MokabookError(
@@ -140,8 +139,6 @@ export async function loadConsumerGraph(
         cause: error,
       },
     );
-  } finally {
-    await fs.promises.rm(temporaryDir, { force: true, recursive: true });
   }
 }
 

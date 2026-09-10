@@ -40,6 +40,7 @@ function ChangesScreen({
       nav={<ReviewNav activeTitle="Welcome" />}
     >
       <ScreenHead
+        comparisons
         comparisonMode={overlay ? "overlay" : "current"}
         action={<ViewSwitch active={viewport} />}
         crumbs={["Example", "Screens"]}
@@ -53,7 +54,10 @@ function ChangesScreen({
       ) : (
         <Stage>{framed}</Stage>
       )}
-      <DetailsPanel subject="welcome" />
+      <DetailsPanel
+        subject="welcome"
+        comparisonEvidence={overlay ? null : undefined}
+      />
     </Shell>
   );
 }

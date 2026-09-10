@@ -51,6 +51,9 @@ export function ComparePage({
       }
     >
       <ScreenHead
+        comparisons={
+          state === "added" || state === "changed" || state === "removed"
+        }
         action={
           <>
             <ViewSwitch active={viewport} />
@@ -67,7 +70,7 @@ export function ComparePage({
       <ComparisonStage state={state} viewport={viewport}>
         {children}
       </ComparisonStage>
-      <DetailsPanel subject={subject} />
+      <DetailsPanel subject={subject} comparisonEvidence={null} />
     </Shell>
   );
 }

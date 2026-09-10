@@ -52,7 +52,6 @@ for (const viewport of ["mobile", "desktop"] as const) {
       ["Difference", "design-review-difference"],
     ];
     for (const [source, active] of [
-      ["design-browse-screen", "Current"],
       ["design-changes-current", "Current"],
       ["design-review-changed", "Side by side"],
       ["design-changes-overlay", "Overlay"],
@@ -66,16 +65,22 @@ for (const viewport of ["mobile", "desktop"] as const) {
         welcomeModes.filter(([label]) => label !== active),
       );
     }
+    for (const source of [
+      "design-browse-screen",
+      "design-review-shared-impact",
+      "design-review-ignored-only",
+      "design-review-empty",
+      "design-browse-details-screen",
+      "design-browse-dark-scheme",
+      "design-browse-light-only",
+    ]) {
+      const { document } = await designDocument(source, viewport);
+      assert.equal(byClass(document, "mbk-cmp-toolbar").length, 0, source);
+    }
     for (const [source, expected] of [
       ["design-review-added", [["Current", "design-browse-details-screen"]]],
-      ["design-review-shared-impact", [["Current", "design-changes-current"]]],
-      ["design-review-ignored-only", [["Current", "design-changes-current"]]],
       ["design-review-removed", []],
       ["design-review-dark-scheme", []],
-      ["design-review-empty", []],
-      ["design-browse-details-screen", []],
-      ["design-browse-dark-scheme", []],
-      ["design-browse-light-only", []],
     ] as const) {
       const { document } = await designDocument(source, viewport);
       const toolbar = byClass(document, "mbk-cmp-toolbar")[0];

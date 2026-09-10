@@ -158,6 +158,7 @@ class FakeChild implements ChildHandle {
 }
 
 class ExitingSupervisor implements ProcessSupervisor {
+  replaceComponentRuntime(): void {}
   restarts = 0;
   private unexpectedExit: ((error: Error) => void) | undefined;
 
