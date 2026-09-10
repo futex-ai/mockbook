@@ -57,6 +57,8 @@ legacy disclosure renders outside that icon panel dock. Inline samples retain
 intrinsic width. Compact phone samples fit both viewports; full-size controls
 use the scrollable frame host. Every variant has actual mobile and desktop
 render contexts and uses the design catalogue's light-only scheme policy.
+Mobile comparison controls share compact sizing across buttons, links and
+static labels, so standalone samples also fit with wider system fonts.
 
 ## Verification
 
@@ -81,6 +83,10 @@ owner chains, guard migrated composition points, and edit actual source files in
 isolated copies. They distinguish implementation changes, saved metadata changes,
 screen inputs/slots/order, exclusive CSS and conservative global dependencies.
 Serve and comparison share the same classification and bounded baseline reads.
+The full-consumer export browser suites give setup three minutes to prepare
+the baseline, export all 248 views and verify input stability.
+Individual browser interactions retain the default one-minute limit; this setup
+allowance does not change any server readiness deadline.
 
 See the [adoption contract](../../../../../docs/protocol/mokabook-design-components.md)
 and [inventory](../../../../../docs/protocol/mokabook-design-component-library.md).

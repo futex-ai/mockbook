@@ -121,3 +121,25 @@ for (const viewport of ["desktop", "mobile"] as const) {
     });
   });
 }
+
+test("mobile comparison samples fit with wider fallback fonts", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of [
+    "chrome/screen-header.variants/changed",
+    "controls/comparison-toolbar.variants/side-by-side",
+  ]) {
+    await page.goto(fileUrl(`design/library/${route}.mobile.html`));
+    await page.addStyleTag({
+      content: ":root { --sans: Verdana, sans-serif; }",
+    });
+    const toolbar = page.getByRole("group", { name: "Comparison mode" });
+    await expect(toolbar.getByRole("button")).toHaveCount(4);
+    const bounds = await toolbar.boundingBox();
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(390);
+  }
+});

@@ -60,7 +60,7 @@
   mix-blend-mode: difference;
 }
 .mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg { display: flex; flex: 1; }
-.mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg > :is(span, a) {
+.mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg > :is(span, a, button) {
   flex: 1;
   font-size: 11px;
   padding: 4px 6px;

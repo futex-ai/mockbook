@@ -12,6 +12,7 @@ import { chooseViewport } from "./workspace_actions.js";
 let site: Awaited<ReturnType<typeof serveStaticFiles>>;
 const cleanup: (() => Promise<void>)[] = [];
 test.beforeAll(async () => {
+  test.setTimeout(180_000);
   const fixture = await designLibraryFixture({
     after: (fn) => cleanup.push(fn),
   });

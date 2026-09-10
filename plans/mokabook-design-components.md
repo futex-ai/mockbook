@@ -2,7 +2,7 @@
 
 ## Outcome And Status
 
-Status: implementation and verification complete; post-push review pending.
+Status: implemented and reviewed; resolving cross-platform verification failures.
 Give Mokabook's own design screens real shared component pages, saved
 variants, local controls, generated usage and reliable change attribution.
 
@@ -235,7 +235,24 @@ loading after the workspace rule; the original screen did not have this failure.
       standalone variants; rerun mobile close/reopen and resize regressions.
 - [x] Rebuild output, repeat the direct-file visual audit and document the order.
 
-## Milestone 8: Validate and deliver
+## Milestone 8: Verify portable gallery layout — in progress
+
+Tags: mockup
+
+Outcome: standalone mobile controls fit with wider system fonts, and integration
+checks distinguish catalogue build time from individual browser interactions.
+
+- [x] Reproduce native comparison-button overflow with a wider fallback font;
+      apply the same mobile sizing to button, link and static label controls.
+- [x] Give full real-consumer export setups their own bounded build allowance,
+      retaining the existing browser interaction and server readiness deadlines.
+- [x] Wait for the selected preview to be unique after linked navigation before
+      asserting its state; preserve the existing hidden-viewport expectations.
+- [x] Run focused browser checks and inspect changed samples directly from disk.
+- [x] Repeat the complete local gate after the portability fixes.
+- [ ] Verify both supported Node CI jobs after the push.
+
+## Milestone 9: Validate and deliver
 
 Outcome: documented, reproducible implementation ready for review.
 
@@ -264,10 +281,12 @@ Outcome: documented, reproducible implementation ready for review.
 - Original 56 screen ids/routes and 112 viewport fragments retained. All 15
   shared components have real screen consumers; 56 saved variants add 112
   standalone fragments.
-- Direct-file screenshots cover all 224 design fragments. The existing-screen
-  pixel comparison found all 112 original views identical after restoring the
-  explicit base/component/layout stylesheet order. Evidence lives in
-  `.context/design-library-audit/`.
+- Direct-file screenshots cover all 224 design fragments. The initial extraction
+  preserved all 112 original views exactly. The portability fix subsequently
+  aligned native buttons with existing compact mobile comparison links in seven
+  views; the other 105 remain pixel-identical. The seven changes were visually
+  inspected. Evidence lives in `.context/design-library-audit/` and
+  `.context/design-library-ci-visual.log`.
 - Isolated source/CSS edits prove component-only impact, screen-owned data/slots,
   stable identity/order/removal, metadata-only changes and conservative shared
   resources. Serve and comparison agree and batch all 248 baseline views once;
@@ -280,6 +299,13 @@ Outcome: documented, reproducible implementation ready for review.
   component membership without adding consumers; source watch rebuilt variants.
   Evidence: `.context/design-library-startup.log` and its child log.
 
-- Final `cargo xtask check` passed: 744 Node tests, 193 browser tests and four
+- Initial `cargo xtask check` passed: 744 Node tests, 193 browser tests and four
   Rust tests; dependency audit, formatting, lint, types, generated output and
   packed-consumer checks also passed. Log: `.context/design-library-full-check.log`.
+- The first post-push review and earlier open follow-ups are recorded in
+  [the review record](../docs/reviews/mokabook-design-components.md), with solution
+  options and independently assessed recommendations. Review findings were not
+  automatically fixed.
+- The repeated complete gate passed with 744 Node tests, 194 browser tests and
+  four Rust tests. Dependency, formatting, lint, type, generated-output, package
+  and Rust checks also passed. Log: `.context/design-library-ci-full-check.log`.

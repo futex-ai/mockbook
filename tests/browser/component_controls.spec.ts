@@ -31,6 +31,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(page).toHaveURL(
       componentDesignUrl("controls/editing/variant", viewport),
     );
+    await expect(page.locator(".ce-canvas:visible")).toHaveCount(1);
     await expect(page.locator(".ce-canvas:visible .ce-action")).toBeDisabled();
     await page.goto(componentDesignUrl("controls/overview", viewport));
     const controls = page.getByRole("region", {
@@ -71,6 +72,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(page).toHaveURL(
       componentDesignUrl("controls/editing/reset", viewport),
     );
+    await expect(page.locator(".ce-canvas:visible")).toHaveCount(1);
     await expect(page.locator(".ce-canvas:visible .ce-action")).toHaveText(
       "Continue",
     );
@@ -78,6 +80,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
       controls.getByRole("textbox", { name: "label", exact: true }),
     ).toHaveValue("Continue");
     await page.getByRole("link", { name: "Disabled", exact: true }).click();
+    await expect(page.locator(".ce-canvas:visible")).toHaveCount(1);
     await expect(page.locator(".ce-canvas:visible .ce-action")).toBeDisabled();
     await expect(
       controls.getByRole("checkbox", { name: "disabled", exact: true }),
@@ -153,6 +156,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
     await expect(page).toHaveURL(
       componentDesignUrl("controls/published/variant", viewport),
     );
+    await expect(page.locator(".ce-canvas:visible")).toHaveCount(1);
     await expect(
       page
         .getByRole("region", { name: "Controls", exact: true })

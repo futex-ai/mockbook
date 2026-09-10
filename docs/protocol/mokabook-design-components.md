@@ -116,6 +116,8 @@ consumer-owned preview host supplying design tokens and any required layout
 context; it lives outside the registered implementation and is not recorded as
 another component. Do not embed a complete shell merely to make a button work.
 Components must work in both their standalone host and original screen context.
+Mobile comparison buttons, links and static labels share the same compact
+sizing so the control remains usable with different system fonts.
 No renderer imports of entire screen registries or circular variant imports.
 
 All new design components use `colorSchemes: ["light"]`, like the owning
