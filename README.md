@@ -264,9 +264,11 @@ custom rule watches the repository root; an unowned public HTML file can still
 use an explicit watch rule, and configured stylesheets and referenced resources
 retain reload precedence. Shutdown interrupts replacement-watcher readiness, closes the
 candidate before draining the remaining lifecycle, and waits for child exit
-through graceful, terminate, and force-kill stages. Failed startup and child
-transport errors use the same cleanup; a replacement waits until the previous
-process has stopped. Concurrent shutdown requests share that wait, and late
+through graceful, terminate, and force-kill stages. Failed startup, child
+transport errors, and unexpected IPC disconnection use the same cleanup;
+disconnection is detected immediately even if the child remains alive and no
+further update is sent. A replacement waits until the previous process has
+stopped. Concurrent shutdown requests share that wait, and late
 readiness messages cannot revive a closing child. Every served catalogue shell records the update version
 captured when its request begins. Open shell pages compare that
 snapshot with the versioned event stream and reload after a newer build or

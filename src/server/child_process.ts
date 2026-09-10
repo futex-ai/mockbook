@@ -7,6 +7,8 @@ import type { ChildCommand } from "./update_messages.js";
 /** Process boundary used by the watched-child lifecycle. */
 export interface ChildHandle {
   forceKill(): void;
+  /** Replay IPC disconnection to late subscribers; it does not confirm process exit. */
+  onDisconnect(callback: () => void): void;
   onError(callback: (error: Error) => void): void;
   /** Replay a terminal result to late subscribers; failed spawning is terminal too. */
   onExit(callback: (code: number | null) => void): void;
@@ -34,10 +36,16 @@ export class NodeChildFactory implements ChildFactory {
 }
 
 class NodeChildHandle implements ChildHandle {
+  #disconnected = false;
   #terminal: { code: number | null } | undefined;
+  readonly #disconnects: Array<() => void> = [];
   readonly #exits: Array<(code: number | null) => void> = [];
 
   constructor(private readonly child: ChildProcess) {
+    child.once("disconnect", () => {
+      this.#disconnected = true;
+      for (const callback of this.#disconnects.splice(0)) callback();
+    });
     child.once("close", (code) => {
       this.#terminal = { code };
       for (const callback of this.#exits.splice(0)) callback(code);
@@ -47,6 +55,11 @@ class NodeChildHandle implements ChildHandle {
   forceKill(): void {
     if (this.child.exitCode === null && this.child.signalCode === null)
       this.child.kill("SIGKILL");
+  }
+
+  onDisconnect(callback: () => void): void {
+    if (this.#disconnected) callback();
+    else this.#disconnects.push(callback);
   }
 
   onError(callback: (error: Error) => void): void {

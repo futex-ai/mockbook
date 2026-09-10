@@ -11,7 +11,10 @@ export class ControlledChild implements ChildHandle {
   forceKills = 0;
   throwOnSend = false;
   exitOnShutdown = false;
+  disconnectOnShutdown = false;
+  private disconnected = false;
   private stopped: { code: number | null } | undefined;
+  private readonly disconnects: Array<() => void> = [];
   private readonly errors: Array<(error: Error) => void> = [];
   private readonly exits: Array<(code: number | null) => void> = [];
   private readonly receives: Array<(message: unknown) => void> = [];
@@ -26,6 +29,10 @@ export class ControlledChild implements ChildHandle {
   onError(callback: (error: Error) => void): void {
     this.errors.push(callback);
   }
+  onDisconnect(callback: () => void): void {
+    if (this.disconnected) callback();
+    else this.disconnects.push(callback);
+  }
   onMessage(callback: (message: unknown) => void): void {
     this.receives.push(callback);
   }
@@ -37,6 +44,8 @@ export class ControlledChild implements ChildHandle {
   send(message: ChildCommand): void {
     this.messages.push(message);
     if (this.throwOnSend) throw new Error("IPC send failed");
+    if (this.disconnectOnShutdown && message.type === "shutdown")
+      this.disconnect();
     if (this.exitOnShutdown && message.type === "shutdown") this.exit(0);
   }
 
@@ -47,6 +56,11 @@ export class ControlledChild implements ChildHandle {
   fail(): void {
     for (const callback of this.errors)
       callback(new Error("child transport failed"));
+  }
+  disconnect(): void {
+    if (this.disconnected) return;
+    this.disconnected = true;
+    for (const callback of this.disconnects.splice(0)) callback();
   }
   exit(code: number | null): void {
     if (this.stopped) return;
@@ -60,12 +74,14 @@ export class ControlledChildFactory implements ChildFactory {
   readonly children: ControlledChild[] = [];
   readonly arguments_: string[][] = [];
   alreadyExited = false;
+  alreadyDisconnected = false;
 
   spawn(args: readonly string[]): ChildHandle {
     const child = new ControlledChild();
     this.children.push(child);
     this.arguments_.push([...args]);
     if (this.alreadyExited) child.exit(17);
+    if (this.alreadyDisconnected) child.disconnect();
     return child;
   }
 

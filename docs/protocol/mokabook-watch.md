@@ -152,12 +152,24 @@ the child exit notification arrives.
 
 Each spawned child owns one readiness result, a terminal result registered from
 creation, and one shared cleanup operation. Readiness timeout (15 seconds),
-pre-ready errors, post-ready errors, explicit close, and restart all use that
+pre-ready errors, post-ready errors, IPC disconnection, explicit close, and restart all use that
 operation. Startup reports its original failure only after cleanup confirms the
 child has stopped. A ready message followed by failure before startup resolves
 cannot report successful startup. Close cancels pending readiness; later ready
 messages and updates are ignored. Concurrent close/restart calls share cleanup,
 and a separate start while the child is still owned fails without spawning.
+
+The native handle observes IPC disconnection from creation and retains that
+event for late subscribers. Disconnection while waiting for readiness or while
+serving starts the same cleanup immediately, without waiting for another update.
+It reports one unexpected failure only after successful startup, so the watched
+action queue can recover on the retained port. Transport loss never confirms
+process exit: even a disconnected child stays owned through bounded escalation
+and actual terminal confirmation. A disconnection during intentional shutdown
+or after exit does not create a failure or duplicate recovery. An earlier startup
+error retains precedence over a later disconnect. Tests include a real HTTP
+child that disconnects itself, ignores SIGTERM, and is force-killed before its
+replacement resumes receiving updates on the same port.
 
 Terminal observation remains available after exit, including a failed native
 spawn that emits `close` without `exit`. Cleanup for an already-terminal child

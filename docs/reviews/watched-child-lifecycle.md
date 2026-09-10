@@ -57,3 +57,38 @@ The mainline diff audit found only the three previously approved deletions;
 there are no new removals. Delivery requires committing and pushing the checked
 fix before post-push review 8/10. New findings are reported for user selection,
 as required by the repository's review rule.
+
+## IPC Disconnect Follow-Up
+
+Fix `453b0bd` was pushed before review 8/10. That review reported one new
+**Medium** finding: the native handle ignored IPC disconnection while a surviving
+child silently missed reload updates. Real-process probes confirmed it on the
+checked commit and pinned main `aa5adea`. Normal children already self-close on
+disconnect; the gap concerns a process that remains alive. The user authorized
+the recommended lifecycle fix.
+
+Options were **A.** Observe disconnection and route it through shared cleanup,
+**B.** Throw on the next disconnected send, or **C.** Keep relying on process
+completion. **Recommended and applied: A.** Unlike B, it detects loss without
+another authored change. The native handle retains disconnection for late
+subscribers, and the lifecycle treats it as a failure while waiting or serving.
+Shutdown and post-exit disconnections are ignored. Ownership remains with the
+child until terminal confirmation; startup preserves any earlier diagnostic,
+and recovery cannot spawn a replacement while the failed child remains alive.
+
+Six deterministic cases and one real-process regression were added before the
+fix; five failed and two controls passed. All 28 focused lifecycle/watch tests
+then passed. The real-process test closes IPC from a live HTTP child that ignores
+SIGTERM, verifies force-kill before same-port replacement, and proves the
+replacement receives updates. Normal parent-loss shutdown and the independent
+ENOENT/EPIPE spawn-failure probe also passed. The full `cargo xtask check` passed
+with 613 Node, 106 Chromium and 3 Rust tests, formatting, ESLint, typechecking,
+70 current example files, package checks and packed consumers, clippy, and the
+Rust file-length audit (10 files). Documentation validation passed for 201 local
+targets across 27 changed files. The checked fix is ready for commit/push followed
+by post-push review 9/10.
+
+The mainline audit captured source `453b0bd`, main `a0e349a`, and merge base
+`aa5adea` before this follow-up. Main's new consumer static-export feature is
+outside this focused IPC fix and remains unmerged. This patch adds no removals
+to the authored branch diff. New review findings remain for user selection.

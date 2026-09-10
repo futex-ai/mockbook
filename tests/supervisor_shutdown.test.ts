@@ -113,6 +113,8 @@ class ResponsiveChild implements ChildHandle {
     this.exitCallback?.(null);
   }
 
+  onDisconnect(_callback: () => void): void {}
+
   onError(_callback: (error: Error) => void): void {}
 
   onExit(callback: (code: number | null) => void): void {
@@ -147,6 +149,8 @@ class UnresponsiveChild implements ChildHandle {
   forceKill(): void {
     this.forceKills += 1;
   }
+
+  onDisconnect(_callback: () => void): void {}
 
   onError(_callback: (error: Error) => void): void {}
 

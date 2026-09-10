@@ -3,13 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
-import {
-  NodeChildFactory,
-  type ChildFactory,
-  type ChildHandle,
-} from "../dist/server/child_process.js";
+import { NodeChildFactory } from "../dist/server/child_process.js";
 import { ReadyProcessSupervisor } from "../dist/server/supervisor.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
+import { ObservedChildFactory } from "./helpers/observed_child.js";
 import { settle } from "./helpers/supervised_child.js";
 
 test(
@@ -29,12 +26,9 @@ const server = http.createServer((_request, response) => response.end("running")
 server.listen(port, "127.0.0.1", () => process.send({ type: "ready", port: server.address().port }));
 `,
     );
-    const factory = new FaultInjectingFactory(new NodeChildFactory(script));
+    const factory = new ObservedChildFactory(new NodeChildFactory(script));
     context.after(async () => {
-      for (const child of factory.children) {
-        if (!child.exited) child.handle.forceKill();
-        await child.finished;
-      }
+      await factory.close();
       await removeFixture(fixture);
     });
     const supervisor = new ReadyProcessSupervisor(factory, [], 0, {
@@ -73,55 +67,3 @@ server.listen(port, "127.0.0.1", () => process.send({ type: "ready", port: serve
     assert.equal(factory.children[1]!.exited, true);
   },
 );
-
-interface ObservedChild {
-  exited: boolean;
-  fail?: (error: Error) => void;
-  finished: Promise<void>;
-  forceKills: number;
-  handle: ChildHandle;
-  terminations: number;
-}
-
-/** Inject only a transport error; process startup, signals, exit, and HTTP remain real. */
-class FaultInjectingFactory implements ChildFactory {
-  readonly children: ObservedChild[] = [];
-
-  constructor(private readonly native: ChildFactory) {}
-
-  spawn(args: readonly string[]): ChildHandle {
-    const handle = this.native.spawn(args);
-    let finish: () => void = () => undefined;
-    const child: ObservedChild = {
-      exited: false,
-      finished: new Promise((resolve) => {
-        finish = resolve;
-      }),
-      forceKills: 0,
-      handle,
-      terminations: 0,
-    };
-    this.children.push(child);
-    handle.onExit(() => {
-      child.exited = true;
-      finish();
-    });
-    return {
-      forceKill() {
-        child.forceKills++;
-        handle.forceKill();
-      },
-      onError(callback) {
-        child.fail = callback;
-        handle.onError(callback);
-      },
-      onExit: (callback) => handle.onExit(callback),
-      onMessage: (callback) => handle.onMessage(callback),
-      send: (message) => handle.send(message),
-      terminate() {
-        child.terminations++;
-        handle.terminate();
-      },
-    };
-  }
-}

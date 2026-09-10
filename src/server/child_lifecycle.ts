@@ -47,6 +47,7 @@ export class ManagedChild {
     this.#readinessTimer.unref();
     handle.onExit((code) => this.didExit(code));
     handle.onError((error) => this.fail(error));
+    handle.onDisconnect(() => this.didDisconnect());
     handle.onMessage((message) => {
       if (this.#state !== "waiting" || !isReady(message)) return;
       this.#state = "ready";
@@ -102,6 +103,12 @@ export class ManagedChild {
     this.#terminateTimer.unref();
     this.attemptShutdown(() => this.handle.send({ type: "shutdown" }));
     return this.#cleanup;
+  }
+
+  /** Expected shutdown may close IPC before the process finishes; keep awaiting exit. */
+  private didDisconnect(): void {
+    if (this.#state === "waiting" || this.#state === "ready")
+      this.fail(new Error("server child IPC disconnected"));
   }
 
   private fail(error: unknown): void {

@@ -128,6 +128,8 @@ class FakeChild implements ChildHandle {
     this.exit(null);
   }
 
+  onDisconnect(_callback: () => void): void {}
+
   onError(callback: (error: Error) => void): void {
     this.errorCallbacks.push(callback);
   }
