@@ -252,10 +252,15 @@ or flow; shared controls and missing-route messages cover the whole catalogue.
   hairline border, 8px radius. Its 40px bar holds three traffic lights
   (`#d9655b`, `#dba43d`, `#50a86d`), a monospace address pill (copies the
   address on click, showing a `URL copied` toast), and the expand toggle.
-- **Expand toggle** — a 26px bordered button (`⤢` / `⤡`). Expanding fixes the
-  frame to `inset: 2.5vh 2.5vw` at overlay z-index over a scrim
-  (`rgba(20, 28, 22, 0.55)`), locks body scroll, and swaps the glyph; Escape
-  or clicking outside collapses it. Only one frame expands at a time.
+- **Address pill** — the address truncates with an ellipsis and the pill ends
+  with a 13px stroked copy icon that holds its size, muted until the pill is
+  hovered and drawn in the accent then.
+- **Expand toggle** — a 26px bordered button holding a 13px stroked
+  outward-arrow icon, sized with the address pill's copy icon so neither
+  control outweighs the other. Expanding fixes the frame to `inset: 2.5vh 2.5vw` at
+  overlay z-index over a scrim (`rgba(20, 28, 22, 0.55)`), locks body scroll,
+  and swaps the icon for its inward-arrow collapse counterpart; Escape or
+  clicking outside collapses it. Only one frame expands at a time.
 - **Use-case flow** — vertical numbered steps (32px accent number tiles)
   joined by a 2px connector line, each with title, description, a
   `This screen in the catalogue: <title> →` link, and one browser frame

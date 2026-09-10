@@ -132,13 +132,18 @@ export const SHELL_CHROME_CSS = `
     color 0.12s ease;
 }
 
-.address::after {
-  content: "⧉";
+.address-url {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.address-copy {
+  display: inline-flex;
+  flex-shrink: 0;
   margin-left: auto;
   padding-left: 10px;
-  color: var(--chrome-border-strong);
-  font-size: 11px;
-  opacity: 0.7;
+  color: var(--chrome-muted);
 }
 
 .address:hover {
@@ -146,8 +151,7 @@ export const SHELL_CHROME_CSS = `
   color: var(--chrome-ink);
 }
 
-.address:hover::after {
-  opacity: 1;
+.address:hover .address-copy {
   color: var(--chrome-accent);
 }
 
@@ -212,7 +216,6 @@ export const SHELL_CHROME_CSS = `
   border-radius: 6px;
   background: var(--chrome-surface);
   color: var(--chrome-muted);
-  font-size: 14px;
   line-height: 1;
   cursor: pointer;
   transition:
@@ -225,6 +228,11 @@ export const SHELL_CHROME_CSS = `
   background: #ffffff;
   color: var(--chrome-accent);
   border-color: var(--chrome-border-strong);
+}
+
+.browser-expand .i-expand,
+.browser-expand .i-collapse {
+  display: inline-flex;
 }
 
 .browser-expand .i-collapse {
@@ -241,7 +249,7 @@ export const SHELL_CHROME_CSS = `
 }
 
 .browser-frame.is-expanded .browser-expand .i-collapse {
-  display: inline;
+  display: inline-flex;
 }
 
 body.frame-expanded {

@@ -60,9 +60,11 @@ port in order when the address is occupied; port `0` delegates selection to the
 operating system. The resolved port remains stable across child restarts, which
 bind strictly rather than changing the published URL. Exhausting the valid port
 range or encountering another bind error exits non-zero without leaking
-watchers. An unexpected child failure after readiness reports its diagnostic,
-clears the dead process, and enqueues a restart through the same serialized
-action queue used for authored changes.
+watchers. An unexpected child failure after readiness reports its diagnostic
+once, starts cleanup if the process remains alive, and enqueues a restart through
+the same serialized action queue used for authored changes. The supervisor
+retains ownership until terminal confirmation; a replacement cannot bypass an
+in-progress cleanup or contend with the failed child's still-bound port.
 
 On a config-file change, the parent first loads and validates the candidate,
 starts a replacement watcher and waits for readiness, then transactionally
@@ -147,5 +149,22 @@ so an abruptly terminated parent cannot leave a listening orphan. Parent-driven
 shutdown first requests graceful IPC closure, then sends SIGTERM and SIGKILL at
 bounded intervals when necessary; the supervisor does not finish closing until
 the child exit notification arrives.
+
+Each spawned child owns one readiness result, a terminal result registered from
+creation, and one shared cleanup operation. Readiness timeout (15 seconds),
+pre-ready errors, post-ready errors, explicit close, and restart all use that
+operation. Startup reports its original failure only after cleanup confirms the
+child has stopped. A ready message followed by failure before startup resolves
+cannot report successful startup. Close cancels pending readiness; later ready
+messages and updates are ignored. Concurrent close/restart calls share cleanup,
+and a separate start while the child is still owned fails without spawning.
+
+Terminal observation remains available after exit, including a failed native
+spawn that emits `close` without `exit`. Cleanup for an already-terminal child
+does not signal it or wait for another event. A failed IPC shutdown request or
+signal cannot release ownership or skip the next escalation stage. All timers
+are cancelled on terminal confirmation. Tests cover these event orders with
+controlled children and prove real server termination and port reuse after an
+injected transport failure.
 
 See [the catalogue runtime](./mokabook-runtime.md) and [Changes](./mokabook-changes.md).

@@ -580,6 +580,58 @@ test("ID chips copy their ID without navigating", async ({ page }) => {
   );
 });
 
+test("the address pill copies its address from its copy icon", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText(text: string) {
+          (window as Window & { __copiedUrl?: string }).__copiedUrl = text;
+          return Promise.resolve();
+        },
+      },
+    });
+  });
+  await page.goto("/view/screens/welcome.html");
+  const icon = page.locator(".browser-bar .address-copy svg");
+  await expect(icon).toBeVisible();
+  const box = await icon.boundingBox();
+  expect(box?.width).toBe(13);
+  expect(box?.height).toBe(13);
+
+  await icon.click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as Window & { __copiedUrl?: string }).__copiedUrl,
+      ),
+    )
+    .toBe("example.test/welcome");
+  await expect(page.locator(".address-copied")).toHaveText("URL copied");
+});
+
+test("the expand toggle swaps its icon while the frame is expanded", async ({
+  page,
+}) => {
+  await page.goto("/view/screens/welcome.html");
+  const expandIcon = page.locator(".browser-expand .i-expand svg");
+  const collapseIcon = page.locator(".browser-expand .i-collapse svg");
+  await expect(expandIcon).toBeVisible();
+  await expect(collapseIcon).toBeHidden();
+  const box = await expandIcon.boundingBox();
+  expect(box?.width).toBe(13);
+  expect(box?.height).toBe(13);
+
+  await page.click(".browser-expand");
+  await expect(expandIcon).toBeHidden();
+  await expect(collapseIcon).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(expandIcon).toBeVisible();
+  await expect(collapseIcon).toBeHidden();
+});
+
 test("the browser frame expands to an overlay and collapses again", async ({
   page,
 }) => {

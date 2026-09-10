@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  ReadyProcessSupervisor,
-  type ChildFactory,
-  type ChildHandle,
-} from "../dist/server/supervisor.js";
+import { ReadyProcessSupervisor } from "../dist/server/supervisor.js";
+import type {
+  ChildFactory,
+  ChildHandle,
+} from "../dist/server/child_process.js";
 import type { ChildCommand } from "../dist/server/update_messages.js";
 
 test("supervisor waits for readiness and shuts down before restart", async () => {

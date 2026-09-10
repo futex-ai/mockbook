@@ -1,53 +1,9 @@
-import { fork, type ChildProcess } from "node:child_process";
+/** Restart supervision retains ownership until each child's cleanup completes. */
 
-import { MokabookError, errorMessage } from "../errors.js";
-import { childUpdateMessage, type ChildCommand } from "./update_messages.js";
-
-interface ReadyMessage {
-  port: number;
-  type: "ready";
-}
-
-/** Child-process handle used by the restart supervisor. */
-export interface ChildHandle {
-  forceKill(): void;
-  onError(callback: (error: Error) => void): void;
-  onExit(callback: (code: number | null) => void): void;
-  onMessage(callback: (message: unknown) => void): void;
-  send(message: ChildCommand): void;
-  terminate(): void;
-}
-
-/** Time allowed for each watched-child shutdown stage. */
-export interface ChildShutdownTimings {
-  /** Time allowed for the IPC shutdown request. */
-  gracefulMilliseconds: number;
-  /** Time allowed for SIGTERM before SIGKILL. */
-  terminateMilliseconds: number;
-}
-
-const DEFAULT_SHUTDOWN_TIMINGS: ChildShutdownTimings = {
-  gracefulMilliseconds: 2_000,
-  terminateMilliseconds: 2_000,
-};
-
-/** Factory seam for unit-testing child lifecycle ordering. */
-export interface ChildFactory {
-  spawn(arguments_: readonly string[]): ChildHandle;
-}
-
-/** Node IPC child factory. */
-export class NodeChildFactory implements ChildFactory {
-  constructor(private readonly binPath: string) {}
-
-  spawn(arguments_: readonly string[]): ChildHandle {
-    return new NodeChildHandle(
-      fork(this.binPath, [...arguments_], {
-        stdio: ["inherit", "inherit", "inherit", "ipc"],
-      }),
-    );
-  }
-}
+import { MokabookError } from "../errors.js";
+import { ManagedChild, type ChildShutdownTimings } from "./child_lifecycle.js";
+import { NodeChildFactory, type ChildFactory } from "./child_process.js";
+import { childUpdateMessage } from "./update_messages.js";
 
 /** Restartable child interface used by watched Serve. */
 export interface ProcessSupervisor {
@@ -85,7 +41,7 @@ export class NodeProcessSupervisorFactory implements ProcessSupervisorFactory {
 
 /** Child supervisor that waits for readiness and retains a resolved port. */
 export class ReadyProcessSupervisor implements ProcessSupervisor {
-  #child: ChildHandle | undefined;
+  #child: ManagedChild | undefined;
   #unexpectedExit: ((error: Error) => void) | undefined;
   #resolvedPort: number | undefined;
   #updateVersion = 0;
@@ -94,7 +50,7 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
     private readonly factory: ChildFactory,
     private readonly baseArguments: readonly string[],
     private readonly requestedPort: number,
-    private readonly shutdownTimings: ChildShutdownTimings = DEFAULT_SHUTDOWN_TIMINGS,
+    private readonly shutdownTimings?: ChildShutdownTimings,
   ) {}
 
   async start(): Promise<number> {
@@ -104,29 +60,40 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
         "server child is already running",
       );
     const resolvedPort = this.#resolvedPort;
-    const port = resolvedPort ?? this.requestedPort;
-    this.#updateVersion += 1;
-    const child = this.factory.spawn([
+    this.#updateVersion++;
+    const handle = this.factory.spawn([
       ...this.baseArguments,
       "--port",
-      String(port),
+      String(resolvedPort ?? this.requestedPort),
       ...(resolvedPort === undefined ? [] : ["--strict-port"]),
       "--update-version",
       String(this.#updateVersion),
     ]);
+    let started = false;
+    const child = new ManagedChild(
+      handle,
+      (error) => {
+        if (!started || this.#child !== child) return;
+        if (child.exited) this.#child = undefined;
+        else void this.stop(child);
+        this.#unexpectedExit?.(error);
+      },
+      this.shutdownTimings,
+    );
     this.#child = child;
     try {
-      const readyPort = await waitForReady(child, (error) => {
-        if (this.#child !== child) return;
-        this.#child = undefined;
-        child.terminate();
-        this.#unexpectedExit?.(error);
-      });
+      const readyPort = await child.ready;
+      if (child.failure) throw child.failure;
+      if (child.stopping || child.exited)
+        throw new MokabookError(
+          "server-failed",
+          "server child stopped during startup",
+        );
       this.#resolvedPort = readyPort;
+      started = true;
       return readyPort;
     } catch (error) {
-      if (this.#child === child) this.#child = undefined;
-      child.terminate();
+      await this.stop(child);
       throw error;
     }
   }
@@ -137,9 +104,10 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   }
 
   notifyUpdate(changedRoutes: readonly string[] | undefined): void {
-    if (!this.#child) return;
-    this.#updateVersion += 1;
-    this.#child.send(childUpdateMessage(this.#updateVersion, changedRoutes));
+    const child = this.#child;
+    if (!child || child.stopping || child.exited) return;
+    this.#updateVersion++;
+    child.send(childUpdateMessage(this.#updateVersion, changedRoutes));
   }
 
   onUnexpectedExit(callback: (error: Error) => void): void {
@@ -147,124 +115,11 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   }
 
   async close(): Promise<void> {
-    const child = this.#child;
-    if (!child) return;
-    this.#child = undefined;
-    await stopChild(child, this.shutdownTimings);
-  }
-}
-
-function stopChild(
-  child: ChildHandle,
-  timings: ChildShutdownTimings,
-): Promise<void> {
-  return new Promise((resolve) => {
-    let exited = false;
-    let forceTimer: ReturnType<typeof setTimeout> | undefined;
-    const terminateTimer = setTimeout(() => {
-      child.terminate();
-      if (exited) return;
-      forceTimer = setTimeout(() => {
-        child.forceKill();
-      }, timings.terminateMilliseconds);
-      forceTimer.unref();
-    }, timings.gracefulMilliseconds);
-    terminateTimer.unref();
-    child.onExit(() => {
-      if (exited) return;
-      exited = true;
-      clearTimeout(terminateTimer);
-      if (forceTimer) clearTimeout(forceTimer);
-      resolve();
-    });
-    child.send({ type: "shutdown" });
-  });
-}
-
-function waitForReady(
-  child: ChildHandle,
-  onUnexpectedFailure: (error: Error) => void,
-): Promise<number> {
-  return new Promise((resolve, reject) => {
-    let state: "failed" | "ready" | "waiting" = "waiting";
-    const timer = setTimeout(
-      () => fail(new Error("server child readiness timed out")),
-      15_000,
-    );
-    timer.unref();
-    const fail = (error: Error): void => {
-      if (state !== "waiting") return;
-      state = "failed";
-      clearTimeout(timer);
-      reject(serverFailure(error));
-    };
-    child.onError((error) => {
-      if (state === "ready") onUnexpectedFailure(serverFailure(error));
-      else fail(error);
-    });
-    child.onExit((code) => {
-      if (state === "ready") {
-        onUnexpectedFailure(
-          serverFailure(
-            new Error(`server child exited unexpectedly (${String(code)})`),
-          ),
-        );
-      } else {
-        fail(
-          new Error(`server child exited before readiness (${String(code)})`),
-        );
-      }
-    });
-    child.onMessage((message) => {
-      if (!isReady(message) || state !== "waiting") return;
-      state = "ready";
-      clearTimeout(timer);
-      resolve(message.port);
-    });
-  });
-}
-
-function serverFailure(error: Error): MokabookError {
-  return new MokabookError("server-failed", errorMessage(error), {
-    cause: error,
-  });
-}
-
-function isReady(message: unknown): message is ReadyMessage {
-  return (
-    typeof message === "object" &&
-    message !== null &&
-    (message as { type?: unknown }).type === "ready" &&
-    Number.isInteger((message as { port?: unknown }).port)
-  );
-}
-
-class NodeChildHandle implements ChildHandle {
-  constructor(private readonly child: ChildProcess) {}
-
-  forceKill(): void {
-    if (this.child.exitCode === null && this.child.signalCode === null)
-      this.child.kill("SIGKILL");
+    if (this.#child) await this.stop(this.#child);
   }
 
-  onError(callback: (error: Error) => void): void {
-    this.child.once("error", callback);
-  }
-
-  onExit(callback: (code: number | null) => void): void {
-    this.child.once("exit", callback);
-  }
-
-  onMessage(callback: (message: unknown) => void): void {
-    this.child.on("message", callback);
-  }
-
-  send(message: ChildCommand): void {
-    if (this.child.connected) this.child.send(message);
-  }
-
-  terminate(): void {
-    if (this.child.exitCode === null && this.child.signalCode === null)
-      this.child.kill("SIGTERM");
+  private async stop(child: ManagedChild): Promise<void> {
+    await child.close();
+    if (this.#child === child) this.#child = undefined;
   }
 }

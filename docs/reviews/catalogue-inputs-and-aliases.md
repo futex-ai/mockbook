@@ -253,7 +253,8 @@ was then independently checked without changing product code.
    close, and replacement path to await that cleanup, with regression coverage.
    **Recommended: B.** A alone risks waiting for an exit event that already
    occurred. B addresses the ownership and ordering rule across the lifecycle.
-   Left open under the user's instruction to report new final-review findings.
+   Reported for user decision, then addressed by the authorized
+   [watched-child lifecycle follow-up](./watched-child-lifecycle.md).
 
 2. **Medium — nested pages lose helper attribution. Invalid, repeated.**
    [Page flattening](../../src/authoring/definitions.ts) retains `definedIn` in

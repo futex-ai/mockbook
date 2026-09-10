@@ -1,10 +1,11 @@
 // Shared Mokabook shell glyphs: the disclosure chevron, the closed / open
 // folder icons for collapsible collections, the screen / page / use-case leaf
-// icons, and the top bar's brand, search and tag controls. All icons are stroke-based
-// on a 24-unit viewBox and inherit `currentColor`. The navigation tree drops
-// the chevron in favour of the folder icon, swapping the closed folder for the
-// open one while a group is expanded (see `.mbk-nav-ico.folder` in the shell
-// stylesheet); the chevron is used by the details inspector bar.
+// icons, the top bar's brand, search and tag controls, and the device chrome's
+// copy and expand / collapse controls. All icons are stroke-based on a 24-unit
+// viewBox and inherit `currentColor`. The navigation tree drops the chevron in
+// favour of the folder icon, swapping the closed folder for the open one while
+// a group is expanded (see `.mbk-nav-ico.folder` in the shell stylesheet); the
+// chevron is used by the details inspector bar.
 
 import type { ReactNode } from "react";
 
@@ -82,6 +83,40 @@ export function SearchIcon(props: { size?: number }) {
     <IconSvg size={props.size ?? 15}>
       <circle cx={11} cy={11} r={7} />
       <path d="M20 20l-3.9-3.9" />
+    </IconSvg>
+  );
+}
+
+/** The copy affordance at the trailing edge of a browser bar's address pill. */
+export function CopyIcon(props: { size?: number }) {
+  return (
+    <IconSvg size={props.size ?? 13}>
+      <rect height={13} rx={2} width={13} x={9} y={9} />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </IconSvg>
+  );
+}
+
+/** Outward arrows on the browser bar's toggle while the frame is inline. */
+export function ExpandIcon(props: { size?: number }) {
+  return (
+    <IconSvg size={props.size ?? 13}>
+      <polyline points="15 3 21 3 21 9" />
+      <polyline points="9 21 3 21 3 15" />
+      <path d="M21 3l-7 7" />
+      <path d="M3 21l7-7" />
+    </IconSvg>
+  );
+}
+
+/** Inward arrows on the browser bar's toggle while the frame is expanded. */
+export function CollapseIcon(props: { size?: number }) {
+  return (
+    <IconSvg size={props.size ?? 13}>
+      <polyline points="4 14 10 14 10 20" />
+      <polyline points="20 10 14 10 14 4" />
+      <path d="M14 10l7-7" />
+      <path d="M3 21l7-7" />
     </IconSvg>
   );
 }
