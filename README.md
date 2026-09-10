@@ -175,6 +175,10 @@ free. `--port 0` instead asks the operating system to choose a free port.
 Watched Serve keeps the first resolved port for later child restarts so its URL
 stays stable.
 
+Component comparisons batch saved baseline views when Serve starts and when
+Changes refreshes, so startup does not require a separate Git process for every
+screen, variant, viewport and color scheme.
+
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
 without writing and reports missing, stale, or orphan generated files. Browse

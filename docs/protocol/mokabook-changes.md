@@ -54,6 +54,16 @@ resource deletions, an unavailable or invalid input disables the filter,
 preserving access through All.
 Watched updates and static publishing use this same membership calculation.
 
+Component-aware classification preloads every baseline screen and saved-variant
+view in one logical, bounded Git batch, including mobile, desktop, dark and
+removed views. This applies to Serve startup, cached Browse evidence, watched
+updates and publishing, including a screen-only baseline during component
+adoption. Readers without bulk support retain individual cached reads. Resource
+discovery stays lazy and follows the comparison's ignore and ownership rules;
+prefetching view documents does not traverse excluded or hint-only resources.
+An incomplete or invalid batch fails classification rather than silently
+dropping views or disabling Git file validation.
+
 ## Screen controls
 
 Screens and saved component variants with actual changed/added/removed comparison

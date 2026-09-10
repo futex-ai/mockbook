@@ -12,6 +12,10 @@ import type { ReviewArtifactContent } from "./types.js";
 /** Filesystem boundary for current-worktree Review assets. */
 export interface ReviewAssetReader {
   read(route: string): Promise<Uint8Array>;
+  /** Optional bounded bulk read; every requested route must be present or reject. */
+  readMany?(
+    routes: readonly string[],
+  ): Promise<ReadonlyMap<string, Uint8Array>>;
 }
 
 /** A worktree reader that distinguishes absent files from invalid resources. */

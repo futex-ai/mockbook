@@ -1,0 +1,41 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import { ComponentMaterialReader } from "../dist/review/component_resources.js";
+
+test("prefetch retains empty files and discovers resources only when requested", async () => {
+  const reads: string[] = [];
+  const reader = new ComponentMaterialReader({
+    readMany: async (routes) =>
+      new Map(routes.map((route) => [route, Buffer.alloc(0)])),
+    read: async (route) => {
+      reads.push(route);
+      assert.equal(route, "used.css");
+      return Buffer.from('@import "./used.css";');
+    },
+  });
+  await reader.prefetch(["view.html"]);
+  assert.equal(await reader.text("view.html"), "");
+  assert.deepEqual(reads, []);
+  for (let index = 0; index < 2; index++)
+    assert.deepEqual(
+      await reader.resources(
+        "view.html",
+        '<link rel="stylesheet" href="used.css"><link rel="stylesheet" href="excluded.css"><link rel="prefetch" href="hint.css">',
+        (route) => route === "excluded.css",
+      ),
+      new Set(["used.css"]),
+    );
+  assert.deepEqual(reads, ["used.css"]);
+});
+
+test("prefetch rejects an omitted view instead of falling back to unvalidated bytes", async () => {
+  const reader = new ComponentMaterialReader({
+    readMany: async () => new Map(),
+    read: async () => assert.fail("An incomplete batch must fail"),
+  });
+  await assert.rejects(reader.prefetch(["missing.html"]), {
+    code: "review-invalid",
+    message: /missing.html: batch reader omitted the file/,
+  });
+});

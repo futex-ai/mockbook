@@ -60,6 +60,18 @@ export async function classifyComponents(
     changed: new Set(changedPaths),
     prefix: toPosixPath(path.relative(config.repoRoot, config.mockupsDir)),
   };
+  await Promise.all([
+    context.beforeReader.prefetch(
+      before.entries.flatMap((entry) =>
+        generatedViews(entry).map((view) => view.path),
+      ),
+    ),
+    context.afterReader.prefetch(
+      after.entries.flatMap((entry) =>
+        generatedViews(entry).map((view) => view.path),
+      ),
+    ),
+  ]);
   const sharedImpact = changedPaths.filter((path) =>
     config.review.sharedImpact.some((glob) =>
       minimatch(path, glob, { dot: true }),

@@ -1,3 +1,4 @@
+import { MokabookError } from "../errors.js";
 import { referencedRoutes } from "./asset_references.js";
 import type { ReviewAssetReader } from "./assets.js";
 import { ResourceGraph } from "./resource_graph.js";
@@ -13,6 +14,24 @@ export class ComponentMaterialReader {
           resourceHints: false,
         }),
     });
+  }
+  /** Load known view documents together without changing lazy resource discovery. */
+  async prefetch(routes: readonly string[]): Promise<void> {
+    if (!this.reader.readMany) return;
+    const missing = [...new Set(routes)].filter(
+      (route) => !this.files.has(route),
+    );
+    if (missing.length === 0) return;
+    const loaded = await this.reader.readMany(missing);
+    for (const route of missing) {
+      const content = loaded.get(route);
+      if (content === undefined)
+        throw new MokabookError(
+          "review-invalid",
+          `could not retain Review asset ${route}: batch reader omitted the file`,
+        );
+      this.files.set(route, Promise.resolve(content));
+    }
   }
   read(route: string): Promise<Uint8Array> {
     let result = this.files.get(route);
