@@ -15,6 +15,7 @@ paths, and synthetic tests.
 | Generated-file ownership and check      | Product CSS/fonts/images         | Document transformer       |
 | Safe routes and catalogue navigation    | Product route semantics          | Additional watch inputs    |
 | Git comparison and Review-ignore rules  | Comparison policy                | Base, output, impact globs |
+| Complete static catalogue export        | Hosting, credentials, deployment | Export output and Git base |
 
 ## Dependency Direction
 
@@ -79,8 +80,23 @@ external links remain consumer-owned. The
 [catalogue navigation protocol](../protocol/mokabook-navigation.md) defines the
 link marker, sandbox boundary, and active-tree invariant.
 
+## Export Boundary
+
+`src/export` orchestrates existing Build, Browse rendering, and comparison
+boundaries. Its only new consumer interface is the CLI: no deep imports or
+hosting SDK is required. Typed shell-owned delivery metadata supplies exact
+static routes and immutable comparison URLs. The exporter owns file selection,
+input consistency, exclusive output reservation, replacement, and rollback;
+`scripts/preview` captures one already-built Browse snapshot with optional Changes
+and adds Pages URL/header metadata and old-preview migration. Both paths share
+artifact validation, deployment identity, and the output transaction, and reuse
+the same shell renderer and comparison engine. Watch ignores inventory-listed
+export files while traversing output directories for new authored files.
+
 ## Related Docs
 
 - [Build pipeline](./build-pipeline.md)
 - [Package and authoring protocol](../protocol/mokabook-package.md)
 - [Runtime protocol](../protocol/mokabook-runtime.md)
+- [Static export contract](../protocol/mokabook-export.md)
+- [Static delivery contract](../protocol/mokabook-export-delivery.md)

@@ -118,8 +118,18 @@ test("published comparisons retain real baseline bytes, removed routes, and isol
   await assert.rejects(fixture.build, /find merge base/);
   assert.equal(await read("_redirects"), redirects);
   assert.deepEqual(await fs.promises.readdir(path.dirname(fixture.output)), [
+    ".mokabook-export-reservations",
     "published",
   ]);
+  assert.deepEqual(
+    await fs.promises.readdir(
+      path.join(
+        path.dirname(fixture.output),
+        ".mokabook-export-reservations/locks",
+      ),
+    ),
+    [],
+  );
 });
 
 test("capture mutation aborts atomically and default replacement removes old review output", async (context) => {

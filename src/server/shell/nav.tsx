@@ -9,7 +9,7 @@
 // nesting reads at a glance. Groups on the path to the active route open by
 // default; top-level groups start open so the catalogue is scannable.
 
-import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
 import {
@@ -69,7 +69,7 @@ function LeafRow(props: {
       hidden={props.node.removedPage ? true : undefined}
       data-route={props.node.route}
       data-tags={tags.length > 0 ? tags.join(" ") : undefined}
-      href={`/view/${encodeUrlPath(props.node.route)}`}
+      href={catalogueViewHref(props.node.route)}
       style={navRowStyle(props.depth)}
     >
       <LeafGlyph entryKind={props.node.entryKind} />

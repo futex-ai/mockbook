@@ -67,6 +67,14 @@ The failure report groups problems by class and tells the author whether to run
 
 ## Catalogue And Routes
 
+`mokabook export --out <directory>` uses the same build, catalogue, shell, and
+comparison engines to create a complete static site. Its separate output
+transaction, Git prerequisites, path ownership, and input-consistency checks
+are defined by [Consumer static export](./mokabook-export.md). Exact file routes,
+real directory-index id aliases, static delivery metadata, and lazy immutable
+comparisons are defined by [Static export delivery](./mokabook-export-delivery.md).
+No server or watcher is started for export; served behavior below is unchanged.
+
 Browse validates the v4 manifest and independently resolves both source graphs
 before binding its listening port. A stale inventory requires a rebuild. This
 scan never renders pages or rewrites output. It exposes:

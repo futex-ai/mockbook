@@ -11,19 +11,14 @@ import { MokabookError } from "../errors.js";
 import {
   extractCssReferences,
   extractHtmlReferences,
-  type HtmlReferences,
 } from "../html_references.js";
+import {
+  fragmentViolation,
+  htmlResource,
+  type ParsedResource,
+  type ResourceReference,
+} from "../html_link_validation.js";
 import { pendingGeneratedOrphanRoutes } from "./ownership.js";
-
-interface ParsedResource {
-  anchors: ReadonlySet<string>;
-  references: readonly ResourceReference[];
-}
-
-interface ResourceReference {
-  checkFragment: boolean;
-  value: string;
-}
 
 interface ReferenceResult {
   target?: string;
@@ -102,11 +97,7 @@ function validateReference(
   pendingOrphans: ReadonlySet<string>,
 ): ReferenceResult {
   const reference = item.value;
-  if (
-    reference === "" ||
-    reference.startsWith("?") ||
-    /^(?:https?:|mailto:|tel:|data:)/i.test(reference)
-  ) {
+  if (reference === "" || /^(?:https?:|mailto:|tel:|data:)/i.test(reference)) {
     return {};
   }
   if (reference.startsWith("mock:")) {
@@ -115,10 +106,13 @@ function validateReference(
   if (reference.startsWith("/")) {
     return { violation: `root-absolute link is not portable: ${reference}` };
   }
-  if (reference.startsWith("#")) {
-    return item.checkFragment ? fragmentResult(reference, source) : {};
+  if (reference.startsWith("#") || reference.startsWith("?")) {
+    const violation = item.checkFragment
+      ? fragmentViolation(reference, source.anchors)
+      : undefined;
+    return violation ? { violation } : {};
   }
-  const [withoutHash, rawHash] = reference.split("#", 2);
+  const [withoutHash] = reference.split("#", 2);
   const rawPath = (withoutHash ?? "").split("?", 1)[0] ?? "";
   let decodedPath: string;
   try {
@@ -148,34 +142,11 @@ function validateReference(
     if (!targetResource) return { violation: `missing target ${reference}` };
     parsed.set(target, targetResource);
   }
-  if (rawHash && item.checkFragment) {
-    let fragment: string;
-    try {
-      fragment = decodeURIComponent(rawHash);
-    } catch {
-      return { violation: `invalid URL encoding: ${reference}` };
-    }
-    if (!targetResource.anchors.has(fragment)) {
-      return { violation: `missing target anchor ${reference}` };
-    }
-  }
+  const violation = item.checkFragment
+    ? fragmentViolation(reference, targetResource.anchors)
+    : undefined;
+  if (violation) return { violation };
   return { target };
-}
-
-function fragmentResult(
-  reference: string,
-  source: ParsedResource,
-): ReferenceResult {
-  let fragment: string;
-  try {
-    fragment = decodeURIComponent(reference.slice(1));
-  } catch {
-    return { violation: `invalid URL encoding: ${reference}` };
-  }
-  if (fragment === "") return {};
-  return source.anchors.has(fragment)
-    ? {}
-    : { violation: `missing anchor ${reference}` };
 }
 
 function loadResource(
@@ -205,31 +176,4 @@ function loadResource(
         })),
       }
     : htmlResource(extractHtmlReferences(content));
-}
-
-function htmlResource(references: HtmlReferences): ParsedResource {
-  const navigation = references.hrefs.map((value) => ({
-    checkFragment: true,
-    value,
-  }));
-  const resources = references.resources.map((value) => ({
-    checkFragment: false,
-    value,
-  }));
-  return {
-    anchors: references.anchors,
-    references: distinctReferences([...navigation, ...resources]),
-  };
-}
-
-function distinctReferences(
-  references: readonly ResourceReference[],
-): ResourceReference[] {
-  const seen = new Set<string>();
-  return references.filter((reference) => {
-    const key = `${reference.checkFragment}:${reference.value}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
 }

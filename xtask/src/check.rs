@@ -32,8 +32,9 @@ impl CheckRunner for DefaultCheckRunner {
     }
 }
 
-fn commands() -> [CommandSpec; 11] {
+fn commands() -> [CommandSpec; 12] {
     [
+        npm(&["run", "dependencies:check"]),
         npm(&["run", "format:check"]),
         npm(&["run", "lint"]),
         npm(&["run", "typecheck"]),

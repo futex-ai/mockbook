@@ -1,12 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { withExportCleanup } from "../../dist/export/cleanup.js";
+import { assertExportOwnership } from "../../dist/export/ownership.js";
+import { resolveExportOutput } from "../../dist/export/paths.js";
+import { ExportTransaction } from "../../dist/export/transaction.js";
+import { errorMessage } from "../../dist/errors.js";
 import { publicationOptions } from "../../dist/publication/options.js";
 import {
   NodeGitCommandRunner,
   RepositoryGitClient,
 } from "../../dist/review/git.js";
 import { capturePublicationInputs } from "./inputs.mjs";
+import { previewOwnership, stagePreviewArtifact } from "./artifact.mjs";
 import { copyPublicFiles } from "../../dist/publication/resources.js";
 import { isInside, projectRealPath } from "../../dist/config/paths.js";
 import { loadCatalogueSnapshot } from "../../dist/server/catalogue_snapshot.js";
@@ -23,120 +29,124 @@ import {
   publishComparison,
 } from "./comparisons.mjs";
 
-const markerName = ".mokabook-preview-artifact";
 const liveUpdateScript =
   '<script src="/__mokabook/client/browser.js" type="module"></script>';
 
-/** Publish the real catalogue shell and isolated Git comparisons together. */
+/** Capture already-built output; the supported npm command builds before this boundary. */
 export async function buildPreview(config, output, options = {}) {
   const capability = publicationOptions(options);
   assertSafeOutput(output, config.repoRoot);
-  assertOwnedOutput(output);
-  await fs.promises.mkdir(path.dirname(output), { recursive: true });
-  const stage = await fs.promises.mkdtemp(
-    path.join(path.dirname(output), ".mokabook-preview-stage-"),
+  const contextRoot = path.join(config.repoRoot, ".context");
+  const destination = resolveExportOutput(config, output, contextRoot);
+  try {
+    await assertExportOwnership(destination, previewOwnership);
+  } catch (cause) {
+    throw new Error(
+      `refusing to replace unowned preview directory: ${output}`,
+      { cause },
+    );
+  }
+  const transaction = await ExportTransaction.open(
+    destination,
+    previewOwnership,
   );
   try {
-    const excludedRoots = [stage, output];
-    const inputs = await capturePublicationInputs(config, excludedRoots);
-    const base = capability.includeChanges
-      ? (capability.base ?? config.review.base)
-      : "";
-    let git;
-    if (capability.includeChanges) {
-      const repository = new RepositoryGitClient(
-        new NodeGitCommandRunner(config.repoRoot),
-      );
-      const commit = await repository.mergeBase(base, "HEAD");
-      git = new Proxy(repository, {
-        get(target, key) {
-          if (key === "mergeBase") return async () => commit;
-          const value = Reflect.get(target, key);
-          return typeof value === "function" ? value.bind(target) : value;
-        },
-      });
-    }
-    const snapshot = await loadCatalogueSnapshot(
-      config,
-      git
-        ? (manifest) => computeCatalogueChanges(config, base, git, manifest)
-        : undefined,
-      inputs.manifest,
-    );
-    const { catalogue, changes } = snapshot;
-    const manifest = catalogue.manifest;
-    const review = git
-      ? previewComparisonProvider(config, stage, base, git)
-      : undefined;
-    const server = await startCatalogueServer(config, {
-      base,
-      snapshot,
-      port: 0,
-      ...(review ? { review } : {}),
-    });
-    let comparison;
-    let removed = [];
-    try {
-      if (review) {
-        comparison = await captureComparison(server.url);
-        removed = changes.removedEntries.map(({ entry }) => entry);
-      }
-      await capturePage(server.url, "/", stage, "index.html");
-      for (const entry of [...manifest.entries, ...removed]) {
-        if (entry.kind === "collection") continue;
-        await capturePage(
-          server.url,
-          `/view/${encodePath(entry.route)}`,
-          stage,
-          `view/${entry.route}`,
+    await withExportCleanup(
+      async () => {
+        const stage = transaction.stage;
+        const excludedRoots = [stage, output, transaction.reservationRoot];
+        const inputs = await capturePublicationInputs(config, excludedRoots);
+        const base = capability.includeChanges
+          ? (capability.base ?? config.review.base)
+          : "";
+        let git;
+        if (capability.includeChanges) {
+          const repository = new RepositoryGitClient(
+            new NodeGitCommandRunner(config.repoRoot),
+          );
+          const commit = await repository.mergeBase(base, "HEAD");
+          git = new Proxy(repository, {
+            get(target, key) {
+              if (key === "mergeBase") return async () => commit;
+              const value = Reflect.get(target, key);
+              return typeof value === "function" ? value.bind(target) : value;
+            },
+          });
+        }
+        const snapshot = await loadCatalogueSnapshot(
+          config,
+          git
+            ? (manifest) => computeCatalogueChanges(config, base, git, manifest)
+            : undefined,
+          inputs.manifest,
         );
-      }
-      await capturePage(
-        server.url,
-        "/preview-route-that-does-not-exist",
-        stage,
-        "404.html",
-        404,
-      );
-      await captureAssets(server.url, stage);
-    } finally {
-      await server.close();
-    }
-    if (review && comparison)
-      await publishComparison(review, comparison, stage);
-    await copyPublicFiles(config, catalogue, stage, excludedRoots);
-    await writeText(
-      stage,
-      "_redirects",
-      [
-        ...(comparison ? [comparison.redirect] : []),
-        redirects([
-          ...manifest.entries,
-          ...removed.filter(
-            (screen) =>
-              !manifest.entries.some((entry) => entry.id === screen.id),
-          ),
-        ]),
-      ].join("\n"),
+        const { catalogue, changes } = snapshot;
+        const manifest = catalogue.manifest;
+        const review = git
+          ? previewComparisonProvider(config, stage, base, git)
+          : undefined;
+        const server = await startCatalogueServer(config, {
+          base,
+          snapshot,
+          port: 0,
+          ...(review ? { review } : {}),
+        });
+        let comparison;
+        let removed = [];
+        try {
+          if (review) {
+            comparison = await captureComparison(server.url);
+            removed = changes.removedEntries.map(({ entry }) => entry);
+          }
+          await capturePage(server.url, "/", stage, "index.html");
+          for (const entry of [...manifest.entries, ...removed]) {
+            if (entry.kind === "collection") continue;
+            await capturePage(
+              server.url,
+              `/view/${encodePath(entry.route)}`,
+              stage,
+              `view/${entry.route}`,
+            );
+          }
+          await capturePage(
+            server.url,
+            "/preview-route-that-does-not-exist",
+            stage,
+            "404.html",
+            404,
+          );
+          await captureAssets(server.url, stage);
+        } finally {
+          await server.close();
+        }
+        if (review && comparison)
+          comparison = await publishComparison(review, comparison, stage);
+        await copyPublicFiles(config, catalogue, stage, excludedRoots);
+        await stagePreviewArtifact(stage, manifest, removed, comparison);
+        if (
+          inputs.fingerprint !==
+          (await capturePublicationInputs(config, excludedRoots)).fingerprint
+        )
+          throw new Error(
+            "consumer inputs changed during publication; retry with stable inputs",
+          );
+        assertSafeOutput(output, config.repoRoot);
+        if (
+          projectRealPath(resolveExportOutput(config, output, contextRoot)) !==
+          transaction.output
+        )
+          throw new Error(
+            "preview output changed its real location during publication",
+          );
+        await transaction.install();
+      },
+      () => transaction.close(),
     );
-    if (comparison)
-      await writeText(
-        stage,
-        "_headers",
-        "/__mokabook/diffs/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n",
-      );
-    if (
-      inputs.fingerprint !==
-      (await capturePublicationInputs(config, excludedRoots)).fingerprint
-    )
-      throw new Error(
-        "consumer inputs changed during publication; retry with stable inputs",
-      );
-    await writeText(stage, markerName, "schemaVersion=1\n");
-    await installArtifact(stage, output);
-  } catch (error) {
-    await fs.promises.rm(stage, { force: true, recursive: true });
-    throw error;
+  } catch (cause) {
+    throw new Error(
+      `preview comparison failed or catalogue could not be exported: ${errorMessage(cause)}`,
+      { cause },
+    );
   }
 }
 
@@ -188,17 +198,6 @@ async function capturePage(
   await writeText(stage, relativePath, staticPage(html));
 }
 
-function redirects(entries) {
-  const lines = entries.flatMap((entry) =>
-    entry.kind === "collection"
-      ? []
-      : [
-          `/id/${encodeURIComponent(entry.id)} /view/${pagesPath(entry.route)} 302`,
-        ],
-  );
-  return `${lines.join("\n")}\n`;
-}
-
 function staticPage(html) {
   return html
     .replace(liveUpdateScript, "")
@@ -206,31 +205,6 @@ function staticPage(html) {
       /(href|src|data-fragment-light|data-fragment-dark)="\/(static|view)\/([^"]+)\.html"/g,
       '$1="/$2/$3"',
     );
-}
-
-async function installArtifact(stage, output) {
-  if (!fs.existsSync(output)) {
-    await fs.promises.rename(stage, output);
-    return;
-  }
-  const backup = await fs.promises.mkdtemp(
-    path.join(path.dirname(output), ".mokabook-preview-backup-"),
-  );
-  await fs.promises.rmdir(backup);
-  await fs.promises.rename(output, backup);
-  try {
-    await fs.promises.rename(stage, output);
-  } catch (error) {
-    await fs.promises.rename(backup, output);
-    throw error;
-  }
-  await fs.promises.rm(backup, { force: true, recursive: true });
-}
-
-function assertOwnedOutput(output) {
-  if (fs.existsSync(output) && !fs.existsSync(path.join(output, markerName))) {
-    throw new Error(`refusing to replace unowned preview directory: ${output}`);
-  }
 }
 
 function assertSafeOutput(output, repoRoot) {
@@ -251,10 +225,6 @@ function assertSafeOutput(output, repoRoot) {
 
 function encodePath(value) {
   return value.split("/").map(encodeURIComponent).join("/");
-}
-
-function pagesPath(value) {
-  return encodePath(value).replace(/\.html$/, "");
 }
 
 async function writeText(root, relative, content) {

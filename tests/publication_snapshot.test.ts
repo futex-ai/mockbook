@@ -162,8 +162,15 @@ test("a manifest change after its snapshot read aborts default publication and p
     previous,
   );
   assert.deepEqual(await fs.promises.readdir(path.dirname(output)), [
+    ".mokabook-export-reservations",
     "published",
   ]);
+  assert.deepEqual(
+    await fs.promises.readdir(
+      path.join(path.dirname(output), ".mokabook-export-reservations/locks"),
+    ),
+    [],
+  );
 });
 
 test("the capture server rejects a snapshot from a different resolved config", async (context) => {

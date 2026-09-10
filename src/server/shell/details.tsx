@@ -9,7 +9,7 @@
 import type { ReactNode } from "react";
 
 import type { ColorScheme } from "../../authoring/types.js";
-import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { ManifestScreen, ManifestUseCase } from "../../registry/types.js";
 import type { Catalogue } from "../catalogue.js";
 import { ChevronIcon, FlowIcon } from "./icons.js";
@@ -93,7 +93,7 @@ function UsedByChips(props: {
         {useCases.map((useCase) => (
           <a
             className="mbk-chip flow"
-            href={`/view/${encodeUrlPath(useCase.route)}`}
+            href={catalogueViewHref(useCase.route)}
             key={useCase.id}
           >
             <FlowIcon size={11} />

@@ -7,6 +7,7 @@ crates.io.
 ## Responsibilities
 
 - Run the current source-level TypeScript, package, example, and Rust suite.
+- Fail verification when the live dependency audit reports an advisory or error.
 - Enforce the Rust file-length limit.
 - Start the required read-only post-push AI review.
 
@@ -14,6 +15,12 @@ crates.io.
 
 The crate provides the implementation behind `cargo xtask check`,
 `cargo xtask review`, and `cargo xtask rust-file-length-lint`.
+The Node unit/integration suite runs at most two test files concurrently;
+individual concurrency tests and their existing timeouts remain unchanged.
+The complete check starts with `npm run dependencies:check`, covering all
+workspace dependency categories. It requires registry access; an audit or network
+failure stops subsequent checks. Packed-consumer smokes separately audit the
+consumer's resolved production dependencies without workspace overrides.
 
 ## Quick Start
 
@@ -43,3 +50,4 @@ cargo test --package xtask
 
 - [Repository README](../README.md)
 - [CI and npm release contract](../docs/protocol/npm-release.md)
+- [Dependency security](../docs/protocol/dependency-security.md)

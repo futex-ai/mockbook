@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import type { Viewport } from "../../authoring/types.js";
 import { encodeUrlPath } from "../../config/paths.js";
+import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { ManifestScreen, ManifestUseCase } from "../../registry/types.js";
 import type { Catalogue } from "../catalogue.js";
 import { BrowserFrame, PhoneFrame } from "./frames.js";
@@ -201,7 +202,7 @@ function UseCaseFlowStage(props: {
                   {screen ? (
                     <a
                       className="flow-step-link"
-                      href={`/view/${encodeUrlPath(screen.route)}`}
+                      href={catalogueViewHref(screen.route)}
                     >
                       This screen in the catalogue: {screen.title} →
                     </a>

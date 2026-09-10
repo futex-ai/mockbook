@@ -133,3 +133,15 @@ uses the same catalogue-wide language at both viewport sizes.
 `npm run preview:build` exports current content without Git or review controls.
 Add `-- --include-changes --base origin/main` to package Changes and immutable
 screen comparisons. Both options omit development update connections.
+
+For an ordinary static host, use the consumer command instead of the Pages adapter:
+
+```bash
+node dist/cli/bin.js export --config examples/basic/mokabook.config.ts --out ../../.context/mokabook-site
+```
+
+Output is config-relative. This command builds the example itself, retains exact
+`.html` URLs and real `/id/<id>/index.html` aliases, and needs no provider rewrites.
+The consumer export command requires the configured Git baseline and committed
+baseline output; the default repository preview does not.
+See the [consumer publishing recipe](../../README.md#export-and-publish-a-consumer-build).

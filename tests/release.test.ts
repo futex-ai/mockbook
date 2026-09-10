@@ -7,6 +7,10 @@ import { pathToFileURL } from "node:url";
 import { parse } from "yaml";
 
 import { repositoryRoot } from "./helpers/fixture.js";
+import {
+  packageReport,
+  type PackageReport,
+} from "./helpers/release_fixture.js";
 
 interface WorkflowStep {
   env?: Readonly<Record<string, string>>;
@@ -22,6 +26,7 @@ interface WorkflowJob {
   needs?: readonly string[];
   permissions?: Readonly<Record<string, string>>;
   steps: readonly WorkflowStep[];
+  strategy?: { matrix: { os: readonly string[] } };
 }
 
 interface Workflow {
@@ -40,14 +45,6 @@ interface ReleaseContextModule {
     releaseTag: string;
   }): string | undefined;
   validateTagVersion(ref: string, version: string): void;
-}
-
-interface PackageReport {
-  files: Array<{ path: string; size: number }>;
-  integrity: string;
-  name: string;
-  shasum: string;
-  version: string;
 }
 
 interface RegistryContractModule {
@@ -80,7 +77,27 @@ test("CI pins actions and gates both supported Node runtimes", async () => {
   assert.ok(required);
   assert.ok(minimumRuntime);
   assert.ok(releaseRuntime);
-  assert.deepEqual(required.needs, ["minimum-runtime", "release-runtime"]);
+  assert.deepEqual(required.needs, [
+    "minimum-runtime",
+    "release-runtime",
+    "export-platforms",
+  ]);
+  const exportPlatforms = workflow.jobs["export-platforms"];
+  assert.ok(exportPlatforms);
+  assert.deepEqual(exportPlatforms.strategy?.matrix.os, [
+    "macos-latest",
+    "windows-latest",
+  ]);
+  assert.ok(
+    exportPlatforms.steps.some((step) =>
+      step.run?.includes("tests/export_rename.test.ts"),
+    ),
+  );
+  assert.ok(
+    exportPlatforms.steps.some((step) =>
+      step.run?.includes("tests/export_destination_races.test.ts"),
+    ),
+  );
   assertFullHistoryCheckout(minimumRuntime);
   assertFullHistoryCheckout(releaseRuntime);
   assertPinnedActions(workflow);
@@ -278,22 +295,4 @@ async function registryContract(): Promise<RegistryContractModule> {
     path.join(repositoryRoot, "scripts/release/registry_contract.mjs"),
   ).href;
   return (await import(url)) as RegistryContractModule;
-}
-
-function packageReport(): PackageReport {
-  return {
-    files: [
-      { path: "dist/index.js", size: 1 },
-      { path: "dist/index.d.ts", size: 1 },
-      { path: "dist/cli/bin.js", size: 1 },
-      { path: "README.md", size: 1 },
-      { path: "LICENSE", size: 1 },
-      { path: "CHANGELOG.md", size: 1 },
-      { path: "package.json", size: 1 },
-    ],
-    integrity: `sha512-${"a".repeat(12)}`,
-    name: "mokabook",
-    shasum: "b".repeat(40),
-    version: "1.2.3",
-  };
 }

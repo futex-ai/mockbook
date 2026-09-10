@@ -71,7 +71,7 @@ export function validateReviewOut(
   );
   if (
     reviewOut === repoRoot ||
-    !isInside(repoRoot, reviewOut) ||
+    (!isInside(repoRoot, reviewOut) && !isInside(realRepoRoot, reviewOut)) ||
     !isInside(realRepoRoot, realReviewOut) ||
     protectedRoots.some(
       (root) =>

@@ -161,3 +161,7 @@ Their four successful probe cases are recorded in
 `.context/review-followup-6-review-validation.log`; the review output is in
 `.context/review-followup-6-postpush-review.log`. Review usage is 9/10. The
 remaining mainline integration and any new fixes require the user's selection.
+
+The user subsequently selected latest-main integration. Its combined publication
+and recovery behavior is recorded in the
+[mainline integration follow-up](./mainline-static-export-integration.md).

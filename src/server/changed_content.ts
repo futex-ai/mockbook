@@ -12,6 +12,7 @@ import { VIEWPORTS } from "../registry/views.js";
 import {
   FileSystemReviewAssetReader,
   GitReviewAssetReader,
+  type OptionalReviewAssetReader,
 } from "../review/assets.js";
 import { baselineResourceConfig } from "../review/base_manifest.js";
 import type { GitClient } from "../review/git.js";
@@ -31,7 +32,7 @@ interface DocumentPair {
 }
 
 /**
- * Find documents whose content or rendered resources need review, without snapshots.
+ * Find material document/resource changes using live files or a captured reader.
  * Exclude authoring paths lexically so retargeted public aliases still reach validation.
  */
 export async function changedContentPaths(
@@ -41,6 +42,9 @@ export async function changedContentPaths(
   git: GitClient,
   commit: string,
   changedPaths: readonly string[],
+  headReader: OptionalReviewAssetReader = new FileSystemReviewAssetReader(
+    config,
+  ),
 ): Promise<readonly string[]> {
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
   const repoPath = (route: string) => (prefix ? `${prefix}/${route}` : route);
@@ -62,7 +66,6 @@ export async function changedContentPaths(
   );
   if (publicChanges.size === 0) return [];
   const pairs = documentPairs(manifest, baseline, publicChanges);
-  const headReader = new FileSystemReviewAssetReader(config);
   const baseReader = new GitReviewAssetReader(
     baselineResourceConfig(config, baseline),
     git,
