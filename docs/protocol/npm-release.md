@@ -72,6 +72,11 @@ processes. Package smokes execute the packed artifact, not the source tree or a
 workspace symlink. The temporary real-Accounting parity audit is release
 evidence rather than a recurring CI dependency on another repository.
 
+Browser assertions that depend on a navigated preview's layout wait for the
+expected frame URL and complete document state together, not only the outer
+Browse URL or an iframe `src` attribute. Delayed-stylesheet regressions exercise
+this boundary while retaining strict single-preview and control-state checks.
+
 ## Continuous Integration
 
 `.github/workflows/ci.yml` runs on pull requests and pushes to `main`, with

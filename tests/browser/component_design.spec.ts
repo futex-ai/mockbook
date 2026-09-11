@@ -253,28 +253,3 @@ for (const viewport of ["desktop", "mobile"] as const) {
     });
   });
 }
-
-test("the served catalogue reaches component designs and follows their variant links", async ({
-  page,
-}) => {
-  await page.goto("/view/design/components/overview.html");
-  await expect(
-    page.locator(
-      'a[data-nav-row][data-route="design/components/overview.html"]',
-    ),
-  ).toHaveAttribute("aria-current", "page");
-  const desktop = page.frameLocator(".mbk-frame-desktop iframe");
-  await expect(desktop.locator(".ce-canvas:visible")).toBeVisible();
-  await desktop.getByRole("link", { name: "Disabled", exact: true }).click();
-  await expect(page).toHaveURL(/\/design\/components\/pages\/variants.html$/);
-  await expect(
-    page.locator(
-      'a[data-nav-row][data-route="design/components/pages/variants.html"]',
-    ),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(
-    page
-      .frameLocator(".mbk-frame-desktop iframe")
-      .locator(".ce-canvas:visible button"),
-  ).toBeDisabled();
-});

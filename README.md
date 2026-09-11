@@ -509,6 +509,12 @@ workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 After activating an in-frame design link, assert the outer catalogue URL before
 using the destination's controls. Frame-link enhancement updates the outer shell
 asynchronously; the click alone can return while the previous frame is visible.
+Before checking controls or visibility inside a newly navigated preview, use
+`expectFrameLoaded` from `tests/browser/workspace_actions.ts` to wait for the
+target frame URL and completed document together. The outer URL and active
+navigation row can update before the frame's stylesheets finish loading;
+`expectFrameSource` alone checks navigation, not rendering readiness. Keep
+strict visibility and control assertions after the readiness check.
 Real Git-backed comparison fixtures wait for completed Changes classification.
 Loading-state tests own explicit pending fixtures, so startup reloads cannot
 interrupt unrelated mode or
