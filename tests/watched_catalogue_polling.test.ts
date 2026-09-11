@@ -8,23 +8,28 @@ import {
 
 const url = "http://127.0.0.1:1234";
 
-function shell(version: number, changes?: number): string {
+function shell(version: number, changes?: number, pending = false): string {
   const filter =
     changes === undefined
-      ? ""
+      ? '<span class="mbk-nav-filter-count"></span>'
       : `<span class="mbk-nav-filter-count">${changes}</span>`;
-  return `<html data-mokabook-update-version="${version}">${filter}</html>`;
+  const status = pending
+    ? "pending"
+    : changes === undefined
+      ? "unavailable"
+      : "ready";
+  return `<html data-mokabook-update-version="${version}" data-changes-status="${status}">${filter}</html>`;
 }
 
 for (const { name, states, changes } of [
   {
     name: "waits for the intended Changes state after intermediate publications",
-    states: [shell(1, 0), shell(2, 2), shell(3), shell(4, 0)],
+    states: [shell(1, 0), shell(2, 2), shell(3, undefined, true), shell(4, 0)],
     changes: 0,
   },
   {
     name: "keeps unavailable Changes distinct from a successful empty result",
-    states: [shell(2, 0), shell(3)],
+    states: [shell(2, 0), shell(3, undefined, true), shell(4)],
     changes: undefined,
   },
 ]) {

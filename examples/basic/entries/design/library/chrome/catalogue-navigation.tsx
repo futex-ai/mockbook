@@ -35,6 +35,10 @@ const propSchema = {
     activeLabel: optionalText,
     changedCount: { schema: { kind: "number", minimum: 0, integer: true } },
     changedOnly: flag,
+    changesStatus: {
+      schema: { kind: "enum", values: ["ready", "pending", "unavailable"] },
+      optional: true,
+    },
     showChanges: { ...flag, optional: true },
     presentation: {
       schema: { kind: "enum", values: ["responsive", "drawer"] },
@@ -87,6 +91,15 @@ export const catalogueNavigation = defineComponent({
   propSchema,
   controls: {
     changedOnly: { kind: "boolean", label: "Changes only" },
+    changesStatus: {
+      kind: "select",
+      label: "Changes availability",
+      options: [
+        { label: "Ready", value: "ready" },
+        { label: "Checking", value: "pending" },
+        { label: "Unavailable", value: "unavailable" },
+      ],
+    },
     presentation: {
       kind: "select",
       label: "Presentation",
@@ -115,6 +128,11 @@ export const catalogueNavigation = defineComponent({
       id: "drawer",
       title: "Drawer",
       props: { ...sample, presentation: "drawer" },
+    },
+    {
+      id: "loading",
+      title: "Checking for changes",
+      props: { ...sample, changedOnly: true, changesStatus: "pending" },
     },
   ],
 });

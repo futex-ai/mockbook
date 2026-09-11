@@ -9,13 +9,14 @@ import {
   waitForUpdate,
 } from "./helpers/watched_catalogue.js";
 
-/** One shell response at a published version, with an optional Changes row. */
+/** One shell response at a published version, with a completed Changes state. */
 function shell(published: number, count?: number): string {
   const filter =
     count === undefined
-      ? ""
+      ? '<span class="mbk-nav-filter-count">—</span>'
       : `<span class="mbk-nav-filter-count">${count}</span>`;
-  return `<html><body data-mokabook-update-version="${published}">${filter}</body></html>`;
+  const status = count === undefined ? "unavailable" : "ready";
+  return `<html><body data-mokabook-update-version="${published}" data-changes-status="${status}">${filter}</body></html>`;
 }
 
 /** Serve each queued shell response once, repeating the last one after. */
@@ -57,13 +58,13 @@ test("a settled wait passes over the state between edit operations", async () =>
   }
 });
 
-test("a settled wait reaches an edit that removes the Changes row", async () => {
+test("a settled wait reaches an edit that makes Changes unavailable", async () => {
   const running = await publish([shell(1, 2), shell(2)]);
   try {
     const html = await waitForChangedCount(running.url, 0);
     assert.equal(version(html), 2);
     assert.equal(changedCount(html), undefined);
-    assert.doesNotMatch(html, /mbk-nav-filter-count/);
+    assert.match(html, /data-changes-status="unavailable"/);
   } finally {
     await running.close();
   }

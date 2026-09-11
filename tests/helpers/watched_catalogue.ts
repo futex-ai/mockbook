@@ -14,7 +14,7 @@ export function version(html: string): number {
   return Number(value);
 }
 
-/** The Changes count in one shell response, absent when no filter row shows. */
+/** The real Changes count, absent while checking or when unavailable. */
 export function changedCount(html: string): number | undefined {
   const value = html.match(/class="mbk-nav-filter-count">(\d+)</)?.[1];
   return value === undefined ? undefined : Number(value);
@@ -27,7 +27,8 @@ export function waitForUpdate(url: string, previous: number): Promise<string> {
 
 /**
  * Wait for a published watch action whose catalogue settles on `expected`
- * changed screens, or on no Changes row at all when `expected` is undefined.
+ * changed screens, or unavailable Changes when `expected` is undefined.
+ * Pending counts are not terminal results and never satisfy this wait.
  *
  * An edit built from several filesystem operations — removing a file before
  * replacing it, creating a directory before the file inside it — publishes one
@@ -43,8 +44,14 @@ export function waitForChangedCount(
   return waitForPublished(
     url,
     previous,
-    (html) => changedCount(html) === expected,
-    `${expected ?? "no"} changed screens`,
+    (html) =>
+      changedCount(html) === expected &&
+      html.includes(
+        `data-changes-status="${expected === undefined ? "unavailable" : "ready"}"`,
+      ),
+    expected === undefined
+      ? "unavailable Changes"
+      : `${expected} changed screens`,
   );
 }
 

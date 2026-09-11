@@ -1,5 +1,6 @@
 import type { RenderCapability } from "../../components/render_types.js";
 import type { ComponentChangeSnapshot } from "../component_changes.js";
+import type { ChangesStatus } from "../update_messages.js";
 
 /** Server-side context shared by every served Mokabook shell page. */
 
@@ -7,6 +8,8 @@ import type { StaticDelivery } from "../../navigation/delivery.js";
 
 /** Server-side context shared by every shell page. */
 export interface ShellContext {
+  /** Live calculation state; omitted by static catalogues without Changes. */
+  changesStatus?: ChangesStatus;
   renderCapability?: RenderCapability;
   /** Validated delivery information for a static export. */
   delivery?: StaticDelivery;

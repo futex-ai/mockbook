@@ -18,7 +18,7 @@ Group indexes are pure galleries, containing at most five component entries.
 | Group / slug                  | Existing implementation                                             | Saved variant ids                                               |
 | ----------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
 | chrome / top-bar              | `parts/top_bar.tsx`, `parts/tag_filter.tsx`                         | `default`, `search`, `tag-picker`, `drawer-open`                |
-| chrome / catalogue-navigation | `parts/nav.tsx`, scenario data in `components/parts/navigation.tsx` | `all`, `changes`, `empty`, `drawer`                             |
+| chrome / catalogue-navigation | `parts/nav.tsx`, scenario data in `components/parts/navigation.tsx` | `all`, `changes`, `empty`, `drawer`, `loading`                  |
 | chrome / screen-header        | `parts/shell.tsx: ScreenHead`                                       | `screen`, `component`, `changed`, `removed`                     |
 | controls / comparison-toolbar | `parts/compare.tsx: CompareToolbar`                                 | `current`, `side-by-side`, `overlay`, `difference`              |
 | controls / view-controls      | `components/parts/view_controls.tsx`, `parts/shell.tsx: ViewSwitch` | `default`, `both`, `highlighted`, `unavailable`                 |
@@ -57,7 +57,10 @@ Controls below use text, boolean, number and primitive enum selections only.
 2. **Catalogue navigation:** row records with stable key, label, kind
    `collection/screen/component/flow`, depth, optional count/open/destination;
    selected destination, All/Changes state, changed count and presentation
-   `responsive/drawer`. Controls: All/Changes and presentation. Counts and rows
+   `responsive/drawer`, and optional Changes availability `ready/pending/unavailable`.
+   Controls: All/Changes, availability and presentation. Pending reserves the count
+   slot with a spinner and replaces selected Changes rows with a loading state;
+   unavailable keeps the tabs with a dash and plain message. Counts and rows
    come from the same fixture scenario. Responsive uses the original desktop
    sidebar/mobile drawer; the drawer variant explicitly depicts the drawer.
 3. **Screen header:** title, breadcrumb records, optional entry-id chip,

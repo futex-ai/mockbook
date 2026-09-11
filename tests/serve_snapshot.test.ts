@@ -71,7 +71,8 @@ test("unavailable startup Changes leaves a complete current catalogue without re
   await classified;
   const home = await (await fetch(running.url)).text();
   assert.match(home, /data-entry-id="home"/);
-  assert.doesNotMatch(home, /data-mokabook-filter|data-removed-page/);
+  assert.match(home, /data-changes-status="unavailable"/);
+  assert.doesNotMatch(home, /data-removed-page/);
   assert.equal((await fetch(`${running.url}/view/guide.html`)).status, 404);
   assert.equal(calls, 1);
 });

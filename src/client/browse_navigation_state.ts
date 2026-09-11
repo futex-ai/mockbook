@@ -52,12 +52,30 @@ export function applyNavVisibility(
     doc
       .querySelector('[data-filter="changed"]')
       ?.getAttribute("aria-pressed") === "true";
+  const status = doc.querySelector<HTMLElement>("[data-changes-status]")
+    ?.dataset["changesStatus"];
+  const waiting = changedOnly && status !== undefined && status !== "ready";
+  let visible = false;
   for (const row of doc.querySelectorAll<HTMLElement>("[data-nav-row]")) {
     const matchesFilter = changedOnly
       ? row.getAttribute("data-changed") === "true"
       : !row.hasAttribute("data-removed-page");
-    row.hidden = !(matchesFilter && rowMatchesQuery(query, navRowFacts(row)));
+    row.hidden =
+      waiting || !(matchesFilter && rowMatchesQuery(query, navRowFacts(row)));
+    visible ||= !row.hidden;
   }
+  const notice = doc.querySelector<HTMLElement>("[data-nav-status]");
+  if (notice) {
+    notice.hidden = !changedOnly || (!waiting && visible);
+    const text = notice.querySelector("[data-nav-status-text]");
+    if (text && status === "ready")
+      text.textContent = queryConstrains(query)
+        ? "No matching changes."
+        : "No changes found.";
+  }
+  doc
+    .querySelector("[data-mokabook-nav-scroll]")
+    ?.setAttribute("aria-busy", String(waiting && status === "pending"));
   applyGroupVisibility(doc, queryConstrains(query) || changedOnly, disclosure);
 }
 

@@ -132,7 +132,10 @@ visibility, promoting a recovered pre-filter baseline only when a closed
 ancestor must be opened. A non-null baseline without active search or Changes
 filtering is invalid. Recovery applies only when its durable URL exactly matches
 the reloaded page and is removed before application; a later manual refresh
-cannot resurrect stale state.
+cannot resurrect stale state. Recovery also retains an optional validated Changes
+status (older payloads omit it). A selected Changes filter survives pending or
+unavailable states and their completion rather than switching to All to reveal an
+unchanged current preview. Explicit navigation still reveals its destination.
 
 When an authored rebuild reparents an entry, the new manifest relationships
 move its navigation row and ancestor crumbs in the same reload. Disclosure
@@ -147,8 +150,11 @@ waiting on Git. The parent then computes one complete classification outside the
 HTTP request path. A sequence token discards results superseded by a newer watch
 action; the current successful result publishes a second typed update that
 atomically replaces route membership, removed-entry baseline data, and component
-evidence. An available empty list keeps the filter visible at zero; a failed or
-unavailable comparison leaves it absent. Initial watched startup follows the
+evidence. Both tabs are present from startup: pending status shows a spinner in
+the reserved count slot and, when selected, in the sidebar. An available empty list
+shows zero; a failed or unavailable comparison ends loading and shows a dash plus an
+unavailable sidebar. Every terminal status uses the same sequence/version checks as
+the result, including background build and write failures. Initial watched startup follows the
 same asynchronous classification rule after listener readiness, as does non-watched
 Serve. Watched Serve polls resolved HEAD/base commits once per second outside HTTP;
 Git resolves symbolic refs, worktrees and packed refs. A changed or newly available

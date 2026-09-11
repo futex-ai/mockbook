@@ -29,7 +29,9 @@ export class BackgroundGeneration {
       compilation: Compilation,
       runtime: ComponentRuntime,
     ) => void,
-    private readonly classified: (snapshot: ComponentChangeSnapshot) => void,
+    private readonly classified: (
+      snapshot: ComponentChangeSnapshot | undefined,
+    ) => void,
     private readonly resources?: ResourceWatcher,
     private readonly shutdown: Promise<void> = new Promise(() => {}),
   ) {}
@@ -76,14 +78,18 @@ export class BackgroundGeneration {
                 ),
               ]),
         );
-        if (current() && snapshot) {
-          timingCounts("changes.publish", () => ({
-            changedRoutes: snapshot.changedRoutes?.length ?? 0,
-          }));
+        if (current()) {
+          if (snapshot)
+            timingCounts("changes.publish", () => ({
+              changedRoutes: snapshot.changedRoutes?.length ?? 0,
+            }));
           this.classified(snapshot);
         }
       } catch (error) {
-        if (current()) process.stderr.write(`${errorMessage(error)}\n`);
+        if (current()) {
+          process.stderr.write(`${errorMessage(error)}\n`);
+          this.classified(undefined);
+        }
       } finally {
         await prepared?.close();
       }

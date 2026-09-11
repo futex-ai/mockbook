@@ -23,7 +23,7 @@ without expanding this committed example or slowing ordinary development startup
 
 Mokabook's 56 design screens now use 15 registered shared components, including
 the footer tabs panel. Open **Design → Shared components** for Chrome, Controls,
-Inspector and Preview galleries with 55 saved variants, real mobile/desktop
+Inspector and Preview galleries with 56 saved variants, real mobile/desktop
 previews and editable local props. The outer Components and Usage tabs show actual
 recorded relationships; pictured example data inside an artboard stays separate.
 See the [library authoring guide](./entries/design/library/README.md),

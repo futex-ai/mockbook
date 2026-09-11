@@ -158,8 +158,11 @@ column, shows the changed count, and derives from Git changes between the
 current workspace and the merge base shared by `HEAD` and the serve base ref.
 Commits reachable only from the base ref are not branch changes. Staged,
 unstaged, and untracked workspace changes remain eligible. When the repository,
-base ref, or common ancestor cannot be resolved, Browse omits the filter and
-shows the full catalogue.
+base ref, or common ancestor cannot be resolved, live Browse keeps both tabs and
+shows an explicit unavailable message when Changes is selected. Pending calculation
+shows a spinner in the reserved count slot and, when selected, in the sidebar.
+All remains available throughout; a completed empty result shows zero. See the
+[on-demand lifecycle](./mokabook-on-demand.md).
 Route attribution compares each current manifest entry with its base entry and
 matches material fragment changes and changes to rendered local resources.
 Source modules, declared dependencies, and configured shared-impact globs alone

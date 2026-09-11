@@ -109,7 +109,7 @@ test(
         assert.match(await readEvent(reader), /event: update/);
         await waitFor(async () => {
           const html = await (await fetch(url)).text();
-          return !html.includes('class="mbk-nav-filter-count"');
+          return html.includes('data-changes-status="unavailable"');
         });
         assert.equal(
           (await fetch(`${url}/view/screens/home.html`)).status,

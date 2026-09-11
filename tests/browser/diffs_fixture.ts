@@ -7,6 +7,7 @@ import { loadConfig } from "../../dist/config/load.js";
 import { serve } from "../../dist/server/serve.js";
 import { comparisonEntrySource } from "../helpers/comparison_source.js";
 import { createFixture, removeFixture } from "../helpers/fixture.js";
+import { waitForClassifiedCount } from "../helpers/watched_catalogue.js";
 
 /** Real Git-backed comparison server with changed, added, removed, and light-only screens. */
 export async function comparisonFixture() {
@@ -24,6 +25,13 @@ export async function comparisonFixture() {
   git("commit", "-qm", "test: baseline");
   await fs.promises.writeFile(fixture.entryPath, comparisonEntrySource(true));
   const running = await serve(config, { base: "HEAD", port: 0, watch: false });
+  try {
+    await waitForClassifiedCount(running.url, 3);
+  } catch (error) {
+    await running.close();
+    await removeFixture(fixture);
+    throw error;
+  }
   return {
     ...fixture,
     outDir: config.review.outDir,

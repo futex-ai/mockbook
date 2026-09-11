@@ -25,10 +25,12 @@ test("Browse responds before separately computed component evidence arrives", as
   const server = await startCatalogueServer(fixture.config, {
     base: "main",
     port: 0,
+    changesStatus: "pending",
   });
   t.after(() => server.close());
   const initial = await (await fetch(server.url)).text();
-  assert.doesNotMatch(initial, /data-mokabook-filter/);
+  assert.match(initial, /data-mokabook-filter/);
+  assert.match(initial, /data-changes-status="pending"/);
 
   server.publishUpdate({
     changedRoutes: result.changes.map(

@@ -78,12 +78,14 @@ export async function serve(
       },
       (snapshot) =>
         server.publishUpdate({
-          changedRoutes: snapshot.changedRoutes ?? null,
-          componentChanges: snapshot,
+          changedRoutes: snapshot?.changedRoutes ?? null,
+          componentChanges: snapshot ?? null,
+          changesStatus: snapshot ? "ready" : "unavailable",
         }),
     );
     const server = await dependencies.serverFactory.start(config, {
       base,
+      changesStatus: "pending",
       onForeground: (active) => background.foreground(active),
       manifest: runtime.manifest,
       componentRuntime: runtime,

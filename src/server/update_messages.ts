@@ -8,8 +8,13 @@ import type { ManifestV5 } from "../registry/types.js";
 
 import { isSafeCatalogueRoute } from "../config/paths.js";
 
+/** Whether live change detection is running, complete, or could not finish. */
+export type ChangesStatus = "pending" | "ready" | "unavailable";
+
 /** Mutable running-server state published before clients reload. */
 export interface CatalogueUpdate {
+  /** Omit to retain status unless the update replaces change evidence. */
+  changesStatus?: ChangesStatus;
   /** Omit to retain state, use `null` when changed-route detection is unavailable. */
   changedRoutes?: readonly string[] | null;
   /** Omit to retain evidence, use `null` while fresh classification is unavailable. */
@@ -20,6 +25,7 @@ export interface CatalogueUpdate {
 
 /** Parent-to-child update command with an explicit changed-route snapshot. */
 export interface ChildUpdateMessage {
+  changesStatus?: ChangesStatus;
   changedRoutes: readonly string[] | null;
   componentChanges: ComponentChangeSnapshot | null;
   type: "update";
@@ -71,8 +77,10 @@ export function childUpdateMessage(
   version: number,
   changedRoutes: readonly string[] | undefined,
   componentChanges?: ComponentChangeSnapshot,
+  changesStatus?: ChangesStatus,
 ): ChildUpdateMessage {
   return {
+    ...(changesStatus ? { changesStatus } : {}),
     changedRoutes: changedRoutes ? [...changedRoutes] : null,
     componentChanges: componentChanges ?? null,
     type: "update",
@@ -92,6 +100,7 @@ export function parseChildUpdateMessage(
     return undefined;
   }
   const candidate = value as {
+    changesStatus?: unknown;
     changedRoutes?: unknown;
     componentChanges?: unknown;
     version?: unknown;
@@ -100,16 +109,25 @@ export function parseChildUpdateMessage(
     !Number.isSafeInteger(candidate.version) ||
     (candidate.version as number) <= 0 ||
     !isChangedRoutes(candidate.changedRoutes) ||
-    !isComponentChanges(candidate.componentChanges)
+    !isComponentChanges(candidate.componentChanges) ||
+    (candidate.changesStatus !== undefined &&
+      !isChangesStatus(candidate.changesStatus))
   ) {
     return undefined;
   }
   return {
+    ...(candidate.changesStatus
+      ? { changesStatus: candidate.changesStatus }
+      : {}),
     changedRoutes: candidate.changedRoutes,
     componentChanges: candidate.componentChanges,
     type: "update",
     version: candidate.version as number,
   };
+}
+
+function isChangesStatus(value: unknown): value is ChangesStatus {
+  return value === "pending" || value === "ready" || value === "unavailable";
 }
 
 function isComponentChanges(

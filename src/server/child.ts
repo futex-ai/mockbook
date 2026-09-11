@@ -30,6 +30,7 @@ export async function runServerChild(
   if (initial?.version) updateVersion = initial.version;
   const server = await startCatalogueServer(config, {
     base,
+    changesStatus: "pending",
     onForeground: (active) => process.send?.({ type: "foreground", active }),
     onPreviewResources: (observation) =>
       process.send?.({ type: "preview-resources", ...observation }),
@@ -102,6 +103,9 @@ function waitForChildShutdown(
       const update = parseChildUpdateMessage(message);
       if (update)
         server.publishUpdate({
+          changesStatus:
+            update.changesStatus ??
+            (update.changedRoutes === null ? "pending" : "ready"),
           changedRoutes: update.changedRoutes,
           componentChanges: update.componentChanges,
           version: update.version,

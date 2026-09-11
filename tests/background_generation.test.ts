@@ -13,6 +13,7 @@ test(
     t.after(() => removeFixture(fixture));
     const runtime = await prepareLiveRuntime(await loadConfig(fixture.root));
     const written = deferred();
+    const unavailable = deferred();
     let completed = 0;
     let classified = 0;
     const background = new BackgroundGeneration(
@@ -30,13 +31,15 @@ test(
         },
       },
       () => completed++,
-      () => {
-        throw new Error("must not publish");
+      (snapshot) => {
+        assert.equal(snapshot, undefined);
+        unavailable.resolve();
       },
     );
     t.after(() => background.close());
     background.start(runtime, "main");
     await written.promise;
+    await unavailable.promise;
     await background.invalidate();
     assert.equal(completed, 0);
     assert.equal(classified, 0);

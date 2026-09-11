@@ -9,7 +9,7 @@ import { ManagedChild, type ChildShutdownTimings } from "./child_lifecycle.js";
 import { NodeChildFactory, type ChildFactory } from "./child_process.js";
 import type { ComponentChangeSnapshot } from "./component_changes.js";
 import { componentRuntimeMessage } from "./controls/runtime_ipc.js";
-import { childUpdateMessage } from "./update_messages.js";
+import { childUpdateMessage, type ChangesStatus } from "./update_messages.js";
 import {
   parsePreviewObservation,
   type PreviewObservation,
@@ -31,6 +31,7 @@ export interface ProcessSupervisor {
   notifyUpdate(
     changedRoutes: readonly string[] | undefined,
     componentChanges?: ComponentChangeSnapshot,
+    changesStatus?: ChangesStatus,
   ): void;
   /** Register the watched-runtime handler for a post-readiness child failure. */
   onUnexpectedExit(callback: (error: Error) => void): void;
@@ -195,12 +196,18 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   notifyUpdate(
     changedRoutes: readonly string[] | undefined,
     componentChanges?: ComponentChangeSnapshot,
+    changesStatus?: ChangesStatus,
   ): void {
     const child = this.#child;
     if (!child || child.stopping || child.exited) return;
     this.#updateVersion++;
     child.send(
-      childUpdateMessage(this.#updateVersion, changedRoutes, componentChanges),
+      childUpdateMessage(
+        this.#updateVersion,
+        changedRoutes,
+        componentChanges,
+        changesStatus,
+      ),
     );
   }
 

@@ -5,6 +5,12 @@ the independent pages under **Design → Shared components**. The footer tabs
 panel is `inspector/inspector`. This is the consumer's mockup library; the actual
 Mokabook browser shell remains in the package source.
 
+Catalogue navigation has a fifth saved example, **Checking for changes**, in both
+viewports. All and Changes retain their positions while the count shows a spinner;
+the selected Changes sidebar shows the same loading state. Toggle **Changes only**
+to inspect All during calculation, or select **Unavailable** in Props to inspect a
+failed check. The counter reserves its width in every state.
+
 ## Authoring
 
 For each component, `{group}/{slug}.tsx` declares its typed schema, slots, saved

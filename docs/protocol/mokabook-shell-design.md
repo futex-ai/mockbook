@@ -193,8 +193,15 @@ scrollable region scrolls internally:
   chosen width. The separator is absent from the mobile drawer and without
   JavaScript. The head row is `CATALOGUE` (uppercase, 11px) with a text button
   labelled `Collapse all`; an All/Changes segmented filter (with a monospace
-  changed count) appears when Git change detection is available, followed by
-  the scrollable tree. The drawer below the breakpoint shows the same body.
+  changed count) is always present in live Serve, followed by the scrollable tree.
+  While detection is pending, an 11px spinner replaces the count in its fixed
+  four-character-wide slot. Selected Changes shows “Checking for changes…” and a
+  spinner in place of rows. A failed check shows an unavailable message and a dash;
+  a completed empty result shows `0` and “No changes found.” The filter and tree
+  origin keep their positions throughout. Reduced-motion settings disable rotation.
+  The drawer below the breakpoint shows the same body. Static exports without
+  Changes retain their filter-free layout. The catalogue-navigation component's
+  `loading` variant is the mobile/desktop owning mockup.
   - Groups are native `<details>` whose summary row shows a closed/open folder
     SVG pair (swapped via the `[open]` state), a bold label, and a monospace
     child count. Leaves show a screen, page, or flow SVG; flow icons read in
@@ -210,6 +217,8 @@ scrollable region scrolls internally:
     destination path, while editing the search or filter opens groups to reveal
     current matches. Clearing filtering restores earlier disclosures except
     for a destination path opened by navigation.
+    Background loading/recovery retains a selected Changes filter while results
+    are pending and when they arrive, even if the active preview is not in Changes.
 - **Screen head** — surface band with the breadcrumb trail (11.5px, `›`
   separators; ancestor crumbs that resolve to a viewable route are links) and
   a title row: 19px heading plus a monospace ID button labelled `#<id>`. The

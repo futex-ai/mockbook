@@ -104,7 +104,12 @@ export async function serveWatched(
       activeCompilation = compilation;
       running.completeCatalogue?.(compilation.manifest, accepted.generation);
     },
-    (snapshot) => running.notifyUpdate(snapshot.changedRoutes, snapshot),
+    (snapshot) =>
+      running.notifyUpdate(
+        snapshot?.changedRoutes,
+        snapshot,
+        snapshot ? "ready" : "unavailable",
+      ),
     resources,
     shutdown,
   );

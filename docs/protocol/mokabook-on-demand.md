@@ -43,8 +43,18 @@ private even through aliases. No validation is skipped to meet the time target.
 
 Route indexes and parsed resource metadata are reused within the generation.
 The inspector loads usage for displayed views on demand. Uncomputed catalogue-wide
-usage is explicitly unavailable, never displayed as zero consumers. Changes stays
-unavailable until a complete validated calculation has been adopted.
+usage is explicitly unavailable, never displayed as zero consumers. Live All/Changes
+controls are always present. While a calculation is pending, a spinner replaces the
+Changes count in a fixed-width slot. Selecting Changes replaces navigation rows with
+“Checking for changes…” and a spinner; All remains searchable and usable. Complete
+evidence replaces the spinner with its real count, including zero. Failed rendering,
+output adoption or classification ends loading with “Changes are unavailable. You
+can still browse All.” and a dash instead of a count. Status and evidence share the
+same version/generation fences. A superseded job cannot change either.
+The selected filter survives loading updates and their completion, even if the
+current preview is unchanged or there are zero Changes. Neither the tabs nor the
+navigation content's top edge moves when the count replaces the loader. Reduced
+motion disables rotation. Static exports without Changes still omit these controls.
 The existing mobile/desktop Inspection unavailable designs also cover this usage
 state: “Usage is unavailable until the catalogue has been checked.” It does not
 add an environment label or replace a real zero-consumer result.

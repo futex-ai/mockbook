@@ -112,7 +112,8 @@ test("a component catalogue without review never asks for Git Changes", async (t
     const response = await fetch(server.url + route);
     assert.equal(response.status, 200);
     const html = await response.text();
-    assert.doesNotMatch(html, /data-mokabook-filter|data-changed="true"/);
+    assert.match(html, /data-changes-status="unavailable"/);
+    assert.doesNotMatch(html, /data-changed="true"/);
   }
   assert.equal(reads, 0);
 });

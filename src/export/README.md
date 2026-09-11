@@ -37,7 +37,10 @@ proves local resource closure. `ignored.ts` keeps owned
 outputs and transactions out of broad Watch rules. The repository-only preview
 adapter supplies validated host aliases and legacy ownership explicitly. It
 captures already-built Browse output, retaining optional Changes and its
-source/resource fingerprint contract. Current-only static delivery explicitly
+source/resource fingerprint contract. Its capture server disables live Changes
+states: ordinary publications omit the tabs, while opt-in Changes publications
+render their completed counts without a pending or unavailable state.
+Current-only static delivery explicitly
 disables comparison requests while retaining canonical id navigation.
 It also declares its stricter `.context` output root; the same shared path
 validator enforces that scope at preflight and before installation.

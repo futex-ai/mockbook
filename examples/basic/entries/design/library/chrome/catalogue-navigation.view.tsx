@@ -112,6 +112,7 @@ export function CatalogueNavigationView({
   activeLabel,
   changedCount,
   changedOnly,
+  changesStatus = "ready",
   showChanges = true,
   rows,
   presentation,
@@ -147,20 +148,43 @@ export function CatalogueNavigationView({
               }
             >
               Changes
-              <span className="mbk-nav-filter-count">{changedCount}</span>
+              <span className="mbk-nav-filter-count">
+                {changesStatus === "pending" ? (
+                  <span
+                    className="mbk-nav-spinner"
+                    aria-label="Checking for changes"
+                    role="status"
+                  />
+                ) : changesStatus === "ready" ? (
+                  changedCount
+                ) : (
+                  "—"
+                )}
+              </span>
             </span>
           </DesignLink>
         </div>
       ) : null}
       <div className="mbk-nav-scroll">
-        {rows.map((node) => (
-          <NavRow
-            key={node.key}
-            activeDestination={activeDestination}
-            activeLabel={activeLabel}
-            node={node}
-          />
-        ))}
+        {changedOnly && changesStatus !== "ready" ? (
+          <div className="mbk-nav-status" role="status">
+            {changesStatus === "pending" ? (
+              <span className="mbk-nav-spinner" aria-hidden="true" />
+            ) : null}
+            {changesStatus === "pending"
+              ? "Checking for changes…"
+              : "Changes are unavailable. You can still browse All."}
+          </div>
+        ) : (
+          rows.map((node) => (
+            <NavRow
+              key={node.key}
+              activeDestination={activeDestination}
+              activeLabel={activeLabel}
+              node={node}
+            />
+          ))
+        )}
       </div>
     </>
   );

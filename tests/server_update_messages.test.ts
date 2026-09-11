@@ -38,6 +38,8 @@ test("watch update messages preserve available and unavailable route state", () 
 test("watch update parsing rejects incomplete or unsafe IPC values", () => {
   for (const value of [
     null,
+    { ...childUpdateMessage(2, undefined), changesStatus: "unknown" },
+    { ...childUpdateMessage(2, undefined), changesStatus: null },
     { changedRoutes: null, componentChanges: null, type: "reload", version: 2 },
     { changedRoutes: null, componentChanges: null, type: "update", version: 0 },
     {
@@ -62,5 +64,18 @@ test("watch update parsing rejects incomplete or unsafe IPC values", () => {
     { changedRoutes: null, type: "update", version: 2 },
   ]) {
     assert.equal(parseChildUpdateMessage(value), undefined);
+  }
+});
+
+test("watch updates preserve explicit Changes loading and terminal states", () => {
+  for (const status of ["pending", "ready", "unavailable"] as const) {
+    const message = childUpdateMessage(
+      2,
+      status === "ready" ? [] : undefined,
+      undefined,
+      status,
+    );
+    assert.equal(message.changesStatus, status);
+    assert.deepEqual(parseChildUpdateMessage(message), message);
   }
 });

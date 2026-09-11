@@ -32,10 +32,13 @@ import type { PreviewObservation } from "./demand/observation.js";
 import { listenOnAvailablePort } from "./ports.js";
 import { ReviewRoutes, type ServedReview } from "./review_routes.js";
 import { send } from "./respond.js";
-import type { CatalogueUpdate } from "./update_messages.js";
+import type { CatalogueUpdate, ChangesStatus } from "./update_messages.js";
 
 /** Options for one deterministic server child. */
 export interface ServerOptions {
+  changesStatus?: ChangesStatus;
+  /** Include live Changes states by default; static captures opt out. */
+  liveChanges?: boolean;
   onForeground?: (active: boolean) => void;
   onPreviewResources?: (observation: PreviewObservation) => void;
   base: string;
@@ -135,6 +138,9 @@ export async function startCatalogueServer(
     changes?.changedRoutes ??
     options.changedRoutes ??
     componentChanges?.changedRoutes;
+  let changesStatus: ChangesStatus =
+    options.changesStatus ??
+    (changedRoutes || componentChanges ? "ready" : "unavailable");
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
     if (controls && !localHost(request))
@@ -170,6 +176,7 @@ export async function startCatalogueServer(
       componentChanges,
       controls?.capability(),
       documents,
+      options.liveChanges === false ? undefined : changesStatus,
     ).catch(() => {
       if (!response.destroyed && !response.headersSent)
         send(
@@ -243,6 +250,18 @@ export async function startCatalogueServer(
         activeCatalogue = componentChanges
           ? catalogueAtBaseline(manifest, componentChanges.baseline)
           : catalogue;
+      }
+      if (
+        Object.hasOwn(update, "changedRoutes") ||
+        Object.hasOwn(update, "componentChanges")
+      )
+        changesStatus =
+          changedRoutes || componentChanges ? "ready" : "unavailable";
+      changesStatus = update.changesStatus ?? changesStatus;
+      if (changesStatus !== "ready") {
+        changedRoutes = undefined;
+        componentChanges = undefined;
+        activeCatalogue = catalogue;
       }
       updateVersion = nextVersion;
       reviewRoutes?.invalidate();

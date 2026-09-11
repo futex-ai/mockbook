@@ -204,12 +204,15 @@ Full generated output and Git-based Changes finish in the background, with previ
 and Props work taking priority between background documents. Build, Check and Export
 remain exhaustive. Replacing or stopping background work cancels and drains its Git
 subprocesses before terminating the worker, including when that worker is unresponsive.
-The first shell omits Changes; versioned updates publish complete
+All and Changes are visible from the first live shell. Changes shows a spinner
+instead of an uncomputed count; selecting it shows a loading sidebar without
+moving the tabs or tree. A failed check keeps the tabs with an explicit unavailable
+state, while a completed empty result shows zero. Versioned updates publish complete
 usage and then Changes. Shell requests never repeat that repository work. Baseline
 views are read in batches, not one Git process per view. Watched Serve also observes
 Git ref changes off the request path. `--no-watch` uses the same fast startup but
 does not observe later source, resource or Git edits. Unavailable history omits
-Changes while current previews remain accessible. See [on-demand Serve](./docs/protocol/mokabook-on-demand.md).
+change evidence while current previews remain accessible. See [on-demand Serve](./docs/protocol/mokabook-on-demand.md).
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
@@ -439,6 +442,10 @@ forcing React peers to the consumer's one runtime.
 
 ## Troubleshooting
 
+- **Node crashes in `cjs_lexer::Parse`:** upgrade to a patched Node LTS release.
+  Node 24.14.1 has an [upstream native-loader crash](https://github.com/nodejs/node/issues/63323)
+  that can surface during worker startup/shutdown. Node 24.21.0 includes the fix;
+  this is separate from a Mokabook render or validation error.
 - **No config found:** run from the consumer repository or pass `--config`
   after the command.
 - **A generated file is stale:** run `mokabook build`, inspect the diff, then
@@ -502,8 +509,13 @@ workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 After activating an in-frame design link, assert the outer catalogue URL before
 using the destination's controls. Frame-link enhancement updates the outer shell
 asynchronously; the click alone can return while the previous frame is visible.
-Tests using the real Git-backed comparison fixture await its final JSON response
-before applying UI assertion deadlines. Cold snapshot generation has a bounded
+Real Git-backed comparison fixtures wait for completed Changes classification.
+Loading-state tests own explicit pending fixtures, so startup reloads cannot
+interrupt unrelated mode or
+resize assertions. Run the full browser suite separately from other top-level
+checks: publication fixtures rebuild shared package and example output.
+Comparison tests await their final JSON response before applying UI assertion
+deadlines. Cold snapshot generation has a bounded
 30-second wait tied to the newly triggered request, refresh intent, and its
 redirect chain; stale/background responses cannot satisfy it. The existing UI
 assertions retain their default deadlines.
@@ -704,7 +716,7 @@ divider line.
 
 All 56 design screens reuse the 15 registered components in
 **Design → Shared components**, including the footer tabs panel. The library
-provides 55 saved variants, local prop controls, real usage and component-owned
+provides 56 saved variants, local prop controls, real usage and component-owned
 change attribution. See the [shared design library guide](./examples/basic/entries/design/library/README.md).
 
 The design mockups use `MockLink` for supported navigation and state transitions;

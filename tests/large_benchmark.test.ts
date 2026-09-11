@@ -9,12 +9,25 @@ test("benchmark waits for Changes delivery, not just parent classification", asy
     requests++;
     return new Response(
       requests < 3
-        ? "<main>Browse</main>"
-        : '<button data-mokabook-filter="changes">Changes</button>',
+        ? '<div data-mokabook-filter="" data-changes-status="pending">Changes</div>'
+        : '<div data-mokabook-filter="" data-changes-status="ready">Changes</div>',
     );
   });
   await waitForBrowseChanges("http://fixture.invalid", 3000);
   assert.equal(requests, 3);
+});
+
+test("benchmark stops with an error when Changes calculation is unavailable", async (t) => {
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async () =>
+      new Response('<div data-changes-status="unavailable">Changes</div>'),
+  );
+  await assert.rejects(
+    waitForBrowseChanges("http://fixture.invalid", 300),
+    /unavailable/,
+  );
 });
 
 test("benchmark rejects failed Browse requests rather than reporting success", async (t) => {

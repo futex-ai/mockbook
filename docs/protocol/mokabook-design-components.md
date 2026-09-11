@@ -4,7 +4,7 @@
 
 Implemented in the basic consumer. All 56 existing design screens retain their
 112 mobile/desktop fragments and now record shared component instances. Fifteen
-registered components and 55 saved variants live under Design → Shared components,
+registered components and 56 saved variants live under Design → Shared components,
 alongside the separate Example Action and Toolbar.
 
 This contract and the [library inventory](./mokabook-design-component-library.md)

@@ -48,7 +48,7 @@ test(
         await action();
         html = await waitForChangedCount(running.url, previous, count);
         if (count === undefined)
-          assert.doesNotMatch(html, /mbk-nav-filter-count/);
+          assert.match(html, /data-changes-status="unavailable"/);
         else assert.ok(html.includes(`class="mbk-nav-filter-count">${count}<`));
       };
       const link = async (target: string) => {
