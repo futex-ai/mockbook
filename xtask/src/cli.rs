@@ -9,7 +9,6 @@ use clap::{Parser, Subcommand};
 use crate::check::{CheckRunner, DefaultCheckRunner};
 use crate::command::{CommandRunner, SystemCommandRunner};
 use crate::error::{Error, Result};
-use crate::review::{CodexReviewRunner, ReviewRunner};
 use crate::rust_file_length::{RustFileLengthAuditor, SystemRustFileLengthAuditor};
 
 #[derive(Debug, Parser)]
@@ -23,8 +22,6 @@ struct Cli {
 enum Command {
     /// Run every local verification gate.
     Check,
-    /// Run a read-only AI review against origin/main.
-    Review,
     /// Enforce the 300-line Rust source limit.
     RustFileLengthLint {
         /// Audit every Rust file; retained for workspace command compatibility.
@@ -41,7 +38,6 @@ trait Xtask: Send + Sync {
 
 struct Application {
     check_runner: Arc<dyn CheckRunner>,
-    review_runner: Arc<dyn ReviewRunner>,
     rust_file_length_auditor: Arc<dyn RustFileLengthAuditor>,
     workspace: PathBuf,
 }
@@ -53,7 +49,6 @@ impl Xtask for Application {
                 self.check_runner.run()?;
                 self.rust_file_length_auditor.run(&self.workspace)
             }
-            Command::Review => self.review_runner.run(&self.workspace),
             Command::RustFileLengthLint { all: _ } => {
                 self.rust_file_length_auditor.run(&self.workspace)
             }
@@ -73,7 +68,6 @@ pub(crate) fn main() -> ExitCode {
     let command_runner: Arc<dyn CommandRunner> = Arc::new(SystemCommandRunner);
     let app: Arc<dyn Xtask> = Arc::new(Application {
         check_runner: Arc::new(DefaultCheckRunner::new(command_runner)),
-        review_runner: Arc::new(CodexReviewRunner),
         rust_file_length_auditor: Arc::new(SystemRustFileLengthAuditor),
         workspace,
     });

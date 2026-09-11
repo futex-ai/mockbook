@@ -1,20 +1,18 @@
 # Mokabook xtask
 
-`xtask` owns repository-local verification and review orchestration for the
-Mokabook workspace. It is an internal binary and is not published to npm or
-crates.io.
+`xtask` owns repository-local verification for the Mokabook workspace. It is an
+internal binary and is not published to npm or crates.io.
 
 ## Responsibilities
 
 - Run the current source-level TypeScript, package, example, and Rust suite.
 - Fail verification when the live dependency audit reports an advisory or error.
 - Enforce the Rust file-length limit.
-- Start the required read-only post-push AI review.
 
 ## What This Crate Does
 
-The crate provides the implementation behind `cargo xtask check`,
-`cargo xtask review`, and `cargo xtask rust-file-length-lint`.
+The crate provides the implementation behind `cargo xtask check` and
+`cargo xtask rust-file-length-lint`.
 The Node unit/integration suite runs at most two test files concurrently;
 individual concurrency tests and their existing timeouts remain unchanged.
 The complete check starts with `npm run dependencies:check`, covering all
@@ -27,7 +25,6 @@ consumer's resolved production dependencies without workspace overrides.
 ```bash
 cargo xtask check
 cargo xtask rust-file-length-lint --all
-cargo xtask review
 ```
 
 ## Development
@@ -44,7 +41,6 @@ cargo test --package xtask
 - `src/command.rs` defines the injected command-runner boundary.
 - `src/check.rs` defines the complete source, packed-consumer, browser, and Rust
   verification sequence.
-- `src/review.rs` creates the read-only review prompt and process.
 
 ### Related Docs
 

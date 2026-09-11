@@ -70,5 +70,6 @@ not live network calls from Rust unit tests.
 After dependency updates, use a clean `npm ci`, run the complete
 `cargo xtask check`, and exercise the real preview runtime through its browser
 tests. Review lockfile removals, package engines, native optional packages, and
-the packed artifact. Commit and push all completed changes before
-`cargo xtask review`; report new findings for a maintainer's decision.
+the packed artifact. Commit and push all completed changes before using the
+[implementation review prompt](../implementation-review-prompt.md) against
+`origin/main`; report new findings for a maintainer's decision.
