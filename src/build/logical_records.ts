@@ -110,14 +110,20 @@ export function validateLogicalFragments(
   records: readonly LogicalReferenceRecord[],
   entries: readonly ResolvedRegistryEntry[],
   config: ResolvedConfig,
+  anchorsFor?: (route: string) => ReadonlySet<string> | undefined,
 ): void {
   const byId = new Map(entries.map((entry) => [entry.id, entry]));
-  const anchorIndex = new Map(
-    [...outputs].map(([route, content]) => [
-      route,
-      extractHtmlReferences(content).anchors,
-    ]),
-  );
+  const anchorIndex = new Map<string, ReadonlySet<string>>();
+  const anchors =
+    anchorsFor ??
+    ((route: string) => {
+      if (!anchorIndex.has(route)) {
+        const content = outputs.get(route);
+        if (content !== undefined)
+          anchorIndex.set(route, extractHtmlReferences(content).anchors);
+      }
+      return anchorIndex.get(route);
+    });
   const checked = new Set<string>();
   for (const record of records) {
     const fragment = record.destination.fragment;
@@ -127,7 +133,7 @@ export function validateLogicalFragments(
     checked.add(key);
     const entry = byId.get(record.destination.id);
     if (entry?.kind === "page") {
-      if (!anchorIndex.get(entry.route)?.has(fragment))
+      if (!anchors(entry.route)?.has(fragment))
         throw new MokabookError(
           "build-invalid",
           `${record.sourceRoute} logical fragment ${fragment} for ${entry.id} is missing from page ${entry.route}`,
@@ -152,7 +158,7 @@ export function validateLogicalFragments(
                 scheme,
               )
             : fragmentRoute(screen.route, viewport, scheme);
-        if (!anchorIndex.get(route)?.has(fragment)) {
+        if (!anchors(route)?.has(fragment)) {
           throw new MokabookError(
             "build-invalid",
             `${record.sourceRoute} logical fragment ${fragment} for ${record.destination.id} is missing from ${viewport} ${scheme} view ${route}`,

@@ -55,7 +55,8 @@ mokabook --help          Show commands, options, and config discovery
 mokabook --version       Show the installed package version
 ```
 
-Common options include `--config <path>`. Serve accepts `--port`, `--base`,
+Common options include `--config <path>` and opt-in `--debug-timings`
+([diagnostic contract](./mokabook-timings.md)). Serve accepts `--port`, `--base`,
 `--watch`, and `--no-watch`. Export requires `--out` and accepts `--base`;
 `--out` on any other command and the removed `review` command are rejected.
 Screen comparisons are requested from the catalogue. A flag after

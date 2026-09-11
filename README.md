@@ -146,8 +146,9 @@ produce the same fragment names and manifest bytes as before.
 Run the CLI through a local dependency or directly with npx:
 
 ```bash
-npx mokabook                         # build, serve, and watch
+npx mokabook                         # browse immediately, render on demand, and watch
 npx mokabook serve --no-watch --port 0
+npx mokabook serve --debug-timings
 npx mokabook build
 npx mokabook check
 npx mokabook export --out .context/mokabook-site
@@ -161,7 +162,7 @@ fall back to the registry. A clean machine may use
 
 | Command                        | Outcome                                                   |
 | ------------------------------ | --------------------------------------------------------- |
-| `mokabook`                     | Build, serve, and watch using a stable development URL    |
+| `mokabook`                     | Browse on demand and watch using a stable development URL |
 | `mokabook serve`               | Serve the catalogue and on-demand diffs; watch by default |
 | `mokabook build`               | Validate and transactionally write generated output       |
 | `mokabook check`               | Compare expected and committed bytes without writing      |
@@ -174,14 +175,44 @@ already occupied, Mokabook tries each following port in order until one is
 free. `--port 0` instead asks the operating system to choose a free port.
 Watched Serve keeps the first resolved port for later child restarts so its URL
 stays stable.
-With `--no-watch`, Serve validates the compiled catalogue and resolves Changes
-once before starting HTTP. Navigation, counts, and removed-page routes use that
-same snapshot. Unavailable Git history omits Changes while current pages remain
-accessible.
 
-Component comparisons batch saved baseline views when Serve starts and when
-Changes refreshes, so startup does not require a separate Git process for every
-screen, variant, viewport and color scheme.
+For slow startup, add `--debug-timings` to any command. It writes structured
+phase timings and aggregate catalogue sizes to stderr while leaving normal
+output and generated files unchanged. It separates bundling, rendering,
+validation, file writes, watcher setup, child readiness, and background Changes.
+Parent timings include child phases; overlapping timings must not be added
+together. See the [diagnostic contract](./docs/protocol/mokabook-timings.md).
+
+To investigate scale locally, first run `npm run fixture:large`. This explicitly
+prepares a synthetic 1,410-route catalogue with 5,550 documents and an isolated Git
+baseline. Then run `npm run dev:large -- --debug-timings` or
+`npm run benchmark:large`; neither repeats setup. The browser benchmark requires
+searchable navigation and a real preview within five seconds for both a fresh
+process and a warm restart, exercises Props, themes, viewports and pages, and
+waits for Changes separately. Use matching `--areas 2 --screens 10 --rows 6`
+options for smaller setup and benchmark runs. Fixtures stay under `.context`.
+See the [large fixture guide](./tests/fixtures/large/README.md).
+
+Serve validates a lightweight catalogue index and makes navigation and local Props
+controls available without rendering every document. A worker renders and validates
+each requested preview, caching it for the current source generation. Props edits
+render only the selected variant and view. An unrelated renderer failure does not
+prevent valid previews from opening. Catalogue-wide Usage is explicitly unavailable
+until the background check finishes; it is not shown as zero consumers.
+
+Full generated output and Git-based Changes finish in the background, with preview
+and Props work taking priority between background documents. Build, Check and Export
+remain exhaustive. Replacing or stopping background work cancels and drains its Git
+subprocesses before terminating the worker, including when that worker is unresponsive.
+All and Changes are visible from the first live shell. Changes shows a spinner
+instead of an uncomputed count; selecting it shows a loading sidebar without
+moving the tabs or tree. A failed check keeps the tabs with an explicit unavailable
+state, while a completed empty result shows zero. Versioned updates publish complete
+usage and then Changes. Shell requests never repeat that repository work. Baseline
+views are read in batches, not one Git process per view. Watched Serve also observes
+Git ref changes off the request path. `--no-watch` uses the same fast startup but
+does not observe later source, resource or Git edits. Unavailable history omits
+change evidence while current previews remain accessible. See [on-demand Serve](./docs/protocol/mokabook-on-demand.md).
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
@@ -220,9 +251,10 @@ their imports. Invalid resources make Changes unavailable until repaired;
 verified deletions still identify affected screens, while All remains accessible.
 Serve automatically watches those referenced local resources, including nested
 CSS imports, and refreshes its watch set when their references change.
-Lightweight watched updates recompute this route snapshot before notifying the
-browser, so the Changes rows and count match the files that triggered each
-reload without restarting the server child.
+Lightweight watched updates immediately clear stale Changes evidence and notify
+the browser without restarting the server child. A sequence-checked background
+classification publishes a later update with the complete replacement snapshot;
+failed or superseded calculations cannot restore stale rows.
 Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
 Screens and saved component variants with actual comparison changes offer
@@ -279,7 +311,8 @@ channel disconnects. Header-proven generated output plus package-owned
 dependency, build, test, comparison, and transaction paths are pruned even when a
 custom rule watches the repository root; an unowned public HTML file can still
 use an explicit watch rule, and configured stylesheets and referenced resources
-retain reload precedence. Shutdown interrupts replacement-watcher readiness, closes the
+retain reload precedence. Shutdown interrupts replacement-watcher readiness and
+active Git classification, closes the
 candidate before draining the remaining lifecycle, and waits for child exit
 through graceful, terminate, and force-kill stages. Failed startup, child
 transport errors, and unexpected IPC disconnection use the same cleanup;
@@ -302,8 +335,9 @@ still restore the matching page. While Changes filtering is active, route change
 the user collapsed and open only the destination's ancestor path. Editing the
 search or filter reveals its current matches. Clearing all filtering restores
 the earlier disclosures, except that a navigated destination's path stays open.
-A rejected config or failed candidate build leaves the last-good watcher,
-output, and child active.
+A rejected config, index, or replacement watcher leaves the last-good generation
+active. A later background render/write failure preserves the previous generated
+output and withholds complete evidence; valid on-demand previews remain usable.
 
 ## Configuration
 
@@ -408,6 +442,10 @@ forcing React peers to the consumer's one runtime.
 
 ## Troubleshooting
 
+- **Node crashes in `cjs_lexer::Parse`:** upgrade to a patched Node LTS release.
+  Node 24.14.1 has an [upstream native-loader crash](https://github.com/nodejs/node/issues/63323)
+  that can surface during worker startup/shutdown. Node 24.21.0 includes the fix;
+  this is separate from a Mokabook render or validation error.
 - **No config found:** run from the consumer repository or pass `--config`
   after the command.
 - **A generated file is stale:** run `mokabook build`, inspect the diff, then
@@ -471,8 +509,25 @@ workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 After activating an in-frame design link, assert the outer catalogue URL before
 using the destination's controls. Frame-link enhancement updates the outer shell
 asynchronously; the click alone can return while the previous frame is visible.
-Tests using the real Git-backed comparison fixture await its final JSON response
-before applying UI assertion deadlines. Cold snapshot generation has a bounded
+Before checking controls or visibility inside a newly navigated preview, use
+`expectFrameLoaded` from `tests/browser/workspace_actions.ts` to wait for the
+target frame URL and completed document together. The outer URL and active
+navigation row can update before the frame's stylesheets finish loading;
+`expectFrameSource` alone checks navigation, not rendering readiness. Keep
+strict visibility and control assertions after the readiness check.
+Real Git-backed comparison fixtures wait for completed Changes classification.
+The shared browser example also waits for terminal Changes in global setup
+before tests begin, so background startup reloads cannot interrupt history or
+navigation assertions.
+Loading-state tests own explicit pending fixtures, so startup reloads cannot
+interrupt unrelated mode or
+resize assertions. Run the full browser suite separately from other top-level
+checks: publication fixtures rebuild shared package and example output.
+Watched tests that assert a stable update version also wait for final Changes
+status before capturing their baseline; Usage completion alone can precede
+another background publication.
+Comparison tests await their final JSON response before applying UI assertion
+deadlines. Cold snapshot generation has a bounded
 30-second wait tied to the newly triggered request, refresh intent, and its
 redirect chain; stale/background responses cannot satisfy it. The existing UI
 assertions retain their default deadlines.
@@ -673,7 +728,7 @@ divider line.
 
 All 56 design screens reuse the 15 registered components in
 **Design → Shared components**, including the footer tabs panel. The library
-provides 55 saved variants, local prop controls, real usage and component-owned
+provides 56 saved variants, local prop controls, real usage and component-owned
 change attribution. See the [shared design library guide](./examples/basic/entries/design/library/README.md).
 
 The design mockups use `MockLink` for supported navigation and state transitions;

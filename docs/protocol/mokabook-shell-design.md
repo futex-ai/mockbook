@@ -193,8 +193,15 @@ scrollable region scrolls internally:
   chosen width. The separator is absent from the mobile drawer and without
   JavaScript. The head row is `CATALOGUE` (uppercase, 11px) with a text button
   labelled `Collapse all`; an All/Changes segmented filter (with a monospace
-  changed count) appears when Git change detection is available, followed by
-  the scrollable tree. The drawer below the breakpoint shows the same body.
+  changed count) is always present in live Serve, followed by the scrollable tree.
+  While detection is pending, an 11px spinner replaces the count in its fixed
+  four-character-wide slot. Selected Changes shows “Checking for changes…” and a
+  spinner in place of rows. A failed check shows an unavailable message and a dash;
+  a completed empty result shows `0` and “No changes found.” The filter and tree
+  origin keep their positions throughout. Reduced-motion settings disable rotation.
+  The drawer below the breakpoint shows the same body. Static exports without
+  Changes retain their filter-free layout. The catalogue-navigation component's
+  `loading` variant is the mobile/desktop owning mockup.
   - Groups are native `<details>` whose summary row shows a closed/open folder
     SVG pair (swapped via the `[open]` state), a bold label, and a monospace
     child count. Leaves show a screen, page, or flow SVG; flow icons read in
@@ -210,6 +217,8 @@ scrollable region scrolls internally:
     destination path, while editing the search or filter opens groups to reveal
     current matches. Clearing filtering restores earlier disclosures except
     for a destination path opened by navigation.
+    Background loading/recovery retains a selected Changes filter while results
+    are pending and when they arrive, even if the active preview is not in Changes.
 - **Screen head** — surface band with the breadcrumb trail (11.5px, `›`
   separators; ancestor crumbs that resolve to a viewable route are links) and
   a title row: 19px heading plus a monospace ID button labelled `#<id>`. The
@@ -248,7 +257,10 @@ or flow; shared controls and missing-route messages cover the whole catalogue.
   is white unless the dark scheme is selected, and a bottom home pill (128×4).
   The screen is a column: a reserved status band followed by the embedded
   mobile fragment, which takes the remaining height and rounds only its bottom
-  corners.
+  corners. The notch and home pill are decorative, hidden from accessibility
+  semantics, and use `pointer-events: none` in both the design library and
+  runtime shell. Preview links remain clickable where the home pill overlaps
+  the embedded document; do not disable pointer events on the screen itself.
 - **Phone status band** — the top 44px of the screen, padded `14px 28px 0` so
   its content clears the notch: a `9:41` clock on the left and cellular, Wi-Fi,
   and battery glyphs on the right. Text is 13.5px/600 in the screen ink

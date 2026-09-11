@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  parseBrowseRecoveryState,
-  type BrowseRecoveryState,
-} from "../dist/client/browse_state.js";
+import { parseBrowseRecoveryState } from "../dist/client/browse_recovery.js";
+import type { BrowseRecoveryState } from "../dist/client/browse_state.js";
 import {
   LiveUpdateController,
   type RecoveryStorage,
@@ -62,6 +60,18 @@ test("a ready version newer than the served page reloads immediately", () => {
 });
 
 test("Browse recovery parsing rejects malformed session state", () => {
+  for (const changesStatus of ["pending", "ready", "unavailable"] as const) {
+    const state = { ...browseState(), changesStatus };
+    assert.deepEqual(parseBrowseRecoveryState(state), state);
+  }
+  assert.equal(
+    parseBrowseRecoveryState({ ...browseState(), changesStatus: "unknown" }),
+    undefined,
+  );
+  assert.equal(
+    parseBrowseRecoveryState({ ...browseState(), changesStatus: null }),
+    undefined,
+  );
   assert.deepEqual(parseBrowseRecoveryState(browseState()), browseState());
   const legacyState: Record<string, unknown> = { ...browseState() };
   delete legacyState["filterBaselineClosedCollectionIds"];

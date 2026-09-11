@@ -115,9 +115,17 @@ test("Serve orchestration accepts fake filesystem, server, and watcher boundarie
       watcherFactory: new UnusedWatcherFactory(),
     },
   );
-  assert.equal(outputStore.writes, 1);
+  context.after(() => running.close());
+  assert.equal(
+    outputStore.writes,
+    0,
+    "startup must not await generated output",
+  );
   assert.equal(serverFactory.starts, 1);
   assert.equal(running.port, 43210);
+  for (let attempt = 0; outputStore.writes === 0 && attempt < 200; attempt++)
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(outputStore.writes, 1);
   await running.close();
   assert.equal(serverFactory.closed, true);
 });

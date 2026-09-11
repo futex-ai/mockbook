@@ -26,7 +26,7 @@ export interface ResourceWatchSnapshot {
 /** Keep live ignored-region resources observable without changing Changes semantics. */
 export async function discoverWatchResources(
   config: ResolvedConfig,
-  compilation: Compilation,
+  compilation: Pick<Compilation, "outputs">,
   previous?: ResourceWatchSnapshot,
   allowInvalid = false,
 ): Promise<ResourceWatchSnapshot> {

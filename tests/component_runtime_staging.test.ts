@@ -62,8 +62,9 @@ for (const action of ["rebuild", "reconfigure", "live"] as const) {
           child.autoExit = () => cleaningUp;
           children.push(child);
           queueMicrotask(() => {
-            child.emit({ type: "component-runtime-request" });
+            child.emit({ type: "component-runtime-startup-request" });
             child.emit({ type: "ready", port: 48123 });
+            child.emit({ type: "component-runtime-request" });
           });
           return child;
         },
@@ -104,6 +105,10 @@ for (const action of ["rebuild", "reconfigure", "live"] as const) {
       await removeFixture(fixture);
     });
     const first = children[0]!;
+    const initialStartup = first.messages.find(
+      (message) => message.type === "component-runtime-startup",
+    )!;
+    assert.equal(initialStartup.type, "component-runtime-startup");
     const initial = first.messages.find(
       (message) => message.type === "component-runtime",
     )!;
@@ -133,7 +138,12 @@ for (const action of ["rebuild", "reconfigure", "live"] as const) {
         runtimes[1]!.runtime.generation,
         initial.runtime.generation,
       );
-      assert.deepEqual(runtimes[1]!.runtime.manifest, initial.runtime.manifest);
+      assert.equal(
+        first.messages.filter(
+          (message) => message.type === "component-runtime-startup",
+        ).length,
+        1,
+      );
     } else {
       assert.deepEqual(
         runtimes,
@@ -143,14 +153,22 @@ for (const action of ["rebuild", "reconfigure", "live"] as const) {
       assert.equal(children.length, 1);
       first.exit();
       await waitFor(
-        () => children.length === 2 && children[1]!.messages.length > 0,
+        () =>
+          children.length === 2 &&
+          children[1]!.messages.some(
+            (message) => message.type === "component-runtime",
+          ),
       );
+      const nextStartup = children[1]!.messages.find(
+        (message) => message.type === "component-runtime-startup",
+      )!;
       const next = children[1]!.messages.find(
         (message) => message.type === "component-runtime",
       )!;
       assert.equal(next.type, "component-runtime");
+      assert.equal(nextStartup.type, "component-runtime-startup");
       assert.notEqual(next.runtime.generation, initial.runtime.generation);
-      assert.notDeepEqual(next.runtime.manifest, initial.runtime.manifest);
+      assert.notDeepEqual(nextStartup.manifest, initialStartup.manifest);
     }
   });
 }
@@ -167,16 +185,40 @@ test("staging during startup cannot change the spawned child's retained graph", 
   supervisor.replaceComponentRuntime(first, "stage");
   const starting = supervisor.start();
   supervisor.replaceComponentRuntime(second, "stage");
-  child.emit({ type: "component-runtime-request" });
+  child.emit({ type: "component-runtime-startup-request" });
   child.emit({ type: "ready", port: 48123 });
+  child.emit({ type: "component-runtime-request" });
   await starting;
+  const transferred = child.messages[1];
+  assert.equal(transferred?.type, "component-runtime");
+  if (transferred?.type === "component-runtime") {
+    assert.equal(Object.hasOwn(transferred.runtime, "config"), false);
+    assert.equal(Object.hasOwn(transferred.runtime, "manifest"), false);
+  }
   assert.deepEqual(child.messages, [
-    { type: "component-runtime", runtime: first },
+    {
+      config: first.config,
+      manifest: first.manifest,
+      type: "component-runtime-startup",
+    },
+    {
+      type: "component-runtime",
+      runtime: transferredRuntime(first),
+      version: 2,
+    },
   ]);
   const closing = supervisor.close();
   child.exit();
   await closing;
 });
+
+function transferredRuntime(runtime: ComponentRuntime) {
+  return {
+    bundle: runtime.bundle,
+    generation: runtime.generation,
+    outputs: runtime.outputs,
+  };
+}
 
 async function waitFor(condition: () => boolean): Promise<void> {
   for (let attempt = 0; attempt < 300; attempt++) {

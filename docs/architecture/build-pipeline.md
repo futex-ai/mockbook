@@ -46,10 +46,18 @@ bundled together. The internal bundle is CommonJS so Node-oriented consumer
 dependencies can retain dynamic built-in imports. Esbuild returns this bundle
 in memory; evaluation creates no temporary module file. A private compilation
 association retains the exact bundle, configuration and accepted artifacts for
-local controls. Serve transfers that runtime over private IPC after successful
-watched builds; failed candidates preserve the last-good graph. A supervised
-worker rerenders one edited view through the same validation pipeline, retaining
-its document and resources only in bounded memory. See the
+local controls. Serve prepares a distinct validated live index and transfers that
+index and bundle over private IPC before readiness, without rendering the catalogue.
+Failed index candidates preserve the last-good graph. `DocumentCompiler` reuses
+Build's rendering, compatibility, ownership, links, ranges and resource validators
+for a requested view. Foreground and Props workers retain only bounded
+generation-local documents/resources. Background compilation runs the ordinary
+exhaustive Build pipeline with cooperative checkpoints in the original render order,
+then uses the existing transactional writer. Build/Check/Export stay exhaustive.
+Background Git I/O is parent-owned over a private worker channel. Cancellation
+drains the actual subprocesses before worker termination, even if the worker cannot
+yield; CPU-intensive classification stays in the worker.
+See [on-demand Serve](../protocol/mokabook-on-demand.md) and the
 [local rendering service](../../src/server/controls/README.md).
 
 An esbuild resolver uses `createRequire(configPath)` for `react`, React

@@ -3,7 +3,10 @@ import { minimatch } from "minimatch";
 import { canonicalJson } from "../components/data.js";
 import type { ComponentViewRecord } from "../components/manifest_types.js";
 import { dependencyContainsChangedPath } from "../registry/dependency_paths.js";
-import { analyzeHierarchy } from "../registry/hierarchy.js";
+import {
+  analyzeHierarchy,
+  type CatalogueHierarchy,
+} from "../registry/hierarchy.js";
 import type { Manifest, ManifestEntry } from "../registry/types.js";
 import type {
   EntryChangeReason,
@@ -45,9 +48,15 @@ export function entryPairs(
     .sort()
     .map((id) => ({ before: bases.get(id), after: heads.get(id) }));
 }
-export function metadata(entry: RoutedEntry, manifest: Manifest): string {
-  const ancestors = analyzeHierarchy<ManifestEntry>(manifest.entries)
-    .hierarchy.ancestorsById.get(entry.id)
+export function metadata(
+  entry: RoutedEntry,
+  manifest: Manifest,
+  hierarchy: CatalogueHierarchy<ManifestEntry> = analyzeHierarchy<ManifestEntry>(
+    manifest.entries,
+  ).hierarchy,
+): string {
+  const ancestors = hierarchy.ancestorsById
+    .get(entry.id)
     ?.map(({ id, title }) => ({ id, title }));
   const {
     dependencies: _dependencies,
@@ -75,25 +84,37 @@ export function metadata(entry: RoutedEntry, manifest: Manifest): string {
 
 /** Explicit owners override broad consumer declarations, retaining exact screen evidence. */
 export class ComponentDependencyPolicy {
-  private readonly entries: readonly ManifestEntry[];
+  private readonly components: readonly Extract<
+    ManifestEntry,
+    { kind: "component" }
+  >[];
+  private readonly ownersByPath = new Map<string, ReadonlySet<string>>();
+  private readonly sharedByPath = new Map<string, boolean>();
   constructor(
     before: Manifest,
     after: Manifest,
     private readonly shared: readonly string[],
   ) {
-    this.entries = [...before.entries, ...after.entries];
+    this.components = [...before.entries, ...after.entries].filter(
+      (entry): entry is Extract<ManifestEntry, { kind: "component" }> =>
+        entry.kind === "component",
+    );
   }
   owners(changed: string): ReadonlySet<string> {
-    return new Set(
-      this.entries.flatMap((entry) =>
-        entry.kind === "component" &&
-        entry.ownedDependencies.some((root) =>
-          dependencyContainsChangedPath(root, changed),
-        )
-          ? [entry.id]
-          : [],
-      ),
-    );
+    let owners = this.ownersByPath.get(changed);
+    if (!owners) {
+      owners = new Set(
+        this.components.flatMap((entry) =>
+          entry.ownedDependencies.some((root) =>
+            dependencyContainsChangedPath(root, changed),
+          )
+            ? [entry.id]
+            : [],
+        ),
+      );
+      this.ownersByPath.set(changed, owners);
+    }
+    return owners;
   }
   independent(entry: RoutedEntry, changed: string): boolean {
     const owners = this.owners(changed);
@@ -103,7 +124,7 @@ export class ComponentDependencyPolicy {
     if (owners.size) return false;
     return (
       declared.some((root) => dependencyContainsChangedPath(root, changed)) ||
-      this.shared.some((glob) => minimatch(changed, glob, { dot: true }))
+      this.sharedPath(changed)
     );
   }
   reasons(
@@ -116,6 +137,16 @@ export class ComponentDependencyPolicy {
         [before, after].some((entry) => entry && this.independent(entry, item)),
       )
       .map((path) => ({ kind: "dependency", path }));
+  }
+  private sharedPath(changed: string): boolean {
+    let matches = this.sharedByPath.get(changed);
+    if (matches === undefined) {
+      matches = this.shared.some((glob) =>
+        minimatch(changed, glob, { dot: true }),
+      );
+      this.sharedByPath.set(changed, matches);
+    }
+    return matches;
   }
   suppressResource(
     repoPath: string,

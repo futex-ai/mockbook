@@ -7,9 +7,9 @@ import { serve } from "../dist/server/serve.js";
 import { changedFixture } from "./helpers/changed_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
 import {
-  catalogue,
   version,
   waitForChangedCount,
+  waitForClassifiedCount,
 } from "./helpers/watched_catalogue.js";
 
 test(
@@ -38,13 +38,13 @@ test(
       watch: true,
     });
     try {
-      let html = await catalogue(running.url);
+      let html = await waitForClassifiedCount(running.url, 0);
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
         await action();
         html = await waitForChangedCount(running.url, previous, count);
         if (count === undefined)
-          assert.doesNotMatch(html, /mbk-nav-filter-count/);
+          assert.match(html, /data-changes-status="unavailable"/);
         else assert.ok(html.includes(`class="mbk-nav-filter-count">${count}<`));
       };
       const nested = path.join(fixture.mockupsDir, "nested.css");
@@ -94,7 +94,7 @@ test(
       watch: true,
     });
     try {
-      let html = await catalogue(running.url);
+      let html = await waitForClassifiedCount(running.url, 0);
       const edit = async (file: string, content: string) => {
         const previous = version(html);
         await fs.writeFile(file, content);

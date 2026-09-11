@@ -9,7 +9,7 @@ import type {
   ComponentInputOwner,
   ComponentViewRecord,
 } from "./manifest_types.js";
-import { validateComponentRanges } from "./ranges.js";
+import { validateComponentRanges, type RenderedRange } from "./ranges.js";
 import {
   normalizeReviewPair,
   normalizeSingleDocument,
@@ -33,13 +33,21 @@ export function projectComponentPair(
   afterView: ComponentViewRecord | undefined,
   context: string,
   rootComponentId?: string,
+  beforeRanges?: readonly RenderedRange[],
+  afterRanges?: readonly RenderedRange[],
 ): ComponentProjection {
+  const validatedBefore = beforeView
+    ? (beforeRanges ?? validateComponentRanges(before, beforeView.ranges))
+    : undefined;
+  const validatedAfter = afterView
+    ? (afterRanges ?? validateComponentRanges(after, afterView.ranges))
+    : undefined;
   const rawBefore = normalizeSingleDocument(
-    stripMarkers(before, beforeView),
+    stripMarkers(before, beforeView, validatedBefore),
     context,
   );
   const rawAfter = normalizeSingleDocument(
-    stripMarkers(after, afterView),
+    stripMarkers(after, afterView, validatedAfter),
     context,
   );
   const pairs = new Map<string, string>();
@@ -67,12 +75,24 @@ export function projectComponentPair(
   );
   const left =
     beforeView && afterView
-      ? projectOwnedMaterial(before, beforeView, pairs, pairedStyles)
-      : stripMarkers(before, beforeView);
+      ? projectOwnedMaterial(
+          before,
+          beforeView,
+          pairs,
+          pairedStyles,
+          validatedBefore,
+        )
+      : stripMarkers(before, beforeView, validatedBefore);
   const right =
     beforeView && afterView
-      ? projectOwnedMaterial(after, afterView, pairs, pairedStyles)
-      : stripMarkers(after, afterView);
+      ? projectOwnedMaterial(
+          after,
+          afterView,
+          pairs,
+          pairedStyles,
+          validatedAfter,
+        )
+      : stripMarkers(after, afterView, validatedAfter);
   const normalized = normalizeReviewPair(left, right, context);
   const currentInputs = new Map(
     afterView?.instances
@@ -124,6 +144,8 @@ export function changedComponentImplementations(
   after: string,
   base: ComponentViewRecord | undefined,
   head: ComponentViewRecord | undefined,
+  baseRanges?: readonly RenderedRange[],
+  headRanges?: readonly RenderedRange[],
 ): ReadonlySet<string> {
   const changed = new Set<string>();
   if (!base || !head) return changed;
@@ -138,8 +160,10 @@ export function changedComponentImplementations(
       )
       .map((instance) => [instance.key, instance.componentId]),
   );
-  const baseRanges = validateComponentRanges(before, base.ranges);
-  const headRanges = validateComponentRanges(after, head.ranges);
+  const validatedBase =
+    baseRanges ?? validateComponentRanges(before, base.ranges);
+  const validatedHead =
+    headRanges ?? validateComponentRanges(after, head.ranges);
   for (const instance of base.instances) {
     const other = current.get(instance.key);
     if (
@@ -155,7 +179,7 @@ export function changedComponentImplementations(
     const contents = (
       html: string,
       view: ComponentViewRecord,
-      ranges: typeof baseRanges,
+      ranges: readonly RenderedRange[],
     ): string[] => [
       ...new Set(
         ranges
@@ -170,6 +194,7 @@ export function changedComponentImplementations(
               view,
               pairs,
               new Set(),
+              ranges,
               owner,
               {
                 start: range.contentStart,
@@ -185,8 +210,8 @@ export function changedComponentImplementations(
       view.instances
         .filter((child) => sameOwner(child.owner, owner))
         .map((child) => ({ key: child.key, propsKey: child.propsKey }));
-    const left = contents(before, base, baseRanges);
-    const right = contents(after, head, headRanges);
+    const left = contents(before, base, validatedBase);
+    const right = contents(after, head, validatedHead);
     const match = (a: string, b: string) => {
       const pair = normalizeReviewPair(a, b, instance.componentId);
       return pair.base === pair.head;

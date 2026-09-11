@@ -8,11 +8,11 @@ import {
 import {
   captureBrowseState,
   currentColorScheme,
-  parseBrowseRecoveryState,
   restoreBrowseState,
   setColorScheme,
   type BrowseRecoveryState,
 } from "../dist/client/browse_state.js";
+import { parseBrowseRecoveryState } from "../dist/client/browse_recovery.js";
 import { FakeClassList } from "./helpers/fake_dom.js";
 
 const base = {

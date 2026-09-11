@@ -46,7 +46,7 @@ export function validateComponentViews(
     for (const field of ["instances", "slots", "ranges", "styles", "resources"])
       if (!Array.isArray(view[field]))
         invalidData(at, `missing ${field} array`);
-    validateView(
+    validateComponentViewRecord(
       view as unknown as ComponentViewRecord,
       components,
       `${at} / ${axes[i]}`,
@@ -55,7 +55,8 @@ export function validateComponentViews(
   });
 }
 
-function validateView(
+/** Validate one actual render without asserting completeness of other views. */
+export function validateComponentViewRecord(
   view: ComponentViewRecord,
   components: ReadonlyMap<string, ManifestComponent>,
   at: string,

@@ -12,6 +12,7 @@ export function Inspector({
   data: WorkspaceData;
 }) {
   const nested =
+    data.previewGeneration !== undefined ||
     data.entry.kind === "screen" ||
     data.views.some((view) => view.usage?.instances.length);
   const tabs: { id: WorkspaceIconName; title: string }[] = [

@@ -2,6 +2,7 @@ import { isSafeCatalogueRoute } from "../config/paths.js";
 import { isCatalogueId } from "../navigation/logical.js";
 import type { Manifest } from "../registry/types.js";
 import { decodeProps } from "./codec.js";
+import { validateDependencyDeclarations } from "./dependency_validation.js";
 import { validateControlledValues, validateControls } from "./controls.js";
 import { canonicalJson, exactKeys, invalidData } from "./data.js";
 import type {
@@ -171,30 +172,7 @@ export function validateManifestComponentUsage(manifest: Manifest): void {
   if (!components.size && manifest.schemaVersion === 4)
     invalidData("$manifest", "v4 requires registered components");
   for (const entry of manifest.entries) {
-    sortedStrings(
-      entry.declaredDependencies,
-      `${entry.id}.declaredDependencies`,
-    );
-    if (
-      canonicalJson(entry.dependencies) !==
-      canonicalJson(
-        [...new Set([entry.sourcePath, ...entry.declaredDependencies])].sort(),
-      )
-    )
-      invalidData(
-        entry.id,
-        "dependencies must retain exactly the declared paths and source attribution",
-      );
-    if (
-      entry.kind === "component" &&
-      !entry.ownedDependencies.every((dependency) =>
-        entry.declaredDependencies.includes(dependency),
-      )
-    )
-      invalidData(
-        entry.id,
-        "owned dependencies require an explicit declaration",
-      );
+    validateDependencyDeclarations(entry);
     if (entry.kind === "screen") {
       if (components.size)
         validateComponentViews(

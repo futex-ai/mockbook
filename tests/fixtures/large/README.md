@@ -1,0 +1,69 @@
+# Large Mokabook Consumer
+
+A deterministic, synthetic workload for finding catalogue-size bottlenecks.
+It uses the real build, watched server, component usage collector, Firna controls,
+React Native Web styling and Git Changes path. Nothing is added to the basic
+example's generated files or shipped as product data.
+
+```bash
+npm run fixture:large
+npm run dev:large -- --debug-timings
+npm run benchmark:large
+npm run fixture:large -- --areas 2 --screens 10 --rows 6
+npm run benchmark:large -- --areas 2 --screens 10 --rows 6
+```
+
+`fixture:large` creates a `.context/mokabook-large-*` directory, builds its output
+and commits a `main` baseline **inside that isolated fixture**, not in Mokabook's
+repository. It reports setup time separately and saves a size-keyed record for reuse.
+Ordinary `dev:large` and `benchmark:large` startup never repeats the baseline build
+or package compilation. Run `npm run build` explicitly after changing Mokabook's
+source. Missing setup fails with the matching preparation command; `--config`
+can select an existing fixture. `dev:large` serves until Ctrl-C.
+
+`benchmark:large` launches Chrome, starts a fresh server and measures command start
+to searchable navigation with a real selected preview visible. It verifies record
+count, both viewports/themes, a successful Action label Props edit and a whole page.
+Then it waits for complete Changes and checks that the unchanged fixture has zero
+changes. It repeats with a new server and browser context for a warm restart.
+JSON records separate listening, usable startup, Props, cached delivery and Changes
+times. Either usable startup at five seconds or above fails the command.
+Chrome is launched before timing; “cold” means application-cold, not a flushed
+OS page cache. Generated fixtures remain for inspection.
+
+Defaults are 30 areas, 40 screens per area, and 12 records per screen. Each area
+adds two registered components with three saved variants, a page and one flow
+per ten screens. The default therefore has 1,410 routed entries and 5,550
+documents plus the manifest. Collections are additional non-routed entries.
+Each screen and component variant renders in mobile/desktop and light/dark.
+Flows reuse the canonical screens rather than adding documents. Shared panels
+contain nested actions and caller-owned slots; screens also invoke repeated
+actions. Local CSS imports and SVG resources exercise resource validation and
+watch discovery. Templates use the basic example's theme tokens.
+
+`--areas`, `--screens` and `--rows` take positive integers; screens must be at
+least two per area. To reproduce a source edit, change an entry module in the
+printed directory, or its shared `entries/screens.tsx`, then observe rebuild
+and Changes timings. To compare repeated startups, reuse the printed config
+path instead of generating a new baseline every time.
+
+This is representative structure and volume, not Accounting's private data or
+an exact prediction of its timing. OS, hardware, cache state, markup complexity
+and instance counts matter. Benchmark while other heavy checks are idle. There
+are no fixed timing thresholds in CI's small correctness suite. Small fixtures exercise the same generator
+in `tests/large_fixture.test.ts`; CLI timing tests cover stdout/byte stability,
+child propagation and watched rebuilds.
+
+Renderers must produce valid standalone views regardless of request order. Libraries
+with global style registries may include different unused CSS depending on prior
+views; foreground previews preserve the requested view's real styles. Background
+output retains exhaustive Build order, avoiding artificial changes to committed
+artifacts. Full output and Changes remain asynchronous and are not included in the
+five-second interactive target.
+
+Key files: `generate.ts` produces consumer sources; `area.tsx`, `components.tsx`
+and `screens.tsx` define the catalogue; `renderer.tsx` collects native styles;
+`scripts/large/setup.mjs` owns baseline setup and `benchmark.mjs` owns browser
+acceptance. The
+[diagnostic contract](../../../docs/protocol/mokabook-timings.md) describes timing
+records, inclusive durations and process boundaries.

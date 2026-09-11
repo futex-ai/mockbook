@@ -1,6 +1,7 @@
 /** Main-thread interface to the supervised consumer renderer. */
 import { Worker } from "node:worker_threads";
 import type { ComponentRuntime } from "../../build/component_runtime.js";
+import { compactRuntime } from "../../build/compact_runtime.js";
 import {
   ComponentRenderError,
   type ComponentRenderRequest,
@@ -24,7 +25,7 @@ class NodeRenderWorker implements RenderWorker {
   private readonly worker: Worker;
   constructor(runtime: ComponentRuntime) {
     this.worker = new Worker(new URL("./worker.js", import.meta.url), {
-      workerData: runtime,
+      workerData: compactRuntime(runtime),
       execArgv: [],
       resourceLimits: { maxOldGenerationSizeMb: 256 },
     });

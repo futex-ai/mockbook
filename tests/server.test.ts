@@ -186,6 +186,13 @@ test("CLI no-watch lifecycle becomes ready and exits cleanly on SIGTERM", async 
   });
   const url = await outputUrl(child.stdout);
   assert.equal((await fetch(url)).status, 200);
+  assert.match(
+    await (await fetch(`${url}/static/screens/home.desktop.html`)).text(),
+    /id="home"/,
+  );
+  await waitFor(async () =>
+    fs.existsSync(path.join(fixture.mockupsDir, "mokabook-manifest.json")),
+  );
   child.kill("SIGTERM");
   const code = await new Promise<number | null>((resolve) =>
     child.once("exit", resolve),
@@ -372,15 +379,26 @@ function sourceWithHomeRoute(route: string, title: string): string {
 async function streamEnded(
   reader: ReadableStreamDefaultReader<Uint8Array>,
 ): Promise<boolean> {
-  return await Promise.race([
-    reader.read().then((result) => result.done),
-    new Promise<boolean>((_, reject) =>
-      setTimeout(
-        () => reject(new Error("watched child did not restart")),
-        12_000,
-      ),
-    ),
-  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const drain = async (): Promise<boolean> => {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) return true;
+    }
+  };
+  try {
+    return await Promise.race([
+      drain(),
+      new Promise<boolean>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("watched child did not restart")),
+          12_000,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 function nodeRequest(

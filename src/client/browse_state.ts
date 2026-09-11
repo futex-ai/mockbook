@@ -6,6 +6,7 @@ import {
   selectAndRevealRoute,
 } from "./browse_navigation_state.js";
 import { syncTagChips } from "./tag_filter.js";
+import type { ChangesStatus } from "../server/update_messages.js";
 
 /** Color scheme selection applied to fragment frames and device chrome. */
 export type BrowseColorScheme = "dark" | "light";
@@ -15,6 +16,7 @@ export type BrowseViewport = "both" | "desktop" | "mobile";
 
 /** User-controlled Browse state that survives one automatic reload. */
 export interface BrowseRecoveryState {
+  changesStatus?: ChangesStatus;
   changedOnly: boolean;
   closedCollectionIds: readonly string[];
   colorScheme: BrowseColorScheme;
@@ -76,7 +78,10 @@ export function captureBrowseState(
         return collection.dataset["filterOpen"] === "0" && id ? [id] : [];
       })
     : null;
+  const changesStatus = doc.querySelector<HTMLElement>("[data-changes-status]")
+    ?.dataset["changesStatus"] as ChangesStatus | undefined;
   return {
+    ...(changesStatus ? { changesStatus } : {}),
     changedOnly:
       doc
         .querySelector('[data-filter="changed"]')
@@ -155,68 +160,23 @@ export function restoreBrowseState(
   setViewport(doc, state.viewport);
   setColorScheme(doc, state.colorScheme);
   applyNavVisibility(doc, "preserve");
-  selectAndRevealRoute(
-    doc,
-    win.location.pathname,
-    win.location.href,
-    "recovery",
-  );
+  const currentStatus = doc.querySelector<HTMLElement>("[data-changes-status]")
+    ?.dataset["changesStatus"];
+  const deferredChanges =
+    state.changedOnly &&
+    ((state.changesStatus !== undefined && state.changesStatus !== "ready") ||
+      (currentStatus !== undefined && currentStatus !== "ready"));
+  if (!deferredChanges)
+    selectAndRevealRoute(
+      doc,
+      win.location.pathname,
+      win.location.href,
+      "recovery",
+    );
   syncTagChips(doc);
   const nav = doc.querySelector<HTMLElement>("[data-mokabook-nav-scroll]");
   if (nav) nav.scrollTop = state.navScroll;
   restoreRegionScrolls(doc, state.regionScrolls);
-}
-
-/** Parse untrusted session storage into the strict Browse recovery contract. */
-export function parseBrowseRecoveryState(
-  value: unknown,
-): BrowseRecoveryState | undefined {
-  if (!record(value)) return undefined;
-  const changedOnly = value["changedOnly"];
-  const colorScheme = value["colorScheme"];
-  const storedFilterBaselineClosedCollectionIds =
-    value["filterBaselineClosedCollectionIds"];
-  const filterBaselineClosedCollectionIds =
-    storedFilterBaselineClosedCollectionIds === undefined
-      ? null
-      : storedFilterBaselineClosedCollectionIds;
-  const query = value["query"];
-  const viewport = value["viewport"];
-  if (
-    typeof changedOnly !== "boolean" ||
-    !stringArray(value["closedCollectionIds"]) ||
-    (colorScheme !== "dark" && colorScheme !== "light") ||
-    typeof value["detailsOpen"] !== "boolean" ||
-    typeof value["drawerOpen"] !== "boolean" ||
-    !nonNegativeNumber(value["navScroll"]) ||
-    typeof query !== "string" ||
-    !scrollRecord(value["regionScrolls"]) ||
-    (viewport !== "both" && viewport !== "desktop" && viewport !== "mobile")
-  ) {
-    return undefined;
-  }
-  if (
-    filterBaselineClosedCollectionIds !== null &&
-    (!stringArray(filterBaselineClosedCollectionIds) ||
-      (!changedOnly && query.trim() === ""))
-  ) {
-    return undefined;
-  }
-  return {
-    changedOnly,
-    closedCollectionIds: [...new Set(value["closedCollectionIds"])],
-    colorScheme,
-    detailsOpen: value["detailsOpen"],
-    drawerOpen: value["drawerOpen"],
-    filterBaselineClosedCollectionIds:
-      filterBaselineClosedCollectionIds === null
-        ? null
-        : [...new Set(filterBaselineClosedCollectionIds)],
-    navScroll: value["navScroll"],
-    query,
-    regionScrolls: { ...value["regionScrolls"] },
-    viewport,
-  };
 }
 
 /** Apply the responsive navigation drawer state. */
@@ -289,28 +249,4 @@ export function currentColorScheme(doc: Document): BrowseColorScheme {
   return doc.body.getAttribute("data-mokabook-color-scheme") === "dark"
     ? "dark"
     : "light";
-}
-
-function nonNegativeNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0;
-}
-
-function record(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function scrollRecord(
-  value: unknown,
-): value is Readonly<Record<string, number>> {
-  return (
-    record(value) &&
-    Object.values(value).every((entry) => nonNegativeNumber(entry))
-  );
-}
-
-function stringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) &&
-    value.every((item) => typeof item === "string" && item.length > 0)
-  );
 }

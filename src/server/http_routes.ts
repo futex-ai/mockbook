@@ -17,9 +17,12 @@ import type { ReviewRoutes } from "./review_routes.js";
 import { shellContext } from "./shell/context.js";
 import { SHELL_CSS } from "./shell/css.js";
 import { serveStatic } from "./static_routes.js";
+import { handleDemandRequest } from "./demand/http.js";
+import type { DocumentService } from "./demand/service.js";
+import type { ChangesStatus } from "./update_messages.js";
 
 /** Dispatch a request against one validated catalogue generation. */
-export function handleCatalogueRequest(
+export async function handleCatalogueRequest(
   rawUrl: string,
   method: string,
   response: ServerResponse,
@@ -33,10 +36,17 @@ export function handleCatalogueRequest(
   reviewRoutes?: ReviewRoutes,
   componentChanges?: ComponentChangeSnapshot,
   renderCapability?: RenderCapability,
-): void {
+  documents?: DocumentService,
+  changesStatus?: ChangesStatus,
+): Promise<void> {
   if (method !== "GET" && method !== "HEAD")
     return send(response, 405, "text/plain", "Method not allowed", method);
   const url = new URL(rawUrl, "http://mokabook.invalid");
+  if (
+    documents &&
+    (await handleDemandRequest(url, method, response, catalogue, documents))
+  )
+    return;
   const requestVersion = currentVersion();
   const changed =
     componentChanges?.changedRoutes ??
@@ -58,6 +68,7 @@ export function handleCatalogueRequest(
     requestVersion,
   );
   context.comparisons = reviewRoutes !== undefined;
+  if (changesStatus) context.changesStatus = changed ? "ready" : changesStatus;
   if (componentChanges) context.componentChanges = componentChanges;
   if (renderCapability) context.renderCapability = renderCapability;
   if (url.pathname === "/")
@@ -109,6 +120,7 @@ export function handleCatalogueRequest(
       config,
       context,
       method,
+      documents,
     );
   if (url.pathname.startsWith("/view/"))
     return renderView(
@@ -119,6 +131,7 @@ export function handleCatalogueRequest(
       config,
       context,
       method,
+      documents,
     );
   if (url.pathname.startsWith("/static/"))
     return serveStatic(

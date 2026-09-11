@@ -21,6 +21,7 @@ import {
   NodeGitCommandRunner,
   RepositoryGitClient,
   type GitClient,
+  type GitCommandRunner,
 } from "../review/git.js";
 
 export interface ComponentChangeSnapshot {
@@ -31,6 +32,44 @@ export interface ComponentChangeSnapshot {
 export interface ComponentChangeSource {
   baseline(): Promise<string>;
   read(commit: string): Promise<ComponentChangeSnapshot | undefined>;
+}
+
+/** Read-only catalogue classification boundary used outside the HTTP child. */
+export interface CatalogueChangeClassifier {
+  read(
+    config: ResolvedConfig,
+    manifest: Manifest,
+    base: string,
+    signal?: AbortSignal,
+  ): Promise<ComponentChangeSnapshot | undefined>;
+}
+
+/** Classify one generated catalogue against its repository branch point. */
+export class RepositoryCatalogueChangeClassifier implements CatalogueChangeClassifier {
+  constructor(private readonly commands?: GitCommandRunner) {}
+
+  async read(
+    config: ResolvedConfig,
+    manifest: Manifest,
+    base: string,
+    signal?: AbortSignal,
+  ): Promise<ComponentChangeSnapshot | undefined> {
+    try {
+      const source = new RepositoryComponentChanges(
+        config,
+        manifest,
+        base,
+        signal,
+        this.commands,
+      );
+      signal?.throwIfAborted();
+      const baseline = await source.baseline();
+      signal?.throwIfAborted();
+      return await source.read(baseline);
+    } catch {
+      return undefined;
+    }
+  }
 }
 
 /** Retain one immutable classification; resolving the baseline never creates Review artifacts. */
@@ -68,14 +107,16 @@ export class ComponentChangeCache {
 
 /** Production read boundary for a last-good catalogue and its current Git branch point. */
 export class RepositoryComponentChanges implements ComponentChangeSource {
-  private readonly runner: NodeGitCommandRunner;
+  private readonly runner: GitCommandRunner;
   private readonly git: RepositoryGitClient;
   constructor(
     private readonly config: ResolvedConfig,
     private readonly manifest: Manifest,
     private readonly base: string,
+    signal?: AbortSignal,
+    commands?: GitCommandRunner,
   ) {
-    this.runner = new NodeGitCommandRunner(config.repoRoot);
+    this.runner = commands ?? new NodeGitCommandRunner(config.repoRoot, signal);
     this.git = new RepositoryGitClient(this.runner);
   }
   async baseline(): Promise<string> {

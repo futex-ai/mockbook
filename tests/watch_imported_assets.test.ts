@@ -8,8 +8,8 @@ import { serve } from "../dist/server/serve.js";
 import { changedFixture } from "./helpers/changed_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
 import {
-  catalogue,
   version,
+  waitForClassifiedCount,
   waitForUpdate,
 } from "./helpers/watched_catalogue.js";
 
@@ -40,12 +40,15 @@ test(
       const before = readManifest(fixture.config).entries.find(
         (entry) => entry.id === "home",
       )?.title;
-      const previousVersion = version(await catalogue(running.url));
+      const previousVersion = version(
+        await waitForClassifiedCount(running.url, 0),
+      );
       await fs.writeFile(
         path.join(fixture.mockupsDir, "image.svg"),
         '<svg width="200"><rect width="20"/></svg>',
       );
-      const html = await waitForUpdate(running.url, previousVersion);
+      await waitForUpdate(running.url, previousVersion);
+      const html = await waitForClassifiedCount(running.url, 2);
       const after = readManifest(fixture.config).entries.find(
         (entry) => entry.id === "home",
       )?.title;

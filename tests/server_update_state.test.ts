@@ -50,5 +50,6 @@ test("published updates replace or clear changed-route shell state", async (cont
 
   server.publishUpdate({ changedRoutes: null, version: 3 });
   const unavailable = await (await fetch(server.url)).text();
-  assert.doesNotMatch(unavailable, /data-mokabook-filter/);
+  assert.match(unavailable, /data-changes-status="unavailable"/);
+  assert.match(unavailable, /data-filter="changed"/);
 });

@@ -12,6 +12,7 @@ if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) {
 export default defineConfig({
   forbidOnly: true,
   fullyParallel: false,
+  globalSetup: "./tests/browser/setup.ts",
   projects: [
     {
       name: "chromium",

@@ -1,9 +1,29 @@
 import chokidar, { type FSWatcher } from "chokidar";
-
+import type { ResolvedConfig } from "../config/types.js";
+import { errorMessage } from "../errors.js";
+import {
+  isPackageOwnedIgnoredWatchPath,
+  watchTargets,
+  type NotificationGate,
+} from "./watch_events.js";
 import {
   rawRenamePaths,
   ResourceWatchNotifications,
 } from "./watch_notifications.js";
+
+/** Build the source/config observer before compiling an accepted input graph. */
+export function createSourceWatcher(
+  factory: ConsumerWatcherFactory,
+  config: ResolvedConfig,
+  gate: NotificationGate<string>,
+): ConsumerWatcher {
+  const watcher = factory.create(watchTargets(config), (candidate) =>
+    isPackageOwnedIgnoredWatchPath(candidate, config),
+  );
+  watcher.onChange((candidate) => gate.notify(candidate));
+  watcher.onError((error) => process.stderr.write(`${errorMessage(error)}\n`));
+  return watcher;
+}
 
 /** Consumer-input watcher lifecycle used by watched Serve. */
 export interface ConsumerWatcher {

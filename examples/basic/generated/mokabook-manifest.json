@@ -99333,6 +99333,24 @@
           "kind": "boolean",
           "label": "Changes only"
         },
+        "changesStatus": {
+          "kind": "select",
+          "label": "Changes availability",
+          "options": [
+            {
+              "label": "Ready",
+              "value": "ready"
+            },
+            {
+              "label": "Checking",
+              "value": "pending"
+            },
+            {
+              "label": "Unavailable",
+              "value": "unavailable"
+            }
+          ]
+        },
         "presentation": {
           "kind": "select",
           "label": "Presentation",
@@ -99597,6 +99615,17 @@
                 "design-component-empty",
                 "design-component-unavailable",
                 "design-component-removed-consumer"
+              ]
+            }
+          },
+          "changesStatus": {
+            "optional": true,
+            "schema": {
+              "kind": "enum",
+              "values": [
+                "ready",
+                "pending",
+                "unavailable"
               ]
             }
           },
@@ -100327,6 +100356,197 @@
           },
           "suppliedSlots": [],
           "title": "Drawer"
+        },
+        {
+          "componentViews": [
+            {
+              "colorScheme": "light",
+              "instances": [],
+              "ranges": [],
+              "resources": [],
+              "slots": [],
+              "styles": [],
+              "viewport": "mobile"
+            },
+            {
+              "colorScheme": "light",
+              "instances": [],
+              "ranges": [],
+              "resources": [],
+              "slots": [],
+              "styles": [],
+              "viewport": "desktop"
+            }
+          ],
+          "fragments": {
+            "desktop": "design/library/chrome/catalogue-navigation.variants/loading.desktop.html",
+            "mobile": "design/library/chrome/catalogue-navigation.variants/loading.mobile.html"
+          },
+          "id": "loading",
+          "props": {
+            "activeDestination": [
+              "string",
+              "design-browse-screen"
+            ],
+            "allDestination": [
+              "string",
+              "design-browse-screen"
+            ],
+            "changedCount": [
+              "number",
+              "1"
+            ],
+            "changedOnly": [
+              "boolean",
+              true
+            ],
+            "changesDestination": [
+              "string",
+              "design-changes-current"
+            ],
+            "changesStatus": [
+              "string",
+              "pending"
+            ],
+            "presentation": [
+              "string",
+              "responsive"
+            ],
+            "rows": [
+              "array",
+              [
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "screens"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Screens"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "welcome"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "screen"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Welcome"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-browse-screen"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "details"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "screen"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Details"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-browse-details-screen"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          },
+          "suppliedSlots": [],
+          "title": "Checking for changes"
         }
       ],
       "viewports": [

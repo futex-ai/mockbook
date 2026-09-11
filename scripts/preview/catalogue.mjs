@@ -87,6 +87,7 @@ export async function buildPreview(config, output, options = {}) {
           : undefined;
         const server = await startCatalogueServer(config, {
           base,
+          liveChanges: false,
           snapshot,
           port: 0,
           ...(review ? { review } : {}),

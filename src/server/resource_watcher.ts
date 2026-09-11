@@ -1,6 +1,7 @@
 /** Transactional watches for resources discovered from generated output. */
 
 import path from "node:path";
+import { timeAsync } from "../diagnostics/timings.js";
 
 import type { Compilation } from "../build/compile.js";
 import { isInside } from "../config/paths.js";
@@ -38,15 +39,23 @@ export class ResourceWatcher {
   /** Observe new inputs before adoption and retain removed inputs until it succeeds. */
   async prepare(
     config: ResolvedConfig,
-    compilation: Compilation,
+    compilation: Pick<Compilation, "outputs">,
     shutdownStarted: Promise<void>,
     allowInvalid = false,
+    incremental = false,
   ): Promise<PreparedResourceWatch | undefined> {
-    let snapshot = await discoverWatchResources(
-      config,
-      compilation,
-      this.#snapshot,
-      allowInvalid,
+    const previous = incremental ? this.#snapshot : undefined;
+    const discover = async (last?: ResourceWatchSnapshot) => {
+      const next = await discoverWatchResources(
+        config,
+        compilation,
+        last,
+        allowInvalid,
+      );
+      return previous ? mergeResourceSnapshots(previous, next) : next;
+    };
+    let snapshot = await timeAsync("watch.resources-discover", () =>
+      discover(this.#snapshot),
     );
     if (sameWatch(snapshot, this.#snapshot)) {
       return {
@@ -79,16 +88,15 @@ export class ResourceWatcher {
       try {
         if (
           watcher &&
-          !(await watcherReadyBeforeShutdown(watcher, shutdownStarted))
+          !(await timeAsync("watch.resources-ready", () =>
+            watcherReadyBeforeShutdown(watcher, shutdownStarted),
+          ))
         ) {
           await watcher.close();
           return undefined;
         }
-        const refreshed = await discoverWatchResources(
-          config,
-          compilation,
-          snapshot,
-          allowInvalid,
+        const refreshed = await timeAsync("watch.resources-rediscover", () =>
+          discover(snapshot),
         );
         if (!sameWatch(snapshot, refreshed)) {
           await watcher?.close();
@@ -130,6 +138,18 @@ export class ResourceWatcher {
     this.#closed = true;
     await this.#watcher?.close();
   }
+}
+
+function mergeResourceSnapshots(
+  previous: ResourceWatchSnapshot,
+  next: ResourceWatchSnapshot,
+): ResourceWatchSnapshot {
+  return {
+    paths: new Set([...previous.paths, ...next.paths]),
+    invalid: new Set([...previous.invalid, ...next.invalid]),
+    references: new Map([...previous.references, ...next.references]),
+    locations: new Map([...previous.locations, ...next.locations]),
+  };
 }
 
 /** Replace observers after invalid entries recover, even at the same lexical path. */

@@ -83,7 +83,11 @@ export class ManagedChild {
   send(message: ChildCommand): void {
     if (
       this.#state !== "ready" &&
-      !(this.#state === "waiting" && message.type === "component-runtime")
+      !(
+        this.#state === "waiting" &&
+        (message.type === "component-runtime-startup" ||
+          message.type === "component-runtime")
+      )
     )
       return;
     try {

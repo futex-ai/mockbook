@@ -1,9 +1,7 @@
 /** Storage subset used for one-shot reload recovery. */
 
-import {
-  parseBrowseRecoveryState,
-  type BrowseRecoveryState,
-} from "./browse_state.js";
+import { parseBrowseRecoveryState } from "./browse_recovery.js";
+import type { BrowseRecoveryState } from "./browse_state.js";
 export interface RecoveryStorage {
   getItem(key: string): string | null;
   removeItem(key: string): void;

@@ -12,8 +12,8 @@ import {
   extractCssReferences,
   extractHtmlReferences,
 } from "../../html_references.js";
-import { htmlResource } from "../../html_link_validation.js";
-import type { Manifest } from "../../registry/types.js";
+import { rebaseTransientNavigation } from "./transient_links.js";
+import type { CatalogueMetadata } from "../../registry/catalogue_index.js";
 import { createCatalogue } from "../catalogue.js";
 import { contentType } from "../respond.js";
 
@@ -31,8 +31,9 @@ export interface TransientRender {
 export function captureRenderBundle(
   route: string,
   outputs: ReadonlyMap<string, string>,
-  manifest: Manifest,
+  manifest: CatalogueMetadata,
   config: ResolvedConfig,
+  readGenerated?: (route: string) => string | undefined,
 ): ReadonlyMap<string, RenderFile> {
   const catalogue = createCatalogue(manifest);
   const files = new Map<string, RenderFile>();
@@ -41,7 +42,7 @@ export function captureRenderBundle(
   while (pending.length) {
     const current = pending.shift()!;
     if (files.has(current)) continue;
-    const generated = outputs.get(current);
+    const generated = outputs.get(current) ?? readGenerated?.(current);
     const candidate = path.resolve(config.mockupsDir, current);
     if (generated === undefined && !isPublicStaticFile(candidate, config))
       throw new Error("Preview resource is unavailable");
@@ -51,13 +52,16 @@ export function captureRenderBundle(
         : Buffer.from(generated);
     const type = contentType(current);
     const references = type.startsWith("text/html")
-      ? htmlResource(extractHtmlReferences(bytes.toString())).references
+      ? extractHtmlReferences(bytes.toString()).resources
       : type.startsWith("text/css")
         ? extractCssReferences(bytes.toString())
         : [];
     if (type.startsWith("text/html"))
       bytes = Buffer.from(
-        adaptBrowseDocument(bytes.toString(), current, catalogue),
+        rebaseTransientNavigation(
+          adaptBrowseDocument(bytes.toString(), current, catalogue),
+          current,
+        ),
       );
     size += bytes.byteLength;
     if (size > RENDER_BYTES)
@@ -67,7 +71,7 @@ export function captureRenderBundle(
       );
     files.set(current, { type, bytes });
     for (const reference of references) {
-      const value = typeof reference === "string" ? reference : reference.value;
+      const value = reference;
       if (!value || /^(?:[a-z][a-z0-9+.-]*:|#|\?|\/)/i.test(value)) continue;
       const pathname = decodeURIComponent(value.split(/[?#]/, 1)[0]!);
       const target = path.posix.normalize(

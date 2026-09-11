@@ -1,4 +1,6 @@
 /** Shutdown and child-restart helpers for watched Serve orchestration. */
+import { fileURLToPath } from "node:url";
+import { timingArguments } from "../diagnostics/timings.js";
 
 import type { Compilation } from "../build/compile.js";
 import type { GeneratedOutputStore } from "../build/output_store.js";
@@ -8,10 +10,32 @@ import type {
   PreparedResourceWatch,
   ResourceWatcher,
 } from "./resource_watcher.js";
-import type { RunningServe } from "./serve.js";
-import type { ProcessSupervisor } from "./supervisor.js";
+import type { RunningServe, ServeOptions } from "./serve.js";
+import type {
+  ProcessSupervisor,
+  ProcessSupervisorFactory,
+} from "./supervisor.js";
 import type { ConsumerWatcher } from "./watcher.js";
 import type { WatchActionQueue } from "./watch_events.js";
+
+/** Keep CLI child configuration, including diagnostic opt-in, stable across restarts. */
+export function createWatchedSupervisor(
+  config: ResolvedConfig,
+  options: ServeOptions,
+  factory: ProcessSupervisorFactory,
+): ProcessSupervisor {
+  return factory.create(
+    fileURLToPath(new URL("../cli/bin.js", import.meta.url)),
+    [
+      "__serve-child",
+      ...timingArguments(),
+      "--config",
+      config.configPath,
+      ...(options.base !== undefined ? ["--base", options.base] : []),
+    ],
+    options.port,
+  );
+}
 
 /** Present a deterministic child server through the public Serve lifecycle. */
 export function serverLifecycle(server: RunningServer): RunningServe {

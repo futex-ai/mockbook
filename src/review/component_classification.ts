@@ -6,7 +6,8 @@ import { canonicalJson } from "../components/data.js";
 import { generatedViews } from "../components/views.js";
 import { toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
-import type { Manifest } from "../registry/types.js";
+import { analyzeHierarchy } from "../registry/hierarchy.js";
+import type { Manifest, ManifestEntry } from "../registry/types.js";
 import type { ReviewAssetReader } from "./assets.js";
 import { affectedConsumers } from "./component_affected.js";
 import { validateComponentReviewSources } from "./component_result_sources.js";
@@ -84,6 +85,12 @@ export async function classifyComponents(
   const impacting = new Set<string>();
   const actualImplementations = new Set<string>();
   const pairs = entryPairs(before, after);
+  const beforeHierarchy = analyzeHierarchy<ManifestEntry>(
+    before.entries as readonly ManifestEntry[],
+  ).hierarchy;
+  const afterHierarchy = analyzeHierarchy<ManifestEntry>(
+    after.entries as readonly ManifestEntry[],
+  ).hierarchy;
   for (const pair of pairs) {
     const entry = (pair.after ?? pair.before)!;
     const sides = {
@@ -96,7 +103,8 @@ export async function classifyComponents(
     if (
       pair.before &&
       pair.after &&
-      metadata(pair.before, before) !== metadata(pair.after, after)
+      metadata(pair.before, before, beforeHierarchy) !==
+        metadata(pair.after, after, afterHierarchy)
     )
       reasons.push({ kind: "metadata" });
     reasons.push(

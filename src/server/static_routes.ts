@@ -1,6 +1,7 @@
 /** Public `/static/` delivery with Browse-only HTML authentication. */
 
 import fs from "node:fs";
+import { isOwned } from "../build/ownership.js";
 import type { ServerResponse } from "node:http";
 import path from "node:path";
 
@@ -24,6 +25,11 @@ export function serveStatic(
     return send(response, 400, "text/plain", "Invalid static path", method);
   }
   const candidate = path.resolve(config.mockupsDir, relative);
+  if (
+    catalogue.manifest.schemaVersion === "live-index-1" &&
+    isOwned(candidate, config)
+  )
+    return send(response, 404, "text/plain", "Not found", method);
   const location = publicFileLocation(candidate, config);
   if (!location) {
     return send(response, 404, "text/plain", "Not found", method);

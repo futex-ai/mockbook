@@ -130,7 +130,7 @@ export function ScreenDetails({ state }: { state: ScreenPageState }) {
                 content: noInstances ? (
                   <p className="ce-empty-copy">
                     {state === "unavailable"
-                      ? "Usage is unavailable for this screen."
+                      ? "Usage is unavailable until the catalogue has been checked."
                       : "This screen uses no registered components."}
                   </p>
                 ) : (

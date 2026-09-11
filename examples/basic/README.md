@@ -15,9 +15,15 @@ styles and the design mockups. Registration and source ownership live in
 `entries/components/action.tsx` and `toolbar.tsx`.
 It contains no Accounting or Juno product screen.
 
+For a much larger synthetic catalogue, first prepare it with `npm run fixture:large`,
+then use `npm run dev:large -- --debug-timings` or `npm run benchmark:large`.
+The [large fixture](../../tests/fixtures/large/README.md)
+uses the same Firna/React Native Web rendering stack with configurable volume,
+without expanding this committed example or slowing ordinary development startup.
+
 Mokabook's 56 design screens now use 15 registered shared components, including
 the footer tabs panel. Open **Design → Shared components** for Chrome, Controls,
-Inspector and Preview galleries with 55 saved variants, real mobile/desktop
+Inspector and Preview galleries with 56 saved variants, real mobile/desktop
 previews and editable local props. The outer Components and Usage tabs show actual
 recorded relationships; pictured example data inside an artboard stays separate.
 See the [library authoring guide](./entries/design/library/README.md),

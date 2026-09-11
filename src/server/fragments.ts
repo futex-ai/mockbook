@@ -11,22 +11,27 @@ import type { ManifestComponent } from "../components/manifest_types.js";
 import { generatedViews } from "../components/views.js";
 import type { ManifestEntry, ManifestScreen } from "../registry/types.js";
 import type { Catalogue } from "./catalogue.js";
+import type { DocumentService } from "./demand/service.js";
 
 /** Parse and cross-view validate the optional fragment query. */
-export function requestedFragment(
+export async function requestedFragment(
   url: URL,
   entry: ManifestEntry | undefined,
   catalogue: Catalogue,
   config: ResolvedConfig,
-): string | null | undefined {
+  documents?: DocumentService,
+): Promise<string | null | undefined> {
   const values = url.searchParams.getAll("fragment");
   if (values.length === 0) return undefined;
   const fragment = values.length === 1 ? values[0] : undefined;
   if (!fragment || !isLogicalFragment(fragment)) return null;
   if (entry?.kind === "page")
-    return containsFragment(entry.route, fragment, config) ? fragment : null;
+    return (await containsFragment(entry.route, fragment, config, documents))
+      ? fragment
+      : null;
   const screen = destinationScreen(entry, catalogue);
-  if (!screen || !allViewsContain(screen, fragment, config)) return null;
+  if (!screen || !(await allViewsContain(screen, fragment, config, documents)))
+    return null;
   return fragment;
 }
 
@@ -47,11 +52,12 @@ function destinationScreen(
   return candidate?.kind === "screen" ? candidate : undefined;
 }
 
-function allViewsContain(
+async function allViewsContain(
   screen: ManifestScreen | ManifestComponent,
   fragment: string,
   config: ResolvedConfig,
-): boolean {
+  documents?: DocumentService,
+): Promise<boolean> {
   const routes = generatedViews(screen)
     .filter(
       (view) =>
@@ -59,15 +65,26 @@ function allViewsContain(
         view.variantId === screen.variants[0]!.id,
     )
     .map((view) => view.path);
-  return routes.every((route) => containsFragment(route, fragment, config));
+  return (
+    await Promise.all(
+      routes.map((route) =>
+        containsFragment(route, fragment, config, documents),
+      ),
+    )
+  ).every(Boolean);
 }
 
-function containsFragment(
+async function containsFragment(
   route: string,
   fragment: string,
   config: ResolvedConfig,
-): boolean {
+  documents?: DocumentService,
+): Promise<boolean> {
   try {
+    if (documents)
+      return extractHtmlReferences(
+        (await documents.read(route)).html,
+      ).anchors.has(fragment);
     const file = path.join(config.mockupsDir, route);
     if (!isPublicStaticFile(file, config)) return false;
     return extractHtmlReferences(fs.readFileSync(file, "utf8")).anchors.has(

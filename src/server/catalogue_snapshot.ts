@@ -1,9 +1,14 @@
+import { timeAsync, timeSync } from "../diagnostics/timings.js";
 import type { ComponentChangeSnapshot } from "./component_changes.js";
 import { assertFreshSourceInventory } from "../build/source_freshness.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import type { CatalogueChangeSnapshot } from "../registry/changes.js";
 import { parseManifest, readManifest } from "../registry/manifest.js";
+import {
+  parseCatalogueIndex,
+  type CatalogueIndex,
+} from "../registry/catalogue_index.js";
 import type { ManifestV5 } from "../registry/types.js";
 import { createCatalogue, type Catalogue } from "./catalogue.js";
 import {
@@ -29,17 +34,33 @@ export async function loadCatalogueSnapshot(
   ) => Promise<ResolvedCatalogueChanges | undefined>,
   manifest: ManifestV5 = readManifest(config),
 ): Promise<CatalogueSnapshot> {
-  parseManifest(manifest);
-  await assertFreshSourceInventory(config, manifest);
-  const changes = await resolveChanges?.(manifest);
+  timeSync("catalogue.validate", () => parseManifest(manifest));
+  await timeAsync("catalogue.source-freshness", () =>
+    assertFreshSourceInventory(config, manifest),
+  );
+  const changes = resolveChanges
+    ? await timeAsync("changes.classify", () => resolveChanges(manifest))
+    : undefined;
   return {
     [configIdentity]: config,
-    catalogue: createCatalogue(manifest, changes?.removedEntries),
+    catalogue: timeSync("catalogue.index", () =>
+      createCatalogue(manifest, changes?.removedEntries),
+    ),
     ...(changes ? { changes } : {}),
     ...(changes?.componentChanges
       ? { componentChanges: changes.componentChanges }
       : {}),
   };
+}
+
+/** Validate the distinct live index without claiming uncomputed render evidence. */
+export async function loadLiveCatalogueSnapshot(
+  config: ResolvedConfig,
+  index: CatalogueIndex,
+): Promise<CatalogueSnapshot> {
+  parseCatalogueIndex(index);
+  await assertFreshSourceInventory(config, index);
+  return { [configIdentity]: config, catalogue: createCatalogue(index) };
 }
 
 /** Validate startup metadata once, retaining Browse when optional history is unavailable. */

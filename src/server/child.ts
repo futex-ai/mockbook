@@ -1,9 +1,17 @@
-import type { ComponentRuntime } from "../build/component_runtime.js";
-import { parseRuntimeMessage } from "./controls/runtime_ipc.js";
+import {
+  parseRuntimeMessage,
+  requestComponentRuntime,
+  receiveRequestedRuntime,
+} from "./controls/runtime_ipc.js";
 import type { ResolvedConfig } from "../config/types.js";
+import type { ComponentRuntime } from "../build/component_runtime.js";
+import { bindTimings, timeSync } from "../diagnostics/timings.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
-import { parseChildUpdateMessage } from "./update_messages.js";
+import {
+  parseCatalogueCompleteMessage,
+  parseChildUpdateMessage,
+} from "./update_messages.js";
 
 /** Run the hidden deterministic server child until its parent shuts it down. */
 export async function runServerChild(
@@ -12,21 +20,36 @@ export async function runServerChild(
   base: string,
   updateVersion: number,
   strictPort: boolean,
-  componentRuntime?: ComponentRuntime,
+  retainedRuntime: boolean,
+  manifest?: ComponentRuntime["manifest"],
 ): Promise<void> {
+  const initial =
+    retainedRuntime && manifest?.schemaVersion === "live-index-1"
+      ? await receiveRequestedRuntime()
+      : undefined;
+  if (initial?.version) updateVersion = initial.version;
   const server = await startCatalogueServer(config, {
     base,
-    ...(componentRuntime ? { componentRuntime } : {}),
+    changesStatus: "pending",
+    onForeground: (active) => process.send?.({ type: "foreground", active }),
+    onPreviewResources: (observation) =>
+      process.send?.({ type: "preview-resources", ...observation }),
+    ...(manifest ? { manifest } : {}),
+    ...(initial && manifest
+      ? { componentRuntime: { ...initial.runtime, config, manifest } }
+      : {}),
     port,
     review: configuredServedReview(config, base),
     strictPort,
     updateVersion,
   });
+  const shutdown = waitForChildShutdown(server, config, manifest);
   process.send?.({ port: server.port, type: "ready", version: updateVersion });
   if (!process.send)
     process.stdout.write(`Mokabook listening at ${server.url}\n`);
+  if (retainedRuntime && !initial) requestComponentRuntime();
   try {
-    await waitForChildShutdown(server);
+    await shutdown;
   } finally {
     if (process.connected) process.disconnect?.();
   }
@@ -34,12 +57,14 @@ export async function runServerChild(
 
 function waitForChildShutdown(
   server: Awaited<ReturnType<typeof startCatalogueServer>>,
+  config: ResolvedConfig,
+  manifest?: ComponentRuntime["manifest"],
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let closing = false;
     const cleanup = (): void => {
       process.off("disconnect", onDisconnect);
-      process.off("message", onMessage);
+      process.off("message", receive);
       process.off("SIGINT", onSignal);
       process.off("SIGTERM", onSignal);
     };
@@ -56,16 +81,42 @@ function waitForChildShutdown(
       }
     };
     const onMessage = (message: unknown): void => {
+      const complete = parseCatalogueCompleteMessage(message);
+      if (
+        complete &&
+        server.completeCatalogue?.(complete.manifest, complete.generation)
+      ) {
+        server.publishUpdate({ version: complete.version });
+      }
       const runtime = parseRuntimeMessage(message);
-      if (runtime) server.replaceComponentRuntime(runtime.runtime);
+      if (runtime && manifest) {
+        timeSync("runtime.attach", () =>
+          server.replaceComponentRuntime({
+            ...runtime.runtime,
+            config,
+            manifest,
+          }),
+        );
+        if (runtime.version !== undefined)
+          server.publishUpdate({ version: runtime.version });
+      }
       const update = parseChildUpdateMessage(message);
-      if (update) server.publishUpdate(update);
+      if (update)
+        server.publishUpdate({
+          changesStatus:
+            update.changesStatus ??
+            (update.changedRoutes === null ? "pending" : "ready"),
+          changedRoutes: update.changedRoutes,
+          componentChanges: update.componentChanges,
+          version: update.version,
+        });
       if (isMessage(message, "shutdown")) void close();
     };
     const onDisconnect = (): void => void close();
     const onSignal = (): void => void close();
     process.once("disconnect", onDisconnect);
-    process.on("message", onMessage);
+    const receive = bindTimings(onMessage);
+    process.on("message", receive);
     process.once("SIGINT", onSignal);
     process.once("SIGTERM", onSignal);
   });

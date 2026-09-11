@@ -8,6 +8,7 @@ import { serve } from "../dist/server/serve.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import { changedFixture } from "./helpers/changed_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
+import { waitForClassifiedCount } from "./helpers/watched_catalogue.js";
 
 const ignoredSource = validEntrySource({
   body: '<ReviewIgnore id="nav"><nav>Old navigation</nav></ReviewIgnore><p>Screen content</p>',
@@ -30,7 +31,7 @@ test("Changes excludes ignored-only edits while comparisons retain their evidenc
     watch: false,
   });
   t.after(() => running.close());
-  const page = await (await fetch(running.url)).text();
+  const page = await waitForClassifiedCount(running.url, 0);
   assert.match(page, /class="mbk-nav-filter-count">0</);
   await assert.rejects(fs.access(fixture.config.review.outDir));
   const result = (await (

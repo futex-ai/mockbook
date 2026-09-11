@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { timeAsync, timeSync } from "../diagnostics/timings.js";
 
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
@@ -12,45 +13,64 @@ export async function writeCompilation(
   compilation: Compilation,
   config: ResolvedConfig,
 ): Promise<void> {
+  return timeAsync("output.write", () => writeMeasured(compilation, config));
+}
+
+async function writeMeasured(
+  compilation: Compilation,
+  config: ResolvedConfig,
+): Promise<void> {
   const destinationConfig = config;
   config = { ...config, sourceFiles: compilation.manifest.sourceFiles };
-  rejectUnsafeTargets(compilation, config);
+  timeSync("output.validate-targets", () =>
+    rejectUnsafeTargets(compilation, config),
+  );
   const temporaryRoot = await fs.promises.mkdtemp(
     path.join(path.dirname(config.mockupsDir), ".mokabook-write-"),
   );
   const stageRoot = path.join(temporaryRoot, "stage");
   const backupRoot = path.join(temporaryRoot, "backup");
   const expected = [...compilation.outputs.keys()].sort();
-  const orphan = pendingGeneratedOrphanRoutes(config, expected);
+  const orphan = timeSync("output.find-orphans", () =>
+    pendingGeneratedOrphanRoutes(config, expected),
+  );
   const affected = [...new Set([...expected, ...orphan])].sort();
   const backedUp: string[] = [];
   const installed: string[] = [];
   try {
-    for (const route of expected) {
-      const staged = path.join(stageRoot, route);
-      await fs.promises.mkdir(path.dirname(staged), { recursive: true });
-      await fs.promises.writeFile(
-        staged,
-        compilation.outputs.get(route) ?? "",
-        "utf8",
-      );
-    }
-    for (const route of affected) {
-      const target = path.join(config.mockupsDir, route);
-      if (!fs.existsSync(target)) continue;
-      const backup = path.join(backupRoot, route);
-      await fs.promises.mkdir(path.dirname(backup), { recursive: true });
-      await fs.promises.rename(target, backup);
-      backedUp.push(route);
-    }
-    for (const route of expected) {
-      const target = path.join(config.mockupsDir, route);
-      await fs.promises.mkdir(path.dirname(target), { recursive: true });
-      await fs.promises.rename(path.join(stageRoot, route), target);
-      installed.push(route);
-    }
+    await timeAsync("output.stage", async () => {
+      for (const route of expected) {
+        const staged = path.join(stageRoot, route);
+        await fs.promises.mkdir(path.dirname(staged), { recursive: true });
+        await fs.promises.writeFile(
+          staged,
+          compilation.outputs.get(route) ?? "",
+          "utf8",
+        );
+      }
+    });
+    await timeAsync("output.backup", async () => {
+      for (const route of affected) {
+        const target = path.join(config.mockupsDir, route);
+        if (!fs.existsSync(target)) continue;
+        const backup = path.join(backupRoot, route);
+        await fs.promises.mkdir(path.dirname(backup), { recursive: true });
+        await fs.promises.rename(target, backup);
+        backedUp.push(route);
+      }
+    });
+    await timeAsync("output.install", async () => {
+      for (const route of expected) {
+        const target = path.join(config.mockupsDir, route);
+        await fs.promises.mkdir(path.dirname(target), { recursive: true });
+        await fs.promises.rename(path.join(stageRoot, route), target);
+        installed.push(route);
+      }
+    });
   } catch (error) {
-    await rollback(config, backupRoot, installed, backedUp);
+    await timeAsync("output.rollback", () =>
+      rollback(config, backupRoot, installed, backedUp),
+    );
     throw new MokabookError(
       "build-invalid",
       `could not commit generated output: ${errorMessage(error)}`,
@@ -59,7 +79,9 @@ export async function writeCompilation(
       },
     );
   } finally {
-    await fs.promises.rm(temporaryRoot, { force: true, recursive: true });
+    await timeAsync("output.cleanup", () =>
+      fs.promises.rm(temporaryRoot, { force: true, recursive: true }),
+    );
   }
   destinationConfig.sourceFiles = compilation.manifest.sourceFiles;
 }

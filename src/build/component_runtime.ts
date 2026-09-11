@@ -4,13 +4,15 @@ import type { Compilation } from "./compile.js";
 import { consumerBundle, type ConsumerBundle } from "./consumer_bundle.js";
 import type { LoadedGraph } from "./load_graph.js";
 import type { ResolvedConfig } from "../config/types.js";
-import type { Manifest } from "../registry/types.js";
+import { MANIFEST_NAME } from "../registry/manifest.js";
+import type { CatalogueIndex } from "../registry/catalogue_index.js";
+import type { ManifestV5 } from "../registry/types.js";
 
 export interface ComponentRuntime {
   bundle: ConsumerBundle;
   config: ResolvedConfig;
   generation: string;
-  manifest: Manifest;
+  manifest: ManifestV5 | CatalogueIndex;
   outputs: readonly (readonly [string, string])[];
 }
 const runtimes = new WeakMap<Compilation, ComponentRuntime>();
@@ -24,7 +26,9 @@ export function rememberRuntime(
     config,
     generation: randomBytes(16).toString("hex"),
     manifest: compilation.manifest,
-    outputs: [...compilation.outputs],
+    outputs: [...compilation.outputs].filter(
+      ([route]) => route !== MANIFEST_NAME,
+    ),
   });
 }
 export function componentRuntime(compilation: Compilation): ComponentRuntime {

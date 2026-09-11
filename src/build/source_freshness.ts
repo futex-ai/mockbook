@@ -3,7 +3,7 @@ import { isDeepStrictEqual } from "node:util";
 import { loadConfig } from "../config/load.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
-import type { ManifestV5 } from "../registry/types.js";
+import type { ComponentRuntime } from "./component_runtime.js";
 import { loadConsumerGraph } from "./load_graph.js";
 import { normalizeSourceFiles } from "./source_inventory.js";
 import { validateGeneratedOutputPaths } from "./output_paths.js";
@@ -11,7 +11,7 @@ import { validateGeneratedOutputPaths } from "./output_paths.js";
 /** Re-resolve both graphs without rendering or writing consumer output. */
 export async function assertFreshSourceInventory(
   config: ResolvedConfig,
-  manifest: ManifestV5,
+  manifest: ComponentRuntime["manifest"],
 ): Promise<void> {
   const current = await loadConfig(config.repoRoot, config.configPath);
   const graph = await loadConsumerGraph(current, false);

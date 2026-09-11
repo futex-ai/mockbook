@@ -15,6 +15,7 @@ Commands:
 
 Options:
   --config <path>  Use an explicit mokabook.config file
+  --debug-timings  Report phase timings and catalogue counts to stderr
   --port <port>    Starting port; advances if occupied, 0 selects any free port
   --base <ref>     Git base ref used to find the branch point
   --out <path>     Export directory, relative to the config file (export only)

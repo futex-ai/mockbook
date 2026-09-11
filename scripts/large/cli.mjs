@@ -1,0 +1,65 @@
+import path from "node:path";
+import { prepareFixture, preparedFixture } from "./setup.mjs";
+import { start, stop } from "./process.mjs";
+
+const repository = path.resolve(import.meta.dirname, "../..");
+async function main() {
+  const args = process.argv.slice(2);
+  const mode = args.shift();
+  if (!["generate", "serve", "benchmark"].includes(mode))
+    throw new Error("Use generate, serve or benchmark");
+  const size = { areas: 30, screens: 40, rows: 12 };
+  let debug = mode === "benchmark";
+  let config;
+  while (args.length) {
+    const flag = args.shift();
+    if (flag === "--debug-timings") debug = true;
+    else if (flag === "--config") {
+      const value = args.shift();
+      if (!value || value.startsWith("--"))
+        throw new Error("--config needs a path");
+      config = path.resolve(value);
+    } else if (["--areas", "--screens", "--rows"].includes(flag)) {
+      const value = Number(args.shift());
+      if (!Number.isSafeInteger(value) || value <= 0)
+        throw new Error(`${flag} needs a positive integer`);
+      size[flag.slice(2)] = value;
+    } else throw new Error(`Unknown fixture option: ${flag}`);
+  }
+  if (size.screens < 2)
+    throw new Error("screens must be at least two per area");
+  if (mode === "generate") return prepareFixture(repository, size, debug);
+  const fixture = config
+    ? { configPath: config, root: path.dirname(config), size }
+    : await preparedFixture(repository, size);
+  if (mode === "benchmark") {
+    const { benchmark } = await import("./benchmark.mjs");
+    return benchmark(repository, fixture);
+  }
+  const running = start(
+    [
+      path.join(repository, "dist/cli/bin.js"),
+      "serve",
+      "--config",
+      fixture.configPath,
+      "--port",
+      "0",
+      ...(debug ? ["--debug-timings"] : []),
+    ],
+    fixture.root,
+  );
+  const forward = () => void stop(running);
+  process.once("SIGINT", forward);
+  process.once("SIGTERM", forward);
+  try {
+    await running.done;
+  } finally {
+    await stop(running);
+    process.off("SIGINT", forward);
+    process.off("SIGTERM", forward);
+  }
+}
+main().catch((error) => {
+  process.stderr.write(`${error.message}\n`);
+  process.exitCode = 1;
+});

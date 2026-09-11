@@ -25,14 +25,23 @@ export function transformCompatibilityDocuments(
   graph: LoadedGraph,
   fragmentViews: ReadonlyMap<string, ArtifactView>,
   retainedRoutes?: readonly string[],
+  context?: CompatibilityContext,
 ): readonly LogicalReferenceRecord[] {
-  const byId = new Map(entries.map((entry) => [entry.id, entry]));
+  const byId =
+    context?.byId ?? new Map(entries.map((entry) => [entry.id, entry]));
   const records: LogicalReferenceRecord[] = [];
   const outputRoutes = [...outputs.keys()];
-  const availableRoutes = availablePublicRoutes(
-    retainedRoutes ?? outputRoutes,
-    config,
-  );
+  const availableRoutes = graph.compatibilityTransformer
+    ? (context?.availableRoutes ??
+      availablePublicRoutes(retainedRoutes ?? outputRoutes, config))
+    : [];
+  if (context && graph.compatibilityTransformer)
+    context.availableRoutes = availableRoutes;
+  const routeIndexes = new Map<
+    string,
+    ReturnType<typeof logicalArtifactRoutes>
+  >();
+  const indexes = context?.routeIndexes ?? routeIndexes;
   for (const [route, original] of outputs) {
     const { colorScheme, viewport } = fragmentViews.get(route) ?? {
       colorScheme: "light",
@@ -52,18 +61,24 @@ export function transformCompatibilityDocuments(
       outputs.set(route, linked.content);
       continue;
     }
+    const routeIndexKey = `${viewport}:${colorScheme}`;
+    let logicalRoutes = indexes.get(routeIndexKey);
+    if (!logicalRoutes) {
+      logicalRoutes = logicalArtifactRoutes(
+        entries,
+        viewport,
+        colorScheme,
+        config.colorSchemes,
+      );
+      indexes.set(routeIndexKey, logicalRoutes);
+    }
     let transformed: string;
     try {
       transformed = transformer({
         availableRoutes,
         colorScheme,
         content: linked.content,
-        logicalRoutes: logicalArtifactRoutes(
-          entries,
-          viewport,
-          colorScheme,
-          config.colorSchemes,
-        ),
+        logicalRoutes,
         outputPath: toPosixPath(
           path.relative(config.repoRoot, path.join(config.mockupsDir, route)),
         ),
@@ -91,6 +106,13 @@ export function transformCompatibilityDocuments(
     outputs.set(route, normalized);
   }
   return records;
+}
+
+/** Immutable-route indexes reused across documents of one consumer generation. */
+export interface CompatibilityContext {
+  byId: ReadonlyMap<string, ResolvedRegistryEntry>;
+  availableRoutes?: string[];
+  routeIndexes: Map<string, ReturnType<typeof logicalArtifactRoutes>>;
 }
 
 function availablePublicRoutes(

@@ -45,6 +45,8 @@ export interface InputChange {
   after: ComponentWireProps;
 }
 export interface WorkspaceData {
+  previewGeneration?: string;
+  usageComplete?: boolean;
   renderCapability?: RenderCapability;
   entry: ManifestScreen | ManifestComponent;
   components: readonly Pick<ManifestComponent, "id" | "title" | "route">[];
@@ -194,6 +196,14 @@ export function workspaceData(
       .map((item) => item.changedComponentId),
   );
   return {
+    ...(catalogue.manifest.schemaVersion === "live-index-1"
+      ? {
+          usageComplete: false,
+          ...(context.renderCapability
+            ? { previewGeneration: context.renderCapability.generation }
+            : {}),
+        }
+      : {}),
     ...(entry.kind === "component" && context.renderCapability
       ? { renderCapability: context.renderCapability }
       : {}),
@@ -210,7 +220,10 @@ export function workspaceData(
       .map(({ id, title, route }) => ({ id, title, route })),
     views: generatedViews(entry),
     variants,
-    usedBy: catalogue.manifest.entries
+    usedBy: (catalogue.manifest.schemaVersion === "live-index-1"
+      ? []
+      : catalogue.manifest.entries
+    )
       .filter((owner) => owner.kind !== "collection")
       .flatMap((owner) =>
         generatedViews(owner).flatMap((view) =>

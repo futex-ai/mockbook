@@ -1,21 +1,38 @@
 /** Restart supervision retains ownership until each child's cleanup completes. */
 
 import type { ComponentRuntime } from "../build/component_runtime.js";
+import type { ManifestV5 } from "../registry/types.js";
 
 import { MokabookError } from "../errors.js";
+import { bindTimings, timeSync } from "../diagnostics/timings.js";
 import { ManagedChild, type ChildShutdownTimings } from "./child_lifecycle.js";
 import { NodeChildFactory, type ChildFactory } from "./child_process.js";
-import { childUpdateMessage } from "./update_messages.js";
+import type { ComponentChangeSnapshot } from "./component_changes.js";
+import { componentRuntimeMessage } from "./controls/runtime_ipc.js";
+import { childUpdateMessage, type ChangesStatus } from "./update_messages.js";
+import {
+  parsePreviewObservation,
+  type PreviewObservation,
+} from "./demand/observation.js";
 
 /** Restartable child interface used by watched Serve. */
 export interface ProcessSupervisor {
+  completeCatalogue?(manifest: ManifestV5, generation: string): void;
+  onForeground?(callback: (active: boolean) => void): void;
+  onPreviewResources?(
+    callback: (observation: PreviewObservation) => void,
+  ): void;
   /** Stage the next child's graph, or update a child whose catalogue is unchanged. */
   replaceComponentRuntime(
     runtime: ComponentRuntime,
     delivery: "stage" | "live",
   ): void;
   close(): Promise<void>;
-  notifyUpdate(changedRoutes: readonly string[] | undefined): void;
+  notifyUpdate(
+    changedRoutes: readonly string[] | undefined,
+    componentChanges?: ComponentChangeSnapshot,
+    changesStatus?: ChangesStatus,
+  ): void;
   /** Register the watched-runtime handler for a post-readiness child failure. */
   onUnexpectedExit(callback: (error: Error) => void): void;
   restart(): Promise<number>;
@@ -53,6 +70,8 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   #resolvedPort: number | undefined;
   #updateVersion = 0;
   #runtime: ComponentRuntime | undefined;
+  #foreground: ((active: boolean) => void) | undefined;
+  #previewResources: ((observation: PreviewObservation) => void) | undefined;
 
   constructor(
     private readonly factory: ChildFactory,
@@ -84,6 +103,7 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
       handle,
       (error) => {
         if (!started || this.#child !== child) return;
+        this.#foreground?.(false);
         if (child.exited) this.#child = undefined;
         else void this.stop(child);
         this.#unexpectedExit?.(error);
@@ -91,16 +111,57 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
       this.shutdownTimings,
     );
     this.#child = child;
-    child.onMessage((message) => {
-      if (
-        message &&
-        typeof message === "object" &&
-        "type" in message &&
-        message.type === "component-runtime-request" &&
-        runtime
-      )
-        child.send({ type: "component-runtime", runtime });
-    });
+    child.onMessage(
+      bindTimings((message: unknown) => {
+        if (
+          message &&
+          typeof message === "object" &&
+          "type" in message &&
+          message.type === "preview-resources" &&
+          this.#child === child
+        ) {
+          const observation = parsePreviewObservation(message);
+          if (observation?.generation === this.#runtime?.generation)
+            this.#previewResources?.(observation!);
+        }
+        if (
+          message &&
+          typeof message === "object" &&
+          "type" in message &&
+          message.type === "foreground" &&
+          "active" in message &&
+          typeof message.active === "boolean" &&
+          this.#child === child
+        )
+          this.#foreground?.(message.active);
+        if (
+          message &&
+          typeof message === "object" &&
+          "type" in message &&
+          message.type === "component-runtime-startup-request" &&
+          runtime
+        )
+          timeSync("child.send-startup", () =>
+            child.send({
+              type: "component-runtime-startup",
+              config: runtime.config,
+              manifest: runtime.manifest,
+            }),
+          );
+        if (
+          message &&
+          typeof message === "object" &&
+          "type" in message &&
+          message.type === "component-runtime-request" &&
+          runtime
+        ) {
+          this.#updateVersion++;
+          timeSync("child.send-runtime", () =>
+            child.send(componentRuntimeMessage(runtime, this.#updateVersion)),
+          );
+        }
+      }),
+    );
     try {
       const readyPort = await child.ready;
       if (child.failure) throw child.failure;
@@ -129,14 +190,48 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   ): void {
     this.#runtime = runtime;
     if (delivery === "live")
-      this.#child?.send({ type: "component-runtime", runtime });
+      this.#child?.send(componentRuntimeMessage(runtime));
   }
 
-  notifyUpdate(changedRoutes: readonly string[] | undefined): void {
+  notifyUpdate(
+    changedRoutes: readonly string[] | undefined,
+    componentChanges?: ComponentChangeSnapshot,
+    changesStatus?: ChangesStatus,
+  ): void {
     const child = this.#child;
     if (!child || child.stopping || child.exited) return;
     this.#updateVersion++;
-    child.send(childUpdateMessage(this.#updateVersion, changedRoutes));
+    child.send(
+      childUpdateMessage(
+        this.#updateVersion,
+        changedRoutes,
+        componentChanges,
+        changesStatus,
+      ),
+    );
+  }
+
+  completeCatalogue(manifest: ManifestV5, generation: string): void {
+    if (
+      this.#runtime?.generation !== generation ||
+      !this.#child ||
+      this.#child.stopping
+    )
+      return;
+    this.#child.send({
+      type: "catalogue-complete",
+      manifest,
+      generation,
+      version: ++this.#updateVersion,
+    });
+  }
+  onForeground(callback: (active: boolean) => void): void {
+    this.#foreground = callback;
+  }
+  onPreviewResources(
+    callback: (observation: PreviewObservation) => void,
+  ): void {
+    this.#previewResources = callback;
   }
 
   onUnexpectedExit(callback: (error: Error) => void): void {
@@ -149,6 +244,9 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
 
   private async stop(child: ManagedChild): Promise<void> {
     await child.close();
-    if (this.#child === child) this.#child = undefined;
+    if (this.#child === child) {
+      this.#child = undefined;
+      this.#foreground?.(false);
+    }
   }
 }

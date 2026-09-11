@@ -5,6 +5,7 @@ import http from "node:http";
 import test from "node:test";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { componentRuntime } from "../dist/build/component_runtime.js";
+import { MANIFEST_NAME } from "../dist/registry/manifest.js";
 import { ComponentRenderService } from "../dist/server/controls/service.js";
 import { startCatalogueServer } from "../dist/server/http.js";
 import { componentReviewFixture } from "./helpers/component_review_fixture.js";
@@ -12,6 +13,7 @@ import { componentReviewFixture } from "./helpers/component_review_fixture.js";
 test("private controls rerender actual consumer code, keep immutable bundles and never change output", async (t) => {
   const fixture = await componentReviewFixture(t, (source) => source);
   const runtime = componentRuntime(fixture.after);
+  assert.equal(new Map(runtime.outputs).has(MANIFEST_NAME), false);
   const service = new ComponentRenderService(runtime);
   t.after(() => service.close());
   const baseline = await files(fixture.root);
@@ -62,10 +64,6 @@ test("render HTTP validates authority, body limits and methods; memory documents
     base: "main",
     port: 0,
     componentRuntime: componentRuntime(fixture.after),
-    componentChangeSource: {
-      read: async () => undefined,
-      baseline: async () => "base",
-    },
   });
   t.after(() => server.close());
   const page = await (
@@ -167,6 +165,27 @@ test("render HTTP validates authority, body limits and methods; memory documents
   );
   assert.match(await preview.text(), /From HTTP/);
   assert.ok(!JSON.stringify(fixture.after.manifest).includes(capability.token));
+});
+
+test("a running server can attach the retained component runtime after readiness", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) => source);
+  const server = await startCatalogueServer(fixture.config, {
+    base: "main",
+    port: 0,
+  });
+  t.after(() => server.close());
+
+  const before = await (
+    await fetch(`${server.url}/view/components/action.html`)
+  ).text();
+  assert.doesNotMatch(before, /"renderCapability"/);
+
+  server.replaceComponentRuntime(componentRuntime(fixture.after));
+
+  const after = await (
+    await fetch(`${server.url}/view/components/action.html`)
+  ).text();
+  assert.match(after, /"renderCapability"/);
 });
 
 async function files(root: string): Promise<Record<string, string>> {

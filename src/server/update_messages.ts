@@ -1,34 +1,88 @@
-import type { RuntimeMessage } from "./controls/runtime_ipc.js";
+import type {
+  RuntimeMessage,
+  RuntimeStartupMessage,
+} from "./controls/runtime_ipc.js";
+import type { ComponentChangeSnapshot } from "./component_changes.js";
+import type { ManifestV5 } from "../registry/types.js";
 /** Typed watched-server updates crossing the parent/child IPC boundary. */
 
 import { isSafeCatalogueRoute } from "../config/paths.js";
 
+/** Whether live change detection is running, complete, or could not finish. */
+export type ChangesStatus = "pending" | "ready" | "unavailable";
+
 /** Mutable running-server state published before clients reload. */
 export interface CatalogueUpdate {
+  /** Omit to retain status unless the update replaces change evidence. */
+  changesStatus?: ChangesStatus;
   /** Omit to retain state, use `null` when changed-route detection is unavailable. */
   changedRoutes?: readonly string[] | null;
+  /** Omit to retain evidence, use `null` while fresh classification is unavailable. */
+  componentChanges?: ComponentChangeSnapshot | null;
   /** Omit to allocate the next monotonically increasing update version. */
   version?: number;
 }
 
 /** Parent-to-child update command with an explicit changed-route snapshot. */
 export interface ChildUpdateMessage {
+  changesStatus?: ChangesStatus;
   changedRoutes: readonly string[] | null;
+  componentChanges: ComponentChangeSnapshot | null;
   type: "update";
   version: number;
 }
 
+export interface CatalogueCompleteMessage {
+  type: "catalogue-complete";
+  manifest: ManifestV5;
+  generation: string;
+  version: number;
+}
+
+/** Validate the envelope here; the active server validates matching manifest contents. */
+export function parseCatalogueCompleteMessage(
+  value: unknown,
+): CatalogueCompleteMessage | undefined {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("type" in value) ||
+    value.type !== "catalogue-complete"
+  )
+    return;
+  const candidate = value as Partial<CatalogueCompleteMessage>;
+  if (
+    typeof candidate.generation !== "string" ||
+    !/^[a-f0-9]{32}$/.test(candidate.generation) ||
+    !Number.isSafeInteger(candidate.version) ||
+    (candidate.version ?? 0) <= 0 ||
+    !candidate.manifest ||
+    typeof candidate.manifest !== "object" ||
+    candidate.manifest.schemaVersion !== 5
+  )
+    return;
+  return candidate as CatalogueCompleteMessage;
+}
+
 /** Commands accepted by the watched server child. */
 export type ChildCommand =
-  ChildUpdateMessage | RuntimeMessage | { type: "shutdown" };
+  | CatalogueCompleteMessage
+  | ChildUpdateMessage
+  | RuntimeMessage
+  | RuntimeStartupMessage
+  | { type: "shutdown" };
 
 /** Create an immutable IPC update payload from the latest route computation. */
 export function childUpdateMessage(
   version: number,
   changedRoutes: readonly string[] | undefined,
+  componentChanges?: ComponentChangeSnapshot,
+  changesStatus?: ChangesStatus,
 ): ChildUpdateMessage {
   return {
+    ...(changesStatus ? { changesStatus } : {}),
     changedRoutes: changedRoutes ? [...changedRoutes] : null,
+    componentChanges: componentChanges ?? null,
     type: "update",
     version,
   };
@@ -46,21 +100,56 @@ export function parseChildUpdateMessage(
     return undefined;
   }
   const candidate = value as {
+    changesStatus?: unknown;
     changedRoutes?: unknown;
+    componentChanges?: unknown;
     version?: unknown;
   };
   if (
     !Number.isSafeInteger(candidate.version) ||
     (candidate.version as number) <= 0 ||
-    !isChangedRoutes(candidate.changedRoutes)
+    !isChangedRoutes(candidate.changedRoutes) ||
+    !isComponentChanges(candidate.componentChanges) ||
+    (candidate.changesStatus !== undefined &&
+      !isChangesStatus(candidate.changesStatus))
   ) {
     return undefined;
   }
   return {
+    ...(candidate.changesStatus
+      ? { changesStatus: candidate.changesStatus }
+      : {}),
     changedRoutes: candidate.changedRoutes,
+    componentChanges: candidate.componentChanges,
     type: "update",
     version: candidate.version as number,
   };
+}
+
+function isChangesStatus(value: unknown): value is ChangesStatus {
+  return value === "pending" || value === "ready" || value === "unavailable";
+}
+
+function isComponentChanges(
+  value: unknown,
+): value is ComponentChangeSnapshot | null {
+  if (value === null) return true;
+  if (typeof value !== "object" || value === null || !("baseline" in value))
+    return false;
+  const snapshot = value as {
+    baseline?: unknown;
+    changedRoutes?: unknown;
+    result?: unknown;
+  };
+  return (
+    typeof snapshot.baseline === "object" &&
+    snapshot.baseline !== null &&
+    (snapshot.changedRoutes === undefined ||
+      (isChangedRoutes(snapshot.changedRoutes) &&
+        snapshot.changedRoutes !== null)) &&
+    (snapshot.result === undefined ||
+      (typeof snapshot.result === "object" && snapshot.result !== null))
+  );
 }
 
 function isChangedRoutes(value: unknown): value is readonly string[] | null {

@@ -52,3 +52,21 @@ export async function expectFrameSource(
   if (typeof source === "string") await expect.poll(value).toBe(source);
   else await expect.poll(value).toMatch(source);
 }
+
+/** Wait for the matching same-origin document and its blocking resources together. */
+export async function expectFrameLoaded(
+  frame: Locator,
+  source: RegExp | string,
+): Promise<void> {
+  await expect
+    .poll(() =>
+      frame.evaluate((element: HTMLIFrameElement) => {
+        const doc = element.contentDocument;
+        return doc ? { url: doc.URL, readyState: doc.readyState } : null;
+      }),
+    )
+    .toEqual({
+      url: typeof source === "string" ? source : expect.stringMatching(source),
+      readyState: "complete",
+    });
+}

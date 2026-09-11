@@ -24,7 +24,7 @@ export interface CatalogueChangeSnapshot {
 
 /** Only a free old route retains a baseline leaf; current ids and routes always win. */
 export function removedManifestEntries(
-  manifest: HistoricalManifest,
+  manifest: CatalogueMetadata,
   baseline: HistoricalManifest,
 ): RemovedEntrySnapshot[] {
   const routes = new Set(
@@ -56,3 +56,4 @@ export function removedManifestEntries(
         a.entry.id.localeCompare(b.entry.id),
     );
 }
+import type { CatalogueMetadata } from "./catalogue_index.js";

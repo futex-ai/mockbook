@@ -1,4 +1,5 @@
 import path from "node:path";
+import { timeAsync, timeSync, timingCounts } from "../diagnostics/timings.js";
 
 import { graphSourceFiles, normalizeSourceFiles } from "./source_inventory.js";
 import { build } from "esbuild";
@@ -36,43 +37,59 @@ export async function loadConsumerGraph(
   config: ResolvedConfig,
   evaluate = true,
 ): Promise<LoadedGraph> {
-  const entrySources = discoverEntryModules(config.entriesDir);
+  return timeAsync(evaluate ? "graph.load" : "graph.inventory", () =>
+    loadGraph(config, evaluate),
+  );
+}
+
+async function loadGraph(
+  config: ResolvedConfig,
+  evaluate: boolean,
+): Promise<LoadedGraph> {
+  const entrySources = timeSync("graph.discover", () =>
+    discoverEntryModules(config.entriesDir),
+  );
+  timingCounts("graph", () => ({ entryModules: entrySources.length }));
   const outputPath = path.join(
     path.dirname(config.configPath),
     ".mokabook-consumer.cjs",
   );
   try {
-    const built = await build({
-      write: false,
-      metafile: true,
-      preserveSymlinks: true,
-      absWorkingDir: path.dirname(config.configPath),
-      alias: config.moduleResolution.aliases,
-      bundle: true,
-      ...(config.moduleResolution.conditions
-        ? { conditions: [...config.moduleResolution.conditions] }
-        : {}),
-      entryPoints: [CONSUMER_ENTRY_PATH],
-      format: "cjs",
-      jsx: "automatic",
-      loader: config.moduleResolution.loaders,
-      logLevel: "silent",
-      ...(config.moduleResolution.mainFields
-        ? { mainFields: [...config.moduleResolution.mainFields] }
-        : {}),
-      nodePaths: packageNodePaths(config),
-      outfile: outputPath,
-      platform: "node",
-      plugins: [
-        consumerEntryPlugin(config, entrySources),
-        packageApiPlugin(config),
-        consumerReactPlugin(config),
-      ],
-      ...(config.moduleResolution.resolveExtensions
-        ? { resolveExtensions: [...config.moduleResolution.resolveExtensions] }
-        : {}),
-      target: "node22",
-    });
+    const built = await timeAsync("graph.bundle", () =>
+      build({
+        write: false,
+        metafile: true,
+        preserveSymlinks: true,
+        absWorkingDir: path.dirname(config.configPath),
+        alias: config.moduleResolution.aliases,
+        bundle: true,
+        ...(config.moduleResolution.conditions
+          ? { conditions: [...config.moduleResolution.conditions] }
+          : {}),
+        entryPoints: [CONSUMER_ENTRY_PATH],
+        format: "cjs",
+        jsx: "automatic",
+        loader: config.moduleResolution.loaders,
+        logLevel: "silent",
+        ...(config.moduleResolution.mainFields
+          ? { mainFields: [...config.moduleResolution.mainFields] }
+          : {}),
+        nodePaths: packageNodePaths(config),
+        outfile: outputPath,
+        platform: "node",
+        plugins: [
+          consumerEntryPlugin(config, entrySources),
+          packageApiPlugin(config),
+          consumerReactPlugin(config),
+        ],
+        ...(config.moduleResolution.resolveExtensions
+          ? {
+              resolveExtensions: [...config.moduleResolution.resolveExtensions],
+            }
+          : {}),
+        target: "node22",
+      }),
+    );
     const sourceFiles = normalizeSourceFiles(
       [
         ...graphSourceFiles(
@@ -106,7 +123,11 @@ export async function loadConsumerGraph(
       filename: outputPath,
       entrySources,
     };
-    const imported = evaluateBundle(bundle);
+    const imported = timeSync("graph.evaluate", () => evaluateBundle(bundle));
+    timingCounts("graph.bundle", () => ({
+      bytes: Buffer.byteLength(bundle.code),
+      sourceFiles: sourceFiles.length,
+    }));
     if (typeof imported.renderer !== "function") {
       throw new MokabookError(
         "build-invalid",

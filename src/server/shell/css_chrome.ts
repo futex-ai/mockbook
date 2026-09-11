@@ -13,6 +13,11 @@ export const SHELL_CHROME_CSS = `
   background: #171a18;
 }
 
+.phone-notch,
+.phone-home {
+  pointer-events: none;
+}
+
 .phone-notch {
   position: absolute;
   top: 22px;

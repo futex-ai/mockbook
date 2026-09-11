@@ -6,16 +6,18 @@ import {
   changedCount,
   version,
   waitForChangedCount,
+  waitForInitialChanges,
   waitForUpdate,
 } from "./helpers/watched_catalogue.js";
 
-/** One shell response at a published version, with an optional Changes row. */
+/** One shell response at a published version, with a completed Changes state. */
 function shell(published: number, count?: number): string {
   const filter =
     count === undefined
-      ? ""
+      ? '<span class="mbk-nav-filter-count">—</span>'
       : `<span class="mbk-nav-filter-count">${count}</span>`;
-  return `<html><body data-mokabook-update-version="${published}">${filter}</body></html>`;
+  const status = count === undefined ? "unavailable" : "ready";
+  return `<html><body data-mokabook-update-version="${published}" data-changes-status="${status}">${filter}</body></html>`;
 }
 
 /** Serve each queued shell response once, repeating the last one after. */
@@ -46,6 +48,32 @@ async function publish(
   };
 }
 
+for (const count of [0, undefined]) {
+  test(`initial readiness waits past pending usage for ${count ?? "unavailable"} Changes`, async () => {
+    const pending = shell(2).replace(
+      'data-changes-status="unavailable"',
+      'data-changes-status="pending"',
+    );
+    const completed = shell(3, count);
+    const running = await publish([pending, pending, completed]);
+    try {
+      assert.equal(await waitForInitialChanges(running.url), completed);
+    } finally {
+      await running.close();
+    }
+  });
+}
+
+test("initial readiness accepts an already-published zero without another update", async () => {
+  const completed = shell(3, 0);
+  const running = await publish([completed]);
+  try {
+    assert.equal(await waitForInitialChanges(running.url), completed);
+  } finally {
+    await running.close();
+  }
+});
+
 test("a settled wait passes over the state between edit operations", async () => {
   const running = await publish([shell(1, 2), shell(2, 0)]);
   try {
@@ -57,13 +85,13 @@ test("a settled wait passes over the state between edit operations", async () =>
   }
 });
 
-test("a settled wait reaches an edit that removes the Changes row", async () => {
+test("a settled wait reaches an edit that makes Changes unavailable", async () => {
   const running = await publish([shell(1, 2), shell(2)]);
   try {
     const html = await waitForChangedCount(running.url, 0);
     assert.equal(version(html), 2);
     assert.equal(changedCount(html), undefined);
-    assert.doesNotMatch(html, /mbk-nav-filter-count/);
+    assert.match(html, /data-changes-status="unavailable"/);
   } finally {
     await running.close();
   }

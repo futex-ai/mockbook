@@ -69,18 +69,32 @@ whose verified deletion made their consumers eligible for Changes.
 This detection reads files without rebuilding the baseline, writing snapshots,
 or generating a comparison. Baseline reads are batched; shared resource edges
 are cached within one calculation and cycles terminate. Apart from verified
-resource deletions, an unavailable or invalid input disables the filter,
-preserving access through All.
+resource deletions, an unavailable or invalid input leaves Changes explicitly
+unavailable, preserving the tabs and access through All in live Serve.
 Watched updates and static publishing use this same membership calculation.
+
+Serve performs the calculation in a background worker after HTTP is ready and
+complete generated output has been adopted, never during a shell request.
+The watched parent publishes the result. Until the immutable route, baseline, and
+component-evidence snapshot arrives, Browse keeps both tabs without inventing a
+Changes count. A spinner occupies the reserved count slot, and selecting Changes
+shows a loading sidebar. Content updates clear the previous snapshot and publish
+pending status before notifying the browser, then publish a terminal ready or
+unavailable status only when the latest sequence finishes. Empty ready results
+show zero; unavailable results show a dash and a plain unavailable message.
+Tabs, count allocation and the tree origin remain fixed throughout;
+late results from superseded generations are ignored. Non-watched Serve uses the
+same asynchronous startup boundary, without observing later edits. Watched Git-only
+ref changes reclassify completed output without rendering views again.
 
 Component-aware classification preloads every baseline screen and saved-variant
 view in one logical, bounded Git batch, including mobile, desktop, dark and
-removed views. This applies to Serve startup, cached Browse evidence, watched
-updates and publishing, including a screen-only baseline during component
-adoption. Readers without bulk support retain individual cached reads. Resource
-discovery stays lazy and follows the comparison's ignore and ownership rules;
-prefetching view documents does not traverse excluded or hint-only resources.
-An incomplete or invalid batch fails classification rather than silently
+removed views. This applies to asynchronous watched startup, immutable Browse
+evidence, watched updates and publishing, including a screen-only baseline
+during component adoption. Readers without bulk support retain individual
+cached reads. Resource discovery stays lazy and follows the comparison's ignore
+and ownership rules; prefetching view documents does not traverse excluded or
+hint-only resources. An incomplete or invalid batch fails classification rather than silently
 dropping views or disabling Git file validation.
 
 ## Screen controls

@@ -7,6 +7,43 @@ import { compareReview } from "../dist/review/compare.js";
 import { startCatalogueServer } from "../dist/server/http.js";
 import { componentReviewFixture } from "./helpers/component_review_fixture.js";
 
+test("Browse responds before separately computed component evidence arrives", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) =>
+    source.replace(
+      "<button data-viewport=",
+      '<button className="changed" data-viewport=',
+    ),
+  );
+  const { result } = await compareReview(
+    fixture.after,
+    fixture.config,
+    fixture.git,
+    "main",
+  );
+  assert.equal(result.schemaVersion, 3);
+  if (result.schemaVersion !== 3) return;
+  const server = await startCatalogueServer(fixture.config, {
+    base: "main",
+    port: 0,
+    changesStatus: "pending",
+  });
+  t.after(() => server.close());
+  const initial = await (await fetch(server.url)).text();
+  assert.match(initial, /data-mokabook-filter/);
+  assert.match(initial, /data-changes-status="pending"/);
+
+  server.publishUpdate({
+    changedRoutes: result.changes.map(
+      (entry) => (entry.after ?? entry.before)!.route,
+    ),
+    componentChanges: { baseline: fixture.before.manifest, result },
+    version: 2,
+  });
+  const classified = await waitForClassifiedShell(server.url);
+  assert.match(classified, /data-mokabook-update-version="2"/);
+  assert.match(classified, /data-mokabook-filter/);
+});
+
 test("ordinary Browse serves cached component evidence without generating or writing comparisons", async (t) => {
   const fixture = await componentReviewFixture(t, (source) =>
     source.replace(
@@ -22,18 +59,11 @@ test("ordinary Browse serves cached component evidence without generating or wri
   );
   assert.equal(result.schemaVersion, 3);
   if (result.schemaVersion !== 3) return;
-  let reads = 0;
   let comparisons = 0;
   const server = await startCatalogueServer(fixture.config, {
     base: "main",
     port: 0,
-    componentChangeSource: {
-      baseline: async () => "base",
-      read: async () => {
-        reads++;
-        return { baseline: fixture.before.manifest, result };
-      },
-    },
+    componentChanges: { baseline: fixture.before.manifest, result },
     review: {
       base: "main",
       outDir: path.join(fixture.root, ".review"),
@@ -51,17 +81,16 @@ test("ordinary Browse serves cached component evidence without generating or wri
     "/view/screens/home.html",
   ])
     assert.equal((await fetch(server.url + route)).status, 200);
-  assert.equal(reads, 1);
   assert.equal(comparisons, 0);
   server.publishUpdate({
-    version: 2,
     changedRoutes: ["components/action.html"],
+    componentChanges: { baseline: fixture.before.manifest, result },
+    version: 2,
   });
   assert.equal(
     (await fetch(server.url + "/view/screens/home.html")).status,
     200,
   );
-  assert.equal(reads, 2);
   assert.equal(comparisons, 0);
   await assert.rejects(fs.stat(path.join(fixture.root, ".review")), {
     code: "ENOENT",
@@ -72,3 +101,12 @@ test("ordinary Browse serves cached component evidence without generating or wri
       html,
     );
 });
+
+async function waitForClassifiedShell(url: string): Promise<string> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const html = await (await fetch(url)).text();
+    if (html.includes('data-mokabook-update-version="2"')) return html;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("component classification did not publish");
+}

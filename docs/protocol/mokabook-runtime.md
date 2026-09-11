@@ -90,9 +90,11 @@ real directory-index id aliases, static delivery metadata, and lazy immutable
 comparisons are defined by [Static export delivery](./mokabook-export-delivery.md).
 No server or watcher is started for export; served behavior below is unchanged.
 
-Browse validates the v4 manifest and independently resolves both source graphs
-before binding its listening port. A stale inventory requires a rebuild. This
-scan never renders pages or rewrites output. It exposes:
+Serve validates its distinct live catalogue index and independently resolves both
+source graphs before binding. Full-manifest consumers still require validated v5
+output and a current source inventory. These scans never render pages or rewrite
+output. The [on-demand contract](./mokabook-on-demand.md) defines completeness,
+worker isolation and generation-local caches. Browse exposes:
 
 - `/` for the catalogue home;
 - `/view/<route>` for screens, use cases, and registered whole-document pages;
@@ -103,6 +105,15 @@ scan never renders pages or rewrites output. It exposes:
 - `/__mokabook/diffs/review.json` for explicitly requested comparisons, with
   redirects to immutable generations and snapshot files beneath the same prefix;
 - package-owned client and update endpoints under `/__mokabook/`.
+
+Browse does not run Git classification on its HTTP event loop or request path.
+The watched child receives the accepted config, live index and retained bundle
+before readiness, without rendered HTML or a full manifest-file read. It validates
+metadata and source-inventory freshness, then binds with local controls enabled.
+Requested views render in a bounded worker. Complete output, catalogue-wide usage
+and Changes follow in background work; versioned updates install only current
+generation evidence. Non-watched Serve has the same readiness boundary and computes
+background evidence once, without later file/ref observation.
 
 All ordinary routes support GET and HEAD. HEAD returns the same status and
 headers without a body, including `/id` not-found and fragment-validation
@@ -147,8 +158,11 @@ column, shows the changed count, and derives from Git changes between the
 current workspace and the merge base shared by `HEAD` and the serve base ref.
 Commits reachable only from the base ref are not branch changes. Staged,
 unstaged, and untracked workspace changes remain eligible. When the repository,
-base ref, or common ancestor cannot be resolved, Browse omits the filter and
-shows the full catalogue.
+base ref, or common ancestor cannot be resolved, live Browse keeps both tabs and
+shows an explicit unavailable message when Changes is selected. Pending calculation
+shows a spinner in the reserved count slot and, when selected, in the sidebar.
+All remains available throughout; a completed empty result shows zero. See the
+[on-demand lifecycle](./mokabook-on-demand.md).
 Route attribution compares each current manifest entry with its base entry and
 matches material fragment changes and changes to rendered local resources.
 Source modules, declared dependencies, and configured shared-impact globs alone

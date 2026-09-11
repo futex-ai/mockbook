@@ -24,7 +24,7 @@ const IGNORED_TEMPORARY_PREFIXES = [
 ] as const;
 
 /** Internal watch work, including package-owned configuration reloads. */
-export type RuntimeWatchAction = "reconfigure" | WatchAction;
+export type RuntimeWatchAction = "reconfigure" | "evidence" | WatchAction;
 
 /** Buffer notifications until startup is ready to process them. */
 export class NotificationGate<Value> {
@@ -64,6 +64,7 @@ const ACTION_PRIORITY: readonly RuntimeWatchAction[] = [
   "rebuild",
   "restart",
   "reload",
+  "evidence",
   "ignore",
 ];
 

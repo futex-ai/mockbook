@@ -1,0 +1,98 @@
+/** Deterministic scalable consumer generation for tests and local performance investigation. */
+import fs from "node:fs/promises";
+import path from "node:path";
+
+export interface LargeSize {
+  areas: number;
+  screens: number;
+  rows: number;
+}
+
+export function largeSize(input: Partial<LargeSize>): LargeSize {
+  const size = { areas: 30, screens: 40, rows: 12, ...input };
+  for (const [name, value] of Object.entries(size))
+    if (!Number.isSafeInteger(value) || value <= 0)
+      throw new Error(`${name} must be a positive integer`);
+  if (size.screens < 2)
+    throw new Error("screens must be at least two per area");
+  return size;
+}
+
+/** Populate only an empty caller-owned directory; never overwrite a previous fixture. */
+export async function generateLargeFixture(
+  root: string,
+  input: Partial<LargeSize>,
+) {
+  const size = largeSize(input);
+  if ((await fs.readdir(root)).length)
+    throw new Error("Fixture requires an empty directory");
+  const templates = import.meta.dirname;
+  const entries = path.join(root, "entries");
+  const assets = path.join(root, "mockups/assets");
+  await fs.mkdir(entries);
+  await fs.mkdir(assets, { recursive: true });
+  for (const file of ["components.tsx", "screens.tsx", "area.tsx"])
+    await fs.copyFile(path.join(templates, file), path.join(entries, file));
+  const renderer = await fs.readFile(
+    path.join(templates, "renderer.tsx"),
+    "utf8",
+  );
+  await fs.writeFile(
+    path.join(root, "renderer.tsx"),
+    renderer.replace('"../../../examples/basic/theme.js"', '"./theme.js"'),
+  );
+  await fs.copyFile(
+    path.resolve(templates, "../../../examples/basic/theme.ts"),
+    path.join(root, "theme.ts"),
+  );
+  for (const file of ["catalogue.css", "tokens.css", "mark.svg"])
+    await fs.copyFile(
+      path.join(templates, "assets", file),
+      path.join(assets, file),
+    );
+  const areas = Array.from(
+    { length: size.areas },
+    (_, index) => `area-${index + 1}`,
+  );
+  await fs.writeFile(
+    path.join(root, "notes.md"),
+    "# Scale fixture\n\nDeterministic synthetic catalogue for startup diagnostics.\n",
+  );
+  await fs.writeFile(
+    path.join(root, ".gitignore"),
+    ".review/\n.mokabook-cache/\nnode_modules/\n",
+  );
+  await fs.writeFile(
+    path.join(root, "mokabook.config.ts"),
+    `import { defineConfig } from "mokabook";
+export default defineConfig({
+  repoRoot: ".", entriesDir: "entries", mockupsDir: "mockups", renderer: "renderer.tsx",
+  colorSchemes: ["light", "dark"],
+  moduleResolution: { aliases: { "react-native": "react-native-web" }, conditions: ["react-native", "import", "module", "default"], loaders: { ".js": "jsx" }, mainFields: ["react-native", "module", "main"], resolveExtensions: [".web.tsx", ".web.ts", ".web.js", ".tsx", ".ts", ".js", ".jsx", ".json"] },
+  stylesheets: [{ match: "**/*.html", stylesheets: ["assets/catalogue.css"] }],
+  review: { base: "main", outDir: ".review" }
+});\n`,
+  );
+  await fs.writeFile(
+    path.join(entries, "catalogue.mockup.tsx"),
+    `import { defineCollection } from "mokabook";
+export const mockups = [defineCollection({ id: "large", title: "Large catalogue", description: "Synthetic product areas", dependencies: [], relatedDocs: ["notes.md"], childIds: ${JSON.stringify(areas)} })];\n`,
+  );
+  for (const id of areas) {
+    const directory = path.join(entries, id);
+    await fs.mkdir(directory);
+    await fs.writeFile(
+      path.join(directory, "catalogue.mockup.tsx"),
+      `import { createArea } from "../area.js";
+export const mockups = createArea(${JSON.stringify(id)}, ${size.screens}, ${size.rows});\n`,
+    );
+  }
+  const flows = Math.ceil(size.screens / 10);
+  return {
+    root,
+    configPath: path.join(root, "mokabook.config.ts"),
+    size,
+    routes: size.areas * (size.screens + 2 + flows + 1),
+    documents: size.areas * (size.screens * 4 + 2 * 3 * 4 + 1),
+  };
+}

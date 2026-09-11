@@ -15,6 +15,7 @@ import {
   repositoryRoot,
   validEntrySource,
 } from "./helpers/fixture.js";
+import { waitForClassifiedCount } from "./helpers/watched_catalogue.js";
 
 const execFileAsync = promisify(execFile);
 const cli = path.join(repositoryRoot, "dist/cli/bin.js");
@@ -42,7 +43,7 @@ test(
       await removeFixture(fixture);
     });
     const url = await listeningUrl(child);
-    const initial = await (await fetch(url)).text();
+    const initial = await waitForClassifiedCount(url, 0);
     assert.match(initial, /class="mbk-nav-filter-count">0</);
     const events = await fetch(`${url}/__mokabook/events`);
     const reader = events.body?.getReader();
@@ -93,7 +94,7 @@ test(
     try {
       const url = await listeningUrl(child);
       assert.match(
-        await (await fetch(url)).text(),
+        await waitForClassifiedCount(url, 0),
         /class="mbk-nav-filter-count">0</,
       );
       const events = await fetch(`${url}/__mokabook/events`);
@@ -108,7 +109,7 @@ test(
         assert.match(await readEvent(reader), /event: update/);
         await waitFor(async () => {
           const html = await (await fetch(url)).text();
-          return !html.includes('class="mbk-nav-filter-count"');
+          return html.includes('data-changes-status="unavailable"');
         });
         assert.equal(
           (await fetch(`${url}/view/screens/home.html`)).status,

@@ -24,6 +24,7 @@ import { NavigationResizeHandle } from "./nav_resize.js";
 import { buildNavTree } from "./nav_tree.js";
 import type { NavGroupNode, NavLeafNode, NavNode } from "./nav_tree.js";
 import { WorkspaceIcon } from "./workspace_icons.js";
+import { NavFilter, NavStatus } from "./nav_filter.js";
 
 function containsRoute(node: NavNode, route: string | undefined): boolean {
   if (route === undefined) {
@@ -146,39 +147,6 @@ function NavRows(props: {
   );
 }
 
-function NavFilter(props: { context: ShellContext }) {
-  const changed = props.context.changedRoutes;
-  if (!changed) {
-    return null;
-  }
-  return (
-    <div
-      aria-label="Catalogue filter"
-      className="mbk-nav-filter"
-      data-mokabook-filter=""
-      role="group"
-    >
-      <button
-        aria-pressed="true"
-        className="mbk-nav-filter-opt"
-        data-filter="all"
-        type="button"
-      >
-        All
-      </button>
-      <button
-        aria-pressed="false"
-        className="mbk-nav-filter-opt"
-        data-filter="changed"
-        type="button"
-      >
-        Changes
-        <span className="mbk-nav-filter-count">{changed.length}</span>
-      </button>
-    </div>
-  );
-}
-
 /** The served catalogue navigation column. */
 export function CatalogueNav(props: {
   catalogue: Catalogue;
@@ -216,6 +184,7 @@ export function CatalogueNav(props: {
       </div>
       <NavFilter context={props.context} />
       <div className="mbk-nav-scroll" data-mokabook-nav-scroll="">
+        <NavStatus context={props.context} />
         <NavRows context={props.context} depth={0} nodes={nodes} />
       </div>
       <NavigationResizeHandle />

@@ -20,6 +20,17 @@ export function validateManifest(
   allowV2: boolean,
   historical = false,
 ): HistoricalManifest {
+  const manifest = validateManifestMetadata(value, allowV2, historical);
+  validateManifestComponentUsage(manifest);
+  return manifest;
+}
+
+/** Shared metadata validation; only the live index omits rendered-view validation. */
+export function validateManifestMetadata(
+  value: unknown,
+  allowV2 = false,
+  historical = false,
+): HistoricalManifest {
   if (!record(value) || !Array.isArray(value.entries))
     throw new MokabookError(
       "manifest-invalid",
@@ -126,7 +137,6 @@ export function validateManifest(
     validateLegacyPages(normalized.legacyPages as unknown[], outputRoutes);
   validateManifestRelationships(entries, byId);
   const manifest = normalized as unknown as HistoricalManifest;
-  validateManifestComponentUsage(manifest);
   return manifest;
 }
 

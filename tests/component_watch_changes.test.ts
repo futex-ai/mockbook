@@ -11,6 +11,7 @@ import {
   changedCount,
   version,
   waitForChangedCount,
+  waitForClassifiedCount,
 } from "./helpers/watched_catalogue.js";
 
 test(
@@ -41,7 +42,7 @@ test(
       watch: true,
     });
     t.after(() => server.close());
-    let html = await catalogue(server.url);
+    let html = await waitForClassifiedCount(server.url, 0);
     assert.equal(changedCount(html), 0);
     const workspace = async (route: string): Promise<WorkspaceData> => {
       const page = await catalogue(server.url + "/view/" + route);

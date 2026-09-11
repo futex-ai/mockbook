@@ -31,6 +31,8 @@ when the historical primary file is absent, never when it is invalid.
 
 - [Package and authoring contract](./mokabook-package.md)
 - [Build and Browse runtime](./mokabook-runtime.md)
+- [On-demand Serve](./mokabook-on-demand.md)
+- [Startup diagnostics and scale fixtures](./mokabook-timings.md)
 - [Pages in the catalogue](./mokabook-pages.md)
 - [Source protection](./mokabook-source-protection.md)
 - [Catalogue change metadata](./mokabook-catalogue-changes.md)
