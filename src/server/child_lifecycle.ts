@@ -14,6 +14,7 @@ const DEFAULT_TIMINGS: ChildShutdownTimings = {
   gracefulMilliseconds: 2_000,
   terminateMilliseconds: 2_000,
 };
+const READINESS_TIMEOUT_MILLISECONDS = 300_000;
 
 /** Retain a child until its terminal event, even when readiness or IPC fails. */
 export class ManagedChild {
@@ -44,7 +45,7 @@ export class ManagedChild {
     });
     this.#readinessTimer = setTimeout(() => {
       this.fail(new Error("server child readiness timed out"));
-    }, 15_000);
+    }, READINESS_TIMEOUT_MILLISECONDS);
     this.#readinessTimer.unref();
     handle.onExit((code) => this.didExit(code));
     handle.onError((error) => this.fail(error));

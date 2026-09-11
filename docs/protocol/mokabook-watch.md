@@ -168,13 +168,14 @@ bounded intervals when necessary; the supervisor does not finish closing until
 the child exit notification arrives.
 
 Each spawned child owns one readiness result, a terminal result registered from
-creation, and one shared cleanup operation. Readiness timeout (15 seconds),
-pre-ready errors, post-ready errors, IPC disconnection, explicit close, and restart all use that
-operation. Startup reports its original failure only after cleanup confirms the
-child has stopped. A ready message followed by failure before startup resolves
-cannot report successful startup. Close cancels pending readiness; later ready
-messages and updates are ignored. Concurrent close/restart calls share cleanup,
-and a separate start while the child is still owned fails without spawning.
+creation, and one shared cleanup operation. Readiness timeout (300 seconds),
+pre-ready errors, post-ready errors, IPC disconnection, explicit close, and
+restart all use that operation. Startup reports its original failure only after
+cleanup confirms the child has stopped. A ready message followed by failure
+before startup resolves cannot report successful startup. Close cancels pending
+readiness; later ready messages and updates are ignored. Concurrent close/restart
+calls share cleanup, and a separate start while the child is still owned fails
+without spawning.
 
 The native handle observes IPC disconnection from creation and retains that
 event for late subscribers. Disconnection while waiting for readiness or while

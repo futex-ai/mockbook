@@ -285,9 +285,10 @@ through graceful, terminate, and force-kill stages. Failed startup, child
 transport errors, and unexpected IPC disconnection use the same cleanup;
 disconnection is detected immediately even if the child remains alive and no
 further update is sent. A replacement waits until the previous process has
-stopped. Concurrent shutdown requests share that wait, and late
-readiness messages cannot revive a closing child. Every served catalogue shell records the update version
-captured when its request begins. Open shell pages compare that
+stopped. Concurrent shutdown requests share that wait, and late readiness
+messages cannot revive a closing child. Startup allows a watched child up to five
+minutes to become ready before cleanup begins. Every served catalogue shell
+records the update version captured when its request begins. Open shell pages compare that
 snapshot with the versioned event stream and reload after a newer build or
 asset version arrives, including when the build completes before the initial
 stream connection. Publishing a reload-only watch update invalidates the comparison cache; another

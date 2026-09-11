@@ -34,8 +34,16 @@ for (const failure of [
       child.ready();
       await starting;
     }
-    if (failure === "readiness-timeout") context.mock.timers.tick(15000);
-    else child.fail();
+    if (failure === "readiness-timeout") {
+      context.mock.timers.tick(299_999);
+      await settle();
+      assert.deepEqual(
+        child.messages,
+        [],
+        "startup must remain active throughout the five-minute allowance",
+      );
+      context.mock.timers.tick(1);
+    } else child.fail();
     await settle();
 
     const closing = supervisor.close();
