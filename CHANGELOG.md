@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.8.0](https://github.com/futex-ai/mokabook/compare/v0.7.1...v0.8.0) (2026-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove legacy configuration and exported types, automatic source discovery, comment-component expansion, legacy lint options and route aliases. Consumers must register document pages, preserve explicit routes, and regenerate v4 output through the documented ownership migration. The legacy renderer and raw HTML fixture are intentionally removed; shared change metadata replaces the removed-screen helper without removing screen support.
+
+### Features
+
+* unify catalogue pages and optional published Changes ([#54](https://github.com/futex-ai/mokabook/issues/54)) ([b5065a6](https://github.com/futex-ai/mokabook/commit/b5065a68b5ecb2f3bdc327a26659bcd6d9a3b2ff))
+
+
+### Bug Fixes
+
+* **server:** allow five-minute watched startup ([#56](https://github.com/futex-ai/mokabook/issues/56)) ([bdb2125](https://github.com/futex-ai/mokabook/commit/bdb212555fb4e01156ead1bcc1a8b38d67876925))
+
+
+### Performance Improvements
+
+* start large catalogues with on-demand previews ([#57](https://github.com/futex-ai/mokabook/issues/57)) ([aab65ab](https://github.com/futex-ai/mokabook/commit/aab65abcb7ae96e111268cf88ba890c82b0c7d2c))
+
 ## [0.7.1](https://github.com/futex-ai/mokabook/compare/v0.7.0...v0.7.1) (2026-09-11)
 
 
