@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 
 import { loadConfig } from "../../dist/config/load.js";
 import { exportCatalogue } from "../../dist/export/run.js";
+import { exampleComparisonBase } from "../helpers/example_comparison_base.js";
 import { repositoryRoot } from "../helpers/fixture.js";
 import { serveStaticFiles } from "../helpers/static_server.js";
 import { chooseViewport } from "./workspace_actions.js";
@@ -20,7 +21,10 @@ test.beforeAll(async () => {
     repositoryRoot,
     "examples/basic/mokabook.config.ts",
   );
-  await exportCatalogue(config, { outDir: output });
+  await exportCatalogue(config, {
+    base: await exampleComparisonBase(),
+    outDir: output,
+  });
   server = await serveStaticFiles(output);
 });
 test.afterAll(async () => {

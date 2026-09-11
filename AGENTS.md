@@ -7,15 +7,18 @@
 - Search for and run relevant tests after making changes, ensure all tests pass (100% pass rate required)
 - Run `cargo xtask check` before saying work is complete; if it cannot be run, explain the blocker and the checks already run
 - After tests and `cargo xtask check` pass, run `git add -A`, commit the
-  completed work using Conventional Commits, and push the branch before
-  `cargo xtask review`; newly created files must be tracked and included in the
-  commit, push, and review diff
-- Implementation plans must include this post-check commit-and-push step
-  followed by a `cargo xtask review` item; run the review after the push so an
-  AI reviewer checks the local diff against `origin/main`
-- Do not automatically fix findings from `cargo xtask review`; include each
-  finding and a clear recommendation in the final message so the user can
-  decide what to address next
+  completed work using Conventional Commits, and push the branch; newly created
+  files must be tracked and included in the commit, push, and review diff
+- Every implementation plan must end with the post-check commit-and-push step,
+  followed by a review item that uses
+  [`docs/implementation-review-prompt.md`](./docs/implementation-review-prompt.md)
+  to review the complete local diff against `origin/main`; run the review only
+  after the push
+- Treat existing plan items that name the removed `cargo xtask review` command
+  as review items that use `docs/implementation-review-prompt.md`
+- Do not automatically fix review findings; include each finding and a clear
+  recommendation in the final message so the user can decide what to address
+  next
 - When providing review comments or review output, number each review item, give
   each item a severity, include enough codebase and feature context for readers
   without prior knowledge, state the impact of not making the change / doing
@@ -185,6 +188,10 @@
 - When a plan is completed, move its link from the active section to the completed section in `plans/README.md`
 - Each plan describes work needed to ensure complete alignment with the protocol docs
 - Each plan should break up the work into concrete units called Milestones. At the end of each milestone there should be a functioning product. Never leave the code base or feature in a broken state.
+- Each plan must end with a review TODO after its commit-and-push TODO. The
+  review TODO must direct a reviewer to use
+  `docs/implementation-review-prompt.md` against `origin/main` after the push
+  and to report findings without changing the implementation.
 - When a plan includes backend changes, mockup or design updates, and UI
   implementation, keep each area in its own milestone. Mockup/design work and
   UI implementation must be separate milestones, with mockups completed before

@@ -18,7 +18,7 @@ test.describe.configure({ timeout: 90_000 });
 
 test.beforeAll(async () => {
   const before = await generatedDigest();
-  preview = await startPreviewFixture();
+  preview = await startPreviewFixture({ comparisons: true });
   expect(await generatedDigest()).toBe(before);
 });
 

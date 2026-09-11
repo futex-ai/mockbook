@@ -20,7 +20,7 @@ const legacyOwnership = {
 };
 
 /** Keep the repository's Pages deployment policy outside the consumer exporter. */
-export async function buildPreview(config, output) {
+export async function buildPreview(config, output, base) {
   const contextRoot = path.join(config.repoRoot, ".context");
   const confinedOutput = resolveExportOutput(config, output, contextRoot);
   try {
@@ -33,6 +33,7 @@ export async function buildPreview(config, output) {
   }
   try {
     return await exportCatalogue(config, {
+      base,
       outDir: confinedOutput,
       adapter: {
         legacyOwnership,
