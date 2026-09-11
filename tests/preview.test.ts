@@ -20,12 +20,12 @@ test("preview build snapshots a static Browse catalogue", async (context) => {
 
   await execute(
     process.execPath,
-    ["scripts/preview/build.mjs", "--out", output],
+    ["scripts/preview/build.mjs", "--include-changes", "--out", output],
     { cwd: repositoryRoot },
   );
   await execute(
     process.execPath,
-    ["scripts/preview/build.mjs", "--out", output],
+    ["scripts/preview/build.mjs", "--include-changes", "--out", output],
     { cwd: repositoryRoot },
   );
 
@@ -76,7 +76,7 @@ test("preview build snapshots a static Browse catalogue", async (context) => {
       )
     ).size > 0,
   );
-  assert.match(await read(output, "404.html"), /Screen not found/);
+  assert.match(await read(output, "404.html"), /Item not found/);
   assert.match(
     await read(output, "_redirects"),
     /\/id\/example-welcome \/view\/screens\/welcome 302/,
@@ -97,9 +97,13 @@ test("preview build refuses to replace an unowned directory", async (context) =>
   context.after(() => fs.promises.rm(output, { force: true, recursive: true }));
 
   await assert.rejects(
-    execute(process.execPath, ["scripts/preview/build.mjs", "--out", output], {
-      cwd: repositoryRoot,
-    }),
+    execute(
+      process.execPath,
+      ["scripts/preview/build.mjs", "--include-changes", "--out", output],
+      {
+        cwd: repositoryRoot,
+      },
+    ),
     /refusing to replace unowned preview directory/,
   );
   assert.equal(await read(output, "keep.txt"), "owned by user\n");

@@ -1,11 +1,7 @@
 import path from "node:path";
 
 import { MokabookError } from "../errors.js";
-import {
-  resolveInside,
-  validateCatalogueRoute,
-  validateRelativeRoute,
-} from "./paths.js";
+import { resolveInside, validateRelativeRoute } from "./paths.js";
 import {
   optionalModule,
   requireDirectory,
@@ -15,19 +11,13 @@ import {
 import { resolveModuleResolution } from "./module_resolution.js";
 import {
   requireString,
-  resolveLegacyLint,
   validateColorSchemes,
   validateDebounce,
   validateStringArray,
   validateStylesheets,
   validateWatchRules,
 } from "./rules.js";
-import type {
-  LegacyConfig,
-  MokabookConfig,
-  ResolvedConfig,
-  ResolvedLegacyConfig,
-} from "./types.js";
+import type { MokabookConfig, ResolvedConfig } from "./types.js";
 
 /** Validate an imported config and resolve every filesystem path. */
 export function resolveConfig(
@@ -40,6 +30,11 @@ export function resolveConfig(
       `${configPath} must export an object`,
     );
   }
+  if (Object.hasOwn(value, "legacy"))
+    throw new MokabookError(
+      "config-invalid",
+      "legacy configuration was removed; register whole documents with definePage",
+    );
   const input = value as unknown as MokabookConfig;
   requireString(input.entriesDir, "entriesDir");
   requireString(input.mockupsDir, "mockupsDir");
@@ -73,13 +68,12 @@ export function resolveConfig(
     input.compatibility?.transformer,
     "compatibility.transformer",
   );
-  const legacy = resolveLegacy(input.legacy, repoRoot, configDir);
   const moduleResolution = resolveModuleResolution(
     input.moduleResolution,
     repoRoot,
     configDir,
   );
-  validateSourceRoots(repoRoot, entriesDir, mockupsDir, legacy?.pagesDir);
+  validateSourceRoots(repoRoot, entriesDir, mockupsDir);
   const colorSchemes = validateColorSchemes(input.colorSchemes);
   const stylesheets = validateStylesheets(input.stylesheets ?? []);
   const watchRules = validateWatchRules(input.watch?.rules ?? []);
@@ -102,7 +96,6 @@ export function resolveConfig(
   );
   validateReviewOut(reviewOut, {
     entriesDir,
-    ...(legacy ? { legacy } : {}),
     mockupsDir,
     repoRoot,
   });
@@ -116,7 +109,6 @@ export function resolveConfig(
     },
     configPath,
     entriesDir,
-    ...(legacy ? { legacy } : {}),
     mockupsDir,
     moduleResolution,
     ...(renderer ? { renderer } : {}),
@@ -134,49 +126,6 @@ export function resolveConfig(
       debounceMs: validateDebounce(input.watch?.debounceMs),
       rules: watchRules,
     },
-  };
-}
-
-function resolveLegacy(
-  legacy: LegacyConfig | undefined,
-  repoRoot: string,
-  configDir: string,
-): ResolvedLegacyConfig | undefined {
-  if (!legacy) return undefined;
-  requireString(legacy.pagesDir, "legacy.pagesDir");
-  const pagesDir = resolveInside(
-    repoRoot,
-    configDir,
-    legacy.pagesDir,
-    "legacy.pagesDir",
-  );
-  requireDirectory(pagesDir, "legacy.pagesDir");
-  const components = optionalModule(
-    repoRoot,
-    configDir,
-    legacy.components,
-    "legacy.components",
-  );
-  const routeAliases = Object.fromEntries(
-    Object.entries(legacy.routeAliases ?? {}).map(([source, route]) => {
-      requireString(route, `legacy.routeAliases.${source}`);
-      return [
-        validateRelativeRoute(source, "legacy.routeAliases source"),
-        validateCatalogueRoute(route, "legacy.routeAliases route"),
-      ];
-    }),
-  );
-  const lint = resolveLegacyLint(legacy.lint);
-  const exclude = validateStringArray(
-    legacy.exclude ?? [],
-    "legacy.exclude",
-  ).map((glob) => validateRelativeRoute(glob, "legacy.exclude"));
-  return {
-    ...(components ? { components } : {}),
-    ...(lint ? { lint } : {}),
-    pagesDir,
-    routeAliases,
-    exclude,
   };
 }
 

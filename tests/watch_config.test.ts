@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 
 import type { Compilation } from "../dist/build/compile.js";
@@ -21,6 +23,48 @@ import type {
   ConsumerWatcherFactory,
 } from "../dist/server/watcher.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
+
+test("watched graphs add imported helpers and retain last-good inputs after failure", async (context) => {
+  const fixture = await createFixture();
+  context.after(() => removeFixture(fixture));
+  const helper = path.join(fixture.mockupsDir, "document.ts");
+  const nextHelper = path.join(fixture.mockupsDir, "next.ts");
+  await fs.promises.writeFile(helper, 'export const title = "Document";');
+  await fs.promises.appendFile(
+    fixture.entryPath,
+    '\nimport { title } from "../mockups/document.ts"; mockups[0].title = title;',
+  );
+  const loaded = await loadConfig(fixture.root);
+  const initial = { ...loaded, watch: { ...loaded.watch, debounceMs: 0 } };
+  const watchers = new FakeWatcherFactory();
+  const output = new FakeOutputStore();
+  const supervisor = new FakeSupervisor();
+  const running = await serve(
+    initial,
+    { port: 0, watch: true },
+    {
+      configLoader: new FakeConfigLoader(initial),
+      outputStore: output,
+      processSupervisorFactory: new FakeSupervisorFactory(supervisor),
+      serverFactory: new UnusedServerFactory(),
+      watcherFactory: watchers,
+    },
+  );
+  context.after(() => running.close());
+  assert.ok(watchers.targets[0]?.includes(helper));
+  const before = [...(initial.sourceFiles ?? [])];
+  await fs.promises.writeFile(nextHelper, 'export const title = "Next";');
+  await fs.promises.writeFile(helper, 'export { title } from "./next.ts";');
+  output.failNext = true;
+  watchers.watchers[0]?.change(helper);
+  await waitFor(() => watchers.watchers[1]?.closed === true);
+  assert.deepEqual(initial.sourceFiles, before);
+  assert.equal(watchers.watchers[0]?.closed, false);
+  watchers.watchers[0]?.change(helper);
+  await waitFor(() => supervisor.restarts === 1);
+  assert.ok(watchers.targets[2]?.includes(nextHelper));
+  assert.equal(watchers.watchers[0]?.closed, true);
+});
 
 test("consumer configuration is a reconfiguration watch target", async (context) => {
   const fixture = await createFixture();

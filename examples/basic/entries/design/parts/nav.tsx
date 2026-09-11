@@ -10,6 +10,7 @@ import { NAV_TREE } from "./nav_data.js";
 export type NavNode = CatalogueNavigationProps["rows"][number];
 
 interface NavTreeProps {
+  changes?: boolean | undefined;
   activeDestination?: DesignDestination | undefined;
   activeLabel?: string | undefined;
   changedCount?: number | undefined;
@@ -19,6 +20,7 @@ interface NavTreeProps {
 
 function CatalogueNavigation({
   activeDestination,
+  changes = true,
   activeLabel,
   changedCount,
   changedOnly,
@@ -31,6 +33,7 @@ function CatalogueNavigation({
       mokabookInstance={useDesignInstance("navigation")}
       rows={nodes ?? NAV_TREE}
       changedCount={changedCount ?? 3}
+      showChanges={changes}
       changedOnly={changedOnly ?? false}
       presentation={drawer ? "drawer" : "responsive"}
       {...optional("activeDestination", activeDestination)}

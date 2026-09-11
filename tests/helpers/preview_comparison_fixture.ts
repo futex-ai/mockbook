@@ -13,7 +13,7 @@ const execute = promisify(execFile);
 
 /** Build a published catalogue against a real Git baseline and changed assets. */
 export async function createPreviewComparisonFixture(
-  entrySource: (changed: boolean) => string = comparisonEntrySource,
+  entrySource: (changed: boolean) => string = comparisonDocumentSource,
 ) {
   const fixture = await createFixture(entrySource(false), {
     extraConfig:
@@ -63,7 +63,7 @@ export async function createPreviewComparisonFixture(
         [
           "--input-type=module",
           "--eval",
-          'import { loadConfig } from "./dist/config/load.js"; import { buildPreview } from "./scripts/preview/catalogue.mjs"; await buildPreview(await loadConfig(process.argv[1]), process.argv[2]);',
+          'import { loadConfig } from "./dist/config/load.js"; import { buildPreview } from "./scripts/preview/catalogue.mjs"; await buildPreview(await loadConfig(process.argv[1]), process.argv[2], { includeChanges: true });',
           fixture.root,
           output,
         ],
@@ -82,4 +82,18 @@ export async function createPreviewComparisonFixture(
     await removeFixture(fixture);
     throw error;
   }
+}
+
+/** Default fixture source: comparison screens plus whole-document pages. */
+function comparisonDocumentSource(changed: boolean): string {
+  return comparisonEntrySource(changed) + documentEntries(changed);
+}
+
+function documentEntries(current: boolean): string {
+  return `
+import { definePage, defineCollection as documentCollection } from "mokabook";
+const documentMetadata = { description: "Document", dependencies: [], relatedDocs: [], tags: ["documents"] };
+mockups.push(definePage({ ...documentMetadata, id: "handbook", title: "Handbook", route: "handbook.html", render: () => '<html><body><main id="overview">Handbook</main><a href="mock:home">Home</a></body></html>' }));
+${current ? "" : 'mockups.push(documentCollection({ id: "documents", title: "Documents", description: "Documents", dependencies: [], relatedDocs: [], childIds: ["removed-document"] }), definePage({ ...documentMetadata, id: "removed-document", title: "Former handbook", route: "removed-document.html", render: () => "<html><body>Previous document</body></html>" }));'}
+`;
 }

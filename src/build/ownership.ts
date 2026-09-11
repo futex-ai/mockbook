@@ -9,6 +9,7 @@ import {
 } from "../config/paths.js";
 import { MokabookError } from "../errors.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
+import { isAuthoringSource } from "./source_inventory.js";
 import { walkFiles } from "./discovery.js";
 
 const ENCODED_HEADER =
@@ -90,17 +91,16 @@ export function pendingGeneratedOrphanRoutes(
 
 /** Determine whether an existing target may be replaced safely. */
 export function isOwned(candidate: string, config: ResolvedConfig): boolean {
-  if (
-    !isInside(config.mockupsDir, candidate) ||
-    isInside(config.entriesDir, candidate) ||
-    Boolean(config.legacy && isInside(config.legacy.pagesDir, candidate))
-  ) {
-    return false;
-  }
-  const relative = toPosixPath(path.relative(config.mockupsDir, candidate));
-  if (relative === MANIFEST_NAME) return true;
-  if (!candidate.endsWith(".html")) return false;
   try {
+    if (
+      !isInside(config.mockupsDir, candidate) ||
+      isAuthoringSource(candidate, config)
+    ) {
+      return false;
+    }
+    const relative = toPosixPath(path.relative(config.mockupsDir, candidate));
+    if (relative === MANIFEST_NAME) return true;
+    if (!candidate.endsWith(".html")) return false;
     if (!fs.lstatSync(candidate).isFile()) return false;
     const handle = fs.openSync(candidate, "r");
     try {
@@ -111,12 +111,7 @@ export function isOwned(candidate: string, config: ResolvedConfig): boolean {
       );
       if (!source || !isSafeRepositoryPath(source)) return false;
       const absoluteSource = path.resolve(config.repoRoot, source);
-      return (
-        isInside(config.entriesDir, absoluteSource) ||
-        Boolean(
-          config.legacy && isInside(config.legacy.pagesDir, absoluteSource),
-        )
-      );
+      return isInside(config.entriesDir, absoluteSource);
     } finally {
       fs.closeSync(handle);
     }

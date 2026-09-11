@@ -106,3 +106,17 @@ test("old and malformed deployment descriptors fail closed", () => {
   ])
     assert.equal(parseStaticDelivery(value), undefined);
 });
+
+test("current-only publication explicitly disables comparisons without losing id routes", () => {
+  const delivery = parseStaticDelivery({ ...descriptor, comparisonUrl: null });
+  assert.ok(delivery);
+  assert.equal(delivery.comparisonUrl, null);
+  assert.equal(
+    resolveDeliveryHref("/id/home?fragment=heading", delivery),
+    "/view/screens/home.html?fragment=heading",
+  );
+  assert.equal(
+    parseStaticDelivery({ ...descriptor, comparisonUrl: undefined }),
+    undefined,
+  );
+});

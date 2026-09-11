@@ -26,8 +26,8 @@ See the [library authoring guide](./entries/design/library/README.md),
 and [plans index](../../plans/README.md).
 
 The entry definitions use collection membership as their only navigation
-hierarchy. The real `Example` collection owns `Screens` and the example tour;
-the real `Design` collection owns the `Mokabook design` tree. Those parent
+hierarchy. The real `Example` collection owns `Screens`, the example tour, and
+Getting started; the real `Design` collection owns the `Mokabook design` tree. Those parent
 collections preserve the intended visible groups and automatically produce
 the same breadcrumb ancestry. Consumer code does not provide `navPath`; when
 migrating an older catalogue, keep a former synthetic group only by adding an
@@ -79,7 +79,7 @@ render plain React DOM need none of this and can keep a plain
 `renderToStaticMarkup` adapter.
 
 The `Design` navigation group is the owning design catalogue for Mokabook's
-Browse and Changes views. Its twenty-four Browse and Changes screens cover navigation,
+Browse and Changes views. Its thirty Browse, page, publication and Changes screens cover navigation,
 Details, tags, color schemes, and comparison outcomes. Thirty-two component
 explorer screens add component pages, saved variants, affected screens,
 repeated/nested inspection, highlighting, and empty or removed states. The shared icon inspector and complete controls
@@ -88,6 +88,10 @@ and published saved-variant states. Every
 screen has distinct mobile and desktop components. The component designs are
 static mockups; the outer package workspace implements the live component explorer. Native
 fields can be edited, and authored state links show the designed outcomes.
+Desktop variants depict the
+shared resize grip on the catalogue navigation in Current and comparison views; narrow variants
+keep the drawer fixed. The recorded tokens and responsive rules live in
+[`docs/protocol/mokabook-shell-design.md`](../../docs/protocol/mokabook-shell-design.md).
 
 A grouped icon toolbar switches Mobile/Desktop/Both previews, light/dark, and
 screen highlighting. The original Browse/Changes theme pairs retain their
@@ -164,8 +168,9 @@ npm run dev
 This builds the local CLI, generates the catalogue, and watches entries, the
 renderer, and configured stylesheets. Open the printed URL; the browser reloads
 after watched edits. Forward Serve options with `npm run dev -- --port 0`.
-Restart the command after changing Mokabook's `src/` files or unwatched inputs
-such as this example's `theme.ts`.
+Imported consumer helpers, including this example's `theme.ts`, are tracked
+and trigger rebuilds automatically. Restart the command after changing
+Mokabook's own `src/` files.
 
 For one-off generation, verification, or publishing an artifact:
 
@@ -181,18 +186,37 @@ hand-authored stylesheets (`styles.css`, `design.css`, `design-stage.css`,
 `design-review.css`, and the component design stylesheets) also live under `generated/` because it doubles as the
 public static root. `preview:build` exports this catalogue through the shared
 package engine into `.context/mokabook-preview` for Cloudflare Pages; it is the same
-artifact used by the main and pull-request preview workflow. The snapshot
-compares the catalogue with its branch point on `origin/main` and preserves
-the catalogue's All/Changes filter, Light/Dark switch, client assets, and light/dark
-fragment files, including when no routes changed. Public HTML copies pass
-through the same ownership-aware link adapter as served Browse; direct preview
-URLs apply one validated `fragment` query progressively in the parent shell.
-Published and served screens offer the same comparison controls in the actual
-Mokabook shell. Publishing prepares a validated Git comparison with isolated
-before/after resources, including removed-screen pages; browsers request those
-snapshots only after a comparison option is selected. Links inside the design frames navigate between authored artboards; their
-pictured comparison controls do not request actual comparison snapshots. There is no separate Review
-section or comparison CLI command.
+current catalogue used by the main preview workflow. It preserves search, tags,
+navigation, Light/Dark choices, client assets, and light/dark fragment files.
+Public HTML copies pass through the same ownership-aware link adapter as served
+Browse; direct preview URLs apply one validated `fragment` query progressively
+in the parent shell. PR previews explicitly include Changes and immutable screen and saved component
+comparisons with `--include-changes --base origin/main`. Publishing then prepares
+isolated before/after resources and removed-entry states; browsers fetch screen
+snapshots only after a comparison option is selected. Links inside the design
+frames navigate between authored artboards; their pictured comparison controls
+do not request actual comparison snapshots. There is no separate Review section
+or comparison CLI command.
+
+The shell designs now include `design/browse/pages/` (document, details,
+and removal) and `design/browse/publication/` (current catalogue and Changes).
+Each state has its own mobile and desktop component and reuses the shell,
+navigation, and stage primitives. The synthetic handbook in `entries/document.tsx`
+is shared by these designs and the first-class page example.
+
+The `example-handbook` page imports the shared example document and belongs to
+the existing Example collection alongside Screens and Example tour. Its exact
+`handbook.html` route, `next-steps` anchor, and incoming Welcome link exercise
+the public page API. The design catalogue has four responsive page states and
+two publication states.
+
+Every design uses the shared `Search catalogue…` wording. Home guidance and the
+`Item not found` state cover screens, documents, and flows; the runtime shell
+uses the same catalogue-wide language at both viewport sizes.
+
+`npm run preview:build` exports current content without Git or review controls.
+Add `-- --include-changes --base origin/main` to package Changes and immutable
+screen comparisons. Both options omit development update connections.
 
 For an ordinary static host, use the consumer command instead of the Pages adapter:
 
@@ -202,5 +226,6 @@ node dist/cli/bin.js export --config examples/basic/mokabook.config.ts --out ../
 
 Output is config-relative. This command builds the example itself, retains exact
 `.html` URLs and real `/id/<id>/index.html` aliases, and needs no provider rewrites.
-Both exports require the configured Git baseline and committed baseline output.
+The consumer export command requires the configured Git baseline and committed
+baseline output; the default repository preview does not.
 See the [consumer publishing recipe](../../README.md#export-and-publish-a-consumer-build).

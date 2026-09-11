@@ -3,6 +3,12 @@ import type { ComponentDesignDestination } from "../components/parts/destination
 /** Stable catalogue destinations, independent of the depicted product ids. */
 export const DESTINATIONS = {
   home: "design-browse-home",
+  page: "design-page-view",
+  pageDetails: "design-page-details",
+  pageNavigation: "design-page-navigation",
+  pageRemoved: "design-page-removed",
+  publication: "design-publication-catalogue",
+  publicationChanges: "design-publication-changes",
   welcome: "design-browse-screen",
   details: "design-browse-details-screen",
   tour: "design-browse-use-case",

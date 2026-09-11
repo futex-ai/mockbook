@@ -1,7 +1,6 @@
 import type { ComponentRuntime } from "../build/component_runtime.js";
 import { parseRuntimeMessage } from "./controls/runtime_ipc.js";
 import type { ResolvedConfig } from "../config/types.js";
-import { computeChangedRoutes } from "./changed.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
 import { parseChildUpdateMessage } from "./update_messages.js";
@@ -15,11 +14,9 @@ export async function runServerChild(
   strictPort: boolean,
   componentRuntime?: ComponentRuntime,
 ): Promise<void> {
-  const changedRoutes = await computeChangedRoutes(config, base);
   const server = await startCatalogueServer(config, {
     base,
     ...(componentRuntime ? { componentRuntime } : {}),
-    ...(changedRoutes ? { changedRoutes } : {}),
     port,
     review: configuredServedReview(config, base),
     strictPort,

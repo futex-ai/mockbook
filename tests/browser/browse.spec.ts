@@ -758,12 +758,12 @@ test("the removed Review route keeps a usable not-found shell", async ({
   const response = await page.goto("/review");
   expect(response?.status()).toBe(404);
   await expect(page.locator("[data-mokabook-search]")).toBeVisible();
-  await expect(page.locator("#mb-main h2")).toHaveText("Screen not found");
+  await expect(page.locator("#mb-main h2")).toHaveText("Item not found");
 });
 
 test("missing routes keep the catalogue available", async ({ page }) => {
   await page.goto("/view/unknown.html");
-  await expect(page.locator("#mb-main h2")).toHaveText("Screen not found");
+  await expect(page.locator("#mb-main h2")).toHaveText("Item not found");
   await expect(page.locator("[data-mokabook-nav]")).toBeVisible();
   await openScreensGroup(page);
   await page.click(welcomeRow);

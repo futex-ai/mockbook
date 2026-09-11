@@ -1,8 +1,6 @@
 export { defineConfig } from "./config/define.js";
 export type {
   CompatibilityConfig,
-  LegacyConfig,
-  LegacyLintConfig,
   ModuleLoader,
   ModuleResolutionConfig,
   MokabookConfig,
@@ -16,6 +14,8 @@ export {
   collection,
   defineCollection,
   defineRoot,
+  definePage,
+  page,
   defineScreen,
   defineUseCase,
   screen,
@@ -24,6 +24,9 @@ export { MockLink, mockLink } from "./authoring/links.js";
 export { ReviewIgnore, ReviewIgnoreScope } from "./authoring/review_ignore.js";
 export { reviewMaterialKey } from "./authoring/review_material.js";
 export type {
+  PageInput,
+  PageDefinition,
+  NestedPageInput,
   ColorScheme,
   CollectionDefinition,
   CollectionInput,

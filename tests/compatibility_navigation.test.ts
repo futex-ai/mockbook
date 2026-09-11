@@ -6,6 +6,7 @@ import test from "node:test";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { loadConfig } from "../dist/config/load.js";
 import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   validEntrySource,
@@ -109,6 +110,13 @@ test("compatibility transforms preserve every generated ownership header", async
           'export const source = () => "<!doctype html><html><body>Notice</body></html>";\n',
         );
       }
+      if (item.legacy)
+        await registerFixturePage(
+          fixture,
+          "notice",
+          "notice.html",
+          "legacy/notice.source.ts",
+        );
       await writeTransformer(fixture.root, item.mutation, {
         legacy: item.legacy,
         unchangedWhen: `input.route !== ${JSON.stringify(item.route)}`,
@@ -204,7 +212,6 @@ export default function transform(input: CompatibilityTransformInput): string {
   compatibility: { transformer: "compatibility.ts" },
   colorSchemes: ["light", "dark"],
   entriesDir: "entries",
-  ${options.legacy ? 'legacy: { pagesDir: "legacy" },' : ""}
   mockupsDir: "mockups",
   repoRoot: "."
 };

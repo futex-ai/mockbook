@@ -16,6 +16,7 @@ import type { ComponentGraphRenderer } from "../components/render.js";
 import type { ComponentViewRecord } from "../components/manifest_types.js";
 import { componentFragmentRoute } from "../components/paths.js";
 import { rebaseStyleOwnership } from "../components/style_ownership.js";
+import { renderPage } from "./render_page.js";
 import { generatedHeader } from "./ownership.js";
 
 /** Render every screen view to owned, linked static documents. */
@@ -29,7 +30,19 @@ export function renderFragments(
 ): Map<string, string> {
   const outputs = new Map<string, string>();
   const components = entries.filter((entry) => entry.kind === "component");
-  for (const entry of entries) {
+  const ordered = [
+    ...entries.filter((entry) => entry.kind !== "page"),
+    ...entries.filter((entry) => entry.kind === "page"),
+  ];
+  for (const entry of ordered) {
+    if (entry.kind === "page") {
+      addOutput(outputs, entry.route, renderPage(entry));
+      fragmentViews.set(entry.route, {
+        colorScheme: "light",
+        viewport: "desktop",
+      });
+      continue;
+    }
     if (entry.kind !== "screen" && entry.kind !== "component") continue;
     for (const variantId of entry.kind === "component"
       ? entry.variants.map((variant) => variant.id)

@@ -34,7 +34,7 @@ export function ComponentWorkspace({
     <TargetStage
       catalogue={catalogue}
       target={target}
-      legacyTitle={head.title}
+
       {...(context.fragment ? { fragment: context.fragment } : {})}
     />
   );

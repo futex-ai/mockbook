@@ -10,10 +10,12 @@ const expected = [
   "defineCollection",
   "defineComponent",
   "defineConfig",
+  "definePage",
   "defineRoot",
   "defineScreen",
   "defineUseCase",
   "mockLink",
+  "page",
   "reviewMaterialKey",
   "screen",
 ];

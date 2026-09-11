@@ -2,8 +2,8 @@
 
 ## Delivery Status
 
-Implemented consumer CLI and shared export engine. `scripts/preview` is a thin
-repository-only Cloudflare adapter over that engine. The
+Implemented consumer CLI and shared export engine. Repository preview capture
+shares its artifact validation, static delivery, and output transaction. The
 [consumer static export plan](../../plans/consumer-static-export.md) tracks
 delivery of this contract and the [static delivery contract](./mokabook-export-delivery.md).
 Normal build validation and the existing comparison schema remain authoritative.
@@ -12,7 +12,7 @@ Normal build validation and the existing comparison schema remain authoritative.
 
 An installed consumer can create a complete static Mokabook catalogue using
 their existing config, entries, renderer, and assets. The resulting directory
-contains Browse navigation, screens, use cases, legacy pages, and the existing
+contains Browse navigation, screens, use cases, whole-document pages, and the existing
 on-demand comparison experience. Hosting it requires no Mokabook process,
 consumer source tree, Node.js, or Git on the serving machine.
 
@@ -54,8 +54,8 @@ their existing execution boundary; export adds no hosting network calls.
 
 ## Baseline And Comparisons
 
-The first release always includes comparisons, matching the existing published
-catalogue. A Git checkout with `HEAD`, the selected base, their merge base, and
+The consumer command always includes comparisons. The separate repository
+preview keeps its optional Changes contract. A Git checkout with `HEAD`, the selected base, their merge base, and
 the required committed baseline artifacts is necessary at export time. CI must
 fetch sufficient history before invoking the command; export never fetches it.
 Unavailable or invalid baselines fail explicitly, including shallow-history
@@ -70,11 +70,12 @@ Ignored-only edits, source moves, and dependency/shared-impact evidence alone
 do not add entries. Retain that evidence in comparisons, and do not derive the
 navigation filter by counting materially changed comparison screens.
 
-Use Review schema v3 when either manifest is v4; otherwise retain schema v2.
-Both formats retain all existing states, shared/dependency impact, ignored
-regions, both viewports, and all effective color schemes. See the
-[supported format matrix](./README.md#supported-formats).
-Removed screens remain reachable and current ids win when reused. A route absent
+Use Review schema v3 when either manifest contains registered components;
+otherwise retain schema v2. Both formats retain all existing states,
+shared/dependency impact, ignored regions, both viewports and all effective color
+schemes; see the [supported format matrix](./README.md#supported-formats).
+Removed screens, pages and components retain their baseline context; current ids
+and routes win when reused. Pages have no visual comparisons. A route absent
 from a side's manifest follows the existing added/removed rules. A declared but
 missing baseline document, invalid manifest, or unavailable resource fails;
 none becomes an invented empty baseline. Empty registries retain the normal
@@ -139,8 +140,8 @@ satisfies all core repository/source protections; the transaction pins the real
 output location so retargeting cannot redirect installation.
 
 Output must neither contain nor be contained by `entriesDir`, `mockupsDir`,
-legacy source roots, or `review.outDir`. It must not contain the config,
-renderer module, or a configured consumer package's `package.json`. Reject repository root, Git
+or `review.outDir`. It must not contain inventoried authoring inputs, the config,
+renderer module, or a consumer package's `package.json`. Reject repository root, Git
 metadata, dependency directories, and package runtime directories as targets.
 These checks also apply when the requested directory does not yet exist.
 
@@ -177,7 +178,7 @@ malformed markers and unrelated contents still fail.
 
 ## Public Files And Package Boundary
 
-Include current manifest-owned fragments and legacy documents and all public
+Include current manifest-owned fragments and pages and all public
 regular assets/documents that Browse exposes beneath `mockupsDir`, subject to
 export exclusions below. Retain relative resource and fallback document links
 and verify their transitive HTML/CSS dependencies, including fonts, images,
@@ -190,7 +191,7 @@ identifiers retain their resource policy; historical snapshot navigation remains
 unmodified and receives resource-only validation.
 
 The shared public-file confinement check is a minimum boundary, not permission
-to copy the whole repository. Prune entry/legacy source trees, the config and
+to copy the whole repository. Prune entry trees, inventoried sources, the config and
 renderer, source modules, dotfiles/directories, Git/dependency/cache trees,
 review/export outputs, and transaction paths before traversal. Explicit HTTP(S)
 and data resources retain the existing resource policy and are not downloaded;
@@ -223,9 +224,9 @@ second screen renderer or weakening build validation.
 
 ## Compatibility And Non-Goals
 
-The repository preview adopts the same core exporter through a thin adapter;
-it retains its command, output location, production/PR aliases, public routes,
-comparison access, and deployment behavior. Cloudflare routing/header files
+Repository preview captures the already-built catalogue through Browse and
+shares final artifact validation, delivery identity, and the output transaction.
+It retains optional Changes and its existing snapshot/alias rules. Cloudflare routing/header files
 remain adapter concerns. Legacy output migration must be tested independently
 of clean CI output. A provider adapter may add metadata before installation;
 it must not mutate an already-installed site or relax core confinement.
@@ -239,7 +240,7 @@ fragments keep their existing direct-from-disk behavior.
 ## Verification
 
 Implementation must cover option validation and config-relative paths, custom
-renderer/module resolution, legacy entries, both schemes/viewports, invalid empty and
+renderer/module resolution, v5 pages, both schemes/viewports, invalid empty and
 removed catalogues, non-default bases, missing history/resources, output overlap,
 symlinks, ownership/collisions, concurrent writers, input changes, rollback,
 shutdown, export self-attribution, public-file exclusion, and asset closure.
@@ -252,7 +253,7 @@ Cloudflare preview regression coverage and the existing build/check/serve gate.
 
 ## Registered Components
 
-Component catalogues retain manifest-v4 saved variants and comparison-schema-v3
+Component catalogues retain manifest-v5 saved variants and comparison-schema-v3
 evidence, including removed variants and actual affected consumers. The same
 inspector renders in served and exported shells. Export supplies no local render
 capability or token; controls are read-only and make no render requests. The

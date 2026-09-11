@@ -4,8 +4,10 @@ import path from "node:path";
 import { compileCatalogue } from "../../dist/build/compile.js";
 import { writeCompilation } from "../../dist/build/transaction.js";
 import { loadConfig } from "../../dist/config/load.js";
+import { loadCatalogueSnapshot } from "../../dist/server/catalogue_snapshot.js";
 import { startCatalogueServer } from "../../dist/server/http.js";
 import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   type TestFixture,
@@ -36,17 +38,29 @@ export async function startNavigationFixture(): Promise<NavigationFixture> {
   );
   await fs.promises.writeFile(
     fixture.configPath,
-    `export default { colorSchemes: ["light", "dark"], entriesDir: "entries", legacy: { pagesDir: "legacy" }, mockupsDir: "mockups", repoRoot: "." };\n`,
+    `export default { colorSchemes: ["light", "dark"], entriesDir: "entries",  mockupsDir: "mockups", repoRoot: "." };\n`,
+  );
+  await registerFixturePage(
+    fixture,
+    "guide",
+    "guide.html",
+    "legacy/guide.source.ts",
   );
   const config = await loadConfig(fixture.root);
   await writeCompilation(await compileCatalogue(config), config);
   const server = await startCatalogueServer(config, {
     base: "origin/main",
-    changedRoutes: [
-      "screens/extra.html",
-      "screens/home.html",
-      "user-flows/tour.html",
-    ],
+    snapshot: await loadCatalogueSnapshot(config, async () => ({
+      schemaVersion: 1,
+      baseRef: "origin/main",
+      baseCommit: "a".repeat(40),
+      changedRoutes: [
+        "screens/extra.html",
+        "screens/home.html",
+        "user-flows/tour.html",
+      ],
+      removedEntries: [],
+    })),
     port: 0,
   });
   return {

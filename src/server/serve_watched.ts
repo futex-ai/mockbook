@@ -3,6 +3,7 @@ import { componentRuntime } from "../build/component_runtime.js";
 
 import { fileURLToPath } from "node:url";
 
+import { loadConsumerGraph } from "../build/load_graph.js";
 import { compileCatalogue, type Compilation } from "../build/compile.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { errorMessage } from "../errors.js";
@@ -49,6 +50,7 @@ export async function serveWatched(
   });
   const gate = new NotificationGate<string>();
   const failureGate = new NotificationGate<Error>();
+  config.sourceFiles = (await loadConsumerGraph(config, false)).sourceFiles;
   let activeConfig = config;
   let watcher = createWatcher(watcherFactory, activeConfig, gate);
   const resources = new ResourceWatcher(
@@ -116,8 +118,12 @@ export async function serveWatched(
       classifyWatchPath(candidate, activeConfig, resources.paths),
     );
   };
-  const reconfigure = async (): Promise<void> => {
-    const nextConfig = await configLoader.load(activeConfig.configPath);
+  const reconfigure = async (candidate?: ResolvedConfig): Promise<void> => {
+    const nextConfig =
+      candidate ?? (await configLoader.load(activeConfig.configPath));
+    nextConfig.sourceFiles = (
+      await loadConsumerGraph(nextConfig, false)
+    ).sourceFiles;
     const replacementGate = new NotificationGate<string>();
     const replacement = createWatcher(
       watcherFactory,
@@ -185,7 +191,16 @@ export async function serveWatched(
       return;
     }
     if (action === "rebuild") {
-      const nextCompilation = await compileCatalogue(activeConfig);
+      const graph = await loadConsumerGraph(activeConfig, false);
+      const candidate = { ...activeConfig, sourceFiles: graph.sourceFiles };
+      if (
+        JSON.stringify(watchTargets(candidate)) !==
+        JSON.stringify(watchTargets(activeConfig))
+      ) {
+        await reconfigure(candidate);
+        return;
+      }
+      const nextCompilation = await compileCatalogue(candidate);
       const prepared = await prepareOutput(activeConfig, nextCompilation);
       if (!prepared) return;
       try {

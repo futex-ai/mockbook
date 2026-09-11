@@ -1,0 +1,172 @@
+import { componentEntrySource } from "./helpers/component_fixture.js";
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import test from "node:test";
+
+import { MokabookError } from "../dist/errors.js";
+import { RepositoryGitClient } from "../dist/review/git.js";
+import { NodeCatalogueServerFactory } from "../dist/server/factory.js";
+import { startCatalogueServer } from "../dist/server/http.js";
+import { configuredServedReview } from "../dist/server/review_routes.js";
+import { serve } from "../dist/server/serve.js";
+import { changedFixture } from "./helpers/changed_fixture.js";
+import { validEntrySource } from "./helpers/fixture.js";
+
+const page = `
+import { definePage } from "mokabook";
+mockups.push(definePage({ id: "guide", title: "Guide", route: "guide.html", description: "Guide", dependencies: [], relatedDocs: [], render: () => "<!doctype html><html><body>Guide</body></html>" }));
+`;
+
+test("no-watch startup retains removed metadata from its single Changes calculation", async (context) => {
+  const fixture = await changedFixture(context, validEntrySource() + page);
+  await fs.writeFile(fixture.entryPath, validEntrySource());
+  const mergeBase = RepositoryGitClient.prototype.mergeBase;
+  let calls = 0;
+  context.mock.method(
+    RepositoryGitClient.prototype,
+    "mergeBase",
+    async function (
+      this: RepositoryGitClient,
+      ...args: Parameters<typeof mergeBase>
+    ) {
+      if (++calls > 1)
+        throw new Error("history became unavailable after startup");
+      return mergeBase.apply(this, args);
+    },
+  );
+  const running = await serve(fixture.config, {
+    base: "main",
+    port: 0,
+    watch: false,
+  });
+  context.after(() => running.close());
+
+  const home = await (await fetch(running.url)).text();
+  const removed = await fetch(`${running.url}/view/guide.html`);
+  assert.equal(removed.status, 200);
+  assert.match(await removed.text(), /This page was removed/);
+  assert.match(home, /data-removed-page=""/);
+  assert.match(home, /class="mbk-nav-filter-count">1</);
+  assert.equal(calls, 1);
+});
+
+test("unavailable startup Changes leaves a complete current catalogue without retrying Git", async (context) => {
+  const fixture = await changedFixture(context, validEntrySource() + page);
+  await fs.writeFile(fixture.entryPath, validEntrySource());
+  let calls = 0;
+  context.mock.method(RepositoryGitClient.prototype, "mergeBase", async () => {
+    calls++;
+    throw new MokabookError("git-failed", "history is unavailable");
+  });
+  const running = await serve(fixture.config, {
+    base: "main",
+    port: 0,
+    watch: false,
+  });
+  context.after(() => running.close());
+
+  const home = await (await fetch(running.url)).text();
+  assert.match(home, /data-entry-id="home"/);
+  assert.doesNotMatch(home, /data-mokabook-filter|data-removed-page/);
+  assert.equal((await fetch(`${running.url}/view/guide.html`)).status, 404);
+  assert.equal(calls, 1);
+});
+
+test("server startup rejects invalid current metadata before querying history", async (context) => {
+  const fixture = await changedFixture(context);
+  await fs.writeFile(
+    path.join(fixture.mockupsDir, "mokabook-manifest.json"),
+    "{}",
+  );
+  let calls = 0;
+  context.mock.method(RepositoryGitClient.prototype, "mergeBase", async () => {
+    calls++;
+    throw new Error("invalid current output must fail first");
+  });
+
+  await assert.rejects(
+    startCatalogueServer(fixture.config, {
+      base: "main",
+      port: 0,
+      review: configuredServedReview(fixture.config, "main"),
+    }),
+    { code: "manifest-invalid" },
+  );
+  assert.equal(calls, 0);
+});
+
+test("no-watch HTTP startup reuses the catalogue validated before factory handoff", async (context) => {
+  const fixture = await changedFixture(context);
+  const start = NodeCatalogueServerFactory.prototype.start;
+  context.mock.method(
+    NodeCatalogueServerFactory.prototype,
+    "start",
+    async function (
+      this: NodeCatalogueServerFactory,
+      ...args: Parameters<typeof start>
+    ) {
+      const manifestPath = path.join(
+        fixture.mockupsDir,
+        "mokabook-manifest.json",
+      );
+      const bytes = await fs.readFile(manifestPath, "utf8");
+      await fs.writeFile(
+        manifestPath,
+        bytes.replace('"title": "Home"', '"title": "Later catalogue"'),
+      );
+      return start.apply(this, args);
+    },
+  );
+  const running = await serve(fixture.config, {
+    base: "main",
+    port: 0,
+    watch: false,
+  });
+  context.after(() => running.close());
+  const home = await (await fetch(running.url)).text();
+  assert.doesNotMatch(home, /Later catalogue/);
+  assert.match(home, /class="mbk-nav-filter-count">0</);
+});
+
+test("a no-watch component catalogue reuses its resolved ownership evidence", async (context) => {
+  const source = componentEntrySource() + page;
+  const fixture = await changedFixture(context, source);
+  await fs.writeFile(
+    fixture.entryPath,
+    source.replace(
+      "<button data-viewport=",
+      '<button className="updated" data-viewport=',
+    ),
+  );
+  const mergeBase = RepositoryGitClient.prototype.mergeBase;
+  let calls = 0;
+  context.mock.method(
+    RepositoryGitClient.prototype,
+    "mergeBase",
+    async function (
+      this: RepositoryGitClient,
+      ...args: Parameters<typeof mergeBase>
+    ) {
+      if (++calls > 1) throw new Error("The baseline must stay pinned");
+      return mergeBase.apply(this, args);
+    },
+  );
+  const running = await serve(fixture.config, {
+    base: "main",
+    port: 0,
+    watch: false,
+  });
+  context.after(() => running.close());
+  const component = await (
+    await fetch(`${running.url}/view/components/action.html`)
+  ).text();
+  assert.match(component, /data-workspace-data/);
+  assert.match(component, /"status":"Changed"/);
+  assert.match(
+    component,
+    /data-changed="true"[^>]*data-route="components\/action.html"/,
+  );
+  assert.equal((await fetch(`${running.url}/view/guide.html`)).status, 200);
+  assert.equal(calls, 1);
+});

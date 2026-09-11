@@ -5,7 +5,7 @@ export type WatchAction = "ignore" | "rebuild" | "reload" | "restart";
 
 /** One glob-to-stylesheet mapping evaluated in declaration order. */
 export interface StylesheetRule {
-  /** POSIX glob matched against a screen or legacy route. */
+  /** POSIX glob matched against a screen route. */
   match: string;
   /** Paths relative to `mockupsDir`, or absolute HTTP(S) URLs. */
   stylesheets: readonly string[];
@@ -13,30 +13,6 @@ export interface StylesheetRule {
   lightStylesheets?: readonly string[];
   /** Additional stylesheets appended for dark fragments. */
   darkStylesheets?: readonly string[];
-}
-
-/** Optional support for pre-registry source pages during consumer migration. */
-export interface LegacyConfig {
-  /** Config-relative source directory containing legacy source pages. */
-  pagesDir: string;
-  /** Source-relative globs omitted during a staged consumer migration. */
-  exclude?: readonly string[];
-  /** Optional config-relative module exporting a legacy component renderer. */
-  components?: string;
-  /** Explicit source-relative output route replacements. */
-  routeAliases?: Readonly<Record<string, string>>;
-  /** Optional route-level lint policy. No Accounting policy is implicit. */
-  lint?: LegacyLintConfig;
-}
-
-/** Opt-in generic lints for legacy documents. */
-export interface LegacyLintConfig {
-  /** Routes exempt from the screen-count cap. */
-  allowRoutes?: readonly string[];
-  /** Maximum `data-mokabook-screen` markers in one document. */
-  maxScreensPerPage?: number;
-  /** Require ids on elements carrying `data-mokabook-stage`. */
-  requireStageIds?: boolean;
 }
 
 /** One additional consumer watch input. */
@@ -66,7 +42,7 @@ export interface ReviewConfig {
 
 /** Temporary compatibility accepted during a consumer cutover. */
 export interface CompatibilityConfig {
-  /** Read legacy v2 output only when the canonical v3 manifest is absent. */
+  /** Read historical v2 Git output only when its canonical manifest is absent. */
   readManifestV2?: boolean;
   /** Config-relative module applying a temporary deterministic document bridge. */
   transformer?: string;
@@ -119,8 +95,6 @@ export interface MokabookConfig {
   moduleResolution?: ModuleResolutionConfig;
   /** Ordered route-to-stylesheet mappings. */
   stylesheets?: readonly StylesheetRule[];
-  /** Optional legacy source support. */
-  legacy?: LegacyConfig;
   /** Review settings. */
   review?: ReviewConfig;
   /** Watch settings. */
@@ -137,8 +111,11 @@ export interface ResolvedConfig {
     transformer?: string;
   };
   configPath: string;
+  /** Complete authoring inventory retained across compile and serving boundaries. */
+  sourceFiles?: readonly string[];
+  /** Inputs to the separately bundled configuration graph. */
+  configSourceFiles?: readonly string[];
   entriesDir: string;
-  legacy?: ResolvedLegacyConfig;
   mockupsDir: string;
   moduleResolution: ResolvedModuleResolutionConfig;
   renderer?: string;
@@ -158,13 +135,4 @@ export interface ResolvedModuleResolutionConfig {
   mainFields?: readonly string[];
   packageRoots: readonly string[];
   resolveExtensions?: readonly string[];
-}
-
-/** Absolute paths plus normalized policy for legacy generation. */
-export interface ResolvedLegacyConfig extends Omit<
-  LegacyConfig,
-  "components" | "pagesDir"
-> {
-  components?: string;
-  pagesDir: string;
 }

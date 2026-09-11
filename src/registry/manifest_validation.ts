@@ -1,39 +1,72 @@
 import {
   componentFragmentPaths,
-  validateManifestComponent,
   validateManifestComponentUsage,
 } from "../components/manifest_validation.js";
 import { MokabookError } from "../errors.js";
-import { isSafeCatalogueRoute, isSafeRepositoryPath } from "../config/paths.js";
 import { isCatalogueId } from "../navigation/logical.js";
 import { validateManifestRelationships } from "./manifest_relationships.js";
-import type { Manifest } from "./types.js";
+import { validateEntry, validateCurrentFields } from "./manifest_entries.js";
+import {
+  record,
+  stringArray,
+  validateRepoPath,
+  validateRoute,
+} from "./manifest_values.js";
+import type { HistoricalManifest } from "./types.js";
 
 /** Validate unknown manifest JSON and normalize temporary schema version 2. */
-export function validateManifest(value: unknown, allowV2: boolean): Manifest {
-  if (
-    !record(value) ||
-    !Array.isArray(value.entries) ||
-    !Array.isArray(value.legacyPages)
-  ) {
+export function validateManifest(
+  value: unknown,
+  allowV2: boolean,
+  historical = false,
+): HistoricalManifest {
+  if (!record(value) || !Array.isArray(value.entries))
     throw new MokabookError(
       "manifest-invalid",
-      "manifest must contain entries and legacyPages arrays",
+      "manifest must contain an entries array",
     );
-  }
   const normalized =
-    value.schemaVersion === 2 && allowV2
+    value.schemaVersion === 2 && allowV2 && historical
       ? { ...value, generatedBy: "mokabook", schemaVersion: 3 }
       : value;
+  const current = normalized.schemaVersion === 5;
+  const pages =
+    current || (normalized.schemaVersion === 4 && "sourceFiles" in normalized);
   if (
-    (normalized.schemaVersion !== 3 && normalized.schemaVersion !== 4) ||
+    (!current &&
+      !(historical && [3, 4].includes(normalized.schemaVersion as number))) ||
     normalized.generatedBy !== "mokabook"
-  ) {
+  )
     throw new MokabookError(
       "manifest-invalid",
-      "expected Mokabook manifest schema version 3 or 4",
+      "expected Mokabook manifest schema version 5; run mokabook build",
     );
-  }
+  if (pages) {
+    if (
+      Object.keys(normalized).some(
+        (key) =>
+          !["entries", "generatedBy", "schemaVersion", "sourceFiles"].includes(
+            key,
+          ),
+      )
+    )
+      throw new MokabookError("manifest-invalid", "unexpected manifest field");
+    if (
+      !stringArray(normalized.sourceFiles) ||
+      JSON.stringify(normalized.sourceFiles) !==
+        JSON.stringify([...new Set(normalized.sourceFiles)].sort())
+    )
+      throw new MokabookError(
+        "manifest-invalid",
+        "sourceFiles must be a sorted unique array",
+      );
+    for (const source of normalized.sourceFiles)
+      validateRepoPath(source, "sourceFiles");
+  } else if (!Array.isArray(normalized.legacyPages))
+    throw new MokabookError(
+      "manifest-invalid",
+      "historical manifest needs legacyPages",
+    );
   const entries: Record<string, unknown>[] = [];
   const byId = new Map<string, Record<string, unknown>>();
   const routes = new Set<string>();
@@ -53,7 +86,23 @@ export function validateManifest(value: unknown, allowV2: boolean): Manifest {
     if (!isCatalogueId(id)) {
       throw new MokabookError("manifest-invalid", `invalid manifest id: ${id}`);
     }
-    validateEntry(entry, normalized.schemaVersion === 4);
+    if (pages) {
+      validateCurrentFields(entry, current);
+      if (
+        !(normalized.sourceFiles as string[]).includes(
+          entry.sourcePath as string,
+        )
+      )
+        throw new MokabookError(
+          "manifest-invalid",
+          `sourceFiles omits ${String(entry.sourcePath)}`,
+        );
+    } else if (entry.kind === "page")
+      throw new MokabookError(
+        "manifest-invalid",
+        "pages require the registered-page manifest format",
+      );
+    validateEntry(entry, current || (normalized.schemaVersion === 4 && !pages));
     if (byId.has(id)) {
       throw new MokabookError(
         "manifest-invalid",
@@ -73,170 +122,12 @@ export function validateManifest(value: unknown, allowV2: boolean): Manifest {
     }
   }
   const outputRoutes = validateFragmentRoutes(entries, routes);
-  validateLegacyPages(value.legacyPages, outputRoutes);
+  if (!pages)
+    validateLegacyPages(normalized.legacyPages as unknown[], outputRoutes);
   validateManifestRelationships(entries, byId);
-  const manifest = normalized as unknown as Manifest;
+  const manifest = normalized as unknown as HistoricalManifest;
   validateManifestComponentUsage(manifest);
   return manifest;
-}
-
-function validateEntry(
-  entry: Record<string, unknown>,
-  components: boolean,
-): void {
-  const kind = entry.kind;
-  if (
-    kind !== "collection" &&
-    kind !== "screen" &&
-    kind !== "use-case" &&
-    !(components && kind === "component")
-  ) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `invalid manifest kind for ${String(entry.id)}`,
-    );
-  }
-  for (const field of ["title", "description", "sourcePath"] as const) {
-    if (typeof entry[field] !== "string" || entry[field].length === 0) {
-      throw new MokabookError(
-        "manifest-invalid",
-        `${String(entry.id)} is missing ${field}`,
-      );
-    }
-  }
-  validateRepoPath(
-    entry.sourcePath as string,
-    `${String(entry.id)} sourcePath`,
-  );
-  if (entry.rationale !== undefined && !nonEmptyString(entry.rationale)) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has invalid rationale`,
-    );
-  }
-  for (const field of ["navPath", "relatedDocs", "dependencies"] as const) {
-    if (!stringArray(entry[field])) {
-      throw new MokabookError(
-        "manifest-invalid",
-        `${String(entry.id)} has invalid ${field}`,
-      );
-    }
-  }
-  for (const field of ["relatedDocs", "dependencies"] as const) {
-    for (const value of entry[field] as string[]) {
-      validateRepoPath(value, `${String(entry.id)} ${field}`);
-    }
-  }
-  if (kind === "collection") {
-    if (!stringArray(entry.childIds)) {
-      throw new MokabookError(
-        "manifest-invalid",
-        `${String(entry.id)} has invalid childIds`,
-      );
-    }
-    return;
-  }
-  if (typeof entry.route !== "string") {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has no route`,
-    );
-  }
-  validateRoute(entry.route, String(entry.id));
-  if (entry.tags !== undefined && !stringArray(entry.tags)) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has invalid tags`,
-    );
-  }
-  if (kind === "component") validateManifestComponent(entry);
-  else if (kind === "screen") validateScreen(entry);
-  else validateUseCase(entry);
-}
-
-function validateScreen(entry: Record<string, unknown>): void {
-  if (!record(entry.fragments)) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has no fragments`,
-    );
-  }
-  for (const viewport of ["mobile", "desktop"] as const) {
-    const fragment = entry.fragments[viewport];
-    if (typeof fragment !== "string") {
-      throw new MokabookError(
-        "manifest-invalid",
-        `${String(entry.id)} has no ${viewport} fragment`,
-      );
-    }
-    validateRoute(fragment, `${String(entry.id)} ${viewport} fragment`);
-  }
-  if (entry.darkFragments !== undefined) {
-    if (!record(entry.darkFragments)) {
-      throw new MokabookError(
-        "manifest-invalid",
-        `${String(entry.id)} has invalid darkFragments`,
-      );
-    }
-    for (const viewport of ["mobile", "desktop"] as const) {
-      const fragment = entry.darkFragments[viewport];
-      if (typeof fragment !== "string") {
-        throw new MokabookError(
-          "manifest-invalid",
-          `${String(entry.id)} has no ${viewport} dark fragment`,
-        );
-      }
-      validateRoute(fragment, `${String(entry.id)} ${viewport} dark fragment`);
-    }
-  }
-  if (!stringArray(entry.useCaseIds)) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has invalid useCaseIds`,
-    );
-  }
-  if (
-    !Array.isArray(entry.viewports) ||
-    entry.viewports.length !== 2 ||
-    entry.viewports[0] !== "mobile" ||
-    entry.viewports[1] !== "desktop"
-  ) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has invalid viewports`,
-    );
-  }
-  if (entry.address !== undefined && !nonEmptyString(entry.address)) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has invalid address`,
-    );
-  }
-}
-
-function validateUseCase(entry: Record<string, unknown>): void {
-  if (!Array.isArray(entry.steps) || entry.steps.length === 0) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${String(entry.id)} has invalid steps`,
-    );
-  }
-  for (const [index, step] of entry.steps.entries()) {
-    if (!record(step) || !nonEmptyString(step.screenId)) {
-      throw new MokabookError(
-        "manifest-invalid",
-        `${String(entry.id)} step #${index + 1} has invalid screenId`,
-      );
-    }
-    for (const field of ["title", "description"] as const) {
-      if (step[field] !== undefined && !nonEmptyString(step[field])) {
-        throw new MokabookError(
-          "manifest-invalid",
-          `${String(entry.id)} step #${index + 1} has invalid ${field}`,
-        );
-      }
-    }
-  }
 }
 
 function validateFragmentRoutes(
@@ -312,34 +203,4 @@ function validateLegacyPages(pages: unknown[], routes: Set<string>): void {
     }
     routes.add(page.route);
   }
-}
-
-function validateRoute(route: string, label: string): void {
-  if (!isSafeCatalogueRoute(route)) {
-    throw new MokabookError("manifest-invalid", `${label} has an unsafe route`);
-  }
-}
-
-function stringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) &&
-    value.every((item) => typeof item === "string" && item.length > 0)
-  );
-}
-
-function nonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
-}
-
-function validateRepoPath(value: string, label: string): void {
-  if (!isSafeRepositoryPath(value)) {
-    throw new MokabookError(
-      "manifest-invalid",
-      `${label} must be a safe repository-relative path`,
-    );
-  }
-}
-
-function record(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

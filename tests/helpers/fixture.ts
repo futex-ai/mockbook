@@ -50,6 +50,25 @@ export async function removeFixture(fixture: TestFixture): Promise<void> {
   await fs.promises.rm(fixture.root, { force: true, recursive: true });
 }
 
+/** Explicitly register an imported complete-document helper in a test consumer. */
+export async function registerFixturePage(
+  fixture: TestFixture,
+  id: string,
+  route: string,
+  modulePath: string,
+  exportName = "source",
+): Promise<void> {
+  const suffix = id.replaceAll("-", "_");
+  const imported = path
+    .relative(fixture.entriesDir, path.resolve(fixture.root, modulePath))
+    .split(path.sep)
+    .join("/");
+  await fs.promises.appendFile(
+    fixture.entryPath,
+    `\nimport { definePage as definePage_${suffix} } from "mokabook";\nimport { ${exportName} as render_${suffix} } from ${JSON.stringify(imported.startsWith(".") ? imported : `./${imported}`)};\nmockups.push(definePage_${suffix}({ id: ${JSON.stringify(id)}, route: ${JSON.stringify(route)}, title: ${JSON.stringify(id)}, description: "Complete fixture document", dependencies: [], relatedDocs: [], render: render_${suffix} }));\n`,
+  );
+}
+
 /** Valid two-screen catalogue with reciprocal use-case membership. */
 export function validEntrySource(
   options: { body?: string; firstTitle?: string } = {},

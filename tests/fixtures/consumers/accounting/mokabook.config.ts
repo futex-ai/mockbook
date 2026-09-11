@@ -2,12 +2,6 @@ import { defineConfig } from "mokabook";
 
 export default defineConfig({
   entriesDir: "catalogue/entries",
-  legacy: {
-    components: "catalogue/legacy/components.tsx",
-    lint: { maxScreensPerPage: 1 },
-    pagesDir: "catalogue/legacy",
-    routeAliases: { "old.source.html": "archive/legacy-notice.html" },
-  },
   mockupsDir: "docs/mockups",
   moduleResolution: {
     aliases: { "react-native": "react-native-web" },

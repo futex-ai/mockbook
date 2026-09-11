@@ -2,6 +2,7 @@ import React from "react";
 
 import { FirnaButton, FirnaCard } from "@firna/ui";
 import {
+  definePage,
   defineCollection,
   defineScreen,
   defineUseCase,
@@ -9,6 +10,8 @@ import {
   ReviewIgnore,
 } from "mokabook";
 
+import { renderToStaticMarkup } from "react-dom/server";
+import { renderComponent } from "../legacy/components.js";
 import { accent } from "../../shared/tokens.js";
 
 const common = {
@@ -32,6 +35,22 @@ function Dashboard({ compact }: { compact: boolean }) {
 }
 
 export const mockups = [
+  definePage({
+    ...common,
+    id: "accounting-notice",
+    title: "Notice",
+    description: "A complete consumer-composed document.",
+    route: "archive/legacy-notice.html",
+    render: () =>
+      "<!doctype html>" +
+      renderToStaticMarkup(
+        <html lang="en">
+          <body>
+            {renderComponent("notice", { label: "Expanded legacy notice" })}
+          </body>
+        </html>,
+      ),
+  }),
   defineCollection({
     ...common,
     childIds: ["accounting-tour"],
@@ -41,7 +60,11 @@ export const mockups = [
   }),
   defineCollection({
     ...common,
-    childIds: ["accounting-dashboard", "accounting-campaign"],
+    childIds: [
+      "accounting-dashboard",
+      "accounting-campaign",
+      "accounting-notice",
+    ],
     description: "An Accounting-shaped nested catalogue.",
     id: "accounting-fixture",
     title: "Accounting fixture",

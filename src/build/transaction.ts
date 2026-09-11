@@ -12,6 +12,8 @@ export async function writeCompilation(
   compilation: Compilation,
   config: ResolvedConfig,
 ): Promise<void> {
+  const destinationConfig = config;
+  config = { ...config, sourceFiles: compilation.manifest.sourceFiles };
   rejectUnsafeTargets(compilation, config);
   const temporaryRoot = await fs.promises.mkdtemp(
     path.join(path.dirname(config.mockupsDir), ".mokabook-write-"),
@@ -59,6 +61,7 @@ export async function writeCompilation(
   } finally {
     await fs.promises.rm(temporaryRoot, { force: true, recursive: true });
   }
+  destinationConfig.sourceFiles = compilation.manifest.sourceFiles;
 }
 
 function rejectUnsafeTargets(

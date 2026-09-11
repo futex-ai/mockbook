@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { exportCatalogue } from "../dist/export/run.js";
+import { capturedAssetReader } from "../dist/export/inputs.js";
 import { readManifest } from "../dist/registry/manifest.js";
 import {
   NodeGitCommandRunner,
@@ -84,6 +85,7 @@ test("material Changes can use captured documents without reading current file b
     commit,
     [`mockups/${fragment}`],
     {
+      ...capturedAssetReader(captured, fixture.config),
       read: async (route) => {
         reads.push(route);
         const bytes = captured.get(route);

@@ -95,3 +95,7 @@ allowance does not change any server readiness deadline.
 
 See the [adoption contract](../../../../../docs/protocol/mokabook-design-components.md)
 and [inventory](../../../../../docs/protocol/mokabook-design-component-library.md).
+
+Page artboards compose the shared inspector and metadata rows. An inspector tab
+may name an authored destination when a static scenario has separate open and
+closed artboards; ordinary tabs continue using native disclosure behavior.

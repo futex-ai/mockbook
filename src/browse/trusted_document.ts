@@ -22,6 +22,12 @@ export function trustedDocument(
   catalogue: Catalogue,
 ): TrustedBrowseDocument | undefined {
   for (const entry of catalogue.manifest.entries) {
+    if (entry.kind === "page" && entry.route === route)
+      return {
+        colorScheme: "light",
+        sourcePath: entry.sourcePath,
+        viewport: "desktop",
+      };
     for (const view of generatedViews(entry)) {
       if (view.path === route)
         return {
@@ -32,16 +38,7 @@ export function trustedDocument(
         };
     }
   }
-  const legacy = catalogue.manifest.legacyPages.find(
-    (page) => page.route === route,
-  );
-  return legacy
-    ? {
-        colorScheme: "light",
-        sourcePath: legacy.sourcePath,
-        viewport: route.endsWith(".mobile.html") ? "mobile" : "desktop",
-      }
-    : undefined;
+  return undefined;
 }
 
 /** Derive the exact portable href expected for a trusted logical marker. */
@@ -58,21 +55,29 @@ export function expectedPortableHref(
       : entry?.kind === "use-case" && entry.steps[0]
         ? catalogue.byId.get(entry.steps[0].screenId)
         : undefined;
-  if (screen?.kind !== "screen" && screen?.kind !== "component") {
+  if (
+    entry?.kind !== "page" &&
+    screen?.kind !== "screen" &&
+    screen?.kind !== "component"
+  ) {
     throw invalid(
       sourceRoute,
       `trusted marker links to an invalid id: ${destination.id}`,
     );
   }
-  const views = generatedViews(screen).filter(
-    (view) =>
-      view.viewport === source.viewport &&
-      (screen.kind !== "component" ||
-        view.variantId === screen.variants[0]!.id),
-  );
+  const views = screen
+    ? generatedViews(screen).filter(
+        (view) =>
+          view.viewport === source.viewport &&
+          (screen.kind !== "component" ||
+            view.variantId === screen.variants[0]!.id),
+      )
+    : [];
   const targetRoute =
-    views.find((view) => view.colorScheme === source.colorScheme)?.path ??
-    views[0]!.path;
+    entry?.kind === "page"
+      ? entry.route
+      : (views.find((view) => view.colorScheme === source.colorScheme)?.path ??
+        views[0]!.path);
   const relative = path.posix.relative(
     path.posix.dirname(sourceRoute),
     targetRoute,

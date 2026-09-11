@@ -7,6 +7,8 @@
 
 ## Completed
 
+- [Optional Published Changes](./optional-published-changes.md)
+- [Unified Catalogue Pages](./unified-catalogue-pages.md)
 - [Reuse Registered Components In Mokabook's Design Catalogue](./mokabook-design-components.md)
   — delivered and verified; review follow-ups are recorded for the user's decision.
 - [Component Explorer](./component-explorer.md) — delivered and verified;

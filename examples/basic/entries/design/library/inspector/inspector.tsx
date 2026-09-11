@@ -1,6 +1,6 @@
 import { defineComponent, type ComponentProps } from "mokabook";
 import { libraryMetadata } from "../metadata.js";
-import { text } from "../schemas.js";
+import { destination, text } from "../schemas.js";
 import { InspectorView } from "./inspector.view.js";
 
 const propSchema = {
@@ -20,6 +20,7 @@ const propSchema = {
               },
             },
             label: text,
+            destination,
           },
         },
       },

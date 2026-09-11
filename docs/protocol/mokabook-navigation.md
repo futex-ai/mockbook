@@ -6,6 +6,9 @@ This contract is implemented. Its delivery and verification history is recorded
 in the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
+[Whole-document pages](./mokabook-pages.md) use the same logical links, IDs,
+source ownership, and collection ancestry as screens and use cases.
+
 ## Scope
 
 This document defines how links authored inside generated mockup documents
@@ -103,7 +106,7 @@ builder indexes anchors from the final documents and repeats cross-view
 fragment validation for every retained logical-reference record. A transformer
 that removes or renames an anchor in any destination viewport or scheme
 therefore fails the build even when the source link record itself is unchanged.
-The builder also requires every transformed screen fragment and legacy document
+The builder also requires every transformed screen fragment and page document
 to retain a generated ownership header that decodes to its expected source
 path. The versioned header encodes that identity with canonical base64 so no
 source filename can alter HTML comment parsing. Header parsing accepts LF and
@@ -135,7 +138,7 @@ presented beneath `/static/` in served Browse or in the deployed Browse preview,
 Mokabook authenticates its marker for trusted parent enhancement while retaining
 the portable `href` and live `target`. The trusted-document set is exactly every
 current manifest screen fragment, including dark fragments, plus every
-generated legacy page in that manifest. Its generated header must name the same
+generated page in that manifest. Its generated header must name the same
 `sourcePath` as that manifest entry. The parent derives the canonical
 `/id/<encoded-id>` or
 `/id/<encoded-id>?fragment=<encoded-fragment>` destination from the marker; it
@@ -313,7 +316,7 @@ Coverage must prove:
   scheme-toggle retention, and first-step use-case scoping;
 - enhanced primary, keyboard, modified, non-self, Back, and Forward navigation
   from `MockLink`, raw HTML anchors and areas, SVG anchors, mobile and desktop
-  frames, flow steps, and generated legacy embeds;
+  frames, flow steps, and generated page embeds;
 - safe failed/disabled-enhancement degradation without outer navigation;
 - active-row selection, ancestor disclosure, conditional filter/search reset,
   nearest scrolling, responsive drawer closure, and preserved shell state; and

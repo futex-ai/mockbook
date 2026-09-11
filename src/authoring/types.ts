@@ -34,6 +34,12 @@ export interface ScreenInput extends RoutedEntryInput {
   useCaseIds?: readonly string[];
 }
 
+/** One complete HTML document rendered without device variants. */
+export interface PageInput extends RoutedEntryInput {
+  render: () => string;
+  tags?: readonly string[];
+}
+
 /** A structural navigation collection. */
 export interface CollectionInput extends EntryInput {
   childIds: readonly string[];
@@ -64,6 +70,11 @@ export interface ScreenDefinition extends ScreenInput, DefinitionBrand {
   useCaseIds: readonly string[];
 }
 
+/** Source-attributed whole-document definition. */
+export interface PageDefinition extends PageInput, DefinitionBrand {
+  kind: "page";
+}
+
 /** Validated collection definition created by `defineCollection`. */
 export interface CollectionDefinition extends CollectionInput, DefinitionBrand {
   kind: "collection";
@@ -77,6 +88,7 @@ export interface UseCaseDefinition extends UseCaseInput, DefinitionBrand {
 /** Any structured catalogue definition. */
 export type RegistryDefinition =
   | ScreenDefinition
+  | PageDefinition
   | CollectionDefinition
   | UseCaseDefinition
   | ComponentDefinition;
@@ -101,6 +113,22 @@ export interface NestedScreenInput extends NestedInherited {
   tags?: readonly string[];
   title: string;
   useCaseIds?: readonly string[];
+}
+
+/** Whole document with a route derived from ancestor paths and this slug. */
+export interface NestedPageInput extends Omit<
+  PageInput,
+  "route" | "dependencies" | "relatedDocs"
+> {
+  dependencies?: readonly string[];
+  relatedDocs?: readonly string[];
+  slug: string;
+}
+
+/** Source-attributed marker for nested page composition. */
+export interface NestedPageMarker extends NestedPageInput {
+  __nested: "page";
+  definedIn?: string;
 }
 
 /** A collection in a nested definition tree. */
@@ -140,8 +168,9 @@ export interface NestedCollectionMarker extends NestedCollectionInput {
   definedIn?: string;
 }
 
-/** A nested screen or collection. */
-export type NestedChild = NestedScreenMarker | NestedCollectionMarker;
+/** A nested screen, page, or collection. */
+export type NestedChild =
+  NestedScreenMarker | NestedPageMarker | NestedCollectionMarker;
 
 /** A definition annotated with its authored source module. */
 export type ResolvedRegistryEntry = RegistryDefinition & {

@@ -13,6 +13,7 @@ import { ResourceGraph } from "../review/resource_graph.js";
 
 /** Cache shared resource edges for one immutable changed-route calculation. */
 export class ChangedResourceGraph {
+  readonly #physicalRoutes = new Map<string, string>();
   readonly #graph = new ResourceGraph({
     readReferences: (route) => this.references(route),
   });
@@ -30,15 +31,24 @@ export class ChangedResourceGraph {
       resourceHints: false,
     });
     const resources = await this.#graph.collect(seeds);
-    return [...resources].some((route) => this.changed.has(route));
+    return [...resources].some((route) => this.isChanged(route));
+  }
+
+  private isChanged(route: string): boolean {
+    return (
+      this.changed.has(route) ||
+      this.changed.has(this.#physicalRoutes.get(route) ?? route)
+    );
   }
 
   private async references(route: string): Promise<readonly string[]> {
     let content = this.documents.get(route);
     if (content === undefined) {
-      const bytes = await this.reader.readIfExists(route);
+      const asset = await this.reader.readLocated(route);
+      this.#physicalRoutes.set(route, asset.location.physicalRelativePath);
+      const bytes = asset.content;
       if (bytes === undefined) {
-        if (!this.changed.has(route))
+        if (!this.isChanged(route))
           throw new MokabookError(
             "review-invalid",
             `referenced resource is missing: ${route}`,

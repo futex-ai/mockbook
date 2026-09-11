@@ -8,6 +8,7 @@ import {
   FolderIcon,
   FolderOpenIcon,
   ScreenIcon,
+  PageIcon,
 } from "../../parts/icons.js";
 import { NavResizeHandle } from "../../parts/nav_resize.js";
 import type { CatalogueNavigationProps } from "./catalogue-navigation.js";
@@ -92,6 +93,8 @@ function NavRow({
             >
               <path d="m8 1 6 3.5v7L8 15l-6-3.5v-7L8 1Zm0 7 6-3.5M8 8v7M8 8 2 4.5" />
             </svg>
+          ) : node.kind === "page" ? (
+            <PageIcon />
           ) : node.kind === "flow" ? (
             <FlowIcon />
           ) : (
@@ -109,6 +112,7 @@ export function CatalogueNavigationView({
   activeLabel,
   changedCount,
   changedOnly,
+  showChanges = true,
   rows,
   presentation,
   allDestination,
@@ -121,30 +125,33 @@ export function CatalogueNavigationView({
       <div className="mbk-nav-head">
         Catalogue<span>Collapse all</span>
       </div>
-      <div
-        className="mbk-nav-filter"
-        role="group"
-        aria-label="Catalogue filter"
-      >
-        <DesignLink to={changedOnly ? allDestination : undefined}>
-          <span
-            className={
-              changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
-            }
-          >
-            All
-          </span>
-        </DesignLink>
-        <DesignLink to={changedOnly ? undefined : changesDestination}>
-          <span
-            className={
-              changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
-            }
-          >
-            Changes<span className="mbk-nav-filter-count">{changedCount}</span>
-          </span>
-        </DesignLink>
-      </div>
+      {showChanges ? (
+        <div
+          className="mbk-nav-filter"
+          role="group"
+          aria-label="Catalogue filter"
+        >
+          <DesignLink to={changedOnly ? allDestination : undefined}>
+            <span
+              className={
+                changedOnly ? "mbk-nav-filter-opt" : "mbk-nav-filter-opt active"
+              }
+            >
+              All
+            </span>
+          </DesignLink>
+          <DesignLink to={changedOnly ? undefined : changesDestination}>
+            <span
+              className={
+                changedOnly ? "mbk-nav-filter-opt active" : "mbk-nav-filter-opt"
+              }
+            >
+              Changes
+              <span className="mbk-nav-filter-count">{changedCount}</span>
+            </span>
+          </DesignLink>
+        </div>
+      ) : null}
       <div className="mbk-nav-scroll">
         {rows.map((node) => (
           <NavRow

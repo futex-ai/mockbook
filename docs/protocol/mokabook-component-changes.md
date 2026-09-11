@@ -51,7 +51,9 @@ does not generate snapshots or copy comparison assets. Opening All/Changes,
 navigating, changing viewport/theme, and watch notifications retain the current
 no-eager-comparison-generation contract. Cache classification by catalogue
 generation and resolved baseline; invalidate it with source, config, stylesheet,
-resource, or Git-baseline changes that affect its inputs.
+resource, or Git-baseline changes that affect its inputs. No-watch Serve and
+publication instead reuse their validated startup snapshot, including ownership
+evidence and unavailable-history state, for the lifetime of that capture.
 
 The comparison artifact adds a versioned component/variant result and explicit
 affected-consumer evidence. New readers retain schema-v2 screen artifact support;

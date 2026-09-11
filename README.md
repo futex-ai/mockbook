@@ -174,6 +174,10 @@ already occupied, Mokabook tries each following port in order until one is
 free. `--port 0` instead asks the operating system to choose a free port.
 Watched Serve keeps the first resolved port for later child restarts so its URL
 stays stable.
+With `--no-watch`, Serve validates the compiled catalogue and resolves Changes
+once before starting HTTP. Navigation, counts, and removed-page routes use that
+same snapshot. Unavailable Git history omits Changes while current pages remain
+accessible.
 
 Component comparisons batch saved baseline views when Serve starts and when
 Changes refreshes, so startup does not require a separate Git process for every
@@ -181,7 +185,10 @@ screen, variant, viewport and color scheme.
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
-without writing and reports missing, stale, or orphan generated files. Browse
+without writing and reports missing, stale, or orphan generated files. The
+manifest stays internal: its source inventory is unavailable through HTTP,
+published assets, and comparison resources. Ordinary public JSON remains
+supported. Browse
 serves the package-owned Mokabook shell — resizable desktop catalogue
 navigation with folder/screen/flow icons and an All/Changes filter, search that
 narrows the tree by page ID, title, route, and `tag:` terms that the field's tag
@@ -206,6 +213,8 @@ use the comparison engine's paired ignore rules: excluded chrome-only edits
 stay out, while material keys and changes to screen content remain reviewable.
 Linked CSS, fonts, images, and transitive local resources still mark the screens
 that reference them; unrelated shared files do not mark the whole catalogue.
+For public file and directory aliases, edits to the target also mark consuming
+screens and pages, even when the alias itself is unchanged.
 The filter validates referenced public files, including changed stylesheets and
 their imports. Invalid resources make Changes unavailable until repaired;
 verified deletions still identify affected screens, while All remains accessible.
@@ -222,7 +231,7 @@ are available from All and Changes, and start in Current. Known unchanged views
 show Unmodified without a comparison band; unknown evidence has no status badge.
 During development, Mokabook generates comparison snapshots only after a diff
 option is selected; browsing, filtering, and watched reloads do not trigger
-generation. Published catalogues prepare snapshots during publishing, then load
+generation. Published catalogues with Changes enabled prepare snapshots during publishing, then load
 and render them only after a diff option is selected. Comparisons
 stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
@@ -235,7 +244,7 @@ The comparison engine retains the Git branch-point baseline, ignored-region
 rules, and isolated snapshot dependencies. Its private diagnostic summary counts
 screens with output changes separately from dependency evidence and ignored-only
 edits. Each count includes a screen once across all viewports and color schemes;
-these screen counts differ from the catalogue's screen-and-flow count.
+these screen counts differ from the catalogue's screen, page, and flow count.
 Overlays use 50% opacity; Difference
 uses CSS blending, without inventing pixel measurements. Immutable generations
 keep snapshots coherent during refresh, retain replaced resources briefly, and
@@ -255,7 +264,7 @@ file.
 Base resources must use portable relative URLs or explicit HTTP(S)/data URLs;
 root-absolute, protocol-relative, and unsupported-scheme URLs fail comparison.
 Browse authenticates catalogue-link metadata only on current manifest-owned
-generated fragments and legacy pages. It reads only each shell-owned frame's
+generated fragments and whole-document pages. It reads only each shell-owned frame's
 immediate same-origin document, while scripts, forms, downloads, popups, and
 top navigation remain unavailable to consumer content and nested frames.
 Copied base resources must be regular Git files outside configured source roots.
@@ -272,7 +281,12 @@ custom rule watches the repository root; an unowned public HTML file can still
 use an explicit watch rule, and configured stylesheets and referenced resources
 retain reload precedence. Shutdown interrupts replacement-watcher readiness, closes the
 candidate before draining the remaining lifecycle, and waits for child exit
-through graceful, terminate, and force-kill stages. Every served catalogue shell records the update version
+through graceful, terminate, and force-kill stages. Failed startup, child
+transport errors, and unexpected IPC disconnection use the same cleanup;
+disconnection is detected immediately even if the child remains alive and no
+further update is sent. A replacement waits until the previous process has
+stopped. Concurrent shutdown requests share that wait, and late
+readiness messages cannot revive a closing child. Every served catalogue shell records the update version
 captured when its request begins. Open shell pages compare that
 snapshot with the versioned event stream and reload after a newer build or
 asset version arrives, including when the build completes before the initial
@@ -296,6 +310,15 @@ Mokabook discovers `mokabook.config.ts`, `.mts`, `.js`, or `.mjs` by walking
 upward from the current directory. Every filesystem path is relative to that
 file and confined to `repoRoot`.
 
+Transitive authoring imports must also remain inside that root. Config, entry,
+renderer, transformer, and page-helper imports outside it fail with the offending
+path instead of creating an incomplete source inventory. Move shared authoring
+code inside the root or explicitly configure a common root containing it;
+installed dependencies remain supported outside the root.
+All bundler file inputs are protected authoring sources, including images or
+data imported through asset loaders. Editing them rebuilds the catalogue.
+Assets referenced only by public HTML/CSS URLs remain public resources.
+
 - `entriesDir` and `mockupsDir` select structured source and generated output.
 - `colorSchemes` defaults to `["light"]`; `["light", "dark"]` enables dark
   fragments catalogue-wide, with per-screen light-only opt-outs.
@@ -305,22 +328,60 @@ file and confined to `repoRoot`.
 - `moduleResolution` configures package roots, aliases, export conditions,
   package fields, file extensions, and esbuild loaders for cross-platform
   component trees.
-- `legacy` opts into `.source.*` pages, component expansion, route aliases,
-  excluded migration sources, and generic lints.
+- `legacy` configuration has been removed. Register complete documents with
+  `definePage` or nested `page`; imported helpers remain protected source inputs.
 - `watch` classifies additional consumer inputs after proven package-owned
   ignores, configured stylesheets, and referenced resources; this includes
   unrelated authored static HTML under `mockupsDir`. `review` selects the Git
   base ref used to find the branch point,
   internal snapshot directory, and shared-impact globs.
-- `compatibility.readManifestV2` reads the legacy Accounting-format manifest only
-  when `mokabook-manifest.json` is absent. The primary file supports v3 and v4;
-  an invalid primary manifest fails instead of falling back. A temporary `compatibility.transformer` may deterministically
+- `compatibility.readManifestV2` permits a historical v2 Git baseline only when
+  its canonical manifest is absent. Current output always requires v5. A temporary `compatibility.transformer` may deterministically
   repair already-authored documents during a consumer cutover; final links,
   resources, and the comment-safe generated source proof are still validated.
 
 Use `MockLink` for catalogue destinations. Raw relative links remain suitable
-for real static assets and legacy documents, but logical screen/use-case routes
-do not name generated files in schema v3.
+for real static assets and complete documents, but logical screen/use-case routes
+do not name generated files in schema v5.
+
+## Whole-document pages
+
+Use a page for an existing complete HTML document without inventing device
+variants. Add its ID to the owning collection's `childIds`:
+
+```tsx
+import { definePage } from "mokabook";
+import { source } from "../pages/handbook.source.js";
+
+export const mockups = [
+  definePage({
+    id: "handbook",
+    title: "Handbook",
+    description: "Product reference notes.",
+    route: "handbook.html",
+    dependencies: ["docs/mockups/src/pages/handbook.source.tsx"],
+    relatedDocs: [],
+    tags: ["documents"],
+    render: source,
+  }),
+];
+```
+
+The synchronous callback runs once and returns one complete HTML document at
+the exact route. Pages share IDs, ancestry, links, tags, Changes, source guards,
+and safe output transactions with screens. Page titles and collection membership
+do not rewrite explicit routes. Nested `page({ slug, ... })` definitions derive
+routes from `defineRoot.path`, collection segments, and their slug.
+
+This is a breaking upgrade: current output requires manifest v5, and legacy
+configuration, discovery, comment expansion, aliases, and lint settings are
+removed. The [migration guide](./docs/protocol/mokabook-page-migration.md)
+explains source-preserving registration and safe regeneration of old artifacts.
+Source folders and route folders never create additional navigation groups.
+Historical v2/v3 documents pair with registered pages only at exact preserved
+routes, using the same material-content, paired-ignore, and resource rules.
+New IDs and collection metadata can still put migrated pages in Changes;
+unmatched historical documents never become removed catalogue entries.
 
 ## Rendering Boundary
 
@@ -329,7 +390,7 @@ the React node in its theme/context and return a complete document. Accounting,
 for example, will keep React Native Web style collection in that adapter rather
 than making React Native Web a Mokabook dependency.
 
-Entries, the renderer, and legacy TypeScript sources are bundled into one
+Entries, the renderer, and imported document helpers are bundled into one
 build-time graph. React and React DOM resolve from the consumer config location,
 which prevents duplicate React instances even when the executable came from an
 npx cache. See [the build pipeline](./docs/architecture/build-pipeline.md) for
@@ -397,12 +458,14 @@ Open the printed URL, starting at `http://127.0.0.1:4173`. Edits to example
 entries, the renderer, and configured stylesheets update the catalogue
 automatically; generated HTML is written to `examples/basic/generated/`.
 Use `npm run dev -- --port 0` to let the operating system choose a free port.
-Restart the command after changing Mokabook's own `src/` files or other unwatched
-inputs such as `examples/basic/theme.ts`; the CLI is rebuilt on every start.
+Restart the command after changing Mokabook's own `src/` files; the CLI is rebuilt on every start.
 
 `npm run test:browser` drives the catalogue shell and on-demand screen comparisons
-in Chromium via Playwright; it uses the installed Chrome channel by default and
-honors `PLAYWRIGHT_CHANNEL` for an alternative browser install. Parallel
+in Chromium via Playwright. Comparison tests await the real generation response
+before asserting the rendered UI. Static preview fixtures use ephemeral
+inspector ports to isolate concurrent workspaces. The suite uses the installed
+Chrome channel by default and honors `PLAYWRIGHT_CHANNEL` for an alternative
+browser install. Parallel
 workspaces can set `MOKABOOK_PLAYWRIGHT_PORT` to an available port.
 After activating an in-frame design link, assert the outer catalogue URL before
 using the destination's controls. Frame-link enhancement updates the outer shell
@@ -505,24 +568,46 @@ Errors report both the original failure and any cleanup failure, including the
 remaining paths. A partially cleaned backup may no longer contain every old
 generated file. See the [recovery contract](./docs/protocol/mokabook-export-recovery.md).
 
+`npm test` runs at most two suites concurrently so Git-heavy watcher and
+publication scenarios remain responsive alongside other development work.
+Long resource-watch scenarios allow three minutes for their complete sequence;
+production child-startup and individual watched-update deadlines stay separate.
+
 ## Preview Deployments
 
-`npm run preview:build` turns the real `examples/basic` Browse catalogue into a
-static Cloudflare Pages artifact at `.context/mokabook-preview`. Its thin
-repository adapter uses the same export engine to render every route and copy the package shell
-and adapted public example assets, preserves id redirects, and excludes the
-development-only live-reload connection. Static routes authenticate the same
-generated link markers as served Browse, and a single validated `fragment`
-query is applied progressively to current and light/dark frame sources. The
-snapshot uses the example's configured base (`origin/main`), so Browse includes its
-All/Changes filter even when the changed count is zero. The artifact is not
-part of the npm package. Published screens include the same Current / Side by
-side / Overlay / Difference controls as development. Publishing packages the
-validated Git comparison and its isolated before/after resources; browsers fetch
-them only after a diff selection. Removed screens retain their Changes rows and
-comparison pages. Refresh reads the currently published comparison, and a new
-deployment publishes new snapshots. A failed comparison prevents deployment and
-preserves the previous local artifact.
+`npm run preview:build` exports the current `examples/basic` catalogue to
+`.context/mokabook-preview`, including navigation, search, tags, metadata,
+viewport/color choices, ID redirects, resources, and whole-document pages.
+It works without Git history. Both publication options omit live updates,
+watch-only modules, events endpoints, and stale comparison artifacts.
+Both options share the consumer exporter's output transaction, artifact validation,
+and static delivery metadata. They use one validated catalogue snapshot for navigation, captured pages,
+and redirects. Input fingerprints retain the exact manifest bytes used by the
+snapshot and are checked again after capture; a change aborts publication and
+keeps the previous artifact.
+Output stays beneath `.context`, whose resolved location must remain inside the
+real repository root. In-repository symlinks are supported; escaping context,
+parent, or output symlinks are rejected before any publication writes.
+Input capture hashes link text without reading outside or unresolved targets.
+Safe public file and directory aliases are exported as regular files at their
+logical routes; source and internal-metadata aliases remain private. The builder
+requires every current page and screen fragment and checks exported resource
+references before replacing the previous artifact.
+
+To include Changes, removed-entry states, and frozen screen comparisons:
+
+```bash
+npm run preview:build -- --include-changes
+npm run preview:build -- --include-changes --base origin/main
+```
+
+The base defaults to `config.review.base`. The builder pins one merge base for
+impact and comparisons and rejects inputs changing during capture. Visitors
+load immutable packaged comparisons only after selecting a diff; refresh reads
+the same result. Pages participate in Changes but have no visual comparisons.
+Invalid options, unavailable requested history, and capture failures preserve
+the previous owned artifact. See the [publication contract](./docs/protocol/mokabook-publication.md).
+The repository builder and its artifact are not part of the npm package.
 
 The preview adapter's extensionless URLs must not collide with another file,
 directory, or alias, including case-only differences. A collision stops export
@@ -609,11 +694,16 @@ canonical destinations and the controls that remain visual depictions.
   logical-target grammar and ownership-aware HTML adaptation.
 - [`src/review`](./src/review) — Git extraction, comparison, ignore normalization,
   and isolated comparison snapshots.
+- [`src/build/source_inventory.ts`](./src/build/source_inventory.ts) — resolved
+  authoring inputs; [`src/config/public_files.ts`](./src/config/public_files.ts)
+  applies the shared source and internal-metadata policy to public resources.
+- [`src/server/catalogue_snapshot.ts`](./src/server/catalogue_snapshot.ts) —
+  one validated generation for serving and publication; HTTP dispatch lives in
+  [`src/server/http_routes.ts`](./src/server/http_routes.ts).
 - [`src/components`](./src/components) — public component definitions, schemas,
-  captured input ownership, and manifest-v4 validation.
+  captured input ownership, and manifest-v5 validation.
 - [`examples/basic/entries/design/library`](./examples/basic/entries/design/library/README.md)
   — shared components used by the design catalogue itself.
-- [`src/legacy`](./src/legacy) — opt-in migration sources and component expansion.
 - [`xtask`](./xtask/README.md) — full repository verification.
 
 ### Related Docs
@@ -633,3 +723,8 @@ in the [plans index](./plans/README.md).
 - [Styled control migration guide](./docs/migration/accounting-link-controls.md)
 - [Implementation review prompt](./docs/implementation-review-prompt.md)
 - [Implementation plans](./plans/README.md)
+- [Unified catalogue pages](./docs/protocol/mokabook-pages.md) and
+  [required breaking upgrade](./docs/protocol/mokabook-page-migration.md)
+- [Authoring source protection](./docs/protocol/mokabook-source-protection.md) and
+  [catalogue change metadata](./docs/protocol/mokabook-catalogue-changes.md)
+- [Versioned Accounting page migration](./docs/migration/accounting-page-entries.md)

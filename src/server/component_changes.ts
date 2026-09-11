@@ -1,3 +1,6 @@
+import { changedManifestRoutes } from "../registry/changed_routes.js";
+import { hasRegisteredComponents } from "../registry/manifest_capabilities.js";
+import { changedContentPaths } from "./changed_content.js";
 import path from "node:path";
 
 import { projectRealPath, toPosixPath } from "../config/paths.js";
@@ -7,14 +10,22 @@ import {
   FileSystemReviewAssetReader,
   GitReviewAssetReader,
 } from "../review/assets.js";
-import { readBaseManifest } from "../review/base_manifest.js";
+import {
+  baselineResourceConfig,
+  readBaseManifest,
+} from "../review/base_manifest.js";
 import { reviewChangedPaths } from "../review/changed_paths.js";
 import { classifyComponents } from "../review/component_classification.js";
 import type { ReviewResultV3 } from "../review/component_types.js";
-import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import {
+  NodeGitCommandRunner,
+  RepositoryGitClient,
+  type GitClient,
+} from "../review/git.js";
 
 export interface ComponentChangeSnapshot {
   baseline: Manifest;
+  changedRoutes?: readonly string[];
   result?: ReviewResultV3;
 }
 export interface ComponentChangeSource {
@@ -77,33 +88,83 @@ export class RepositoryComponentChanges implements ComponentChangeSource {
     return this.git.mergeBase(this.base, "HEAD");
   }
   async read(commit: string): Promise<ComponentChangeSnapshot | undefined> {
-    const baseline = await readBaseManifest(this.git, commit, this.config);
-    if (baseline.schemaVersion !== 4 && this.manifest.schemaVersion !== 4)
-      return { baseline };
-    const changedPaths = await reviewChangedPaths(
+    return readCatalogueChanges(
+      this.config,
+      this.manifest,
+      this.base,
       this.git,
       commit,
-      this.config,
-      this.config.review.outDir,
     );
-    const prefix = toPosixPath(
-      path.relative(this.config.repoRoot, this.config.mockupsDir),
-    );
-    const result = await classifyComponents({
-      before: baseline,
-      after: this.manifest,
-      config: this.config,
-      baseCommit: commit,
-      baseRef: this.base,
-      changedPaths,
-      beforeReader: new GitReviewAssetReader(
-        this.config,
-        this.git,
-        commit,
-        prefix,
-      ),
-      afterReader: new FileSystemReviewAssetReader(this.config),
-    });
-    return { baseline, result };
   }
+}
+
+/** Classify pages and ownership-aware component views against one pinned baseline. */
+export async function readCatalogueChanges(
+  config: ResolvedConfig,
+  manifest: Manifest,
+  base: string,
+  git: GitClient,
+  commit: string,
+): Promise<ComponentChangeSnapshot> {
+  const baseline = await readBaseManifest(git, commit, config);
+  const changedPaths = await reviewChangedPaths(
+    git,
+    commit,
+    config,
+    config.review.outDir,
+  );
+  const components =
+    hasRegisteredComponents(baseline) || hasRegisteredComponents(manifest);
+  const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
+  const reader = new FileSystemReviewAssetReader(config);
+  const result = components
+    ? await classifyComponents({
+        before: baseline,
+        after: manifest,
+        config,
+        baseCommit: commit,
+        baseRef: base,
+        changedPaths,
+        beforeReader: new GitReviewAssetReader(
+          baselineResourceConfig(config, baseline),
+          git,
+          commit,
+          prefix,
+        ),
+        afterReader: reader,
+      })
+    : undefined;
+  const content = await changedContentPaths(
+    manifest,
+    baseline,
+    config,
+    git,
+    commit,
+    changedPaths,
+    reader,
+    components ? "pages" : "all",
+  );
+  const pageRoutes = new Set(
+    manifest.entries.flatMap((entry) =>
+      entry.kind === "page" ? [entry.route] : [],
+    ),
+  );
+  const routes = changedManifestRoutes(
+    manifest,
+    baseline,
+    config,
+    content,
+  ).filter((route) => !components || pageRoutes.has(route));
+  return {
+    baseline,
+    ...(result ? { result } : {}),
+    changedRoutes: [
+      ...new Set([
+        ...routes,
+        ...(result?.changes.map(
+          (entry) => (entry.after ?? entry.before)!.route,
+        ) ?? []),
+      ]),
+    ].sort(),
+  };
 }

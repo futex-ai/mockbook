@@ -2,11 +2,11 @@
 
 ## Delivery Status
 
-Manifest-v4 generation, validation, Serve, and static export are implemented
+Manifest-v5 generation, validation, Serve, and static export are implemented
 through the public `defineComponent` API. These are the normative interfaces
 for the [component contract](./mokabook-components.md). `ManifestEntryBase`,
-`ManifestScreen`, `ManifestCollection`, `ManifestUseCase`, `ManifestLegacyPage`,
-and `Viewport` retain the [v3 contract](./mokabook-package.md) and the named
+`ManifestScreen`, `ManifestPage`, `ManifestCollection`, `ManifestUseCase`,
+and `Viewport` retain the [package contract](./mokabook-package.md) and the named
 [registry interfaces](../../src/registry/types.ts).
 `ColorScheme` is `"light" | "dark"`. Prop/wire types come from the
 [prop schema](./mokabook-component-props.md); `ComponentControl` comes from the
@@ -15,18 +15,22 @@ and `Viewport` retain the [v3 contract](./mokabook-package.md) and the named
 ## Entries And Variants
 
 ```ts
-interface ManifestV4 {
-  schemaVersion: 4;
+interface ManifestV5 {
+  schemaVersion: 5;
   generatedBy: "mokabook";
-  entries: readonly ManifestEntryV4[];
-  legacyPages: readonly ManifestLegacyPage[];
+  entries: readonly ManifestEntryV5[];
+  sourceFiles: readonly string[];
 }
 
-type ManifestEntryV4 = (
-  ManifestCollection | ManifestUseCase | ManifestScreenV4 | ManifestComponent
+type ManifestEntryV5 = (
+  | ManifestCollection
+  | ManifestUseCase
+  | ManifestPage
+  | ManifestScreen
+  | ManifestComponent
 ) & { declaredDependencies: readonly string[] };
 
-interface ManifestScreenV4 extends ManifestScreen {
+interface ComponentAwareScreen extends ManifestScreen {
   componentViews: readonly ComponentViewRecord[];
 }
 
@@ -54,8 +58,8 @@ interface ManifestComponentVariant {
 }
 ```
 
-Common entry metadata keeps v3 meaning, including source attribution and
-hierarchy-derived `navPath`. Every v4 entry also requires `declaredDependencies`,
+Common entry metadata keeps its meaning, including source attribution and
+hierarchy-derived `navPath`. Every v5 entry requires `declaredDependencies`,
 the sorted unique paths explicitly authored in its definition. `dependencies`
 remains exactly their union with `sourcePath`. Keeping both prevents automatically
 added source attribution from masquerading as an exact direct-screen dependency;
@@ -66,7 +70,7 @@ slot names reference declared slots and contain no React values. Every component
 has at least one variant, with unique kebab-case ids in authored order. The first
 is the default; all variants use the component's same effective scheme set.
 
-`componentViews` contains exactly one record for each light and optional dark
+When components are registered, every screen's `componentViews` contains exactly one record for each light and optional dark
 fragment, ordered mobile/light, mobile/dark, desktop/light, desktop/dark. It is
 required even for a view with no component instances. Missing metadata is never
 normalized to an empty record. The root component of its own variant is the
@@ -183,7 +187,7 @@ render in the view, including its component root when applicable. Ownership is
 an explicit renderer/author assertion, not CSS-selector inference.
 
 Use one schema implementation for Build output, Browse, historical manifest
-parsing, and publishing. Reject unknown fields in new v4 structures, incorrect
+parsing, and publishing. Reject unknown fields in current v5 structures, incorrect
 types, invalid keys/ids/hashes, inconsistent props/schema, duplicate records,
 unsafe paths, and broken cross-references. Preserve current validation of the
 inherited v3 entry forms. The hash must match decoded/validated props.
@@ -194,7 +198,7 @@ Variant fragment paths must exactly match the component route and suffix rule
 in the authoring contract, including every optional dark path. `ownedDependencies`
 is a subset of `dependencies`; validate and retain direct-screen overlap evidence.
 
-Entries sort by route (empty for collections), then id; lexical ordering in v4
+Entries sort by route (empty for collections), then id; lexical ordering in v5
 uses UTF-16 code units rather than a locale-sensitive collator. Variants,
 collection children, use-case steps, and tags retain authored order. Legacy pages sort by route.
 Dependency arrays sort uniquely, as do owned paths, supplied slots, and the
@@ -202,8 +206,16 @@ declared `slots` list. JSON object keys in new structures sort lexically;
 arrays follow their stated order. Omit absent optional fields; emit required
 empty arrays/objects. Serialize with two-space indentation and a final LF.
 
-Emit v4 only when components are registered; otherwise retain existing v3 bytes.
-Read v3 unchanged and v2 only through its current explicit compatibility path.
-Do not invent v4 usage for historical v3 entries. Reject unknown versions.
+Emit v5 for every current catalogue, including those without components. Its
+sorted private `sourceFiles` inventory and explicit page entries replace legacy
+discovery; component records retain their complete usage and declaration proof.
+Historical Git readers retain v3, opt-in v2, and both earlier v4 shapes: main's
+component format has `legacyPages`, while the page migration format has
+`sourceFiles`. These v4 shapes are disjoint; mixed top-level fields are invalid.
+Current loading rejects every earlier version with a rebuild diagnostic.
+Do not invent component usage for historical screen/page-only entries or revive
+legacy configuration. Registered document pages retain their material Changes
+and baseline context without screen/component visual comparisons or controls.
+Reject unknown versions.
 Implement shared positive/negative contract fixtures, schema round trips,
 deterministic-output checks, and ownership/path regressions in Milestone 2.

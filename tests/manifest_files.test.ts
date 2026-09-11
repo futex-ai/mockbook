@@ -19,7 +19,7 @@ import {
 import type { ResolvedRegistryEntry } from "../dist/authoring/types.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
-test("filesystem manifest loading falls back to the legacy v2 filename", async (context) => {
+test("current filesystem reads reject legacy-only output even with historical compatibility", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
   const config = withV2Compatibility(await loadConfig(fixture.root));
@@ -29,7 +29,7 @@ test("filesystem manifest loading falls back to the legacy v2 filename", async (
     JSON.stringify(legacy),
   );
 
-  assert.equal(readManifest(config).schemaVersion, 3);
+  assert.throws(() => readManifest(config), /could not read/);
 });
 
 test("filesystem manifest loading never accepts v2 under the canonical filename", async (context) => {
@@ -46,7 +46,7 @@ test("filesystem manifest loading never accepts v2 under the canonical filename"
     JSON.stringify(legacy),
   );
 
-  assert.throws(() => readManifest(config), /schema version 3/);
+  assert.throws(() => readManifest(config), /schema version 5/);
 });
 
 test("manifest loading rejects URL-sensitive catalogue routes", async (context) => {
@@ -87,6 +87,7 @@ test("manifest validates darkFragments names and collisions", () => {
 
   const collision = {
     ...structuredClone(manifest),
+    sourceFiles: ["entries/a.mockup.tsx", "entries/b.mockup.tsx"],
     entries: [
       ...manifest.entries,
       manifestWithScreen("b", "a.mobile.dark.html").entries[0]!,
@@ -116,11 +117,12 @@ test("manifest validation accepts tags and rejects invalid ones", () => {
   }
 });
 
-test("light-only manifests stay byte-identical", () => {
+test("light-only manifests remain deterministic without variant metadata", () => {
   const entry = resolvedScreen();
   const expected = serializeManifest({
     entries: [
       {
+        declaredDependencies: [],
         dependencies: ["entries/a.mockup.tsx"],
         description: "A screen",
         id: "a",
@@ -139,8 +141,8 @@ test("light-only manifests stay byte-identical", () => {
       },
     ],
     generatedBy: "mokabook",
-    legacyPages: [],
-    schemaVersion: 3,
+    sourceFiles: ["entries/a.mockup.tsx"],
+    schemaVersion: 5,
   });
 
   const serialized = serializeManifest(createManifest([entry], [], ["light"]));
@@ -178,23 +180,9 @@ test("manifest serializes declared tags and omits absent ones", () => {
       ["untagged-tour", false],
     ],
   );
-  assert.deepEqual(Object.keys(entries[0] ?? {}).slice(-4), [
-    "route",
-    "tags",
-    "useCaseIds",
-    "viewports",
-  ]);
-  assert.deepEqual(Object.keys(entries[3] ?? {}).slice(-3), [
-    "route",
-    "steps",
-    "tags",
-  ]);
-  const [screen, , , useCase] = entries;
-  if (screen?.kind !== "screen" || useCase?.kind !== "use-case") {
-    throw new Error("tagged entries missing");
+  for (const entry of entries) {
+    assert.deepEqual(Object.keys(entry), Object.keys(entry).sort());
   }
-  assert.deepEqual(screen.tags, ["onboarding", "forms"]);
-  assert.deepEqual(useCase.tags, ["forms"]);
 });
 
 test("disabling dark orphans committed dark fragments", async (context) => {

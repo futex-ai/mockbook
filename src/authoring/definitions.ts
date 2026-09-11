@@ -1,4 +1,8 @@
 import type {
+  PageDefinition,
+  PageInput,
+  NestedPageInput,
+  NestedPageMarker,
   CollectionDefinition,
   CollectionInput,
   NestedChild,
@@ -30,6 +34,16 @@ export function defineScreen(input: ScreenInput): ScreenDefinition {
     kind: "screen",
     useCaseIds: input.useCaseIds ?? [],
   });
+}
+
+/** Define a complete document with an explicit, stable route. */
+export function definePage(input: PageInput): PageDefinition {
+  return branded({ ...input, kind: "page" });
+}
+
+/** Create a page marker whose slug participates in a nested path. */
+export function page(input: NestedPageInput): NestedPageMarker {
+  return { ...input, __nested: "page" };
 }
 
 /** Define a structural navigation collection. */
@@ -94,6 +108,17 @@ function flattenChild(
   definitions: RegistryDefinition[],
 ): void {
   const effective = mergeInherited(inherited, node);
+  if (node.__nested === "page") {
+    const { slug, __nested: _marker, ...input } = node;
+    const definition = definePage({
+      ...input,
+      dependencies: effective.dependencies ?? [],
+      relatedDocs: effective.relatedDocs ?? [],
+      route: `${directory}/${slug}.html`,
+    });
+    definitions.push(definition);
+    return;
+  }
   if (node.__nested === "screen") {
     const definition = defineScreen({
       ...(effective.address ? { address: effective.address } : {}),

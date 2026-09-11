@@ -29,7 +29,7 @@ test("the picker enters, keeps, and clears a tag term", async ({ page }) => {
   await expect(page.locator(tourRow)).toBeVisible();
 
   await openPicker(page);
-  await expect(page.locator(chip("forms"))).toBeFocused();
+  await expect(page.locator(chip("documents"))).toBeFocused();
   await page.click(chip("forms"));
 
   await expect(page.locator(search)).toHaveValue("tag:forms");
@@ -101,16 +101,18 @@ test("the picker chips answer the arrow, Home, and End keys", async ({
 }) => {
   await page.goto("/");
   await openPicker(page);
-  await expect(page.locator(chip("forms"))).toBeFocused();
+  await expect(page.locator(chip("documents"))).toBeFocused();
 
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator(chip("forms"))).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await expect(page.locator(chip("onboarding"))).toBeFocused();
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(chip("forms"))).toBeFocused();
+  await expect(page.locator(chip("documents"))).toBeFocused();
   await page.keyboard.press("ArrowLeft");
   await expect(page.locator(chip("onboarding"))).toBeFocused();
   await page.keyboard.press("Home");
-  await expect(page.locator(chip("forms"))).toBeFocused();
+  await expect(page.locator(chip("documents"))).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.locator(chip("onboarding"))).toBeFocused();
 
@@ -123,7 +125,7 @@ test("the picker chips answer the arrow, Home, and End keys", async ({
 test("Space activates the focused picker chip natively", async ({ page }) => {
   await page.goto("/");
   await openPicker(page);
-  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("End");
   await expect(page.locator(chip("onboarding"))).toBeFocused();
 
   await page.keyboard.press(" ");

@@ -33,15 +33,15 @@ not depend on a generic static server interpreting `_headers` or `_redirects`.
 Paths below are relative to the export directory. URL path segments use the
 existing validated route grammar and are encoded once when written into URLs.
 
-| Path                        | Meaning                                                                              |
-| --------------------------- | ------------------------------------------------------------------------------------ |
-| `index.html`                | Full catalogue home                                                                  |
-| `view/<route>`              | Full shell for each current routed entry, legacy page, and removed comparison screen |
-| `id/<id>/index.html`        | Static alias showing the same shell as the canonical route                           |
-| `static/<public-path>`      | Adapted current fragments and public consumer resources                              |
-| `__mokabook/`               | Required shell CSS, fonts, browser modules, and comparison generation                |
-| `404.html`                  | Existing catalogue not-found view                                                    |
-| `.mokabook-export-artifact` | Public-safe versioned ownership inventory                                            |
+| Path                        | Meaning                                                               |
+| --------------------------- | --------------------------------------------------------------------- |
+| `index.html`                | Full catalogue home                                                   |
+| `view/<route>`              | Full shell for current routed entries and removed screens/pages       |
+| `id/<id>/index.html`        | Static alias showing the same shell as the canonical route            |
+| `static/<public-path>`      | Adapted current fragments and public consumer resources               |
+| `__mokabook/`               | Required shell CSS, fonts, browser modules, and comparison generation |
+| `404.html`                  | Existing catalogue not-found view                                     |
+| `.mokabook-export-artifact` | Public-safe versioned ownership inventory                             |
 
 Catalogue routes retain their validated `.html` suffixes; additional public
 `.htm` documents retain their filenames too. Do not
@@ -51,7 +51,7 @@ HTML URLs remain compatible provided their redirects preserve the query and
 resolve to the same page; Cloudflare tests protect this existing deployment.
 
 Collections remain navigation folders, not new routed pages. Include use cases
-and configured legacy pages. Empty registries remain invalid under the existing
+and registered whole-document pages. Empty registries remain invalid under the existing
 build contract; exporting one preserves the previous artifact. Missing views
 remain explicit in added/removed comparisons; never synthesize content.
 
@@ -84,6 +84,10 @@ The root `html` element carries `data-mokabook-static=""` and an escaped
 `idRoutes`, `comparisonUrl`, and `deploymentId`. Static mode with missing,
 malformed, or older metadata fails closed instead of requesting a development
 endpoint. Both identity values use 64 lowercase SHA-256 hex characters.
+Repository previews without Changes explicitly set `comparisonUrl: null`; id
+routes and deployment identity remain required. Null disables comparison requests
+and never falls back to a development endpoint. Consumer CLI exports always
+include their validated generation URL.
 
 Both renderer and parent navigation use a shared delivery-aware route resolver.
 Development retains its `/id/<id>` HTTP redirect behavior. Static frame-link

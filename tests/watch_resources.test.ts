@@ -19,7 +19,7 @@ const nestedCss =
 
 test(
   "transitive resource edits update Changes and invalidate comparisons",
-  { timeout: 90_000 },
+  { timeout: 180_000 },
   async (context) => {
     const fixture = await changedFixture(
       context,

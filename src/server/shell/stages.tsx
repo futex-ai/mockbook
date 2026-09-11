@@ -1,5 +1,5 @@
 // Route stage renderers for the served Mokabook shell: the framed screen
-// stage, ordered use-case flow, legacy-page embed, and quiet empty stage shared
+// stage, ordered use-case flow, whole-document embed, and quiet empty stage shared
 // by home and missing routes. All embedded consumer documents are sandboxed
 // without script permission.
 
@@ -65,13 +65,18 @@ function FrameLabel(props: { fallback: boolean; text: string }) {
   );
 }
 
-function EmbedStage(props: { route: string; title: string }) {
+function EmbedStage(props: {
+  route: string;
+  title: string;
+  fragment?: string;
+}) {
   return (
     <div className="mbk-stage-embed" data-mokabook-scroll="embed">
       <iframe
         className="mbk-frag"
         sandbox="allow-same-origin"
-        src={fragmentSrc(props.route)}
+        data-mokabook-fragment-frame=""
+        src={fragmentSrc(props.route, props.fragment)}
         title={props.title}
       />
     </div>
@@ -239,15 +244,17 @@ export function EmptyStage(props: { children: ReactNode; heading: string }) {
 export function TargetStage(props: {
   catalogue: Catalogue;
   fragment?: string;
-  legacyTitle: string;
   target: RouteTarget;
 }) {
-  if (props.target.kind === "legacy") {
-    return (
-      <EmbedStage route={props.target.page.route} title={props.legacyTitle} />
-    );
-  }
   const entry = props.target.entry;
+  if (entry.kind === "page")
+    return (
+      <EmbedStage
+        route={entry.route}
+        title={entry.title}
+        {...(props.fragment ? { fragment: props.fragment } : {})}
+      />
+    );
   if (entry.kind === "component")
     return <ComponentStage variant={entry.variants[0]!} title={entry.title} />;
   return entry.kind === "screen" ? (

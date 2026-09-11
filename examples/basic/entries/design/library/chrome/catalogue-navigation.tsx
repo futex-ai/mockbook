@@ -17,7 +17,7 @@ const propSchema = {
             kind: {
               schema: {
                 kind: "enum",
-                values: ["collection", "screen", "component", "flow"],
+                values: ["collection", "screen", "component", "flow", "page"],
               },
             },
             depth: { schema: { kind: "number", minimum: 0, integer: true } },
@@ -35,6 +35,7 @@ const propSchema = {
     activeLabel: optionalText,
     changedCount: { schema: { kind: "number", minimum: 0, integer: true } },
     changedOnly: flag,
+    showChanges: { ...flag, optional: true },
     presentation: {
       schema: { kind: "enum", values: ["responsive", "drawer"] },
     },

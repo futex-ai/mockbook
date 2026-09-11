@@ -57,11 +57,7 @@ export function prepareRegistry(
       }
     } else entries.push(entry);
   });
-  entries.sort(
-    entries.some((entry) => entry.kind === "component")
-      ? compareComponentEntries
-      : compareEntries,
-  );
+  entries.sort(compareEntries);
   violations.push(
     ...duplicateViolations(entries, "id"),
     ...duplicateViolations(entries, "route"),
@@ -86,6 +82,7 @@ function isDefinition(value: unknown): value is RegistryDefinition {
   }
   const kind = (value as { kind?: unknown }).kind;
   return (
+    kind === "page" ||
     kind === "screen" ||
     kind === "collection" ||
     kind === "use-case" ||
@@ -94,29 +91,6 @@ function isDefinition(value: unknown): value is RegistryDefinition {
 }
 
 function compareEntries(
-  left: ResolvedRegistryEntry,
-  right: ResolvedRegistryEntry,
-): number {
-  const leftRoute = left.kind === "collection" ? "" : left.route;
-  const rightRoute = right.kind === "collection" ? "" : right.route;
-  return leftRoute.localeCompare(rightRoute) || left.id.localeCompare(right.id);
-}
-
-function invalidRegistry(
-  violations: readonly RegistryViolation[],
-): MokabookError {
-  const ordered = [...violations].sort((left, right) =>
-    `${left.code}:${left.sourceRelativePath}:${left.message}`.localeCompare(
-      `${right.code}:${right.sourceRelativePath}:${right.message}`,
-    ),
-  );
-  return new MokabookError(
-    "build-invalid",
-    `catalogue is invalid:\n${ordered.map((item) => `- [${item.code}] ${item.sourceRelativePath}${item.id ? ` (${item.id})` : ""}: ${item.message}`).join("\n")}`,
-  );
-}
-
-function compareComponentEntries(
   left: ResolvedRegistryEntry,
   right: ResolvedRegistryEntry,
 ): number {
@@ -131,4 +105,18 @@ function compareComponentEntries(
         : left.id > right.id
           ? 1
           : 0;
+}
+
+function invalidRegistry(
+  violations: readonly RegistryViolation[],
+): MokabookError {
+  const ordered = [...violations].sort((left, right) =>
+    `${left.code}:${left.sourceRelativePath}:${left.message}`.localeCompare(
+      `${right.code}:${right.sourceRelativePath}:${right.message}`,
+    ),
+  );
+  return new MokabookError(
+    "build-invalid",
+    `catalogue is invalid:\n${ordered.map((item) => `- [${item.code}] ${item.sourceRelativePath}${item.id ? ` (${item.id})` : ""}: ${item.message}`).join("\n")}`,
+  );
 }

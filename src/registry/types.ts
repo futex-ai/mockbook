@@ -22,11 +22,11 @@ export interface PreparedRegistry {
 /** Serializable common metadata for a manifest entry. */
 export interface ManifestEntryBase {
   dependencies: readonly string[];
-  /** Explicit author declarations, required in v4; source attribution stays separate. */
+  /** Explicit author declarations in component v4 and current v5 manifests. */
   declaredDependencies?: readonly string[];
   description: string;
   id: string;
-  kind: "collection" | "screen" | "use-case";
+  kind: "collection" | "screen" | "page" | "use-case";
   navPath: readonly string[];
   rationale?: string;
   relatedDocs: readonly string[];
@@ -48,6 +48,13 @@ export interface ManifestScreen extends ManifestEntryBase {
   viewports: readonly Viewport[];
 }
 
+/** Serializable whole-document page. */
+export interface ManifestPage extends ManifestEntryBase {
+  kind: "page";
+  route: string;
+  tags?: readonly string[];
+}
+
 /** Serializable collection manifest entry. */
 export interface ManifestCollection extends ManifestEntryBase {
   childIds: readonly string[];
@@ -63,9 +70,13 @@ export interface ManifestUseCase extends ManifestEntryBase {
   tags?: readonly string[];
 }
 
-/** Any version 3 entry. */
+/** Any supported registry entry, including current whole-document pages. */
 export type ManifestEntry =
-  ManifestScreen | ManifestCollection | ManifestUseCase | ManifestComponent;
+  | ManifestScreen
+  | ManifestPage
+  | ManifestCollection
+  | ManifestUseCase
+  | ManifestComponent;
 
 /** One generated legacy page. */
 export interface ManifestLegacyPage {
@@ -75,10 +86,18 @@ export interface ManifestLegacyPage {
 
 /** Canonical generated catalogue schema. */
 export interface ManifestV3 {
-  entries: readonly Exclude<ManifestEntry, ManifestComponent>[];
+  entries: readonly Exclude<ManifestEntry, ManifestComponent | ManifestPage>[];
   generatedBy: "mokabook";
   legacyPages: readonly ManifestLegacyPage[];
   schemaVersion: 3;
+}
+
+/** Historical whole-document format from the page migration branch. */
+export interface ManifestPagesV4 {
+  entries: readonly Exclude<ManifestEntry, ManifestComponent>[];
+  generatedBy: "mokabook";
+  schemaVersion: 4;
+  sourceFiles: readonly string[];
 }
 
 /** Component-aware manifests require complete usage on every screen view. */
@@ -92,8 +111,23 @@ export interface ManifestV4 {
   legacyPages: readonly ManifestLegacyPage[];
   schemaVersion: 4;
 }
-export type Manifest = ManifestV3 | ManifestV4;
 
 export type ManifestEntryV4 = (
   ManifestScreenV4 | ManifestComponent | ManifestCollection | ManifestUseCase
 ) & { declaredDependencies: readonly string[] };
+
+/** Current catalogue combining pages, components, and complete source protection. */
+export interface ManifestV5 {
+  entries: readonly (ManifestEntry & {
+    declaredDependencies: readonly string[];
+  })[];
+  generatedBy: "mokabook";
+  schemaVersion: 5;
+  sourceFiles: readonly string[];
+}
+
+/** All validated formats accepted at the historical Git boundary. */
+export type Manifest = ManifestV3 | ManifestV4 | ManifestPagesV4 | ManifestV5;
+
+/** Historical comparisons accept older formats without weakening current loading. */
+export type HistoricalManifest = Manifest;

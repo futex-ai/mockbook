@@ -13,7 +13,7 @@ import { componentManifestEntry } from "../components/manifest_build.js";
 import type { ComponentViewRecord } from "../components/manifest_types.js";
 import { analyzeHierarchy } from "./hierarchy.js";
 import { validateManifest } from "./manifest_validation.js";
-import type { ManifestEntry, ManifestLegacyPage, Manifest } from "./types.js";
+import type { ManifestV5, HistoricalManifest } from "./types.js";
 import { effectiveColorSchemes } from "./views.js";
 
 /** Canonical generated manifest filename. */
@@ -32,13 +32,13 @@ export function fragmentRoute(
   return route.replace(/\.html$/, `.${viewport}${schemeSuffix}.html`);
 }
 
-/** Create deterministic manifest data from prepared entries and legacy pages. */
+/** Create deterministic manifest data from prepared entries and the source inventory. */
 export function createManifest(
   entries: readonly ResolvedRegistryEntry[],
-  legacyPages: readonly ManifestLegacyPage[],
+  sourceFiles: readonly string[],
   catalogueSchemes: readonly ColorScheme[],
   componentViews: ReadonlyMap<string, ComponentViewRecord> = new Map(),
-): Manifest {
+): ManifestV5 {
   const hierarchy = analyzeHierarchy(entries).hierarchy;
   return {
     entries: entries.map((entry) =>
@@ -52,35 +52,27 @@ export function createManifest(
       ),
     ),
     generatedBy: "mokabook",
-    legacyPages: [...legacyPages].sort((left, right) =>
-      entries.some((entry) => entry.kind === "component")
-        ? left.route < right.route
-          ? -1
-          : left.route > right.route
-            ? 1
-            : 0
-        : left.route.localeCompare(right.route),
-    ),
-    schemaVersion: entries.some((entry) => entry.kind === "component") ? 4 : 3,
-  } as Manifest;
+    sourceFiles: [
+      ...new Set([
+        ...sourceFiles,
+        ...entries.map((entry) => entry.sourceRelativePath),
+      ]),
+    ].sort(),
+    schemaVersion: 5,
+  };
 }
 
-/** Serialize a version 3 manifest byte-stably. */
-export function serializeManifest(manifest: Manifest): string {
-  return `${manifest.schemaVersion === 4 ? canonicalJson(manifest, 2) : JSON.stringify(manifest, null, 2)}\n`;
+/** Serialize the current manifest with canonical object-key ordering. */
+export function serializeManifest(manifest: ManifestV5): string {
+  return `${canonicalJson(manifest, 2)}\n`;
 }
 
-/** Read canonical output, falling back to the legacy v2 file only when absent. */
-export function readManifest(config: ResolvedConfig): Manifest {
+/** Read strictly current schema-v5 canonical output. */
+export function readManifest(config: ResolvedConfig): ManifestV5 {
   const canonicalPath = path.join(config.mockupsDir, MANIFEST_NAME);
-  const selection = selectManifestInput(
-    fs.existsSync(canonicalPath),
-    config.compatibility.readManifestV2,
-  );
-  return readManifestFile(
-    path.join(config.mockupsDir, selection.filename),
-    selection.allowV2,
-  );
+  const manifest = readManifestFile(canonicalPath);
+  config.sourceFiles = manifest.sourceFiles;
+  return manifest;
 }
 
 /** Select the strict canonical input or the explicitly enabled legacy input. */
@@ -94,7 +86,7 @@ export function selectManifestInput(
   return { allowV2: true, filename: LEGACY_MANIFEST_NAME };
 }
 
-function readManifestFile(candidate: string, allowV2: boolean): Manifest {
+function readManifestFile(candidate: string): ManifestV5 {
   let value: unknown;
   try {
     value = JSON.parse(fs.readFileSync(candidate, "utf8"));
@@ -107,12 +99,20 @@ function readManifestFile(candidate: string, allowV2: boolean): Manifest {
       },
     );
   }
-  return parseManifest(value, allowV2);
+  return parseManifest(value);
 }
 
 /** Validate manifest-shaped JSON and normalize temporary version 2 input. */
-export function parseManifest(value: unknown, allowV2 = false): Manifest {
-  return validateManifest(value, allowV2);
+export function parseManifest(value: unknown): ManifestV5 {
+  return validateManifest(value, false, false) as ManifestV5;
+}
+
+/** Read old schemas only at the historical comparison boundary. */
+export function parseHistoricalManifest(
+  value: unknown,
+  allowV2 = false,
+): HistoricalManifest {
+  return validateManifest(value, allowV2, true);
 }
 
 function toManifestEntry(
@@ -120,11 +120,9 @@ function toManifestEntry(
   catalogueSchemes: readonly ColorScheme[],
   componentViews: ReadonlyMap<string, ComponentViewRecord>,
   navPath: readonly string[],
-): ManifestEntry {
+): ManifestV5["entries"][number] {
   const common = {
-    ...(componentViews.size
-      ? { declaredDependencies: [...new Set(entry.dependencies)].sort() }
-      : {}),
+    declaredDependencies: [...new Set(entry.dependencies)].sort(),
     dependencies: [
       ...new Set([entry.sourceRelativePath, ...entry.dependencies]),
     ].sort(),
@@ -138,14 +136,24 @@ function toManifestEntry(
     title: entry.title,
   };
   if (entry.kind === "component")
-    return componentManifestEntry(
-      entry,
-      common,
-      catalogueSchemes,
-      componentViews,
-    );
+    return {
+      ...componentManifestEntry(
+        entry,
+        common,
+        catalogueSchemes,
+        componentViews,
+      ),
+      declaredDependencies: common.declaredDependencies,
+    };
   if (entry.kind === "collection")
     return { ...common, childIds: [...entry.childIds], kind: "collection" };
+  if (entry.kind === "page")
+    return {
+      ...common,
+      kind: "page",
+      route: entry.route,
+      ...(entry.tags?.length ? { tags: [...entry.tags] } : {}),
+    };
   if (entry.kind === "use-case") {
     return {
       ...common,

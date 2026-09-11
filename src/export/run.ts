@@ -1,6 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-
 import { compileCatalogue } from "../build/compile.js";
 import { writeCompilation } from "../build/transaction.js";
 import type { ResolvedConfig } from "../config/types.js";
@@ -12,19 +9,16 @@ import { compareReview } from "../review/compare.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
 import { changedContentPaths } from "../server/changed_content.js";
 import { withExportCleanup } from "./cleanup.js";
-import { finalizeDeployment } from "./deployment.js";
 import { assertExportActive, exportError } from "./error.js";
 import {
   assertInputsUnchanged,
   capturedAssetReader,
   pinnedGit,
 } from "./inputs.js";
-import { ExportInventory } from "./inventory.js";
-import { EXPORT_MARKER } from "./ownership.js";
 import { resolveExportOutput } from "./paths.js";
 import { capturePublicFiles } from "./public_files.js";
-import { validateExportReferences } from "./references.js";
 import { assembleExport } from "./site.js";
+import { stageExport } from "./stage.js";
 import { ExportTransaction } from "./transaction.js";
 import type { ExportOptions, ExportResult, ExportRoutes } from "./types.js";
 
@@ -61,10 +55,11 @@ async function generateExport(
     const commit = await git.mergeBase(base, "HEAD");
     const baseline = await readBaseManifest(git, commit, config);
     const compilation = await compileCatalogue(config);
+    config = { ...config, sourceFiles: compilation.manifest.sourceFiles };
     assertExportActive(options.signal);
     await writeCompilation(compilation, config);
     const publicFiles = await capturePublicFiles(config);
-    const assetReader = capturedAssetReader(publicFiles);
+    const assetReader = capturedAssetReader(publicFiles, config);
     const exclusions = [output, transaction.reservationRoot];
     const changed = await reviewChangedPaths(
       git,
@@ -82,18 +77,16 @@ async function generateExport(
       assetReader,
       exclusions,
     );
-    const contentChanges =
-      comparison.result.schemaVersion === 3
-        ? []
-        : await changedContentPaths(
-            compilation.manifest,
-            baseline,
-            config,
-            git,
-            commit,
-            changed,
-            assetReader,
-          );
+    const contentChanges = await changedContentPaths(
+      compilation.manifest,
+      baseline,
+      config,
+      git,
+      commit,
+      changed,
+      assetReader,
+      comparison.result.schemaVersion === 3 ? "pages" : "all",
+    );
     const site = assembleExport(
       config,
       compilation,
@@ -102,6 +95,8 @@ async function generateExport(
       publicFiles,
       contentChanges,
     );
+    if (site.delivery.comparisonUrl === null)
+      throw exportError("Consumer export comparison metadata is missing.");
     const routes: ExportRoutes = Object.freeze({
       outDir: output,
       comparisonUrl: site.delivery.comparisonUrl,
@@ -110,21 +105,13 @@ async function generateExport(
     const aliases = new Map(
       (await options.adapter?.transform(site.inventory.files, routes)) ?? [],
     );
-    const files = new ExportInventory();
-    for (const [name, bytes] of site.inventory.files)
-      files.add(name, Buffer.from(bytes));
-    files.add(
-      EXPORT_MARKER,
-      `${JSON.stringify({ schemaVersion: 1, files: [...files.files.keys()].sort() }, null, 2)}\n`,
+    const deploymentId = await stageExport(
+      transaction.stage,
+      site.inventory.files,
+      site.shells,
+      aliases,
+      options.signal,
     );
-    validateExportReferences(files.files, aliases);
-    const deploymentId = finalizeDeployment(files.files, site.shells, aliases);
-    for (const [name, bytes] of files.files) {
-      assertExportActive(options.signal);
-      const target = path.join(transaction.stage, name);
-      await fs.promises.mkdir(path.dirname(target), { recursive: true });
-      await fs.promises.writeFile(target, bytes);
-    }
     await assertInputsUnchanged(
       config,
       compilation,

@@ -1,33 +1,20 @@
-// The heading block above every served Mokabook view: the breadcrumb trail and
-// the screen title with its id chip. Parent breadcrumbs link back up the
-// catalogue hierarchy. Structural collection crumbs remain text; only legacy
-// directory groups with an Overview page become parent links.
+// The heading for a catalogue view uses the title, stable ID, and text-only
+// collection ancestors from the shared hierarchy or removed entry baseline.
 
 import type { ReactNode } from "react";
 
-import { catalogueViewHref } from "../../navigation/delivery.js";
 import type { Catalogue } from "../catalogue.js";
-import {
-  legacyCrumbTrail,
-  legacyPageTitle,
-  structuredCrumbTrail,
-} from "./nav_tree.js";
-import type { CrumbLink } from "./nav_tree.js";
+import { structuredCrumbTrail } from "./nav_tree.js";
+import type { CatalogueCrumb } from "./nav_tree.js";
 import type { RouteTarget } from "./target.js";
 
-function Crumbs(props: { items: readonly CrumbLink[] }) {
+function Crumbs(props: { items: readonly CatalogueCrumb[] }) {
   return (
     <p aria-label="Catalogue location" className="mbk-crumbs">
       {props.items.map((item, index) => (
         <span key={`${item.label}-${index}`}>
           {index > 0 ? <span className="sep">›</span> : null}
-          {item.route ? (
-            <a className="mbk-crumb-link" href={catalogueViewHref(item.route)}>
-              {item.label}
-            </a>
-          ) : (
-            item.label
-          )}
+          {item.label}
         </span>
       ))}
     </p>
@@ -97,7 +84,7 @@ export function SchemeSwitch() {
 export function ScreenHead(props: {
   action?: ReactNode;
   status?: ReactNode;
-  crumbs: readonly CrumbLink[];
+  crumbs: readonly CatalogueCrumb[];
   heading: string;
   id?: string | undefined;
 }) {
@@ -129,16 +116,14 @@ export function ScreenHead(props: {
 export function targetHead(
   catalogue: Catalogue,
   target: RouteTarget,
-): { crumbs: CrumbLink[]; id?: string; title: string } {
-  if (target.kind === "entry") {
-    return {
-      crumbs: structuredCrumbTrail(catalogue.hierarchy, target.entry.id),
-      id: target.entry.id,
-      title: target.entry.title,
-    };
-  }
+): { crumbs: CatalogueCrumb[]; id?: string; title: string } {
   return {
-    crumbs: legacyCrumbTrail(catalogue.manifest.legacyPages, target.page.route),
-    title: legacyPageTitle(catalogue.manifest.legacyPages, target.page.route),
+    crumbs:
+      catalogue.removedEntries
+        .find(({ entry }) => entry.route === target.entry.route)
+        ?.ancestors.map(({ title }) => ({ label: title })) ??
+      structuredCrumbTrail(catalogue.hierarchy, target.entry.id),
+    id: target.entry.id,
+    title: target.entry.title,
   };
 }

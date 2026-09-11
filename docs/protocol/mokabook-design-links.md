@@ -2,7 +2,7 @@
 
 ## Delivery Status
 
-Implemented in the 24 design screens and two real example screens using
+Implemented in the 30 design screens and two real example screens using
 `MockLink` and `MockLink asChild`. Verification and delivery are tracked by the
 [implementation plan](../../plans/mokabook-design-mocklinks.md).
 
@@ -117,7 +117,8 @@ or use native disclosure markup for a group that actually contains children.
 Any added home crumb has a distinct label and the home destination above.
 Keep the design tree's existing groups and make screen leaves use explicit ids.
 
-The drawer depicts the existing canonical home state; closing it returns home.
+The home drawer depicts the canonical home state; closing it returns home.
+The separately authored document drawer retains its document as described below.
 An icon-only close control needs an accessible label. Do not imply a preserved
 origin screen or simulate closing a drawer by linking back to the open state.
 
@@ -126,6 +127,21 @@ Welcome/Details metadata rather than rendering Welcome's generated path, tags,
 and description under every screen. The removed screen has no live product
 target or live-use-case link. Related-doc labels without a portable public
 document remain plain text; this change adds no document publishing pipeline.
+
+The page designs extend this contract with explicit document destinations.
+`design-page-view` and `design-page-details` pair the closed/open inspector;
+`design-page-navigation` opens the document's drawer and closes back to its view.
+Its page row targets `design-page-view`; Welcome and Example tour retain their
+existing design destinations. The shared synthetic document takes an explicit
+Welcome destination so its design variant stays inside the design catalogue,
+while the real document continues to link to `example-welcome`. The removed-page
+state keeps a flat row and returns to catalogue home without inventing parents.
+
+`design-publication-catalogue` omits filter and comparison controls.
+`design-publication-changes` offers the existing Welcome comparison destinations;
+its Changes action opens `design-changes-current`. Unsupported combinations
+remain depictions. These six states retain their own typed navigation records;
+none borrows another subject's inspector or drawer identity.
 
 ## Scheme, Comparison, And Tag States
 

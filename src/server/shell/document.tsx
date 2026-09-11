@@ -39,9 +39,9 @@ function TopBar(props: { catalogue: Catalogue }) {
       <div className="mbk-search">
         <SearchIcon />
         <input
-          aria-label="Search screens"
+          aria-label="Search catalogue"
           data-mokabook-search=""
-          placeholder="Search screens…"
+          placeholder="Search catalogue…"
           type="search"
         />
         <SearchTagPicker tags={props.catalogue.tags} />

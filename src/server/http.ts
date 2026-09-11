@@ -1,48 +1,38 @@
 import type { ComponentRuntime } from "../build/component_runtime.js";
-import type { RenderCapability } from "../components/render_types.js";
 import { ComponentRenderService } from "./controls/service.js";
 import { handleControls, localHost } from "./controls/http.js";
-import { redirectId, renderView } from "./view_routes.js";
 import http, { type ServerResponse } from "node:http";
 
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
-import { readManifest } from "../registry/manifest.js";
 import {
-  openEventStream,
-  serveClientModule,
-  serveFontAsset,
-  type ServedAssets,
-} from "./browser_assets.js";
+  catalogueSnapshotForConfig,
+  loadServedCatalogueSnapshot,
+  type CatalogueSnapshot,
+} from "./catalogue_snapshot.js";
 import {
   ComponentChangeCache,
   RepositoryComponentChanges,
   type ComponentChangeSource,
   type ComponentChangeSnapshot,
 } from "./component_changes.js";
-import {
-  catalogueAtBaseline,
-  createCatalogue,
-  type Catalogue,
-} from "./catalogue.js";
+import { catalogueAtBaseline } from "./catalogue.js";
 import {
   loadBrowserClientModules,
   loadBrowserNavigationModules,
   loadShellFontAssets,
 } from "./client_modules.js";
-import { homePage, notFoundPage } from "./pages.js";
-import { removedScreens } from "./removed_screens.js";
+import { handleCatalogueRequest } from "./http_routes.js";
 import { listenOnAvailablePort } from "./ports.js";
-import { send } from "./respond.js";
 import { ReviewRoutes, type ServedReview } from "./review_routes.js";
-import { shellContext } from "./shell/context.js";
-import { SHELL_CSS } from "./shell/css.js";
-import { serveStatic } from "./static_routes.js";
+import { send } from "./respond.js";
 import type { CatalogueUpdate } from "./update_messages.js";
 
 /** Options for one deterministic server child. */
 export interface ServerOptions {
   base: string;
+  /** Reuse a validated startup or publication generation without rereading metadata. */
+  snapshot?: CatalogueSnapshot;
   componentRuntime?: ComponentRuntime;
   changedRoutes?: readonly string[];
   /** Read-only component classification source for the immutable server generation. */
@@ -68,14 +58,17 @@ export async function startCatalogueServer(
   config: ResolvedConfig,
   options: ServerOptions,
 ): Promise<RunningServer> {
-  const manifest = readManifest(config);
+  const snapshot =
+    options.snapshot ??
+    (await loadServedCatalogueSnapshot(
+      config,
+      options.review ? options.base : undefined,
+    ));
+  const { catalogue, changes } = catalogueSnapshotForConfig(snapshot, config);
+  const manifest = catalogue.manifest;
   const controls = options.componentRuntime
     ? new ComponentRenderService(options.componentRuntime)
     : undefined;
-  const removed = options.review
-    ? await removedScreens(config, manifest, options.base)
-    : [];
-  const catalogue = createCatalogue(manifest, removed);
   const clientModules = loadBrowserClientModules();
   const navigationModules = loadBrowserNavigationModules();
   const fontAssets = loadShellFontAssets();
@@ -83,11 +76,16 @@ export async function startCatalogueServer(
   const reviewRoutes = options.review
     ? new ReviewRoutes(options.review)
     : undefined;
-  const componentChanges = new ComponentChangeCache(
-    options.componentChangeSource ??
-      new RepositoryComponentChanges(config, manifest, options.base),
-  );
-  let changedRoutes = options.changedRoutes;
+  const componentChanges =
+    options.snapshot && !options.componentChangeSource
+      ? undefined
+      : new ComponentChangeCache(
+          options.componentChangeSource ??
+            new RepositoryComponentChanges(config, manifest, options.base),
+        );
+  let changedRoutes =
+    changes?.changedRoutes ??
+    (options.review ? options.changedRoutes : undefined);
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
     if (controls && !localHost(request))
@@ -104,12 +102,12 @@ export async function startCatalogueServer(
     }
     const requestedVersion = updateVersion;
     const requestedChanges = changedRoutes;
-    const serve = (snapshot?: ComponentChangeSnapshot) =>
-      handleRequest(
+    const serve = (evidence?: ComponentChangeSnapshot) =>
+      handleCatalogueRequest(
         request.url ?? "/",
         request.method ?? "GET",
         response,
-        snapshot ? catalogueAtBaseline(manifest, snapshot.baseline) : catalogue,
+        evidence ? catalogueAtBaseline(manifest, evidence.baseline) : catalogue,
         config,
         options.base,
         () => requestedChanges,
@@ -117,13 +115,16 @@ export async function startCatalogueServer(
         { clientModules, fontAssets, navigationModules },
         () => requestedVersion,
         reviewRoutes,
-        snapshot,
+        evidence,
         controls?.capability(),
       );
     if (
-      request.url === "/" ||
-      request.url?.startsWith("/view/") ||
-      request.url?.startsWith("/id/")
+      componentChanges &&
+      options.review &&
+      (new URL(request.url ?? "/", "http://mokabook.invalid").pathname ===
+        "/" ||
+        request.url?.startsWith("/view/") ||
+        request.url?.startsWith("/id/"))
     )
       void componentChanges
         .read(requestedVersion)
@@ -137,7 +138,7 @@ export async function startCatalogueServer(
             request.method ?? "GET",
           ),
         );
-    else serve();
+    else serve(options.snapshot ? snapshot.componentChanges : undefined);
   });
   await listenOnAvailablePort(
     server,
@@ -181,129 +182,10 @@ export async function startCatalogueServer(
       }
       updateVersion = nextVersion;
       reviewRoutes?.invalidate();
-      componentChanges.invalidate();
+      componentChanges?.invalidate();
       const payload = `event: update\ndata: ${updateVersion}\n\n`;
       for (const stream of streams) stream.write(payload);
     },
     url: `http://127.0.0.1:${address.port}`,
   };
-}
-
-function handleRequest(
-  rawUrl: string,
-  method: string,
-  response: ServerResponse,
-  catalogue: Catalogue,
-  config: ResolvedConfig,
-  base: string,
-  currentChangedRoutes: () => readonly string[] | undefined,
-  streams: Set<ServerResponse>,
-  assets: ServedAssets,
-  currentVersion: () => number,
-  reviewRoutes?: ReviewRoutes,
-  componentChanges?: ComponentChangeSnapshot,
-  renderCapability?: RenderCapability,
-): void {
-  if (method !== "GET" && method !== "HEAD")
-    return send(response, 405, "text/plain", "Method not allowed", method);
-  const url = new URL(rawUrl, "http://mokabook.invalid");
-  const requestVersion = currentVersion();
-  const changed = componentChanges?.result
-    ? componentChanges.result.changes.map(
-        (entry) => (entry.after ?? entry.before)!.route,
-      )
-    : currentChangedRoutes();
-  const context = shellContext(
-    base,
-    changed
-      ? [
-          ...new Set([
-            ...changed,
-            ...[
-              ...catalogue.removedScreens,
-              ...catalogue.removedComponents,
-            ].map((entry) => entry.route),
-          ]),
-        ]
-      : undefined,
-    requestVersion,
-  );
-  if (renderCapability) context.renderCapability = renderCapability;
-  context.comparisons = reviewRoutes !== undefined;
-  if (componentChanges) context.componentChanges = componentChanges;
-  if (url.pathname === "/")
-    return send(
-      response,
-      200,
-      "text/html",
-      homePage(catalogue, context),
-      method,
-    );
-  if (reviewRoutes && url.pathname.startsWith("/__mokabook/diffs/")) {
-    void reviewRoutes.handle(url, response, method);
-    return;
-  }
-  if (url.pathname === "/__mokabook/shell.css")
-    return send(response, 200, "text/css", SHELL_CSS, method);
-  if (url.pathname === "/__mokabook/events")
-    return openEventStream(response, streams, requestVersion, method);
-  if (url.pathname.startsWith("/__mokabook/client/")) {
-    return serveClientModule(
-      response,
-      url.pathname.slice("/__mokabook/client/".length),
-      assets.clientModules,
-      method,
-    );
-  }
-  if (url.pathname.startsWith("/__mokabook/navigation/")) {
-    return serveClientModule(
-      response,
-      url.pathname.slice("/__mokabook/navigation/".length),
-      assets.navigationModules,
-      method,
-    );
-  }
-  if (url.pathname.startsWith("/__mokabook/fonts/")) {
-    return serveFontAsset(
-      response,
-      url.pathname.slice("/__mokabook/fonts/".length),
-      assets.fontAssets,
-      method,
-    );
-  }
-  if (url.pathname.startsWith("/id/"))
-    return redirectId(
-      response,
-      url,
-      url.pathname.slice(4),
-      catalogue,
-      config,
-      context,
-      method,
-    );
-  if (url.pathname.startsWith("/view/"))
-    return renderView(
-      response,
-      url,
-      url.pathname.slice(6),
-      catalogue,
-      config,
-      context,
-      method,
-    );
-  if (url.pathname.startsWith("/static/"))
-    return serveStatic(
-      response,
-      url.pathname.slice(8),
-      config,
-      catalogue,
-      method,
-    );
-  return send(
-    response,
-    404,
-    "text/html",
-    notFoundPage(url.pathname, catalogue, context),
-    method,
-  );
 }

@@ -1,17 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { ManifestV3 } from "../dist/registry/types.js";
+import type { ManifestV5 } from "../dist/registry/types.js";
 import type { Catalogue } from "../dist/server/catalogue.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
 import { homePage, notFoundPage, viewPage } from "../dist/server/pages.js";
 import { SHELL_CSS } from "../dist/server/shell/css.js";
 import { buildNavTree } from "../dist/server/shell/nav_tree.js";
 
-const manifest: ManifestV3 = {
+const manifest: ManifestV5 = {
   entries: [
     {
-      childIds: ["screens", "tour"],
+      kind: "page",
+      id: "old",
+      title: "Old",
+      description: "Original complete document",
+      route: "legacy/old.html",
+      sourcePath: "entries/fixture.mockup.tsx",
+      declaredDependencies: [],
+      dependencies: [],
+      relatedDocs: [],
+      navPath: [],
+    },
+    {
+      kind: "page",
+      id: "overview",
+      title: "Overview",
+      description: "Catalogue overview",
+      route: "legacy/index.html",
+      sourcePath: "entries/fixture.mockup.tsx",
+      declaredDependencies: [],
+      dependencies: [],
+      relatedDocs: [],
+      navPath: [],
+    },
+    {
+      childIds: ["screens", "tour", "old", "overview"],
+      declaredDependencies: [],
       dependencies: [],
       description: "Example catalogue",
       id: "example",
@@ -23,6 +48,7 @@ const manifest: ManifestV3 = {
     },
     {
       childIds: ["welcome", "details"],
+      declaredDependencies: [],
       dependencies: [],
       description: "Screens",
       id: "screens",
@@ -34,6 +60,7 @@ const manifest: ManifestV3 = {
     },
     {
       address: "example.test/welcome",
+      declaredDependencies: [],
       dependencies: ["styles.css"],
       description: "Landing screen",
       fragments: {
@@ -53,6 +80,7 @@ const manifest: ManifestV3 = {
       viewports: ["mobile", "desktop"],
     },
     {
+      declaredDependencies: [],
       dependencies: [],
       description: "Second screen",
       fragments: {
@@ -71,6 +99,7 @@ const manifest: ManifestV3 = {
       viewports: ["mobile", "desktop"],
     },
     {
+      declaredDependencies: [],
       dependencies: [],
       description: "Ordered journey",
       id: "tour",
@@ -84,14 +113,11 @@ const manifest: ManifestV3 = {
     },
   ],
   generatedBy: "mokabook",
-  legacyPages: [
-    { route: "legacy/index.html", sourcePath: "pages/index.html" },
-    { route: "legacy/old.html", sourcePath: "pages/old.html" },
-  ],
-  schemaVersion: 3,
+  sourceFiles: ["entries/fixture.mockup.tsx"],
+  schemaVersion: 5,
 };
 
-const darkManifest: ManifestV3 = {
+const darkManifest: ManifestV5 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
     entry.kind === "screen" && entry.id === "welcome"
@@ -106,7 +132,7 @@ const darkManifest: ManifestV3 = {
   ),
 };
 
-const taggedFlowManifest: ManifestV3 = {
+const taggedFlowManifest: ManifestV5 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
     entry.kind === "use-case"
@@ -115,7 +141,7 @@ const taggedFlowManifest: ManifestV3 = {
   ),
 };
 
-const untaggedManifest: ManifestV3 = {
+const untaggedManifest: ManifestV5 = {
   ...manifest,
   entries: manifest.entries.map((entry) => {
     if (entry.kind === "collection") return entry;
@@ -235,11 +261,11 @@ function assertLightSrcMatchesAttribute(html: string, frames: number): void {
   }
 }
 
-test("nav tree nests collections and folds legacy directories", () => {
+test("nav tree nests pages and screens in one declared hierarchy", () => {
   const catalogue = createCatalogue(manifest);
-  const tree = buildNavTree(catalogue.hierarchy, manifest.legacyPages);
+  const tree = buildNavTree(catalogue.hierarchy);
   const labels = tree.map((node) => node.label);
-  assert.deepEqual(labels, ["Example", "Legacy"]);
+  assert.deepEqual(labels, ["Example"]);
   const example = tree[0];
   assert.ok(example?.kind === "group");
   const screens = example.children.find((node) => node.label === "Screens");
@@ -250,15 +276,15 @@ test("nav tree nests collections and folds legacy directories", () => {
   );
   const tour = example.children.find((node) => node.label === "Tour");
   assert.ok(tour?.kind === "leaf" && tour.entryKind === "use-case");
-  const legacy = tree[1];
-  assert.ok(legacy?.kind === "group");
   assert.deepEqual(
-    legacy.children.map((node) => node.label),
-    ["Overview", "Old"],
+    example.children
+      .filter((node) => node.kind === "leaf" && node.entryKind === "page")
+      .map((node) => node.label),
+    ["Old", "Overview"],
   );
 });
 
-test("legacy breadcrumbs link ancestors through their Overview page", () => {
+test("page breadcrumbs use real collections without invented Overview links", () => {
   const catalogue = createCatalogue(manifest);
   const entry = catalogue.byRoute.get("legacy/old.html");
   assert.ok(entry);
@@ -268,7 +294,7 @@ test("legacy breadcrumbs link ancestors through their Overview page", () => {
   });
   assert.match(
     html,
-    /class="mbk-crumb-link" href="\/view\/legacy\/index\.html">Legacy</,
+    /aria-label="Catalogue location" class="mbk-crumbs"><span>Example<\/span>/,
   );
   assert.match(html, /class="mbk-stage-embed"/);
 });
@@ -580,7 +606,7 @@ test("the search field carries a tag control over a closed picker", () => {
   const html = homePage(createCatalogue(manifest), context);
   assert.ok(
     html.includes(
-      'data-mokabook-search="" placeholder="Search screens…" type="search"/>' +
+      'aria-label="Search catalogue" data-mokabook-search="" placeholder="Search catalogue…" type="search"/>' +
         TAG_TOGGLE +
         tagPicker("billing", "forms", "onboarding") +
         "</div>",
@@ -674,7 +700,9 @@ test("the browser bar draws copy and expand icons, not tiny glyphs", () => {
 test("missing routes keep the catalogue shell", () => {
   const catalogue = createCatalogue(manifest);
   const missing = notFoundPage("view/unknown.html", catalogue, context);
-  assert.match(missing, /Screen not found/);
+  assert.match(missing, /Item not found/);
+  assert.match(missing, /choose another item from the navigation/);
+  assert.match(missing, /If this item was just added/);
   assert.match(missing, /aria-label="Catalogue"/);
 });
 

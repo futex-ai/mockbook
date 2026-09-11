@@ -75,6 +75,14 @@ for (const viewport of ["mobile", "desktop"] as const) {
       .getByRole("link", { name: "onboarding", exact: true })
       .click();
     await expect(page).toHaveURL(/\/view\/design\/browse\/views\/screen$/);
+    await page.goto(`${preview.url}/id/design-page-view`);
+    await frame.locator(".ce-inspector-link").click();
+    await expect(page).toHaveURL(/\/view\/design\/browse\/pages\/details$/);
+    await frame.locator(".ce-inspector-link").click();
+    await frame
+      .getByRole("link", { name: "Open Welcome", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/view\/design\/browse\/views\/screen$/);
     await page.goto(`${preview.url}/view/screens/welcome`);
     await chooseScheme(page, "dark");
     await frame

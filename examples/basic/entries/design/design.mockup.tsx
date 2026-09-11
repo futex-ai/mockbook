@@ -1,5 +1,7 @@
 import { collection, defineCollection, defineRoot } from "mokabook";
 
+import { pageScreens } from "./page_screens.js";
+import { publicationScreens } from "./publication_screens.js";
 import { formsFilterScreen } from "./browse/states/tags/forms.js";
 import { onboardingPickerScreen } from "./browse/states/tags/onboarding-picker.js";
 import { onboardingFilterScreen } from "./browse/states/tags/onboarding.js";
@@ -55,6 +57,22 @@ const designMockups = defineRoot({
           id: "design-browse-states",
           segment: "states",
           title: "Shell states",
+        }),
+        collection({
+          children: pageScreens,
+          description:
+            "Complete documents, their details, and removed documents.",
+          id: "design-browse-pages",
+          segment: "pages",
+          title: "Document pages",
+        }),
+        collection({
+          children: publicationScreens,
+          description:
+            "Catalogue browsing with optional Changes and comparisons.",
+          id: "design-browse-publication",
+          segment: "publication",
+          title: "Published catalogue",
         }),
       ],
       description:

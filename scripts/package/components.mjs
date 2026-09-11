@@ -30,7 +30,7 @@ export async function smokeRegisteredComponents(
       "utf8",
     ),
   );
-  assert.equal(manifest.schemaVersion, 4);
+  assert.equal(manifest.schemaVersion, 5);
   assert.equal(
     manifest.entries.filter((entry) => entry.kind === "component").length,
     2,

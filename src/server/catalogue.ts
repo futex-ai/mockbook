@@ -1,8 +1,10 @@
+import {
+  removedManifestEntries,
+  type RemovedEntrySnapshot,
+} from "../registry/changes.js";
 import type { ManifestComponent } from "../components/manifest_types.js";
-
 import type {
   ManifestEntry,
-  ManifestLegacyPage,
   ManifestScreen,
   Manifest,
 } from "../registry/types.js";
@@ -14,7 +16,7 @@ import {
 /** Validated lookup model used by server routes. */
 export interface Catalogue {
   byId: ReadonlyMap<string, ManifestEntry>;
-  byRoute: ReadonlyMap<string, ManifestEntry | ManifestLegacyPage>;
+  byRoute: ReadonlyMap<string, ManifestEntry>;
   /** Whether any screen in the catalogue was rendered in the dark scheme. */
   hasDarkFragments: boolean;
   hierarchy: CatalogueHierarchy<ManifestEntry>;
@@ -23,7 +25,8 @@ export interface Catalogue {
   tags: readonly string[];
   /** Baseline screens retained only for on-demand comparisons. */
   removedScreens: readonly ManifestScreen[];
-  /** Baseline component pages retained for immutable saved-variant comparisons. */
+  removedEntries: readonly RemovedEntrySnapshot[];
+  /** Removed component variants retain their immutable baseline for inspection. */
   removedComponents: readonly ManifestComponent[];
 }
 
@@ -39,15 +42,21 @@ function collectTags(entries: readonly ManifestEntry[]): readonly string[] {
 /** Build deterministic id and route indexes from a validated manifest. */
 export function createCatalogue(
   manifest: Manifest,
-  removedScreens: readonly ManifestScreen[] = [],
-  removedComponents: readonly ManifestComponent[] = [],
+  removedEntries: readonly RemovedEntrySnapshot[] = [],
 ): Catalogue {
+  const removedScreens = removedEntries.flatMap(({ entry }) =>
+    entry.kind === "screen" ? [entry] : [],
+  );
+  const removedComponents = removedEntries.flatMap(({ entry }) =>
+    entry.kind === "component" ? [entry] : [],
+  );
   const byId = new Map(manifest.entries.map((entry) => [entry.id, entry]));
-  const byRoute = new Map<string, ManifestEntry | ManifestLegacyPage>();
+  const byRoute = new Map<string, ManifestEntry>();
   for (const entry of manifest.entries) {
     if (entry.kind !== "collection") byRoute.set(entry.route, entry);
   }
-  for (const page of manifest.legacyPages) byRoute.set(page.route, page);
+  for (const { entry } of removedEntries)
+    if (!byId.has(entry.id)) byId.set(entry.id, entry);
   const hasDarkFragments = [
     ...manifest.entries,
     ...removedScreens,
@@ -69,31 +78,14 @@ export function createCatalogue(
     tags,
     removedScreens,
     removedComponents,
+    removedEntries,
   };
 }
 
-/** Keep baseline consumers addressable without inserting them into current ownership. */
+/** Preserve baseline leaves without inserting them into current ownership. */
 export function catalogueAtBaseline(
   manifest: Manifest,
   baseline: Manifest,
 ): Catalogue {
-  const routes = new Set(
-    manifest.entries.flatMap((entry) =>
-      entry.kind === "collection" ? [] : [entry.route],
-    ),
-  );
-  const ids = new Set(manifest.entries.map((entry) => entry.id));
-  return createCatalogue(
-    manifest,
-    baseline.entries.filter(
-      (entry): entry is ManifestScreen =>
-        entry.kind === "screen" && !routes.has(entry.route),
-    ),
-    baseline.entries.filter(
-      (entry): entry is ManifestComponent =>
-        entry.kind === "component" &&
-        !ids.has(entry.id) &&
-        !routes.has(entry.route),
-    ),
-  );
+  return createCatalogue(manifest, removedManifestEntries(manifest, baseline));
 }

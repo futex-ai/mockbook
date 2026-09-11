@@ -7,7 +7,9 @@ import {
   projectRealPath,
 } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
+import { isInternalCatalogueFile } from "../config/public_files.js";
 import { MokabookError, errorMessage } from "../errors.js";
+import { isAuthoringSource } from "./source_inventory.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
 
 /** Reject generated routes that escape output or target authored source trees. */
@@ -15,10 +17,7 @@ export function validateGeneratedOutputPaths(
   routes: Iterable<string>,
   config: ResolvedConfig,
 ): void {
-  const authoredRoots = [
-    config.entriesDir,
-    ...(config.legacy ? [config.legacy.pagesDir] : []),
-  ];
+  const authoredRoots = [config.entriesDir];
   const realRepoRoot = fs.realpathSync(config.repoRoot);
   const realMockupsRoot = fs.realpathSync(config.mockupsDir);
   const realAuthoredRoots = authoredRoots.map((root) => fs.realpathSync(root));
@@ -53,6 +52,8 @@ export function validateGeneratedOutputPaths(
       );
     }
     if (
+      (route !== MANIFEST_NAME && isInternalCatalogueFile(target, config)) ||
+      isAuthoringSource(target, config) ||
       authoredRoots.some((root) => isInside(root, target)) ||
       realAuthoredRoots.some((root) => isInside(root, projectedTarget))
     ) {

@@ -126,6 +126,14 @@ export function validateLogicalFragments(
     if (checked.has(key)) continue;
     checked.add(key);
     const entry = byId.get(record.destination.id);
+    if (entry?.kind === "page") {
+      if (!anchorIndex.get(entry.route)?.has(fragment))
+        throw new MokabookError(
+          "build-invalid",
+          `${record.sourceRoute} logical fragment ${fragment} for ${entry.id} is missing from page ${entry.route}`,
+        );
+      continue;
+    }
     const screen =
       entry?.kind === "screen" || entry?.kind === "component"
         ? entry

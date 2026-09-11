@@ -2,6 +2,7 @@
 
 import path from "node:path";
 
+import { isReservedSource } from "../build/source_inventory.js";
 import { isInside, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
@@ -13,22 +14,27 @@ import {
   GitReviewAssetReader,
   type OptionalReviewAssetReader,
 } from "../review/assets.js";
+import { baselineResourceConfig } from "../review/base_manifest.js";
 import type { GitClient } from "../review/git.js";
 import {
   normalizeReviewPair,
   normalizeSingleDocument,
 } from "../review/ignore.js";
 import { fragmentForView, unionColorSchemes } from "../review/screen_views.js";
+import { pageBaselines } from "../review/page_baselines.js";
 import { ChangedResourceGraph } from "./changed_resources.js";
 
-interface FragmentPair {
+interface DocumentPair {
   base?: string;
   head: string;
   context: string;
   changed: boolean;
 }
 
-/** Find material output changes, using live files or an injected captured reader. */
+/**
+ * Find material document/resource changes using live files or a captured reader.
+ * Exclude authoring paths lexically so retargeted public aliases still reach validation.
+ */
 export async function changedContentPaths(
   manifest: Manifest,
   baseline: Manifest,
@@ -39,6 +45,7 @@ export async function changedContentPaths(
   headReader: OptionalReviewAssetReader = new FileSystemReviewAssetReader(
     config,
   ),
+  documents: "all" | "pages" = "all",
 ): Promise<readonly string[]> {
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
   const repoPath = (route: string) => (prefix ? `${prefix}/${route}` : route);
@@ -48,7 +55,8 @@ export async function changedContentPaths(
       if (
         !isInside(config.mockupsDir, candidate) ||
         isInside(config.entriesDir, candidate) ||
-        (config.legacy && isInside(config.legacy.pagesDir, candidate))
+        isReservedSource(candidate) ||
+        config.sourceFiles?.includes(changed)
       )
         return [];
       const route = toPosixPath(path.relative(config.mockupsDir, candidate));
@@ -58,12 +66,17 @@ export async function changedContentPaths(
     }),
   );
   if (publicChanges.size === 0) return [];
-  const pairs = fragmentPairs(manifest, baseline, publicChanges);
-  const baseReader = new GitReviewAssetReader(config, git, commit, prefix);
+  const pairs = documentPairs(manifest, baseline, publicChanges, documents);
+  const baseReader = new GitReviewAssetReader(
+    baselineResourceConfig(config, baseline),
+    git,
+    commit,
+    prefix,
+  );
   const result = new Set<string>();
-  const documents = new Map<string, string>();
+  const normalizedDocuments = new Map<string, string>();
   const changedPairs = pairs.filter(
-    (pair): pair is FragmentPair & { base: string } =>
+    (pair): pair is DocumentPair & { base: string } =>
       pair.changed && pair.base !== undefined,
   );
   for (let offset = 0; offset < changedPairs.length; offset += 32) {
@@ -82,7 +95,7 @@ export async function changedContentPaths(
         "utf8",
       );
       const normalized = normalizeReviewPair(before, after, pair.context);
-      documents.set(pair.head, normalized.head);
+      normalizedDocuments.set(pair.head, normalized.head);
       if (normalized.base !== normalized.head) {
         result.add(repoPath(pair.head));
       } else if (pair.base === pair.head) {
@@ -95,10 +108,10 @@ export async function changedContentPaths(
     headReader,
     baseReader,
     publicChanges,
-    documents,
+    normalizedDocuments,
   );
   for (const pair of pairs) {
-    let document = documents.get(pair.head);
+    let document = normalizedDocuments.get(pair.head);
     if (document === undefined) {
       const after = Buffer.from(await headReader.read(pair.head)).toString(
         "utf8",
@@ -113,16 +126,28 @@ export async function changedContentPaths(
   return [...result].sort();
 }
 
-function fragmentPairs(
+function documentPairs(
   manifest: Manifest,
   baseline: Manifest,
   changed: ReadonlySet<string>,
-): FragmentPair[] {
+  documents: "all" | "pages",
+): DocumentPair[] {
   const bases = new Map(baseline.entries.map((entry) => [entry.id, entry]));
-  const pairs: FragmentPair[] = [];
+  const pages = pageBaselines(manifest, baseline);
+  const pairs: DocumentPair[] = [];
   for (const screen of manifest.entries) {
-    if (screen.kind !== "screen") continue;
     const baseEntry = bases.get(screen.id);
+    if (screen.kind === "page") {
+      const base = pages.get(screen.id)?.route;
+      pairs.push({
+        ...(base ? { base } : {}),
+        head: screen.route,
+        context: screen.route,
+        changed: base !== screen.route || changed.has(screen.route),
+      });
+      continue;
+    }
+    if (documents === "pages" || screen.kind !== "screen") continue;
     const base = baseEntry?.kind === "screen" ? baseEntry : undefined;
     for (const viewport of VIEWPORTS) {
       for (const scheme of unionColorSchemes(base, screen)) {

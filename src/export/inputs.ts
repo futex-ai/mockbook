@@ -1,6 +1,9 @@
+import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
 import { compileCatalogue, type Compilation } from "../build/compile.js";
+import { publicPathLocation } from "../config/public_files.js";
+import { isSafeRepositoryPath } from "../config/paths.js";
 import { loadConfig } from "../config/load.js";
 import type { ResolvedConfig } from "../config/types.js";
 import type { OptionalReviewAssetReader } from "../review/assets.js";
@@ -12,6 +15,7 @@ import { capturePublicFiles } from "./public_files.js";
 /** Share captured public bytes between comparison and Changes calculations. */
 export function capturedAssetReader(
   files: ReadonlyMap<string, Buffer>,
+  config: ResolvedConfig,
 ): OptionalReviewAssetReader {
   return {
     read: async (name) => {
@@ -21,6 +25,15 @@ export function capturedAssetReader(
       return bytes;
     },
     readIfExists: async (name) => files.get(name),
+    readLocated: async (name) => {
+      const location = isSafeRepositoryPath(name)
+        ? publicPathLocation(path.resolve(config.mockupsDir, name), config)
+        : undefined;
+      if (!location)
+        throw exportError(`Comparison resource is not exportable: ${name}`);
+      const content = files.get(name);
+      return { location, ...(content ? { content } : {}) };
+    },
   };
 }
 
@@ -58,6 +71,7 @@ export async function assertInputsUnchanged(
 ): Promise<void> {
   const freshConfig = await loadConfig(config.repoRoot, config.configPath);
   const fresh = await compileCatalogue(freshConfig);
+  freshConfig.sourceFiles = fresh.manifest.sourceFiles;
   const publicNow = await capturePublicFiles(freshConfig);
   const changedNow = await reviewChangedPaths(
     git,

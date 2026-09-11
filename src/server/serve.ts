@@ -11,7 +11,7 @@ import {
   type CatalogueServerFactory,
 } from "./factory.js";
 import { configuredServedReview } from "./review_routes.js";
-import { computeChangedRoutes } from "./changed.js";
+import { loadServedCatalogueSnapshot } from "./catalogue_snapshot.js";
 import {
   NodeProcessSupervisorFactory,
   type ProcessSupervisorFactory,
@@ -64,11 +64,15 @@ export async function serve(
     const compilation = await compileCatalogue(config);
     await dependencies.outputStore.write(compilation, config);
     const base = options.base ?? config.review.base;
-    const changedRoutes = await computeChangedRoutes(config, base);
+    const snapshot = await loadServedCatalogueSnapshot(
+      config,
+      base,
+      compilation.manifest,
+    );
     const server = await dependencies.serverFactory.start(config, {
       base,
+      snapshot,
       componentRuntime: componentRuntime(compilation),
-      ...(changedRoutes ? { changedRoutes } : {}),
       port: options.port,
       review: configuredServedReview(config, base),
     });

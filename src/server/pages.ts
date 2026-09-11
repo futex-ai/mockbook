@@ -1,6 +1,6 @@
 /** Served shell pages composed from the catalogue and shell views. */
 
-import type { ManifestEntry, ManifestLegacyPage } from "../registry/types.js";
+import type { ManifestEntry } from "../registry/types.js";
 import type { Catalogue } from "./catalogue.js";
 import type { ShellContext } from "./shell/context.js";
 import { renderShellPage } from "./shell/document.js";
@@ -12,9 +12,9 @@ export function homePage(catalogue: Catalogue, context: ShellContext): string {
   return renderShellPage(catalogue, { kind: "home" }, context);
 }
 
-/** Render one screen, use case, or legacy route page. */
+/** Render one screen, use case, or whole-document page. */
 export function viewPage(
-  entry: ManifestEntry | ManifestLegacyPage,
+  entry: ManifestEntry,
   catalogue: Catalogue,
   context: ShellContext,
 ): string {

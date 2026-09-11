@@ -21,6 +21,13 @@ stacking above the navigation drawer scrim. Every state recorded here is
 implemented. The separate [component explorer designs](./mokabook-component-design.md)
 are target mockups delivered before their runtime implementation.
 
+The page and publication designs are now recorded in the example catalogue.
+Their runtime implementation is tracked in the linked plans. Whole documents
+use a plain bordered pane and omit device/comparison controls. Removed pages
+are flat Changes rows; baseline breadcrumbs are text even after their parents
+are deleted. Ordinary publications omit the Changes filter and comparison band
+while preserving the same navigation, search, tags, and screen variants.
+
 ## Design Mockups
 
 The approved screens are authored in `examples/basic/entries/design/` and
@@ -32,32 +39,46 @@ Update the owning inventory when design entries change and verify exact id/route
 agreement with the manifest. Planned destinations stay in their feature
 contract until their standalone screens are implemented.
 
-| Entry id                              | Route                                              | State                                   |
-| ------------------------------------- | -------------------------------------------------- | --------------------------------------- |
-| `design-browse-home`                  | `design/browse/views/home.html`                    | Catalogue home with navigation tree     |
-| `design-browse-screen`                | `design/browse/views/screen.html`                  | Selected screen with framed fragments   |
-| `design-browse-details-screen`        | `design/browse/views/details-screen.html`          | Normal Details screen, light selected   |
-| `design-browse-use-case`              | `design/browse/views/use-case.html`                | Selected use case with ordered steps    |
-| `design-browse-details`               | `design/browse/states/details.html`                | Expanded details inspector              |
-| `design-browse-missing-route`         | `design/browse/states/missing-route.html`          | Not-found view with navigation          |
-| `design-browse-navigation`            | `design/browse/states/navigation.html`             | Collapsed navigation drawer             |
-| `design-browse-tag-filter`            | `design/browse/states/tag-filter.html`             | Tag picker over a filtered tree         |
-| `design-browse-tag-picker`            | `design/browse/states/tags/picker.html`            | Empty query, tag picker open            |
-| `design-browse-tag-forms`             | `design/browse/states/tags/forms.html`             | Forms filter, picker closed             |
-| `design-browse-tag-onboarding`        | `design/browse/states/tags/onboarding.html`        | Onboarding filter, picker closed        |
-| `design-browse-tag-onboarding-picker` | `design/browse/states/tags/onboarding-picker.html` | Onboarding filter, picker open          |
-| `design-browse-dark-scheme`           | `design/browse/states/dark-scheme.html`            | Dark selected, dark device screens      |
-| `design-browse-light-only`            | `design/browse/states/light-only.html`             | Light-only screen under dark            |
-| `design-changes-current`              | `design/review/controls/current.html`              | Current screen in Changes               |
-| `design-changes-overlay`              | `design/review/controls/overlay.html`              | On-demand overlay comparison            |
-| `design-review-changed`               | `design/review/outcomes/changed.html`              | Changed screen, side-by-side compare    |
-| `design-review-added`                 | `design/review/outcomes/added.html`                | Added screen with missing base pane     |
-| `design-review-removed`               | `design/review/outcomes/removed.html`              | Removed screen with missing head pane   |
-| `design-review-difference`            | `design/review/outcomes/difference.html`           | Blend-mode difference comparison        |
-| `design-review-dark-scheme`           | `design/review/outcomes/dark-scheme.html`          | Dark view compared side by side         |
-| `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Unchanged screen from All with evidence |
-| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only Current view with evidence |
-| `design-review-empty`                 | `design/review/impact/empty.html`                  | Empty Changes filter retaining Current  |
+| Entry id                              | Route                                              | State                                        |
+| ------------------------------------- | -------------------------------------------------- | -------------------------------------------- |
+| `design-browse-home`                  | `design/browse/views/home.html`                    | Catalogue home with navigation tree          |
+| `design-browse-screen`                | `design/browse/views/screen.html`                  | Selected screen with framed fragments        |
+| `design-browse-details-screen`        | `design/browse/views/details-screen.html`          | Normal Details screen, light selected        |
+| `design-browse-use-case`              | `design/browse/views/use-case.html`                | Selected use case with ordered steps         |
+| `design-browse-details`               | `design/browse/states/details.html`                | Expanded details inspector                   |
+| `design-browse-missing-route`         | `design/browse/states/missing-route.html`          | Not-found view with navigation               |
+| `design-browse-navigation`            | `design/browse/states/navigation.html`             | Collapsed navigation drawer                  |
+| `design-browse-tag-filter`            | `design/browse/states/tag-filter.html`             | Tag picker over a filtered tree              |
+| `design-browse-tag-picker`            | `design/browse/states/tags/picker.html`            | Empty query, tag picker open                 |
+| `design-browse-tag-forms`             | `design/browse/states/tags/forms.html`             | Forms filter, picker closed                  |
+| `design-browse-tag-onboarding`        | `design/browse/states/tags/onboarding.html`        | Onboarding filter, picker closed             |
+| `design-browse-tag-onboarding-picker` | `design/browse/states/tags/onboarding-picker.html` | Onboarding filter, picker open               |
+| `design-browse-dark-scheme`           | `design/browse/states/dark-scheme.html`            | Dark selected, dark device screens           |
+| `design-browse-light-only`            | `design/browse/states/light-only.html`             | Light-only screen under dark                 |
+| `design-changes-current`              | `design/review/controls/current.html`              | Current screen in Changes                    |
+| `design-changes-overlay`              | `design/review/controls/overlay.html`              | On-demand overlay comparison                 |
+| `design-review-changed`               | `design/review/outcomes/changed.html`              | Changed screen, side-by-side compare         |
+| `design-review-added`                 | `design/review/outcomes/added.html`                | Added screen with missing base pane          |
+| `design-review-removed`               | `design/review/outcomes/removed.html`              | Removed screen with missing head pane        |
+| `design-review-difference`            | `design/review/outcomes/difference.html`           | Blend-mode difference comparison             |
+| `design-review-dark-scheme`           | `design/review/outcomes/dark-scheme.html`          | Dark view compared side by side              |
+| `design-review-shared-impact`         | `design/review/impact/shared-impact.html`          | Unchanged screen from All with evidence      |
+| `design-review-ignored-only`          | `design/review/impact/ignored-only.html`           | Ignored-only Current view with evidence      |
+| `design-review-empty`                 | `design/review/impact/empty.html`                  | Empty Changes filter retaining Current       |
+| `design-page-view`                    | `design/browse/pages/view.html`                    | Complete document in its declared collection |
+| `design-page-details`                 | `design/browse/pages/details.html`                 | Document metadata and close action           |
+| `design-page-navigation`              | `design/browse/pages/navigation.html`              | Document with its narrow drawer open         |
+| `design-page-removed`                 | `design/browse/pages/removed.html`                 | Removed document with baseline ancestry      |
+| `design-publication-catalogue`        | `design/browse/publication/catalogue.html`         | Current catalogue with review omitted        |
+| `design-publication-changes`          | `design/browse/publication/changes.html`           | Catalogue with optional comparisons          |
+
+Additional owning groups keep each new page at no more than five screens:
+
+- `design/browse/pages/view.html`, `details.html`, `navigation.html`, and
+  `removed.html` specify full documents, metadata, the drawer, and deleted-parent
+  behavior.
+- `design/browse/publication/catalogue.html` and `changes.html` specify review
+  omitted and included, using the existing Welcome stage.
 
 Every screen ships one mobile and one desktop variant. Mockup implementation
 notes live in entry descriptions, rationale, and related docs — never inside
@@ -128,7 +149,10 @@ scrollable region scrolls internally:
   15px stroked magnifier icon that holds its size while the field flexes)
   that flexes down to whatever room the bar leaves it. Below the breakpoint a menu button opens the
   catalogue drawer. The product name hides in the narrow header so the search
-  retains space; the brand link keeps its accessible name. The decorative mark
+  retains space; the brand link keeps its accessible name. Search uses
+  `Search catalogue` as its accessible name and `Search catalogue…` as its
+  placeholder in both viewport sizes, covering screens, pages, and flows.
+  The decorative mark
   inherits the accent-contrast color and uses two-unit strokes on a 24-unit
   viewBox, with the mobile outline in front and a gap in the desktop outline
   at the overlap. There is no mode
@@ -212,6 +236,11 @@ scrollable region scrolls internally:
   chip whose tag is in the entered query carries the accent active state with
   contrast text and glyph. An entry that declares no tags omits the row.
 
+Shared home guidance asks visitors to choose an item from the navigation.
+Unknown routes use `Item not found` and offer another catalogue item or the
+catalogue home. Kind-specific wording is reserved for a known screen, page,
+or flow; shared controls and missing-route messages cover the whole catalogue.
+
 ## Device Chrome
 
 - **Phone frame** — 390×844, 12px bezel padding, `#171a18` body,
@@ -244,7 +273,7 @@ scrollable region scrolls internally:
   joined by a 2px connector line, each with title, description, a
   `This screen in the catalogue: <title> →` link, and one browser frame
   (height 640px) indented under the step head.
-- **Legacy embed** — a bordered, 12px-radius iframe pane on the dotted stage.
+- **Document pane** — a bordered, 12px-radius iframe pane on the dotted stage.
 
 ## Color Scheme
 

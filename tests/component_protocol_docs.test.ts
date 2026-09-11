@@ -29,16 +29,13 @@ test("documented catalogue formats match compilation and both comparison sides",
       "main",
     );
     const componentComparison = before === components || after === components;
-    assert.equal(
-      fixture.after.manifest.schemaVersion,
-      after === components ? 4 : 3,
-    );
+    assert.equal(fixture.after.manifest.schemaVersion, 5);
     assert.equal(result.schemaVersion, componentComparison ? 3 : 2);
     assert.match(
       index,
       after === components
-        ? /With registered components\s*\|\s*4\s*\|\s*3/
-        : /Without registered components\s*\|\s*3\s*\|\s*2/,
+        ? /With registered components\s*\|\s*5\s*\|\s*3/
+        : /Without registered components\s*\|\s*5\s*\|\s*2/,
     );
   }
 });
@@ -61,5 +58,5 @@ test("delivered component contracts do not retain superseded status or version i
     await read("docs/protocol/mokabook-export.md"),
     /Keep `ReviewResult\.schemaVersion` at 2/,
   );
-  assert.match(await read("README.md"), /primary file supports v3 and v4/);
+  assert.match(await read("README.md"), /current output requires manifest v5/);
 });

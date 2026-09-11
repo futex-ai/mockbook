@@ -51,9 +51,8 @@ export function renderView(
   const route = safeDecodePath(encodedRoute);
   const entry = route
     ? (catalogue.byRoute.get(route) ??
-      [...catalogue.removedScreens, ...catalogue.removedComponents].find(
-        (entry) => entry.route === route,
-      ))
+      catalogue.removedEntries.find(({ entry }) => entry.route === route)
+        ?.entry)
     : undefined;
   if (!entry)
     return send(
@@ -64,10 +63,9 @@ export function renderView(
       method,
     );
   const manifestEntry = "kind" in entry ? entry : undefined;
-  const removed = [
-    ...catalogue.removedScreens,
-    ...catalogue.removedComponents,
-  ].some((screen) => screen.route === route);
+  const removed = catalogue.removedEntries.some(
+    ({ entry }) => entry.route === route,
+  );
   const fragment = removed
     ? url.searchParams.has("fragment")
       ? null
