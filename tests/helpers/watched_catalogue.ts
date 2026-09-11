@@ -7,6 +7,16 @@ export async function catalogue(url: string): Promise<string> {
   return response.text();
 }
 
+/** Wait for initial background publication before testing an already-running catalogue. */
+export function waitForInitialChanges(url: string): Promise<string> {
+  return waitForPublished(
+    url,
+    0,
+    (html) => /data-changes-status="(?:ready|unavailable)"/.test(html),
+    "completed initial Changes",
+  );
+}
+
 /** Extract the server version stamped into one shell response. */
 export function version(html: string): number {
   const value = html.match(/data-mokabook-update-version="(\d+)"/)?.[1];

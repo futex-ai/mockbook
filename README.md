@@ -516,10 +516,16 @@ navigation row can update before the frame's stylesheets finish loading;
 `expectFrameSource` alone checks navigation, not rendering readiness. Keep
 strict visibility and control assertions after the readiness check.
 Real Git-backed comparison fixtures wait for completed Changes classification.
+The shared browser example also waits for terminal Changes in global setup
+before tests begin, so background startup reloads cannot interrupt history or
+navigation assertions.
 Loading-state tests own explicit pending fixtures, so startup reloads cannot
 interrupt unrelated mode or
 resize assertions. Run the full browser suite separately from other top-level
 checks: publication fixtures rebuild shared package and example output.
+Watched tests that assert a stable update version also wait for final Changes
+status before capturing their baseline; Usage completion alone can precede
+another background publication.
 Comparison tests await their final JSON response before applying UI assertion
 deadlines. Cold snapshot generation has a bounded
 30-second wait tied to the newly triggered request, refresh intent, and its

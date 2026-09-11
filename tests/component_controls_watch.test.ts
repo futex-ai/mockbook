@@ -7,6 +7,7 @@ import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
 import { serve } from "../dist/server/serve.js";
 import { controlsEntrySource } from "./helpers/component_controls_fixture.js";
+import { settledRenderCapability } from "./helpers/component_controls_state.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
 test(
@@ -27,17 +28,13 @@ test(
         const html = await (
           await fetch(`${server.url}/view/components/action.html`)
         ).text();
-        const data = JSON.parse(
-          html.match(/data-workspace-data="">(.*?)<\/script>/s)![1]!,
-        );
-        if (data.renderCapability && data.usageComplete !== false)
-          return {
-            ...data.renderCapability,
-            version: html.match(/data-mokabook-update-version="(\d+)"/)![1],
-          } as { token: string; generation: string; version: string };
+        const capability = settledRenderCapability(html);
+        if (capability) return capability;
         await delay(25);
       }
-      throw new Error("component controls did not attach after readiness");
+      throw new Error(
+        "component controls did not settle after background work",
+      );
     };
     const first = await capabilities();
     const render = async (capability: typeof first, label: string) =>

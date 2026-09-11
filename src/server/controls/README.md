@@ -61,6 +61,12 @@ builds, generation replacement and unchanged filesystem output. Browser checks
 cover local editing, last-valid previews, optional/unset values, negative zero,
 presets, variant/context changes, comparisons, expiration and navigation.
 
+Watched no-publication tests take their version baseline only after controls and
+Usage are available and Changes has reached `ready` or `unavailable`. Usage
+completion precedes final Changes publication and is not a settled watch state;
+`tests/helpers/component_controls_state.ts` captures the authority and version
+from one terminal shell before exact no-update assertions begin.
+
 See the [controls contract](../../../docs/protocol/mokabook-component-controls.md),
 [component authoring guide](../../components/README.md), and
 [build architecture](../../../docs/architecture/build-pipeline.md).

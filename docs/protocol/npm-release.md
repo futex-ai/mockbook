@@ -76,6 +76,10 @@ Browser assertions that depend on a navigated preview's layout wait for the
 expected frame URL and complete document state together, not only the outer
 Browse URL or an iframe `src` attribute. Delayed-stylesheet regressions exercise
 this boundary while retaining strict single-preview and control-state checks.
+The shared browser example waits for initial `ready` or `unavailable` Changes
+before opening test pages; completing Usage is not final publication. Loading,
+watch-update and startup-performance tests keep their independent fixtures and
+must continue to exercise pending states and command-to-preview timings.
 
 ## Continuous Integration
 

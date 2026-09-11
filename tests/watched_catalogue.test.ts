@@ -6,6 +6,7 @@ import {
   changedCount,
   version,
   waitForChangedCount,
+  waitForInitialChanges,
   waitForUpdate,
 } from "./helpers/watched_catalogue.js";
 
@@ -46,6 +47,32 @@ async function publish(
     url: `http://127.0.0.1:${address.port}`,
   };
 }
+
+for (const count of [0, undefined]) {
+  test(`initial readiness waits past pending usage for ${count ?? "unavailable"} Changes`, async () => {
+    const pending = shell(2).replace(
+      'data-changes-status="unavailable"',
+      'data-changes-status="pending"',
+    );
+    const completed = shell(3, count);
+    const running = await publish([pending, pending, completed]);
+    try {
+      assert.equal(await waitForInitialChanges(running.url), completed);
+    } finally {
+      await running.close();
+    }
+  });
+}
+
+test("initial readiness accepts an already-published zero without another update", async () => {
+  const completed = shell(3, 0);
+  const running = await publish([completed]);
+  try {
+    assert.equal(await waitForInitialChanges(running.url), completed);
+  } finally {
+    await running.close();
+  }
+});
 
 test("a settled wait passes over the state between edit operations", async () => {
   const running = await publish([shell(1, 2), shell(2, 0)]);

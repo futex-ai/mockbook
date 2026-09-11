@@ -35,6 +35,9 @@ test("saved-variant query history stays separate from native fragment history", 
 }) => {
   const path = "/view/design/library/inspector/inspector.html";
   await page.goto(path);
+  await page.locator("html").evaluate((element) => {
+    element.setAttribute("data-history-session", "retained");
+  });
   const requests: string[] = [];
   page.on("request", (request) => {
     if (
@@ -58,6 +61,10 @@ test("saved-variant query history stays separate from native fragment history", 
   await page.goForward();
   await expect(page).toHaveURL(/\?variant=props#mb-main$/);
   await expect(variant).toHaveValue("props");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-history-session",
+    "retained",
+  );
   expect(requests).toEqual(["", "?variant=props"]);
 });
 
