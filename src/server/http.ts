@@ -8,18 +8,14 @@ import http, { type ServerResponse } from "node:http";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import { readManifest } from "../registry/manifest.js";
+import type { Manifest } from "../registry/types.js";
 import {
   openEventStream,
   serveClientModule,
   serveFontAsset,
   type ServedAssets,
 } from "./browser_assets.js";
-import {
-  ComponentChangeCache,
-  RepositoryComponentChanges,
-  type ComponentChangeSource,
-  type ComponentChangeSnapshot,
-} from "./component_changes.js";
+import { type ComponentChangeSnapshot } from "./component_changes.js";
 import {
   catalogueAtBaseline,
   createCatalogue,
@@ -31,7 +27,6 @@ import {
   loadShellFontAssets,
 } from "./client_modules.js";
 import { homePage, notFoundPage } from "./pages.js";
-import { removedScreens } from "./removed_screens.js";
 import { listenOnAvailablePort } from "./ports.js";
 import { send } from "./respond.js";
 import { ReviewRoutes, type ServedReview } from "./review_routes.js";
@@ -45,8 +40,10 @@ export interface ServerOptions {
   base: string;
   componentRuntime?: ComponentRuntime;
   changedRoutes?: readonly string[];
-  /** Read-only component classification source for the immutable server generation. */
-  componentChangeSource?: ComponentChangeSource;
+  /** Precomputed component and screen evidence for the immutable generation. */
+  componentChanges?: ComponentChangeSnapshot;
+  /** Parent-validated manifest supplied to a watched server child. */
+  manifest?: Manifest;
   port: number;
   /** Enables on-demand comparison JSON and isolated snapshots. */
   review?: ServedReview;
@@ -68,14 +65,14 @@ export async function startCatalogueServer(
   config: ResolvedConfig,
   options: ServerOptions,
 ): Promise<RunningServer> {
-  const manifest = readManifest(config);
-  const controls = options.componentRuntime
+  const manifest = options.manifest ?? readManifest(config);
+  let controls = options.componentRuntime
     ? new ComponentRenderService(options.componentRuntime)
     : undefined;
-  const removed = options.review
-    ? await removedScreens(config, manifest, options.base)
-    : [];
-  const catalogue = createCatalogue(manifest, removed);
+  const catalogue = createCatalogue(manifest);
+  let activeCatalogue = options.componentChanges
+    ? catalogueAtBaseline(manifest, options.componentChanges.baseline)
+    : catalogue;
   const clientModules = loadBrowserClientModules();
   const navigationModules = loadBrowserNavigationModules();
   const fontAssets = loadShellFontAssets();
@@ -83,11 +80,9 @@ export async function startCatalogueServer(
   const reviewRoutes = options.review
     ? new ReviewRoutes(options.review)
     : undefined;
-  const componentChanges = new ComponentChangeCache(
-    options.componentChangeSource ??
-      new RepositoryComponentChanges(config, manifest, options.base),
-  );
-  let changedRoutes = options.changedRoutes;
+  let componentChanges = options.componentChanges;
+  let changedRoutes =
+    options.changedRoutes ?? options.componentChanges?.changedRoutes;
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
     if (controls && !localHost(request))
@@ -104,40 +99,21 @@ export async function startCatalogueServer(
     }
     const requestedVersion = updateVersion;
     const requestedChanges = changedRoutes;
-    const serve = (snapshot?: ComponentChangeSnapshot) =>
-      handleRequest(
-        request.url ?? "/",
-        request.method ?? "GET",
-        response,
-        snapshot ? catalogueAtBaseline(manifest, snapshot.baseline) : catalogue,
-        config,
-        options.base,
-        () => requestedChanges,
-        streams,
-        { clientModules, fontAssets, navigationModules },
-        () => requestedVersion,
-        reviewRoutes,
-        snapshot,
-        controls?.capability(),
-      );
-    if (
-      request.url === "/" ||
-      request.url?.startsWith("/view/") ||
-      request.url?.startsWith("/id/")
-    )
-      void componentChanges
-        .read(requestedVersion)
-        .then(serve)
-        .catch(() =>
-          send(
-            response,
-            500,
-            "text/plain",
-            "Catalogue unavailable",
-            request.method ?? "GET",
-          ),
-        );
-    else serve();
+    handleRequest(
+      request.url ?? "/",
+      request.method ?? "GET",
+      response,
+      activeCatalogue,
+      config,
+      options.base,
+      () => requestedChanges,
+      streams,
+      { clientModules, fontAssets, navigationModules },
+      () => requestedVersion,
+      reviewRoutes,
+      componentChanges,
+      controls?.capability(),
+    );
   });
   await listenOnAvailablePort(
     server,
@@ -170,7 +146,8 @@ export async function startCatalogueServer(
     },
     port: address.port,
     replaceComponentRuntime(runtime): void {
-      controls?.replace(runtime);
+      if (controls) controls.replace(runtime);
+      else controls = new ComponentRenderService(runtime);
     },
     publishUpdate(update = {}): void {
       const nextVersion = update.version ?? updateVersion + 1;
@@ -179,9 +156,14 @@ export async function startCatalogueServer(
       if (Object.hasOwn(update, "changedRoutes")) {
         changedRoutes = update.changedRoutes ?? undefined;
       }
+      if (Object.hasOwn(update, "componentChanges")) {
+        componentChanges = update.componentChanges ?? undefined;
+        activeCatalogue = componentChanges
+          ? catalogueAtBaseline(manifest, componentChanges.baseline)
+          : catalogue;
+      }
       updateVersion = nextVersion;
       reviewRoutes?.invalidate();
-      componentChanges.invalidate();
       const payload = `event: update\ndata: ${updateVersion}\n\n`;
       for (const stream of streams) stream.write(payload);
     },

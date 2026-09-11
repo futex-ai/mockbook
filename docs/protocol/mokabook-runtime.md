@@ -98,6 +98,17 @@ Browse validates the manifest before binding its listening port. It exposes:
   redirects to immutable generations and snapshot files beneath the same prefix;
 - package-owned client and update endpoints under `/__mokabook/`.
 
+Watched Browse does not run Git classification on the HTTP child or on the
+request path. The child receives the accepted config and already validated
+manifest from its parent, constructs the catalogue, and binds without loading or
+validating the large manifest file again. It signals readiness before receiving
+the remaining retained component runtime. Runtime attachment publishes a
+reserved higher update version, so a shell loaded in that brief interval
+reloads with local controls enabled. The
+initial shell remains usable without a Changes filter while the parent computes
+one shared repository snapshot; a later versioned update installs that evidence.
+Non-watched Serve continues to resolve its deterministic snapshot before bind.
+
 All ordinary routes support GET and HEAD. HEAD returns the same status and
 headers without a body, including `/id` not-found and fragment-validation
 errors. A HEAD request to the update endpoint completes without opening or

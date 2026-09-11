@@ -11,11 +11,12 @@ import {
   type CatalogueServerFactory,
 } from "./factory.js";
 import { configuredServedReview } from "./review_routes.js";
-import { computeChangedRoutes } from "./changed.js";
 import {
-  NodeProcessSupervisorFactory,
-  type ProcessSupervisorFactory,
-} from "./supervisor.js";
+  RepositoryCatalogueChangeClassifier,
+  type CatalogueChangeClassifier,
+} from "./component_changes.js";
+import { type ProcessSupervisorFactory } from "./supervisor.js";
+import { NodeProcessSupervisorFactory } from "./node_process_supervisor.js";
 import {
   ChokidarWatcherFactory,
   type ConsumerWatcherFactory,
@@ -39,6 +40,7 @@ export interface RunningServe {
 
 /** Injectable runtime collaborators for Serve orchestration. */
 export interface ServeDependencies {
+  changeClassifier?: CatalogueChangeClassifier;
   configLoader: ConfigLoader;
   outputStore: GeneratedOutputStore;
   processSupervisorFactory: ProcessSupervisorFactory;
@@ -46,7 +48,9 @@ export interface ServeDependencies {
   watcherFactory: ConsumerWatcherFactory;
 }
 
+const DEFAULT_CHANGE_CLASSIFIER = new RepositoryCatalogueChangeClassifier();
 const DEFAULT_DEPENDENCIES: ServeDependencies = {
+  changeClassifier: DEFAULT_CHANGE_CLASSIFIER,
   configLoader: new FileSystemConfigLoader(),
   outputStore: new FileSystemGeneratedOutputStore(),
   processSupervisorFactory: new NodeProcessSupervisorFactory(),
@@ -64,11 +68,18 @@ export async function serve(
     const compilation = await compileCatalogue(config);
     await dependencies.outputStore.write(compilation, config);
     const base = options.base ?? config.review.base;
-    const changedRoutes = await computeChangedRoutes(config, base);
+    const componentChanges = await (
+      dependencies.changeClassifier ?? DEFAULT_CHANGE_CLASSIFIER
+    ).read(config, compilation.manifest, base);
     const server = await dependencies.serverFactory.start(config, {
       base,
       componentRuntime: componentRuntime(compilation),
-      ...(changedRoutes ? { changedRoutes } : {}),
+      ...(componentChanges
+        ? {
+            changedRoutes: componentChanges.changedRoutes,
+            componentChanges,
+          }
+        : {}),
       port: options.port,
       review: configuredServedReview(config, base),
     });

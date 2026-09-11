@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { compileCatalogue, type Compilation } from "../build/compile.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { errorMessage } from "../errors.js";
-import { computeChangedRoutes } from "./changed.js";
+import { RepositoryCatalogueChangeClassifier } from "./component_changes.js";
 import {
   ResourceWatcher,
   type PreparedResourceWatch,
@@ -20,6 +20,7 @@ import {
 } from "./serve_lifecycle.js";
 import type { ProcessSupervisor } from "./supervisor.js";
 import type { ConsumerWatcher, ConsumerWatcherFactory } from "./watcher.js";
+import { WatchClassification } from "./watch_classification.js";
 import {
   classifyWatchPath,
   isPackageOwnedIgnoredWatchPath,
@@ -42,6 +43,8 @@ export async function serveWatched(
     outputStore,
     processSupervisorFactory,
   } = dependencies;
+  const changeClassifier =
+    dependencies.changeClassifier ?? new RepositoryCatalogueChangeClassifier();
   let closed = false;
   let signalShutdown: () => void = () => undefined;
   const shutdownStarted = new Promise<void>((resolve) => {
@@ -110,6 +113,17 @@ export async function serveWatched(
     throw error;
   }
   const runningSupervisor = supervisor;
+  const classifications = new WatchClassification(
+    changeClassifier,
+    (snapshot) =>
+      runningSupervisor.notifyUpdate(snapshot.changedRoutes, snapshot),
+  );
+  const scheduleClassification = (): void => {
+    const classifiedConfig = activeConfig;
+    const classifiedManifest = activeCompilation.manifest;
+    const base = options.base ?? classifiedConfig.review.base;
+    classifications.schedule(classifiedConfig, classifiedManifest, base);
+  };
   let debouncer: WatchDebouncer | undefined;
   const notifyCandidate = (candidate: string): void => {
     debouncer?.notify(
@@ -169,7 +183,10 @@ export async function serveWatched(
       } catch (error) {
         closeError = error;
       }
-      if (!closed) await restartWithRecovery(runningSupervisor);
+      if (!closed) {
+        await restartWithRecovery(runningSupervisor);
+        scheduleClassification();
+      }
       if (closeError !== undefined) throw closeError;
     } catch (error) {
       if (!transferred) await closeReplacement();
@@ -197,10 +214,13 @@ export async function serveWatched(
           nextSignature === manifestSignature ? "live" : "stage",
         );
         if (nextSignature === manifestSignature) {
-          await publishUpdate();
+          publishUpdate();
         } else {
           manifestSignature = nextSignature;
-          if (!closed) await restartWithRecovery(runningSupervisor);
+          if (!closed) {
+            await restartWithRecovery(runningSupervisor);
+            scheduleClassification();
+          }
         }
       } finally {
         await prepared.close();
@@ -217,16 +237,18 @@ export async function serveWatched(
     try {
       if (closed) return;
       prepared.adopt();
-      if (action === "reload") await publishUpdate();
-      else await restartWithRecovery(runningSupervisor);
+      if (action === "reload") publishUpdate();
+      else {
+        await restartWithRecovery(runningSupervisor);
+        scheduleClassification();
+      }
     } finally {
       await prepared.close();
     }
   };
-  const publishUpdate = async (): Promise<void> => {
-    const base = options.base ?? activeConfig.review.base;
-    const changedRoutes = await computeChangedRoutes(activeConfig, base);
-    if (!closed) runningSupervisor.notifyUpdate(changedRoutes);
+  const publishUpdate = (): void => {
+    runningSupervisor.notifyUpdate(undefined);
+    scheduleClassification();
   };
   const actionQueue = new WatchActionQueue(processAction, (error) =>
     process.stderr.write(`${errorMessage(error)}\n`),
@@ -240,10 +262,12 @@ export async function serveWatched(
     actionQueue.notify("restart");
   });
   gate.open(notifyCandidate);
+  scheduleClassification();
   return {
     async close(): Promise<void> {
       if (closed) return;
       closed = true;
+      classifications.close();
       signalShutdown();
       debouncer?.close();
       await closeWatched(

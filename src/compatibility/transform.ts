@@ -33,6 +33,10 @@ export function transformCompatibilityDocuments(
     retainedRoutes ?? outputRoutes,
     config,
   );
+  const routeIndexes = new Map<
+    string,
+    ReturnType<typeof logicalArtifactRoutes>
+  >();
   for (const [route, original] of outputs) {
     const { colorScheme, viewport } =
       fragmentViews.get(route) ?? legacyRouteView(route);
@@ -50,18 +54,24 @@ export function transformCompatibilityDocuments(
       outputs.set(route, linked.content);
       continue;
     }
+    const routeIndexKey = `${viewport}:${colorScheme}`;
+    let logicalRoutes = routeIndexes.get(routeIndexKey);
+    if (!logicalRoutes) {
+      logicalRoutes = logicalArtifactRoutes(
+        entries,
+        viewport,
+        colorScheme,
+        config.colorSchemes,
+      );
+      routeIndexes.set(routeIndexKey, logicalRoutes);
+    }
     let transformed: string;
     try {
       transformed = transformer({
         availableRoutes,
         colorScheme,
         content: linked.content,
-        logicalRoutes: logicalArtifactRoutes(
-          entries,
-          viewport,
-          colorScheme,
-          config.colorSchemes,
-        ),
+        logicalRoutes,
         outputPath: toPosixPath(
           path.relative(config.repoRoot, path.join(config.mockupsDir, route)),
         ),

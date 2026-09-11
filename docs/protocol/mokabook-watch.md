@@ -58,7 +58,7 @@ Source/config watchers become ready before initial compilation begins. Resource
 watches are discovered from the candidate output and become ready before it is
 written. Discovery repeats after readiness to capture newly introduced references
 during watcher attachment. Notifications during generation and child startup are
-buffered. A child validates the catalogue and binds before
+buffered. A child receives the parent-validated catalogue and binds before
 readiness. Initial startup tries a requested concrete port and then each higher
 port in order when the address is occupied; port `0` delegates selection to the
 operating system. The resolved port remains stable across child restarts, which
@@ -67,6 +67,15 @@ range or encountering another bind error exits non-zero without leaking
 watchers. An unexpected child failure after readiness reports its diagnostic,
 clears the dead process, and enqueues a restart through the same serialized
 action queue used for authored changes.
+
+The supervisor allows sixty seconds for the child to receive the accepted
+serializable config and validated manifest, construct its catalogue indexes, and
+bind. This startup transfer avoids loading and deeply validating the large
+manifest file a second time. The child requests only the remaining retained
+renderer and generated-file set afterward; that response omits the config,
+manifest object, and serialized manifest file already supplied or represented.
+Attaching this runtime reserves and publishes a higher update version so an
+early shell cannot remain stuck without local component controls.
 
 On a config-file change, the parent first loads and validates the candidate,
 starts a replacement watcher and waits for readiness, then transactionally
@@ -113,13 +122,16 @@ obsolete label-path keys have no target and are ignored.
 
 When a successful rebuild leaves the manifest structure unchanged, or a
 resource edit or explicit watch rule requests a reload, the parent keeps the
-ready child and
-recomputes the complete optional changed-route snapshot. One typed update
-message replaces the child's shell snapshot before the event-stream version is
-published. An available empty list keeps the filter visible at zero; an
-unavailable comparison removes it. The following browser reload therefore
-observes Changes rows and counts from the same successful watch action without
-requiring a child restart.
+ready child. It first publishes a typed update that clears stale route and
+component evidence, making the successful content generation visible without
+waiting on Git. The parent then computes one complete classification outside the
+HTTP request path. A sequence token discards results superseded by a newer watch
+action; the current successful result publishes a second typed update that
+atomically replaces route membership, removed-entry baseline data, and component
+evidence. An available empty list keeps the filter visible at zero; a failed or
+unavailable comparison leaves it absent. Initial watched startup follows the
+same asynchronous classification rule after listener readiness. Non-watched
+Serve resolves the shared snapshot before it binds.
 
 Watch actions execute serially. Changes received during an active action are
 coalesced by impact before the next action starts, so two rebuilds cannot race
@@ -146,13 +158,14 @@ stale before notifying browsers. Reload restores Current, so comparison work
 waits for another explicit diff selection. Concurrent comparison requests reuse
 one regeneration and snapshots remain pinned to their immutable generation.
 
-Shutdown first stops queued work and waits for any active configuration
-transaction, then closes all final adopted watchers, timers, child processes,
-HTTP servers, event streams, and ports. A candidate watcher is discarded if
-shutdown begins before adoption: shutdown interrupts an outstanding candidate
-readiness wait and closes that watcher before the action queue finishes
-draining. No later child restart is started. Tests must prove no orphan process
-remains after normal shutdown, failed startup, or interruption. The child also
+Shutdown first stops queued work, aborts active Git classification, and waits
+for any active configuration transaction, then closes all final adopted
+watchers, timers, child processes, HTTP servers, event streams, and ports. A
+candidate watcher is discarded if shutdown begins before adoption: shutdown
+interrupts an outstanding candidate readiness wait and closes that watcher
+before the action queue finishes draining. No later child restart is started.
+Tests must prove no orphan process remains after normal shutdown, failed
+startup, or interruption. The child also
 runs the same idempotent server close when its parent IPC channel disconnects,
 so an abruptly terminated parent cannot leave a listening orphan. Parent-driven
 shutdown first requests graceful IPC closure, then sends SIGTERM and SIGKILL at

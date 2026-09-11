@@ -93,6 +93,37 @@ export default function transform(input: CompatibilityTransformInput): string {
   assert.equal(compilation.outputs.has("retired/skip.html"), false);
 });
 
+test("compatibility transforms reuse the logical route index for each view", async (context) => {
+  const fixture = await createFixture();
+  context.after(() => removeFixture(fixture));
+  await fs.promises.writeFile(
+    path.join(fixture.root, "compatibility.ts"),
+    `import type { CompatibilityTransformInput } from "mokabook";
+const indexes = new Map<string, CompatibilityTransformInput["logicalRoutes"]>();
+export default function transform(input: CompatibilityTransformInput): string {
+  const key = \`${"${input.viewport}:${input.colorScheme}"}\`;
+  const previous = indexes.get(key);
+  indexes.set(key, previous ?? input.logicalRoutes);
+  return input.content.replace(
+    "<body",
+    \`<body data-shared-logical-routes="${"${previous === undefined || previous === input.logicalRoutes}"}"\`,
+  );
+}
+`,
+  );
+  await fs.promises.writeFile(
+    fixture.configPath,
+    'export default { compatibility: { transformer: "compatibility.ts" }, colorSchemes: ["light", "dark"], entriesDir: "entries", mockupsDir: "mockups", repoRoot: "." };\n',
+  );
+
+  const compilation = await compileCatalogue(await loadConfig(fixture.root));
+
+  for (const [route, output] of compilation.outputs) {
+    if (!route.endsWith(".html")) continue;
+    assert.match(output, /data-shared-logical-routes="true"/, route);
+  }
+});
+
 test("configured compatibility transformers are typed complete-document functions", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));

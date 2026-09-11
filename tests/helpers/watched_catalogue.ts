@@ -48,6 +48,16 @@ export function waitForChangedCount(
   );
 }
 
+/** Wait until initial background classification installs a Changes count. */
+export async function waitForClassifiedCount(
+  url: string,
+  expected: number,
+): Promise<string> {
+  const initial = await catalogue(url);
+  if (changedCount(initial) === expected) return initial;
+  return waitForChangedCount(url, version(initial), expected);
+}
+
 /**
  * Poll the watched catalogue until it publishes a newer version that satisfies
  * `settled`, reporting the last state it did publish when the wait runs out.

@@ -175,9 +175,16 @@ free. `--port 0` instead asks the operating system to choose a free port.
 Watched Serve keeps the first resolved port for later child restarts so its URL
 stays stable.
 
-Component comparisons batch saved baseline views when Serve starts and when
-Changes refreshes, so startup does not require a separate Git process for every
-screen, variant, viewport and color scheme.
+Watched Serve makes Browse available after the validated build and manifest load,
+before resolving Git-based Changes evidence. The first shell omits the optional
+filter; one shared background classification then publishes a versioned update
+with the complete Changes state. Shell requests never repeat that repository
+work. Component comparisons batch saved baseline views when Serve starts and
+when Changes refreshes, so classification does not require a separate Git
+process for every screen, variant, viewport and color scheme. The watched child
+receives its retained component-rendering graph only after it is listening, and
+the transfer omits the manifest file already represented by the validated
+manifest data.
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
@@ -211,9 +218,10 @@ their imports. Invalid resources make Changes unavailable until repaired;
 verified deletions still identify affected screens, while All remains accessible.
 Serve automatically watches those referenced local resources, including nested
 CSS imports, and refreshes its watch set when their references change.
-Lightweight watched updates recompute this route snapshot before notifying the
-browser, so the Changes rows and count match the files that triggered each
-reload without restarting the server child.
+Lightweight watched updates immediately clear stale Changes evidence and notify
+the browser without restarting the server child. A sequence-checked background
+classification publishes a later update with the complete replacement snapshot;
+failed or superseded calculations cannot restore stale rows.
 Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
 Screens and saved component variants with actual comparison changes offer
@@ -270,10 +278,11 @@ channel disconnects. Header-proven generated output plus package-owned
 dependency, build, test, comparison, and transaction paths are pruned even when a
 custom rule watches the repository root; an unowned public HTML file can still
 use an explicit watch rule, and configured stylesheets and referenced resources
-retain reload precedence. Shutdown interrupts replacement-watcher readiness, closes the
-candidate before draining the remaining lifecycle, and waits for child exit
-through graceful, terminate, and force-kill stages. Every served catalogue shell records the update version
-captured when its request begins. Open shell pages compare that
+retain reload precedence. Shutdown interrupts replacement-watcher readiness and
+active Git classification, closes the candidate before draining the remaining
+lifecycle, and waits for child exit through graceful, terminate, and force-kill
+stages. Every served catalogue shell records the update version captured when
+its request begins. Open shell pages compare that
 snapshot with the versioned event stream and reload after a newer build or
 asset version arrives, including when the build completes before the initial
 stream connection. Publishing a reload-only watch update invalidates the comparison cache; another

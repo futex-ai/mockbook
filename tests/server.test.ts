@@ -372,15 +372,26 @@ function sourceWithHomeRoute(route: string, title: string): string {
 async function streamEnded(
   reader: ReadableStreamDefaultReader<Uint8Array>,
 ): Promise<boolean> {
-  return await Promise.race([
-    reader.read().then((result) => result.done),
-    new Promise<boolean>((_, reject) =>
-      setTimeout(
-        () => reject(new Error("watched child did not restart")),
-        12_000,
-      ),
-    ),
-  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const drain = async (): Promise<boolean> => {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) return true;
+    }
+  };
+  try {
+    return await Promise.race([
+      drain(),
+      new Promise<boolean>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("watched child did not restart")),
+          12_000,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 function nodeRequest(

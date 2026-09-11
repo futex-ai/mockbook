@@ -54,14 +54,22 @@ resource deletions, an unavailable or invalid input disables the filter,
 preserving access through All.
 Watched updates and static publishing use this same membership calculation.
 
+Watched Serve performs the calculation in its parent after the HTTP child is
+ready, never during a shell request. Until the immutable route, baseline, and
+component-evidence snapshot arrives, Browse serves All without inventing a
+Changes count. Content updates clear the previous snapshot before notifying the
+browser, then publish a second version only when the latest sequence finishes;
+late results from superseded generations are ignored. Non-watched Serve awaits
+the same shared calculation before binding.
+
 Component-aware classification preloads every baseline screen and saved-variant
 view in one logical, bounded Git batch, including mobile, desktop, dark and
-removed views. This applies to Serve startup, cached Browse evidence, watched
-updates and publishing, including a screen-only baseline during component
-adoption. Readers without bulk support retain individual cached reads. Resource
-discovery stays lazy and follows the comparison's ignore and ownership rules;
-prefetching view documents does not traverse excluded or hint-only resources.
-An incomplete or invalid batch fails classification rather than silently
+removed views. This applies to asynchronous watched startup, immutable Browse
+evidence, watched updates and publishing, including a screen-only baseline
+during component adoption. Readers without bulk support retain individual
+cached reads. Resource discovery stays lazy and follows the comparison's ignore
+and ownership rules; prefetching view documents does not traverse excluded or
+hint-only resources. An incomplete or invalid batch fails classification rather than silently
 dropping views or disabling Git file validation.
 
 ## Screen controls

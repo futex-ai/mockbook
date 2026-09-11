@@ -1,7 +1,8 @@
 import type { ComponentRuntime } from "../build/component_runtime.js";
-import { fork, type ChildProcess } from "node:child_process";
 
 import { MokabookError, errorMessage } from "../errors.js";
+import type { ComponentChangeSnapshot } from "./component_changes.js";
+import { componentRuntimeMessage } from "./controls/runtime_ipc.js";
 import { childUpdateMessage, type ChildCommand } from "./update_messages.js";
 
 interface ReadyMessage {
@@ -31,23 +32,11 @@ const DEFAULT_SHUTDOWN_TIMINGS: ChildShutdownTimings = {
   gracefulMilliseconds: 2_000,
   terminateMilliseconds: 2_000,
 };
+const CHILD_READINESS_TIMEOUT_MILLISECONDS = 60_000;
 
 /** Factory seam for unit-testing child lifecycle ordering. */
 export interface ChildFactory {
   spawn(arguments_: readonly string[]): ChildHandle;
-}
-
-/** Node IPC child factory. */
-export class NodeChildFactory implements ChildFactory {
-  constructor(private readonly binPath: string) {}
-
-  spawn(arguments_: readonly string[]): ChildHandle {
-    return new NodeChildHandle(
-      fork(this.binPath, [...arguments_], {
-        stdio: ["inherit", "inherit", "inherit", "ipc"],
-      }),
-    );
-  }
 }
 
 /** Restartable child interface used by watched Serve. */
@@ -58,7 +47,10 @@ export interface ProcessSupervisor {
     delivery: "stage" | "live",
   ): void;
   close(): Promise<void>;
-  notifyUpdate(changedRoutes: readonly string[] | undefined): void;
+  notifyUpdate(
+    changedRoutes: readonly string[] | undefined,
+    componentChanges?: ComponentChangeSnapshot,
+  ): void;
   /** Register the watched-runtime handler for a post-readiness child failure. */
   onUnexpectedExit(callback: (error: Error) => void): void;
   restart(): Promise<number>;
@@ -72,21 +64,6 @@ export interface ProcessSupervisorFactory {
     baseArguments: readonly string[],
     requestedPort: number,
   ): ProcessSupervisor;
-}
-
-/** Node child-process supervisor factory. */
-export class NodeProcessSupervisorFactory implements ProcessSupervisorFactory {
-  create(
-    binPath: string,
-    baseArguments: readonly string[],
-    requestedPort: number,
-  ): ProcessSupervisor {
-    return new ReadyProcessSupervisor(
-      new NodeChildFactory(binPath),
-      baseArguments,
-      requestedPort,
-    );
-  }
 }
 
 /** Child supervisor that waits for readiness and retains a resolved port. */
@@ -129,10 +106,24 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
         message &&
         typeof message === "object" &&
         "type" in message &&
-        message.type === "component-runtime-request" &&
+        message.type === "component-runtime-startup-request" &&
         runtime
       )
-        child.send({ type: "component-runtime", runtime });
+        child.send({
+          config: runtime.config,
+          manifest: runtime.manifest,
+          type: "component-runtime-startup",
+        });
+      if (
+        message &&
+        typeof message === "object" &&
+        "type" in message &&
+        message.type === "component-runtime-request" &&
+        runtime
+      ) {
+        this.#updateVersion += 1;
+        child.send(componentRuntimeMessage(runtime, this.#updateVersion));
+      }
     });
     try {
       const readyPort = await waitForReady(child, (error) => {
@@ -161,13 +152,18 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   ): void {
     this.#runtime = runtime;
     if (delivery === "live")
-      this.#child?.send({ type: "component-runtime", runtime });
+      this.#child?.send(componentRuntimeMessage(runtime));
   }
 
-  notifyUpdate(changedRoutes: readonly string[] | undefined): void {
+  notifyUpdate(
+    changedRoutes: readonly string[] | undefined,
+    componentChanges?: ComponentChangeSnapshot,
+  ): void {
     if (!this.#child) return;
     this.#updateVersion += 1;
-    this.#child.send(childUpdateMessage(this.#updateVersion, changedRoutes));
+    this.#child.send(
+      childUpdateMessage(this.#updateVersion, changedRoutes, componentChanges),
+    );
   }
 
   onUnexpectedExit(callback: (error: Error) => void): void {
@@ -217,7 +213,7 @@ function waitForReady(
     let state: "failed" | "ready" | "waiting" = "waiting";
     const timer = setTimeout(
       () => fail(new Error("server child readiness timed out")),
-      15_000,
+      CHILD_READINESS_TIMEOUT_MILLISECONDS,
     );
     timer.unref();
     const fail = (error: Error): void => {
@@ -265,34 +261,4 @@ function isReady(message: unknown): message is ReadyMessage {
     (message as { type?: unknown }).type === "ready" &&
     Number.isInteger((message as { port?: unknown }).port)
   );
-}
-
-class NodeChildHandle implements ChildHandle {
-  constructor(private readonly child: ChildProcess) {}
-
-  forceKill(): void {
-    if (this.child.exitCode === null && this.child.signalCode === null)
-      this.child.kill("SIGKILL");
-  }
-
-  onError(callback: (error: Error) => void): void {
-    this.child.once("error", callback);
-  }
-
-  onExit(callback: (code: number | null) => void): void {
-    this.child.once("exit", callback);
-  }
-
-  onMessage(callback: (message: unknown) => void): void {
-    this.child.on("message", callback);
-  }
-
-  send(message: ChildCommand): void {
-    if (this.child.connected) this.child.send(message);
-  }
-
-  terminate(): void {
-    if (this.child.exitCode === null && this.child.signalCode === null)
-      this.child.kill("SIGTERM");
-  }
 }

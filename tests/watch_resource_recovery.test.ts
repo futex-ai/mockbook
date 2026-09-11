@@ -7,9 +7,9 @@ import { serve } from "../dist/server/serve.js";
 import { changedFixture } from "./helpers/changed_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
 import {
-  catalogue,
   version,
   waitForChangedCount,
+  waitForClassifiedCount,
 } from "./helpers/watched_catalogue.js";
 
 test(
@@ -38,7 +38,7 @@ test(
       watch: true,
     });
     try {
-      let html = await catalogue(running.url);
+      let html = await waitForClassifiedCount(running.url, 0);
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
         await action();
@@ -94,7 +94,7 @@ test(
       watch: true,
     });
     try {
-      let html = await catalogue(running.url);
+      let html = await waitForClassifiedCount(running.url, 0);
       const edit = async (file: string, content: string) => {
         const previous = version(html);
         await fs.writeFile(file, content);

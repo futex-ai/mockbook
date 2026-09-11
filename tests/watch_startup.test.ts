@@ -7,6 +7,7 @@ import { FileSystemConfigLoader, loadConfig } from "../dist/config/load.js";
 import type { ResolvedConfig } from "../dist/config/types.js";
 import type { CatalogueServerFactory } from "../dist/server/factory.js";
 import type { RunningServer, ServerOptions } from "../dist/server/http.js";
+import type { CatalogueChangeClassifier } from "../dist/server/component_changes.js";
 import { serve } from "../dist/server/serve.js";
 import type {
   ProcessSupervisor,
@@ -54,8 +55,71 @@ test("watcher readiness failure closes the watcher", async (context) => {
   assert.equal(watcher.closed, true);
 });
 
-function dependencies(events: string[], watcher: FakeWatcher) {
+test("watched startup does not await repository classification", async (context) => {
+  const fixture = await createFixture();
+  context.after(() => removeFixture(fixture));
+  const config = await loadConfig(fixture.root);
+  const events: string[] = [];
+  let finish: () => void = () => undefined;
+  const pending = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const classifier: CatalogueChangeClassifier = {
+    async read(_config, manifest) {
+      events.push("classification:start");
+      await pending;
+      return { baseline: manifest, changedRoutes: ["screens/home.html"] };
+    },
+  };
+  const running = await serve(
+    config,
+    { base: "origin/main", port: 0, watch: true },
+    dependencies(events, new FakeWatcher(events), classifier),
+  );
+  context.after(() => running.close());
+
+  assert.ok(
+    events.indexOf("supervisor:start") < events.indexOf("classification:start"),
+  );
+  assert.equal(events.includes("supervisor:update"), false);
+  finish();
+  await waitForEvent(events, "supervisor:update");
+});
+
+test("watched shutdown cancels background repository classification", async (context) => {
+  const fixture = await createFixture();
+  context.after(() => removeFixture(fixture));
+  const config = await loadConfig(fixture.root);
+  const events: string[] = [];
+  let classificationSignal: AbortSignal | undefined;
+  const classifier: CatalogueChangeClassifier = {
+    async read(_config, manifest, _base, signal) {
+      classificationSignal = signal;
+      await new Promise<void>((resolve) =>
+        signal?.addEventListener("abort", () => resolve(), { once: true }),
+      );
+      return { baseline: manifest };
+    },
+  };
+  const running = await serve(
+    config,
+    { base: "origin/main", port: 0, watch: true },
+    dependencies(events, new FakeWatcher(events), classifier),
+  );
+
+  await running.close();
+
+  assert.equal(classificationSignal?.aborted, true);
+  assert.equal(events.includes("supervisor:update"), false);
+});
+
+function dependencies(
+  events: string[],
+  watcher: FakeWatcher,
+  changeClassifier?: CatalogueChangeClassifier,
+) {
   return {
+    ...(changeClassifier ? { changeClassifier } : {}),
     configLoader: new FileSystemConfigLoader(),
     outputStore: new FakeOutputStore(events),
     processSupervisorFactory: new FakeSupervisorFactory(events),
@@ -133,7 +197,9 @@ class FakeSupervisor implements ProcessSupervisor {
     this.events.push("supervisor:close");
   }
 
-  notifyUpdate(): void {}
+  notifyUpdate(): void {
+    this.events.push("supervisor:update");
+  }
 
   onUnexpectedExit(_callback: (error: Error) => void): void {}
 
@@ -145,6 +211,14 @@ class FakeSupervisor implements ProcessSupervisor {
     this.events.push("supervisor:start");
     return 43123;
   }
+}
+
+async function waitForEvent(events: readonly string[], expected: string) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (events.includes(expected)) return;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  throw new Error(`missing event: ${expected}`);
 }
 
 class UnusedServerFactory implements CatalogueServerFactory {

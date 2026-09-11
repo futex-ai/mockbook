@@ -1,7 +1,9 @@
-import type { ComponentRuntime } from "../build/component_runtime.js";
-import { parseRuntimeMessage } from "./controls/runtime_ipc.js";
+import {
+  parseRuntimeMessage,
+  requestComponentRuntime,
+} from "./controls/runtime_ipc.js";
 import type { ResolvedConfig } from "../config/types.js";
-import { computeChangedRoutes } from "./changed.js";
+import type { Manifest } from "../registry/types.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
 import { parseChildUpdateMessage } from "./update_messages.js";
@@ -13,23 +15,24 @@ export async function runServerChild(
   base: string,
   updateVersion: number,
   strictPort: boolean,
-  componentRuntime?: ComponentRuntime,
+  retainedRuntime: boolean,
+  manifest?: Manifest,
 ): Promise<void> {
-  const changedRoutes = await computeChangedRoutes(config, base);
   const server = await startCatalogueServer(config, {
     base,
-    ...(componentRuntime ? { componentRuntime } : {}),
-    ...(changedRoutes ? { changedRoutes } : {}),
+    ...(manifest ? { manifest } : {}),
     port,
     review: configuredServedReview(config, base),
     strictPort,
     updateVersion,
   });
+  const shutdown = waitForChildShutdown(server, config, manifest);
   process.send?.({ port: server.port, type: "ready", version: updateVersion });
   if (!process.send)
     process.stdout.write(`Mokabook listening at ${server.url}\n`);
+  if (retainedRuntime) requestComponentRuntime();
   try {
-    await waitForChildShutdown(server);
+    await shutdown;
   } finally {
     if (process.connected) process.disconnect?.();
   }
@@ -37,6 +40,8 @@ export async function runServerChild(
 
 function waitForChildShutdown(
   server: Awaited<ReturnType<typeof startCatalogueServer>>,
+  config: ResolvedConfig,
+  manifest?: Manifest,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let closing = false;
@@ -60,9 +65,22 @@ function waitForChildShutdown(
     };
     const onMessage = (message: unknown): void => {
       const runtime = parseRuntimeMessage(message);
-      if (runtime) server.replaceComponentRuntime(runtime.runtime);
+      if (runtime && manifest) {
+        server.replaceComponentRuntime({
+          ...runtime.runtime,
+          config,
+          manifest,
+        });
+        if (runtime.version !== undefined)
+          server.publishUpdate({ version: runtime.version });
+      }
       const update = parseChildUpdateMessage(message);
-      if (update) server.publishUpdate(update);
+      if (update)
+        server.publishUpdate({
+          changedRoutes: update.changedRoutes,
+          componentChanges: update.componentChanges,
+          version: update.version,
+        });
       if (isMessage(message, "shutdown")) void close();
     };
     const onDisconnect = (): void => void close();

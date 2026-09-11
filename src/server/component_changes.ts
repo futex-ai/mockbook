@@ -12,14 +12,52 @@ import { reviewChangedPaths } from "../review/changed_paths.js";
 import { classifyComponents } from "../review/component_classification.js";
 import type { ReviewResultV3 } from "../review/component_types.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
+import { changedContentPaths } from "./changed_content.js";
+import { changedManifestRoutes } from "./changed.js";
 
 export interface ComponentChangeSnapshot {
   baseline: Manifest;
+  changedRoutes?: readonly string[];
   result?: ReviewResultV3;
 }
 export interface ComponentChangeSource {
   baseline(): Promise<string>;
   read(commit: string): Promise<ComponentChangeSnapshot | undefined>;
+}
+
+/** Read-only catalogue classification boundary used outside the HTTP child. */
+export interface CatalogueChangeClassifier {
+  read(
+    config: ResolvedConfig,
+    manifest: Manifest,
+    base: string,
+    signal?: AbortSignal,
+  ): Promise<ComponentChangeSnapshot | undefined>;
+}
+
+/** Classify one generated catalogue against its repository branch point. */
+export class RepositoryCatalogueChangeClassifier implements CatalogueChangeClassifier {
+  async read(
+    config: ResolvedConfig,
+    manifest: Manifest,
+    base: string,
+    signal?: AbortSignal,
+  ): Promise<ComponentChangeSnapshot | undefined> {
+    try {
+      const source = new RepositoryComponentChanges(
+        config,
+        manifest,
+        base,
+        signal,
+      );
+      signal?.throwIfAborted();
+      const baseline = await source.baseline();
+      signal?.throwIfAborted();
+      return source.read(baseline);
+    } catch {
+      return undefined;
+    }
+  }
 }
 
 /** Retain one immutable classification; resolving the baseline never creates Review artifacts. */
@@ -63,8 +101,9 @@ export class RepositoryComponentChanges implements ComponentChangeSource {
     private readonly config: ResolvedConfig,
     private readonly manifest: Manifest,
     private readonly base: string,
+    signal?: AbortSignal,
   ) {
-    this.runner = new NodeGitCommandRunner(config.repoRoot);
+    this.runner = new NodeGitCommandRunner(config.repoRoot, signal);
     this.git = new RepositoryGitClient(this.runner);
   }
   async baseline(): Promise<string> {
@@ -78,14 +117,31 @@ export class RepositoryComponentChanges implements ComponentChangeSource {
   }
   async read(commit: string): Promise<ComponentChangeSnapshot | undefined> {
     const baseline = await readBaseManifest(this.git, commit, this.config);
-    if (baseline.schemaVersion !== 4 && this.manifest.schemaVersion !== 4)
-      return { baseline };
     const changedPaths = await reviewChangedPaths(
       this.git,
       commit,
       this.config,
       this.config.review.outDir,
     );
+    if (baseline.schemaVersion !== 4 && this.manifest.schemaVersion !== 4) {
+      const contentChanges = await changedContentPaths(
+        this.manifest,
+        baseline,
+        this.config,
+        this.git,
+        commit,
+        changedPaths,
+      );
+      return {
+        baseline,
+        changedRoutes: changedManifestRoutes(
+          this.manifest,
+          baseline,
+          this.config,
+          contentChanges,
+        ),
+      };
+    }
     const prefix = toPosixPath(
       path.relative(this.config.repoRoot, this.config.mockupsDir),
     );
@@ -104,6 +160,12 @@ export class RepositoryComponentChanges implements ComponentChangeSource {
       ),
       afterReader: new FileSystemReviewAssetReader(this.config),
     });
-    return { baseline, result };
+    return {
+      baseline,
+      changedRoutes: result.changes
+        .map((entry) => (entry.after ?? entry.before)!.route)
+        .sort(),
+      result,
+    };
   }
 }

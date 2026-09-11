@@ -2,12 +2,125 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { generatedViews } from "../dist/components/views.js";
+import { analyzeHierarchy } from "../dist/registry/hierarchy.js";
+import type { Manifest } from "../dist/registry/types.js";
 import { classifyComponents } from "../dist/review/component_classification.js";
+import {
+  ComponentDependencyPolicy,
+  metadata,
+  type RoutedEntry,
+} from "../dist/review/component_metadata.js";
+import { ComponentMaterialReader } from "../dist/review/component_resources.js";
+import { compareComponentView } from "../dist/review/component_view.js";
 import type { GitClient } from "../dist/review/git.js";
 import { computeChangedRoutes } from "../dist/server/changed.js";
 import { componentEntrySource } from "./helpers/component_fixture.js";
 import { componentReviewFixture } from "./helpers/component_review_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
+
+test("component metadata reuses a precomputed catalogue hierarchy", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) => source);
+  const manifest = fixture.after.manifest;
+  assert.equal(manifest.schemaVersion, 4);
+  if (manifest.schemaVersion !== 4) return;
+  let traversals = 0;
+  const entries = new Proxy(manifest.entries, {
+    get(target, property, receiver) {
+      if (property !== Symbol.iterator)
+        return Reflect.get(target, property, receiver);
+      return function* () {
+        traversals += 1;
+        yield* target;
+      };
+    },
+  });
+  const tracked = { ...manifest, entries };
+  const hierarchy = analyzeHierarchy(manifest.entries).hierarchy;
+  const project = metadata as unknown as (
+    entry: RoutedEntry,
+    manifest: Manifest,
+    hierarchy: ReturnType<typeof analyzeHierarchy>["hierarchy"],
+  ) => string;
+
+  for (const entry of manifest.entries) {
+    if (entry.kind !== "collection") project(entry, tracked, hierarchy);
+  }
+
+  assert.equal(traversals, 0);
+});
+
+test("component dependency ownership is indexed once per changed path", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) => source);
+  const sourceManifest = fixture.after.manifest;
+  assert.equal(sourceManifest.schemaVersion, 4);
+  if (sourceManifest.schemaVersion !== 4) return;
+  let ownershipReads = 0;
+  const entries = sourceManifest.entries.map((entry) =>
+    entry.kind === "component"
+      ? new Proxy(entry, {
+          get(target, property, receiver) {
+            if (property === "ownedDependencies") ownershipReads += 1;
+            return Reflect.get(target, property, receiver);
+          },
+        })
+      : entry,
+  );
+  const manifest = { ...sourceManifest, entries };
+  const policy = new ComponentDependencyPolicy(manifest, manifest, []);
+  const screen = entries.find((entry) => entry.kind === "screen");
+  assert.ok(screen);
+  const changedPaths = Array.from(
+    { length: 24 },
+    (_, index) => `src/component-${index}.tsx`,
+  );
+
+  policy.reasons(screen, screen, changedPaths);
+  const firstPassReads = ownershipReads;
+  policy.reasons(screen, screen, changedPaths);
+
+  assert.ok(firstPassReads > 0);
+  assert.equal(ownershipReads, firstPassReads);
+});
+
+test("component views validate each retained document range index once", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) => source);
+  const screen = fixture.after.manifest.entries.find(
+    (entry): entry is Extract<RoutedEntry, { kind: "screen" }> =>
+      entry.kind === "screen",
+  );
+  assert.ok(screen);
+  const view = generatedViews(screen)[0];
+  assert.ok(view?.usage);
+  let validations = 0;
+  const ranges = new Proxy(view.usage.ranges, {
+    get(target, property, receiver) {
+      if (property === "map") validations += 1;
+      return Reflect.get(target, property, receiver);
+    },
+  });
+  const observed = { ...view, usage: { ...view.usage, ranges } };
+  const reader = new ComponentMaterialReader({
+    read: async (route) => Buffer.from(fixture.after.outputs.get(route) ?? ""),
+  });
+
+  await compareComponentView(
+    {
+      beforeReader: reader,
+      afterReader: reader,
+      dependencies: new ComponentDependencyPolicy(
+        fixture.after.manifest,
+        fixture.after.manifest,
+        [],
+      ),
+      changed: new Set(),
+      prefix: "mockups",
+    },
+    observed,
+    observed,
+  );
+
+  assert.equal(validations, 2);
+});
 
 for (const baseline of ["screens", "components"] as const)
   test(`Serve batches every baseline view when adopting or updating components: ${baseline}`, async (t) => {

@@ -1,10 +1,105 @@
 /** Last-good runtime transfer over the watched child's private IPC channel. */
 import type { ComponentRuntime } from "../../build/component_runtime.js";
+import type { ResolvedConfig } from "../../config/types.js";
+import type { Manifest } from "../../registry/types.js";
+
+/** Accepted configuration and manifest transferred before watched readiness. */
+export interface RuntimeStartupMessage {
+  config: ResolvedConfig;
+  manifest: Manifest;
+  type: "component-runtime-startup";
+}
+
+/** Heavy retained fields not already supplied in the startup message. */
+export type TransferredComponentRuntime = Pick<
+  ComponentRuntime,
+  "bundle" | "generation" | "outputs"
+>;
 
 export interface RuntimeMessage {
   type: "component-runtime";
-  runtime: ComponentRuntime;
+  runtime: TransferredComponentRuntime;
+  /** Reserved update version published only after the runtime is attached. */
+  version?: number;
 }
+
+/** Strip startup data from a retained-runtime IPC response. */
+export function componentRuntimeMessage(
+  runtime: ComponentRuntime,
+  version?: number,
+): RuntimeMessage {
+  return {
+    runtime: {
+      bundle: runtime.bundle,
+      generation: runtime.generation,
+      outputs: runtime.outputs,
+    },
+    type: "component-runtime",
+    ...(version === undefined ? {} : { version }),
+  };
+}
+
+/** Ask the watched parent for its retained graph after server readiness. */
+export function requestComponentRuntime(): void {
+  process.send?.({ type: "component-runtime-request" });
+}
+
+/** Receive prevalidated startup state without loading consumer modules again. */
+export function receiveComponentRuntimeStartup(): Promise<RuntimeStartupMessage> {
+  return new Promise((resolve, reject) => {
+    const cleanup = (): void => {
+      clearTimeout(timer);
+      process.off("message", onMessage);
+      process.off("disconnect", onDisconnect);
+    };
+    const onDisconnect = (): void => {
+      cleanup();
+      reject(new Error("Parent disconnected before startup transfer"));
+    };
+    const onMessage = (value: unknown): void => {
+      const message = parseRuntimeStartupMessage(value);
+      if (!message) return;
+      cleanup();
+      resolve(message);
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Consumer startup transfer timed out"));
+    }, 10_000);
+    process.on("message", onMessage);
+    process.once("disconnect", onDisconnect);
+    process.send?.({ type: "component-runtime-startup-request" });
+  });
+}
+
+function parseRuntimeStartupMessage(
+  value: unknown,
+): RuntimeStartupMessage | undefined {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("type" in value) ||
+    value.type !== "component-runtime-startup" ||
+    !("config" in value) ||
+    !("manifest" in value)
+  )
+    return;
+  const config = value.config as ResolvedConfig | undefined;
+  const manifest = value.manifest as Manifest | undefined;
+  if (
+    !config ||
+    typeof config.configPath !== "string" ||
+    typeof config.entriesDir !== "string" ||
+    typeof config.mockupsDir !== "string" ||
+    typeof config.repoRoot !== "string" ||
+    !manifest ||
+    !Array.isArray(manifest.entries) ||
+    !Array.isArray(manifest.legacyPages)
+  )
+    return;
+  return { config, manifest, type: "component-runtime-startup" };
+}
+
 export function parseRuntimeMessage(
   value: unknown,
 ): RuntimeMessage | undefined {
@@ -16,42 +111,24 @@ export function parseRuntimeMessage(
     !("runtime" in value)
   )
     return;
-  const runtime = value.runtime as ComponentRuntime | undefined;
+  const runtime = value.runtime as TransferredComponentRuntime | undefined;
+  const version = "version" in value ? value.version : undefined;
   if (
     !runtime ||
     typeof runtime.generation !== "string" ||
     typeof runtime.bundle?.code !== "string" ||
     !Array.isArray(runtime.outputs) ||
-    !runtime.config ||
-    !runtime.manifest
+    (version !== undefined &&
+      (!Number.isSafeInteger(version) || (version as number) <= 0))
   )
     return;
-  return { type: "component-runtime", runtime };
-}
-export function receiveComponentRuntime(): Promise<ComponentRuntime> {
-  return new Promise((resolve, reject) => {
-    const cleanup = () => {
-      clearTimeout(timer);
-      process.off("message", message);
-      process.off("disconnect", disconnected);
-    };
-    const disconnected = () => {
-      cleanup();
-      reject(new Error("Parent disconnected before runtime transfer"));
-    };
-    const message = (value: unknown) => {
-      const parsed = parseRuntimeMessage(value);
-      if (parsed) {
-        cleanup();
-        resolve(parsed.runtime);
-      }
-    };
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error("Consumer runtime transfer timed out"));
-    }, 10_000);
-    process.on("message", message);
-    process.once("disconnect", disconnected);
-    process.send?.({ type: "component-runtime-request" });
-  });
+  return {
+    type: "component-runtime",
+    runtime: {
+      bundle: runtime.bundle,
+      generation: runtime.generation,
+      outputs: runtime.outputs,
+    },
+    ...(version === undefined ? {} : { version: version as number }),
+  };
 }

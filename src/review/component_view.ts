@@ -1,5 +1,6 @@
 import { stripMarkers } from "../components/comparison_material.js";
 import type { GeneratedComponentView } from "../components/views.js";
+import { validateComponentRanges } from "../components/ranges.js";
 import {
   changedComponentImplementations,
   projectComponentPair,
@@ -36,6 +37,14 @@ export async function compareComponentView(
     ? await context.beforeReader.text(before.path)
     : undefined;
   const head = after ? await context.afterReader.text(after.path) : undefined;
+  const baseRanges =
+    base !== undefined && before?.usage
+      ? validateComponentRanges(base, before.usage.ranges)
+      : undefined;
+  const headRanges =
+    head !== undefined && after?.usage
+      ? validateComponentRanges(head, after.usage.ranges)
+      : undefined;
   const view: ViewReview = {
     viewport: selected.viewport,
     colorScheme: selected.colorScheme,
@@ -46,7 +55,11 @@ export async function compareComponentView(
   };
   if (base === undefined || head === undefined) {
     normalizeSingleDocument(
-      stripMarkers((base ?? head)!, (before ?? after)!.usage),
+      stripMarkers(
+        (base ?? head)!,
+        (before ?? after)!.usage,
+        baseRanges ?? headRanges,
+      ),
       selected.path,
     );
     return {
@@ -62,6 +75,8 @@ export async function compareComponentView(
     after?.usage,
     selected.path,
     root,
+    baseRanges,
+    headRanges,
   );
   const reasons: EntryChangeReason[] = [];
   if (projected.before !== projected.after) reasons.push({ kind: "material" });
@@ -94,8 +109,8 @@ export async function compareComponentView(
       reasons.push({ kind: "dependency", path });
   }
   const actual = normalizeReviewPair(
-    stripMarkers(base, before?.usage),
-    stripMarkers(head, after?.usage),
+    stripMarkers(base, before?.usage, baseRanges),
+    stripMarkers(head, after?.usage, headRanges),
     selected.path,
   );
   const actualBefore = await context.beforeReader.resources(
@@ -117,6 +132,8 @@ export async function compareComponentView(
       head,
       before?.usage,
       after?.usage,
+      baseRanges,
+      headRanges,
     ),
     view: {
       ...view,

@@ -9,9 +9,9 @@ import { discoverWatchResources } from "../dist/server/watch_resources.js";
 import { changedFixture } from "./helpers/changed_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
 import {
-  catalogue,
   version,
   waitForChangedCount,
+  waitForClassifiedCount,
 } from "./helpers/watched_catalogue.js";
 
 test(
@@ -41,7 +41,7 @@ test(
       watch: true,
     });
     try {
-      let html = await catalogue(running.url);
+      let html = await waitForClassifiedCount(running.url, 0);
       const image = path.join(fixture.mockupsDir, "image.svg");
       const edit = async (action: () => Promise<void>, count?: number) => {
         const previous = version(html);
@@ -129,7 +129,7 @@ test(
       watch: true,
     });
     try {
-      const previous = version(await catalogue(running.url));
+      const previous = version(await waitForClassifiedCount(running.url, 0));
       await fs.writeFile(
         path.join(fixture.mockupsDir, "image.svg"),
         '<svg width="42"/>',

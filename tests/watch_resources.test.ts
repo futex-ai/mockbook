@@ -11,6 +11,7 @@ import {
   catalogue,
   version,
   waitForChangedCount,
+  waitForClassifiedCount,
 } from "./helpers/watched_catalogue.js";
 
 const nestedCss =
@@ -47,7 +48,7 @@ test(
       watch: true,
     });
     try {
-      let html = await catalogue(running.url);
+      let html = await waitForClassifiedCount(running.url, 0);
       assert.match(html, /class="mbk-nav-filter-count">0</);
       let comparison = await fetch(
         `${running.url}/__mokabook/diffs/review.json`,

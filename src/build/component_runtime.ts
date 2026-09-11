@@ -4,6 +4,7 @@ import type { Compilation } from "./compile.js";
 import { consumerBundle, type ConsumerBundle } from "./consumer_bundle.js";
 import type { LoadedGraph } from "./load_graph.js";
 import type { ResolvedConfig } from "../config/types.js";
+import { MANIFEST_NAME } from "../registry/manifest.js";
 import type { Manifest } from "../registry/types.js";
 
 export interface ComponentRuntime {
@@ -24,7 +25,9 @@ export function rememberRuntime(
     config,
     generation: randomBytes(16).toString("hex"),
     manifest: compilation.manifest,
-    outputs: [...compilation.outputs],
+    outputs: [...compilation.outputs].filter(
+      ([route]) => route !== MANIFEST_NAME,
+    ),
   });
 }
 export function componentRuntime(compilation: Compilation): ComponentRuntime {

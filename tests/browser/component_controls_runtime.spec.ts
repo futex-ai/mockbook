@@ -41,10 +41,7 @@ test.beforeAll(async () => {
     base: "main",
     port: 0,
     componentRuntime: componentRuntime(fixture.after),
-    componentChangeSource: {
-      baseline: async () => "base",
-      read: async () => ({ baseline: fixture.before.manifest, result }),
-    },
+    componentChanges: { baseline: fixture.before.manifest, result },
     review: {
       base: "main",
       outDir: path.join(fixture.root, ".review"),

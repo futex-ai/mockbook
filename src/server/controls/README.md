@@ -27,13 +27,19 @@ metadata. Five-minute expiration and eviction return 410 for authenticated old
 ids; malformed or foreign ids return 404. Every response is `no-store` and
 `nosniff`; documents also carry script-disabled sandbox policy.
 
-Watched Serve transfers the accepted bundle and configuration over its private
-parent/child IPC channel. A successful build with an unchanged manifest applies
-its runtime to the live child before publishing the reload event. A changed
-manifest or reconfiguration stages the runtime for the next child; the old child
-keeps its matching catalogue and controls until shutdown. Each spawned child
-captures its startup runtime before readiness. Failed candidates retain the old
-graph; recovery receives the accepted graph without recompiling broken files.
+Watched Serve transfers the accepted configuration and already validated
+manifest over its private parent/child IPC channel before readiness, then
+transfers the remaining retained bundle and generated-file set only after the
+child has constructed the catalogue and bound its port. The second response
+omits the config, manifest object, and serialized manifest output already
+supplied or represented. Attaching the runtime publishes a reserved higher
+version so an early shell reloads with controls enabled. A successful build with
+an unchanged manifest applies its runtime to the live child before publishing
+the reload event. A changed manifest or reconfiguration stages the runtime for
+the next child; the old child keeps its matching catalogue and controls until
+shutdown. Each spawned child captures both startup IPC responses. Failed
+candidates retain the old graph; recovery receives the accepted graph without
+recompiling broken files.
 
 ## Development
 

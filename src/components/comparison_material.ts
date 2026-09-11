@@ -3,14 +3,15 @@ import type {
   ComponentInputOwner,
   ComponentViewRecord,
 } from "./manifest_types.js";
-import { validateComponentRanges } from "./ranges.js";
+import { validateComponentRanges, type RenderedRange } from "./ranges.js";
 
 /** Validate ownership before stripping layout-neutral markers for conservative migration. */
 export function stripMarkers(
   html: string,
   usage?: ComponentViewRecord,
+  validatedRanges?: readonly RenderedRange[],
 ): string {
-  if (usage) validateComponentRanges(html, usage.ranges);
+  if (usage && !validatedRanges) validateComponentRanges(html, usage.ranges);
   return html.replace(/<!--mokabook-component:(?:start|end):r-[0-9]+-->/g, "");
 }
 
@@ -33,11 +34,12 @@ export function projectOwnedMaterial(
   usage: ComponentViewRecord | undefined,
   pairs: ReadonlyMap<string, string>,
   styles: ReadonlySet<string>,
+  validatedRanges?: readonly RenderedRange[],
   owner: ComponentInputOwner = { kind: "entry" },
   clip?: { start: number; end: number },
 ): string {
   if (!usage) return stripMarkers(html);
-  const ranges = validateComponentRanges(html, usage.ranges);
+  const ranges = validatedRanges ?? validateComponentRanges(html, usage.ranges);
   const render = (start: number, end: number): string => {
     const replacements: { start: number; end: number; text: string }[] = [];
     for (const range of ranges) {

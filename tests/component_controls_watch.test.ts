@@ -23,16 +23,21 @@ test(
     const server = await serve(config, { port: 0, watch: true });
     t.after(() => server.close());
     const capabilities = async () => {
-      const html = await (
-        await fetch(`${server.url}/view/components/action.html`)
-      ).text();
-      const data = JSON.parse(
-        html.match(/data-workspace-data="">(.*?)<\/script>/s)![1]!,
-      );
-      return {
-        ...data.renderCapability,
-        version: html.match(/data-mokabook-update-version="(\d+)"/)![1],
-      } as { token: string; generation: string; version: string };
+      for (let attempt = 0; attempt < 200; attempt += 1) {
+        const html = await (
+          await fetch(`${server.url}/view/components/action.html`)
+        ).text();
+        const data = JSON.parse(
+          html.match(/data-workspace-data="">(.*?)<\/script>/s)![1]!,
+        );
+        if (data.renderCapability)
+          return {
+            ...data.renderCapability,
+            version: html.match(/data-mokabook-update-version="(\d+)"/)![1],
+          } as { token: string; generation: string; version: string };
+        await delay(25);
+      }
+      throw new Error("component controls did not attach after readiness");
     };
     const first = await capabilities();
     const render = async (capability: typeof first, label: string) =>
