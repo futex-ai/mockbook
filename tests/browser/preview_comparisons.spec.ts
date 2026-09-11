@@ -2,21 +2,20 @@ import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 import { expect, test } from "@playwright/test";
 
 import { createPreviewComparisonFixture } from "../helpers/preview_comparison_fixture.js";
-import {
-  servePreviewFixture,
-  startPreviewFixture,
-  type PreviewFixture,
-} from "./preview_fixture.js";
+import { servePreviewFixture, type PreviewFixture } from "./preview_fixture.js";
 
+let fixture: Awaited<ReturnType<typeof createPreviewComparisonFixture>>;
 let preview: PreviewFixture;
 
 test.describe.configure({ timeout: 90_000 });
 test.beforeAll(async () => {
   test.setTimeout(90_000);
-  preview = await startPreviewFixture(true);
+  fixture = await createPreviewComparisonFixture();
+  preview = await servePreviewFixture(fixture.output);
 });
 test.afterAll(async () => {
   await preview?.close();
+  await fixture?.close();
 });
 
 test("published Mokabook exposes lazy comparisons in the actual shell", async ({
@@ -28,7 +27,7 @@ test("published Mokabook exposes lazy comparisons in the actual shell", async ({
   page.on("response", (response) => {
     if (response.status() >= 400) failed.push(response.url());
   });
-  await page.goto(`${preview.url}/view/design/review/outcomes/added`);
+  await page.goto(`${preview.url}/view/screens/home`);
   const modes = page.getByRole("group", { name: "Comparison mode" });
   await expect(modes).toBeVisible();
   await expect(
@@ -78,66 +77,55 @@ test("published Mokabook exposes lazy comparisons in the actual shell", async ({
 test("published comparisons retain mobile, dark, and removed-screen navigation", async ({
   page,
 }) => {
-  const fixture = await createPreviewComparisonFixture();
-  const server = await servePreviewFixture(fixture.output);
-  try {
-    const failures: string[] = [];
-    page.on("response", (response) => {
-      if (response.status() >= 400) failures.push(response.url());
-    });
-    await page.setViewportSize({ height: 844, width: 390 });
-    await page.goto(`${server.url}/id/removed`);
-    await expect(page.locator("[data-current-screen]")).toContainText(
-      "This screen was removed",
-    );
-    await chooseViewport(page, "mobile");
-    await page
-      .getByRole("button", { name: "Side by side", exact: true })
-      .click();
-    await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
-    await expect(
-      page.frameLocator("[data-diff-stage] iframe").locator("main"),
-    ).toHaveText("removed");
-    await page
-      .getByRole("button", { name: "Open catalogue navigation" })
-      .click();
-    await page.locator('[data-filter="changed"]').click();
-    await expect(
-      page.locator('[data-route="screens/removed.html"]'),
-    ).toBeVisible();
-    await page.locator('[data-route="screens/added.html"]').click();
-    await expect(
-      page.getByRole("button", { name: "Current", exact: true }),
-    ).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: "Overlay", exact: true }).click();
-    await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
-    await expect(page.locator(".mb-pane-missing")).toHaveText(
-      "This screen was added on this branch.",
-    );
-    await page.goto(`${server.url}/view/screens/home`);
-    await chooseViewport(page, "mobile");
-    await chooseScheme(page, "dark");
-    await page.getByRole("button", { name: "Difference", exact: true }).click();
-    const frames = page.locator("[data-diff-stage] iframe");
-    await expect(frames).toHaveCount(2);
-    await expect(
-      page.frameLocator("[data-diff-stage] iframe").first().locator("h1"),
-    ).toHaveText("Previous home");
-    await expect(
-      page.frameLocator("[data-diff-stage] iframe").last().locator("h1"),
-    ).toHaveText("Current home");
-    for (const frame of await frames.all())
-      await expect(frame).toHaveAttribute("src", /\.mobile\.dark\.html$/);
-    await expect
-      .poll(() =>
-        page.evaluate(
-          () => document.documentElement.scrollWidth <= window.innerWidth,
-        ),
-      )
-      .toBe(true);
-    expect(failures).toEqual([]);
-  } finally {
-    await server.close();
-    await fixture.close();
-  }
+  const failures: string[] = [];
+  page.on("response", (response) => {
+    if (response.status() >= 400) failures.push(response.url());
+  });
+  await page.setViewportSize({ height: 844, width: 390 });
+  await page.goto(`${preview.url}/id/removed`);
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "This screen was removed",
+  );
+  await chooseViewport(page, "mobile");
+  await page.getByRole("button", { name: "Side by side", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
+  await expect(
+    page.frameLocator("[data-diff-stage] iframe").locator("main"),
+  ).toHaveText("removed");
+  await page.getByRole("button", { name: "Open catalogue navigation" }).click();
+  await page.locator('[data-filter="changed"]').click();
+  await expect(
+    page.locator('[data-route="screens/removed.html"]'),
+  ).toBeVisible();
+  await page.locator('[data-route="screens/added.html"]').click();
+  await expect(
+    page.getByRole("button", { name: "Current", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Overlay", exact: true }).click();
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
+  await expect(page.locator(".mb-pane-missing")).toHaveText(
+    "This screen was added on this branch.",
+  );
+  await page.goto(`${preview.url}/view/screens/home`);
+  await chooseViewport(page, "mobile");
+  await chooseScheme(page, "dark");
+  await page.getByRole("button", { name: "Difference", exact: true }).click();
+  const frames = page.locator("[data-diff-stage] iframe");
+  await expect(frames).toHaveCount(2);
+  await expect(
+    page.frameLocator("[data-diff-stage] iframe").first().locator("h1"),
+  ).toHaveText("Previous home");
+  await expect(
+    page.frameLocator("[data-diff-stage] iframe").last().locator("h1"),
+  ).toHaveText("Current home");
+  for (const frame of await frames.all())
+    await expect(frame).toHaveAttribute("src", /\.mobile\.dark\.html$/);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    )
+    .toBe(true);
+  expect(failures).toEqual([]);
 });

@@ -20,7 +20,7 @@ test.beforeAll(async () => {
     repositoryRoot,
     "examples/basic/mokabook.config.ts",
   );
-  await exportCatalogue(config, { outDir: output });
+  await exportCatalogue(config, { base: "HEAD", outDir: output });
   server = await serveStaticFiles(output);
 });
 test.afterAll(async () => {
@@ -28,7 +28,7 @@ test.afterAll(async () => {
   if (output) await fs.promises.rm(output, { recursive: true, force: true });
 });
 
-test("the owning example screens remain usable at mobile and desktop sizes", async ({
+test("the owning example stays usable when HEAD is the unchanged baseline", async ({
   page,
 }, info) => {
   const failures: string[] = [];
@@ -42,30 +42,23 @@ test("the owning example screens remain usable at mobile and desktop sizes", asy
       `${server.url}/view/screens/welcome.html?fragment=welcome`,
     );
     await chooseViewport(page, width === 390 ? "mobile" : "desktop");
-    for (const mode of ["Current", "Side by side", "Overlay", "Difference"]) {
-      await page.getByRole("button", { name: mode, exact: true }).click();
-      if (mode !== "Current")
-        await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
-      const frames = page.locator(
-        mode === "Current"
-          ? "[data-current-screen] iframe"
-          : "[data-diff-stage] iframe",
+    await expect(page.locator("[data-workspace-status]")).toHaveText(
+      "Unmodified",
+    );
+    await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+    const frames = page.locator("[data-current-screen] iframe");
+    for (const frame of await frames.all()) {
+      await expect(frame.contentFrame().locator("h1")).toHaveText(
+        "Welcome to Mokabook",
       );
-      for (const frame of await frames.all()) {
-        await expect(frame.contentFrame().locator("h1")).toHaveText(
-          "Welcome to Mokabook",
-        );
-        await frame
-          .contentFrame()
-          .locator("body")
-          .evaluate(async () => {
-            await document.fonts.ready;
-          });
-      }
-      await page.screenshot({
-        path: info.outputPath(`${width}-${mode.replaceAll(" ", "-")}.png`),
-      });
+      await frame
+        .contentFrame()
+        .locator("body")
+        .evaluate(async () => {
+          await document.fonts.ready;
+        });
     }
+    await page.screenshot({ path: info.outputPath(`${width}-Current.png`) });
   }
   expect(failures).toEqual([]);
   expect(

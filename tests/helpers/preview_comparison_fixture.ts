@@ -12,14 +12,13 @@ import { createFixture, removeFixture, repositoryRoot } from "./fixture.js";
 const execute = promisify(execFile);
 
 /** Build a published catalogue against a real Git baseline and changed assets. */
-export async function createPreviewComparisonFixture() {
-  const fixture = await createFixture(
-    comparisonEntrySource(false) + documentEntries(false),
-    {
-      extraConfig:
-        'colorSchemes: ["light", "dark"], stylesheets: [{ match: "**/*.html", stylesheets: ["styles.css"] }],',
-    },
-  );
+export async function createPreviewComparisonFixture(
+  entrySource: (changed: boolean) => string = comparisonDocumentSource,
+) {
+  const fixture = await createFixture(entrySource(false), {
+    extraConfig:
+      'colorSchemes: ["light", "dark"], stylesheets: [{ match: "**/*.html", stylesheets: ["styles.css"] }],',
+  });
   try {
     const config = await loadConfig(fixture.root);
     await fs.promises.writeFile(
@@ -46,10 +45,7 @@ export async function createPreviewComparisonFixture() {
     await git("add", ".");
     await git("commit", "-qm", "test: published baseline");
     await git("update-ref", "refs/remotes/origin/main", "HEAD");
-    await fs.promises.writeFile(
-      fixture.entryPath,
-      comparisonEntrySource(true) + documentEntries(true),
-    );
+    await fs.promises.writeFile(fixture.entryPath, entrySource(true));
     await fs.promises.writeFile(
       path.join(fixture.mockupsDir, "styles.css"),
       'body { color: blue; background: url("./pixel.png"); }\n',
@@ -86,6 +82,11 @@ export async function createPreviewComparisonFixture() {
     await removeFixture(fixture);
     throw error;
   }
+}
+
+/** Default fixture source: comparison screens plus whole-document pages. */
+function comparisonDocumentSource(changed: boolean): string {
+  return comparisonEntrySource(changed) + documentEntries(changed);
 }
 
 function documentEntries(current: boolean): string {
