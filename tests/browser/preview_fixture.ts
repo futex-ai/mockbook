@@ -3,7 +3,6 @@ import net from "node:net";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { exampleComparisonBase } from "../helpers/example_comparison_base.js";
 import { repositoryRoot } from "../helpers/fixture.js";
 
 const execute = promisify(execFile);
@@ -15,33 +14,10 @@ export interface PreviewFixture {
 }
 
 /** Build the static artifact and serve it with query-preserving Pages routes. */
-export async function startPreviewFixture(
-  options: { comparisons?: boolean } = {},
-): Promise<PreviewFixture> {
-  if (options.comparisons) await buildComparisonPreview();
-  else await execute("npm", ["run", "preview:build"], { cwd: repositoryRoot });
+export async function startPreviewFixture(): Promise<PreviewFixture> {
+  await execute("npm", ["run", "preview:build"], { cwd: repositoryRoot });
   return await servePreviewFixture(
     path.join(repositoryRoot, ".context/mokabook-preview"),
-  );
-}
-
-async function buildComparisonPreview(): Promise<void> {
-  await execute("npm", ["run", "build"], { cwd: repositoryRoot });
-  await execute("npm", ["run", "example:build"], { cwd: repositoryRoot });
-  const base = await exampleComparisonBase();
-  const output = path.join(repositoryRoot, ".context/mokabook-preview");
-  await execute(
-    process.execPath,
-    [
-      "--input-type=module",
-      "--eval",
-      'import { loadConfig } from "./dist/config/load.js"; import { buildPreview } from "./scripts/preview/catalogue.mjs"; const config = await loadConfig(process.argv[1], process.argv[2]); await buildPreview(config, process.argv[3], process.argv[4]);',
-      repositoryRoot,
-      path.join(repositoryRoot, "examples/basic/mokabook.config.ts"),
-      output,
-      base,
-    ],
-    { cwd: repositoryRoot },
   );
 }
 

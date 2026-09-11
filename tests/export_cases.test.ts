@@ -9,6 +9,31 @@ import type { ReviewResult } from "../dist/review/types.js";
 import { createExportFixture } from "./helpers/export_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
 
+test("a clean HEAD matching origin/main exports only unmodified screens", async (context) => {
+  const fixture = await createExportFixture();
+  context.after(() => fixture.close());
+  const head = (await fixture.git("rev-parse", "HEAD")).stdout.trim();
+  const main = (
+    await fixture.git("rev-parse", "refs/remotes/origin/main")
+  ).stdout.trim();
+  assert.equal(head, main);
+  const result = await exportCatalogue(fixture.config, { outDir: "site" });
+  const review = JSON.parse(
+    await fs.promises.readFile(
+      path.join(fixture.output, result.comparisonUrl),
+      "utf8",
+    ),
+  ) as ReviewResult;
+  assert.ok(review.screens.length > 0);
+  assert.ok(review.screens.every((screen) => screen.state === "unchanged"));
+  const home = await fs.promises.readFile(
+    path.join(fixture.output, "view/screens/home.html"),
+    "utf8",
+  );
+  assert.match(home, /Unmodified/);
+  assert.match(home, /class="mbk-diff-toolbar" hidden=""/);
+});
+
 test("an empty registry retains normal build validation and the previous site", async (context) => {
   const fixture = await createExportFixture();
   context.after(() => fixture.close());

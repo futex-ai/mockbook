@@ -1,28 +1,42 @@
-import {
-  chooseScheme,
-  chooseViewport,
-  expectFrameSource,
-} from "./workspace_actions.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-import { repositoryRoot } from "../helpers/fixture.js";
+import { repositoryRoot, validEntrySource } from "../helpers/fixture.js";
+import { createPreviewComparisonFixture } from "../helpers/preview_comparison_fixture.js";
 import { focusDesignLink } from "./design_test_helpers.js";
-import { startPreviewFixture, type PreviewFixture } from "./preview_fixture.js";
+import {
+  servePreviewFixture,
+  startPreviewFixture,
+  type PreviewFixture,
+} from "./preview_fixture.js";
+import {
+  chooseScheme,
+  chooseViewport,
+  expectFrameSource,
+} from "./workspace_actions.js";
 
+let comparisonFixture: Awaited<
+  ReturnType<typeof createPreviewComparisonFixture>
+>;
+let comparisonPreview: PreviewFixture;
 let preview: PreviewFixture;
 test.describe.configure({ timeout: 90_000 });
 
 test.beforeAll(async () => {
+  test.setTimeout(180_000);
   const before = await generatedDigest();
-  preview = await startPreviewFixture({ comparisons: true });
+  preview = await startPreviewFixture();
   expect(await generatedDigest()).toBe(before);
+  comparisonFixture = await createPreviewComparisonFixture(linkEntrySource);
+  comparisonPreview = await servePreviewFixture(comparisonFixture.output);
 });
 
 test.afterAll(async () => {
+  await comparisonPreview?.close();
+  await comparisonFixture?.close();
   await preview?.close();
 });
 
@@ -79,10 +93,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
     await expect(page).toHaveURL(/\/view\/screens\/welcome$/);
   });
 
-  test(`${viewport}: actual Review links stay inside the isolated current snapshot`, async ({
+  test(`${viewport}: published comparison links stay inside the isolated current snapshot`, async ({
     page,
   }) => {
-    await page.goto(`${preview.url}/view/screens/welcome`);
+    await page.goto(`${comparisonPreview.url}/view/screens/home`);
     await chooseViewport(page, viewport);
     await page
       .getByRole("button", { name: "Side by side", exact: true })
@@ -106,20 +120,28 @@ for (const viewport of ["mobile", "desktop"] as const) {
       ),
       next.click(),
     ]);
-    await expect(page).toHaveURL(`${preview.url}/view/screens/welcome`);
+    await expect(page).toHaveURL(`${comparisonPreview.url}/view/screens/home`);
     await expect(frame.locator("main#details")).toBeVisible();
     await Promise.all([
-      snapshot.waitForURL(new RegExp(`/welcome\\.${viewport}(?:\\.html)?$`), {
+      snapshot.waitForURL(new RegExp(`/home\\.${viewport}(?:\\.html)?$`), {
         waitUntil: "load",
       }),
-      frame
-        .locator('a[data-mokabook-link-control="button"]')
-        .filter({ hasText: "Return to welcome" })
-        .click(),
+      frame.getByRole("link", { name: "Return home", exact: true }).click(),
     ]);
-    await expect(frame.locator("main#welcome")).toBeVisible();
-    await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
+    await expect(frame.locator("h1")).toHaveText("Current home");
+    await expect(page.locator("#mb-main h2")).toHaveText("Home");
   });
+}
+
+function linkEntrySource(changed: boolean): string {
+  const source = validEntrySource({
+    body: `<h1>${changed ? "Current" : "Previous"} home</h1><a href="mock:details#details">View details</a>`,
+  });
+  const details =
+    '<main id="details"><h1>Details</h1><a href="mock:home">Return home</a></main>';
+  return source
+    .replace('<main id="details">Detail</main>', details)
+    .replace('<main id="details-mobile">Detail</main>', details);
 }
 
 async function generatedDigest(): Promise<string> {

@@ -412,9 +412,6 @@ before applying UI assertion deadlines. Cold snapshot generation has a bounded
 30-second wait tied to the newly triggered request, refresh intent, and its
 redirect chain; stale/background responses cannot satisfy it. The existing UI
 assertions retain their default deadlines.
-Comparison-specific browser fixtures select a compatible first-parent ancestor
-where their real example screens differ, so they retain comparison coverage when
-the working branch starts at `origin/main` or changes only non-catalogue files.
 Snapshot-link tests await the selected frame's load and native navigation events
 before checking destination content; a parsed link alone does not mean its
 resources have finished loading. CI uses the Playwright-installed Chromium, and
