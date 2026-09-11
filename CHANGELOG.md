@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/futex-ai/mokabook/compare/v0.7.0...v0.7.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **ci:** isolate comparison test baselines ([#51](https://github.com/futex-ai/mokabook/issues/51)) ([4d1fb34](https://github.com/futex-ai/mokabook/commit/4d1fb348589255961c9ca37ee833fdcce9860c1a))
+
 ## [0.7.0](https://github.com/futex-ai/mokabook/compare/v0.6.0...v0.7.0) (2026-09-10)
 
 
