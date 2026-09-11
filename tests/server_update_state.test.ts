@@ -4,6 +4,7 @@ import test from "node:test";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
+import { loadCatalogueSnapshot } from "../dist/server/catalogue_snapshot.js";
 import { startCatalogueServer } from "../dist/server/http.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
@@ -14,7 +15,13 @@ test("published updates replace or clear changed-route shell state", async (cont
   await writeCompilation(await compileCatalogue(config), config);
   const server = await startCatalogueServer(config, {
     base: "main",
-    changedRoutes: ["screens/home.html"],
+    snapshot: await loadCatalogueSnapshot(config, async () => ({
+      schemaVersion: 1,
+      baseRef: "main",
+      baseCommit: "a".repeat(40),
+      changedRoutes: ["screens/home.html"],
+      removedEntries: [],
+    })),
     port: 0,
   });
   context.after(() => server.close());

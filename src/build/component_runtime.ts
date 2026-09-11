@@ -5,13 +5,13 @@ import { consumerBundle, type ConsumerBundle } from "./consumer_bundle.js";
 import type { LoadedGraph } from "./load_graph.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MANIFEST_NAME } from "../registry/manifest.js";
-import type { Manifest } from "../registry/types.js";
+import type { ManifestV5 } from "../registry/types.js";
 
 export interface ComponentRuntime {
   bundle: ConsumerBundle;
   config: ResolvedConfig;
   generation: string;
-  manifest: Manifest;
+  manifest: ManifestV5;
   outputs: readonly (readonly [string, string])[];
 }
 const runtimes = new WeakMap<Compilation, ComponentRuntime>();

@@ -9,12 +9,13 @@ import { repositoryRoot } from "./helpers/fixture.js";
 
 test("every owning artboard records its shared chrome and real component consumers", async () => {
   const { manifest } = await designCatalogue;
-  assert.ok(manifest.schemaVersion === 4);
+  assert.ok(manifest.schemaVersion === 5);
   const screens = manifest.entries.flatMap((entry) =>
     entry.kind === "screen" && entry.route.startsWith("design/") ? [entry] : [],
   );
-  assert.equal(screens.length, 56);
+  assert.equal(screens.length, 62);
   for (const entry of screens) {
+    assert.ok(entry.componentViews);
     for (const view of entry.componentViews) {
       const ids = new Set(
         view.instances.map((instance) => instance.componentId),
@@ -50,7 +51,7 @@ test("every owning artboard records its shared chrome and real component consume
     for (const viewport of ["desktop", "mobile"])
       assert.ok(
         screens.some((entry) =>
-          entry.componentViews.some(
+          entry.componentViews?.some(
             (view) =>
               view.viewport === viewport &&
               view.instances.some(
@@ -64,7 +65,7 @@ test("every owning artboard records its shared chrome and real component consume
 
 test("nested chips and caller-owned frame slots retain their actual owner chains", async () => {
   const { manifest } = await designCatalogue;
-  assert.ok(manifest.schemaVersion === 4);
+  assert.ok(manifest.schemaVersion === 5);
   const picker = manifest.entries.find(
     (entry) => entry.id === "design-browse-tag-picker",
   );
@@ -72,6 +73,7 @@ test("nested chips and caller-owned frame slots retain their actual owner chains
     (entry) => entry.id === "design-browse-use-case",
   );
   assert.ok(picker?.kind === "screen" && flow?.kind === "screen");
+  assert.ok(picker.componentViews);
   for (const view of picker.componentViews) {
     const chip = view.instances.find(
       (instance) =>
@@ -92,6 +94,7 @@ test("nested chips and caller-owned frame slots retain their actual owner chains
       "design-ui-top-bar",
     );
   }
+  assert.ok(flow.componentViews);
   for (const view of flow.componentViews) {
     const steps = view.instances.filter(
       (instance) => instance.componentId === "design-ui-flow-step",

@@ -1,3 +1,4 @@
+import type { ChildHandle } from "../dist/server/child_process.js";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
@@ -8,10 +9,7 @@ import {
 import { compileCatalogue } from "../dist/build/compile.js";
 import { loadConfig } from "../dist/config/load.js";
 import { serve } from "../dist/server/serve.js";
-import {
-  ReadyProcessSupervisor,
-  type ChildHandle,
-} from "../dist/server/supervisor.js";
+import { ReadyProcessSupervisor } from "../dist/server/supervisor.js";
 import type { ChildCommand } from "../dist/server/update_messages.js";
 import { componentEntrySource } from "./helpers/component_fixture.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
@@ -28,6 +26,7 @@ class DelayedChild implements ChildHandle {
     this.exits.push(callback);
   }
   onError() {}
+  onDisconnect() {}
   send(message: ChildCommand) {
     this.messages.push(message);
     if (message.type === "shutdown" && this.autoExit())
@@ -187,8 +186,8 @@ test("staging during startup cannot change the spawned child's retained graph", 
   const starting = supervisor.start();
   supervisor.replaceComponentRuntime(second, "stage");
   child.emit({ type: "component-runtime-startup-request" });
-  child.emit({ type: "component-runtime-request" });
   child.emit({ type: "ready", port: 48123 });
+  child.emit({ type: "component-runtime-request" });
   await starting;
   const transferred = child.messages[1];
   assert.equal(transferred?.type, "component-runtime");

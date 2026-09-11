@@ -3,13 +3,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
-import type { ManifestV4 } from "../dist/registry/types.js";
+import type { ManifestV5 } from "../dist/registry/types.js";
 import { repositoryRoot } from "./helpers/fixture.js";
 
 const generated = path.join(repositoryRoot, "examples/basic/generated");
 const manifest = JSON.parse(
   await fs.readFile(path.join(generated, "mokabook-manifest.json"), "utf8"),
-) as ManifestV4;
+) as ManifestV5;
 
 function component(id: string) {
   const entry = manifest.entries.find((entry) => entry.id === id);

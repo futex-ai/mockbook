@@ -16,6 +16,53 @@ test.afterAll(async () => {
   await preview?.close();
 });
 
+for (const width of [390, 1280]) {
+  test(`ordinary publication omits review and live updates at ${width}px`, async ({
+    page,
+  }) => {
+    const requests: string[] = [];
+    page.on("request", (request) => requests.push(request.url()));
+    await page.addInitScript(() => {
+      window.EventSource = class {
+        constructor() {
+          throw new Error("static catalogue opened EventSource");
+        }
+      } as unknown as typeof EventSource;
+      sessionStorage.setItem(
+        "mokabook:recovery",
+        JSON.stringify({ changedOnly: true, mode: "overlay" }),
+      );
+    });
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(
+      `${preview.url}/view/handbook?fragment=next-steps&filter=changed&mode=overlay`,
+    );
+    await expect(page.locator("#mb-main h2")).toHaveText("Getting started");
+    await expect(page.locator("[data-filter], [data-diff-screen]")).toHaveCount(
+      0,
+    );
+    await expect(page.locator(".mbk-stage-embed iframe")).toHaveAttribute(
+      "src",
+      /#next-steps$/,
+    );
+    await page.reload();
+    await expect(page.locator(".mbk-stage-embed iframe")).toHaveAttribute(
+      "src",
+      /#next-steps$/,
+    );
+    await page
+      .frameLocator(".mbk-stage-embed iframe")
+      .getByRole("link", { name: "Open Welcome" })
+      .click();
+    await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
+    await page.goBack();
+    await expect(page.locator("#mb-main h2")).toHaveText("Getting started");
+    expect(
+      requests.filter((url) => /__mokabook\/(?:diffs|events)/.test(url)),
+    ).toEqual([]);
+  });
+}
+
 test("static catalogue navigation retains pointer and keyboard resizing", async ({
   page,
 }) => {

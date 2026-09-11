@@ -13,7 +13,10 @@ import type {
   ReviewEntryAddress,
 } from "./component_types.js";
 
-export type RoutedEntry = Exclude<ManifestEntry, { kind: "collection" }>;
+export type RoutedEntry = Exclude<
+  ManifestEntry,
+  { kind: "collection" | "page" }
+>;
 export const address = (entry: RoutedEntry): ReviewEntryAddress => ({
   id: entry.id,
   route: entry.route,
@@ -29,12 +32,16 @@ export function entryPairs(
     `${entry.kind}:${entry.kind === "component" ? entry.id : entry.route}`;
   const bases = new Map(
     before.entries.flatMap((entry) =>
-      entry.kind === "collection" ? [] : [[key(entry), entry] as const],
+      entry.kind === "collection" || entry.kind === "page"
+        ? []
+        : [[key(entry), entry] as const],
     ),
   );
   const heads = new Map(
     after.entries.flatMap((entry) =>
-      entry.kind === "collection" ? [] : [[key(entry), entry] as const],
+      entry.kind === "collection" || entry.kind === "page"
+        ? []
+        : [[key(entry), entry] as const],
     ),
   );
   return [...new Set([...bases.keys(), ...heads.keys()])]

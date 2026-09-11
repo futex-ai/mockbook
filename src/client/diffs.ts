@@ -61,6 +61,8 @@ export function installDiffs(
     stage.textContent = "Loading comparison…";
     try {
       const delivery = readStaticDelivery(doc);
+      if (delivery?.comparisonUrl === null)
+        throw new Error("Comparisons are unavailable in this catalogue.");
       const response = await win.fetch(
         `${delivery?.comparisonUrl ?? "/__mokabook/diffs/review.json"}${refresh ? "?refresh=1" : ""}`,
         {

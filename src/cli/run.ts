@@ -5,10 +5,11 @@ import { compileCatalogue } from "../build/compile.js";
 import { FileSystemGeneratedOutputStore } from "../build/output_store.js";
 import { loadConfig } from "../config/load.js";
 import { MokabookError } from "../errors.js";
+import { runWithTimings, timeAsync, timeSync } from "../diagnostics/timings.js";
 import { runServerChild } from "../server/child.js";
 import { receiveComponentRuntimeStartup } from "../server/controls/runtime_ipc.js";
 import { serve, type RunningServe } from "../server/serve.js";
-import { parseArguments } from "./arguments.js";
+import { parseArguments, type CliArguments } from "./arguments.js";
 import { runExport } from "./export.js";
 import { HELP } from "./help.js";
 
@@ -27,17 +28,30 @@ export async function run(
     process.stdout.write(`${packageVersion()}\n`);
     return 0;
   }
+  return runWithTimings(
+    arguments_.debugTimings ?? false,
+    arguments_.command === "__serve-child" ? "child" : arguments_.command,
+    () => execute(arguments_, cwd),
+  );
+}
+
+async function execute(arguments_: CliArguments, cwd: string): Promise<number> {
   const runtimeStartup =
     arguments_.command === "__serve-child" && arguments_.retainedRuntime
-      ? await receiveComponentRuntimeStartup()
+      ? await timeAsync("child.startup-transfer", () =>
+          receiveComponentRuntimeStartup(),
+        )
       : undefined;
   const config =
-    runtimeStartup?.config ?? (await loadConfig(cwd, arguments_.config));
+    runtimeStartup?.config ??
+    (await timeAsync("config.load", () => loadConfig(cwd, arguments_.config)));
   if (arguments_.command === "export") {
-    const result = await runExport(config, {
-      outDir: arguments_.out ?? "",
-      ...(arguments_.base !== undefined ? { base: arguments_.base } : {}),
-    });
+    const result = await timeAsync("export", () =>
+      runExport(config, {
+        outDir: arguments_.out ?? "",
+        ...(arguments_.base !== undefined ? { base: arguments_.base } : {}),
+      }),
+    );
     process.stdout.write(
       `Exported Mokabook to ${result.outDir}.\nDeploy this directory at your site's root with your hosting provider.\n`,
     );
@@ -54,7 +68,7 @@ export async function run(
   }
   if (arguments_.command === "check") {
     const compilation = await compileCatalogue(config);
-    outputStore.check(compilation, config);
+    timeSync("output.check", () => outputStore.check(compilation, config));
     process.stdout.write(
       `Mokabook output is current (${compilation.outputs.size} files).\n`,
     );
@@ -74,11 +88,13 @@ export async function run(
     );
     return 0;
   }
-  const running = await serve(config, {
-    ...(arguments_.base !== undefined ? { base: arguments_.base } : {}),
-    port,
-    watch: arguments_.watch ?? true,
-  });
+  const running = await timeAsync("serve.ready", () =>
+    serve(config, {
+      ...(arguments_.base !== undefined ? { base: arguments_.base } : {}),
+      port,
+      watch: arguments_.watch ?? true,
+    }),
+  );
   process.stdout.write(
     `Mokabook listening at ${running.url}${arguments_.watch === false ? "" : " (watching)"}\n`,
   );

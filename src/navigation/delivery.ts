@@ -11,7 +11,8 @@ export interface StaticDelivery {
   deploymentId: string;
   canonicalPath: string;
   idRoutes: Readonly<Record<string, string>>;
-  comparisonUrl: string;
+  /** Null explicitly disables comparisons for a current-only publication. */
+  comparisonUrl: string | null;
 }
 
 /** Require an exact same-origin encoded file path beneath a reserved prefix. */
@@ -48,10 +49,11 @@ export function parseStaticDelivery(
   )
     return undefined;
   if (
-    typeof value.comparisonUrl !== "string" ||
-    !/^\/__mokabook\/diffs\/__generations\/[a-f0-9]{64}\/review\.json$/.test(
-      value.comparisonUrl,
-    )
+    value.comparisonUrl !== null &&
+    (typeof value.comparisonUrl !== "string" ||
+      !/^\/__mokabook\/diffs\/__generations\/[a-f0-9]{64}\/review\.json$/.test(
+        value.comparisonUrl,
+      ))
   )
     return undefined;
   if (

@@ -6,7 +6,6 @@ import { requireString } from "./rules.js";
 
 interface ReviewOutBoundary {
   entriesDir: string;
-  legacy?: { pagesDir: string };
   mockupsDir: string;
   repoRoot: string;
 }
@@ -46,47 +45,14 @@ export function validateSourceRoots(
   repoRoot: string,
   entriesDir: string,
   mockupsDir: string,
-  legacyDir?: string,
 ): void {
   const realEntries = requireRealInside(repoRoot, entriesDir, "entriesDir");
   const realMockups = requireRealInside(repoRoot, mockupsDir, "mockupsDir");
-  const realLegacy = legacyDir
-    ? requireRealInside(repoRoot, legacyDir, "legacy.pagesDir")
-    : undefined;
-  if (entriesDir === mockupsDir || legacyDir === mockupsDir) {
+  if (entriesDir === mockupsDir || realEntries === realMockups)
     throw new MokabookError(
       "config-invalid",
       "authored source directories must not equal mockupsDir",
     );
-  }
-  if (
-    legacyDir &&
-    (legacyDir === entriesDir ||
-      isInside(legacyDir, entriesDir) ||
-      isInside(entriesDir, legacyDir))
-  ) {
-    throw new MokabookError(
-      "config-invalid",
-      "entriesDir and legacy.pagesDir must not overlap",
-    );
-  }
-  if (realEntries === realMockups || realLegacy === realMockups) {
-    throw new MokabookError(
-      "config-invalid",
-      "authored source directories must not equal mockupsDir through symlinks",
-    );
-  }
-  if (
-    realLegacy &&
-    (realLegacy === realEntries ||
-      isInside(realLegacy, realEntries) ||
-      isInside(realEntries, realLegacy))
-  ) {
-    throw new MokabookError(
-      "config-invalid",
-      "entriesDir and legacy.pagesDir must not overlap through symlinks",
-    );
-  }
 }
 
 /** Keep destructive Review replacement away from source and output roots. */
@@ -97,12 +63,7 @@ export function validateReviewOut(
   code: MokabookErrorCode = "config-invalid",
 ): void {
   const { entriesDir, mockupsDir, repoRoot } = boundary;
-  const legacyDir = boundary.legacy?.pagesDir;
-  const protectedRoots = [
-    mockupsDir,
-    entriesDir,
-    ...(legacyDir ? [legacyDir] : []),
-  ];
+  const protectedRoots = [mockupsDir, entriesDir];
   const realRepoRoot = fs.realpathSync(repoRoot);
   const realReviewOut = projectRealPath(reviewOut);
   const realProtectedRoots = protectedRoots.map((root) =>
@@ -110,7 +71,7 @@ export function validateReviewOut(
   );
   if (
     reviewOut === repoRoot ||
-    !isInside(repoRoot, reviewOut) ||
+    (!isInside(repoRoot, reviewOut) && !isInside(realRepoRoot, reviewOut)) ||
     !isInside(realRepoRoot, realReviewOut) ||
     protectedRoots.some(
       (root) =>

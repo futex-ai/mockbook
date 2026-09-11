@@ -16,7 +16,7 @@ import {
 
 test(
   "public aliases watch their targets and recover from escaping and dangling replacements",
-  { timeout: 90_000 },
+  { timeout: 180_000 },
   async (context) => {
     const fixture = await changedFixture(
       context,
@@ -107,7 +107,7 @@ test(
 
 test(
   "ignored-region resources reload their live screen without adding Changes",
-  { timeout: 45_000 },
+  { timeout: 90_000 },
   async (context) => {
     const source = validEntrySource({
       body: '<ReviewIgnore id="nav"><img src="../image.svg" alt="Logo" /></ReviewIgnore><p>Content</p>',

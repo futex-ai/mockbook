@@ -1,5 +1,7 @@
 import path from "node:path";
+import { timeAsync, timeSync, timingCounts } from "../diagnostics/timings.js";
 
+import { graphSourceFiles, normalizeSourceFiles } from "./source_inventory.js";
 import { build } from "esbuild";
 import { evaluateBundle, rememberBundle } from "./consumer_bundle.js";
 
@@ -9,7 +11,7 @@ import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
 import type { ComponentGraphRenderer } from "../components/render.js";
 import type { Renderer } from "../renderer/types.js";
-import { discoverEntryModules, discoverLegacySources } from "./discovery.js";
+import { discoverEntryModules } from "./discovery.js";
 import {
   consumerReactPlugin,
   packageNodePaths,
@@ -20,23 +22,12 @@ import {
   packageApiPlugin,
 } from "./consumer_entry.js";
 
-/** One loaded legacy module and its authored source path. */
-export interface LoadedLegacyModule {
-  exports: Record<string, unknown>;
-  sourcePath: string;
-  sourceRelativePath: string;
-}
-
 /** Consumer modules loaded in one React-safe esbuild graph. */
 export interface LoadedGraph {
   compatibilityTransformer?: CompatibilityTransformer;
   definitions: unknown[];
   entrySources: readonly string[];
-  legacy: readonly LoadedLegacyModule[];
-  renderLegacyComponent?: (
-    name: string,
-    attributes: Readonly<Record<string, string>>,
-  ) => string;
+  sourceFiles: readonly string[];
   renderer: Renderer;
   renderWithComponents: ComponentGraphRenderer;
 }
@@ -44,54 +35,99 @@ export interface LoadedGraph {
 /** Bundle and import all React-bearing consumer modules as one graph. */
 export async function loadConsumerGraph(
   config: ResolvedConfig,
+  evaluate = true,
 ): Promise<LoadedGraph> {
-  const entrySources = discoverEntryModules(config.entriesDir);
-  const allLegacy = config.legacy
-    ? discoverLegacySources(config.legacy.pagesDir, config.legacy.exclude)
-    : [];
-  const legacySources = allLegacy.filter(
-    (source) => !source.endsWith(".source.html"),
+  return timeAsync(evaluate ? "graph.load" : "graph.inventory", () =>
+    loadGraph(config, evaluate),
   );
+}
+
+async function loadGraph(
+  config: ResolvedConfig,
+  evaluate: boolean,
+): Promise<LoadedGraph> {
+  const entrySources = timeSync("graph.discover", () =>
+    discoverEntryModules(config.entriesDir),
+  );
+  timingCounts("graph", () => ({ entryModules: entrySources.length }));
   const outputPath = path.join(
     path.dirname(config.configPath),
     ".mokabook-consumer.cjs",
   );
   try {
-    const built = await build({
-      write: false,
-      absWorkingDir: path.dirname(config.configPath),
-      alias: config.moduleResolution.aliases,
-      bundle: true,
-      ...(config.moduleResolution.conditions
-        ? { conditions: [...config.moduleResolution.conditions] }
-        : {}),
-      entryPoints: [CONSUMER_ENTRY_PATH],
-      format: "cjs",
-      jsx: "automatic",
-      loader: config.moduleResolution.loaders,
-      logLevel: "silent",
-      ...(config.moduleResolution.mainFields
-        ? { mainFields: [...config.moduleResolution.mainFields] }
-        : {}),
-      nodePaths: packageNodePaths(config),
-      outfile: outputPath,
-      platform: "node",
-      plugins: [
-        consumerEntryPlugin(config, entrySources, legacySources),
-        packageApiPlugin(config),
-        consumerReactPlugin(config),
+    const built = await timeAsync("graph.bundle", () =>
+      build({
+        write: false,
+        metafile: true,
+        preserveSymlinks: true,
+        absWorkingDir: path.dirname(config.configPath),
+        alias: config.moduleResolution.aliases,
+        bundle: true,
+        ...(config.moduleResolution.conditions
+          ? { conditions: [...config.moduleResolution.conditions] }
+          : {}),
+        entryPoints: [CONSUMER_ENTRY_PATH],
+        format: "cjs",
+        jsx: "automatic",
+        loader: config.moduleResolution.loaders,
+        logLevel: "silent",
+        ...(config.moduleResolution.mainFields
+          ? { mainFields: [...config.moduleResolution.mainFields] }
+          : {}),
+        nodePaths: packageNodePaths(config),
+        outfile: outputPath,
+        platform: "node",
+        plugins: [
+          consumerEntryPlugin(config, entrySources),
+          packageApiPlugin(config),
+          consumerReactPlugin(config),
+        ],
+        ...(config.moduleResolution.resolveExtensions
+          ? {
+              resolveExtensions: [...config.moduleResolution.resolveExtensions],
+            }
+          : {}),
+        target: "node22",
+      }),
+    );
+    const sourceFiles = normalizeSourceFiles(
+      [
+        ...graphSourceFiles(
+          built.metafile,
+          path.dirname(config.configPath),
+          config.repoRoot,
+        ),
+        ...(config.configSourceFiles ?? [config.configPath]),
+        ...entrySources,
+        ...(config.renderer ? [config.renderer] : []),
+        ...(config.compatibility.transformer
+          ? [config.compatibility.transformer]
+          : []),
       ],
-      ...(config.moduleResolution.resolveExtensions
-        ? { resolveExtensions: [...config.moduleResolution.resolveExtensions] }
-        : {}),
-      target: "node22",
-    });
+      config.repoRoot,
+    );
+    if (!evaluate)
+      return {
+        definitions: [],
+        entrySources,
+        sourceFiles,
+        renderWithComponents: () => {
+          throw new Error("inventory-only graph cannot render");
+        },
+        renderer: () => {
+          throw new Error("inventory-only graph cannot render");
+        },
+      };
     const bundle = {
       code: built.outputFiles!.find((file) => file.path === outputPath)!.text,
       filename: outputPath,
       entrySources,
     };
-    const imported = evaluateBundle(bundle);
+    const imported = timeSync("graph.evaluate", () => evaluateBundle(bundle));
+    timingCounts("graph.bundle", () => ({
+      bytes: Buffer.byteLength(bundle.code),
+      sourceFiles: sourceFiles.length,
+    }));
     if (typeof imported.renderer !== "function") {
       throw new MokabookError(
         "build-invalid",
@@ -116,15 +152,7 @@ export async function loadConsumerGraph(
         : {}),
       definitions: imported.definitions,
       entrySources,
-      legacy: imported.legacy,
-      ...(typeof imported.renderLegacyComponent === "function"
-        ? {
-            renderLegacyComponent: imported.renderLegacyComponent as (
-              name: string,
-              attributes: Readonly<Record<string, string>>,
-            ) => string,
-          }
-        : {}),
+      sourceFiles,
       renderer: imported.renderer as Renderer,
       renderWithComponents: imported.renderWithComponents,
     };

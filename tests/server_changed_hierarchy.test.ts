@@ -4,8 +4,8 @@ import test from "node:test";
 
 import { compileCatalogue } from "../dist/build/compile.js";
 import { loadConfig } from "../dist/config/load.js";
-import type { Manifest } from "../dist/registry/types.js";
-import { changedManifestRoutes } from "../dist/server/changed.js";
+import type { ManifestV5 } from "../dist/registry/types.js";
+import { changedManifestRoutes } from "../dist/registry/changed_routes.js";
 import {
   createFixture,
   removeFixture,
@@ -51,13 +51,13 @@ test("an ancestor title change marks its routed descendants", async (context) =>
 
 async function compileManifest(
   config: Awaited<ReturnType<typeof loadConfig>>,
-): Promise<Manifest> {
+): Promise<ManifestV5> {
   return (await compileCatalogue(config)).manifest;
 }
 
 function makeNavPathsIdentical(
-  manifest: Manifest,
-  baseManifest: Manifest,
+  manifest: ManifestV5,
+  baseManifest: ManifestV5,
 ): void {
   for (const entry of [...manifest.entries, ...baseManifest.entries]) {
     entry.navPath = ["Historical label"];

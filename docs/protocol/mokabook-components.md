@@ -156,13 +156,12 @@ the default variant's mobile light file is
 existing suffix conventions. Every variant follows this same rule. Output
 collision, ownership, resource, orphan, and transactional-write checks apply.
 
-Catalogues with registered components emit manifest schema v4, including typed
+Catalogues with registered components emit manifest schema v5, including typed
 component entries, variant fragments, and per-view usage records for screens
 and components. The [manifest schema](./mokabook-component-manifest.md) defines
-every record, reference, ordering rule, and validation boundary. Unregistered
-catalogues retain v3 bytes. Readers accept v3 and v4, retaining the existing
-explicit v2 compatibility path; unknown versions
-fail. Historical manifests without usage metadata do not imply an empty
+every record, reference, ordering rule, and validation boundary. All current catalogues use v5, including those without components. Historical
+Git readers accept v3, both disjoint v4 formats, and the explicit v2 fallback;
+unknown versions fail. Historical manifests without usage metadata do not imply an empty
 component tree or justify suppressing changes.
 
 Inert, package-owned DOM markers bind generated ranges to their usage records.
@@ -189,7 +188,7 @@ Implementations must not silently register an unreachable component page.
 
 - [Component change attribution](./mokabook-component-changes.md)
 - [Runtime prop schema and codec](./mokabook-component-props.md)
-- [Manifest v4 schema](./mokabook-component-manifest.md)
+- [Manifest v5 schema](./mokabook-component-manifest.md)
 - [Comparison v3 schema](./mokabook-component-review.md)
 - [Component pages and screen inspection](./mokabook-component-explorer.md)
 - [Component controls](./mokabook-component-controls.md)

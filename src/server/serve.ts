@@ -11,12 +11,15 @@ import {
   type CatalogueServerFactory,
 } from "./factory.js";
 import { configuredServedReview } from "./review_routes.js";
+import { loadServedCatalogueSnapshot } from "./catalogue_snapshot.js";
 import {
   RepositoryCatalogueChangeClassifier,
   type CatalogueChangeClassifier,
 } from "./component_changes.js";
-import { type ProcessSupervisorFactory } from "./supervisor.js";
-import { NodeProcessSupervisorFactory } from "./node_process_supervisor.js";
+import {
+  NodeProcessSupervisorFactory,
+  type ProcessSupervisorFactory,
+} from "./supervisor.js";
 import {
   ChokidarWatcherFactory,
   type ConsumerWatcherFactory,
@@ -68,18 +71,15 @@ export async function serve(
     const compilation = await compileCatalogue(config);
     await dependencies.outputStore.write(compilation, config);
     const base = options.base ?? config.review.base;
-    const componentChanges = await (
-      dependencies.changeClassifier ?? DEFAULT_CHANGE_CLASSIFIER
-    ).read(config, compilation.manifest, base);
+    const snapshot = await loadServedCatalogueSnapshot(
+      config,
+      base,
+      compilation.manifest,
+    );
     const server = await dependencies.serverFactory.start(config, {
       base,
+      snapshot,
       componentRuntime: componentRuntime(compilation),
-      ...(componentChanges
-        ? {
-            changedRoutes: componentChanges.changedRoutes,
-            componentChanges,
-          }
-        : {}),
       port: options.port,
       review: configuredServedReview(config, base),
     });

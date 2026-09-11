@@ -39,6 +39,11 @@ background: #171a18;
   width: 390px;
 }
 
+.phone-notch,
+.phone-home {
+pointer-events: none;
+}
+
 .phone-notch {
 background: #0b0d0c;
   border-radius: 999px;

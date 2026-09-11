@@ -1,6 +1,7 @@
 /** Transactional watches for resources discovered from generated output. */
 
 import path from "node:path";
+import { timeAsync } from "../diagnostics/timings.js";
 
 import type { Compilation } from "../build/compile.js";
 import { isInside } from "../config/paths.js";
@@ -42,11 +43,8 @@ export class ResourceWatcher {
     shutdownStarted: Promise<void>,
     allowInvalid = false,
   ): Promise<PreparedResourceWatch | undefined> {
-    let snapshot = await discoverWatchResources(
-      config,
-      compilation,
-      this.#snapshot,
-      allowInvalid,
+    let snapshot = await timeAsync("watch.resources-discover", () =>
+      discoverWatchResources(config, compilation, this.#snapshot, allowInvalid),
     );
     if (sameWatch(snapshot, this.#snapshot)) {
       return {
@@ -79,16 +77,15 @@ export class ResourceWatcher {
       try {
         if (
           watcher &&
-          !(await watcherReadyBeforeShutdown(watcher, shutdownStarted))
+          !(await timeAsync("watch.resources-ready", () =>
+            watcherReadyBeforeShutdown(watcher, shutdownStarted),
+          ))
         ) {
           await watcher.close();
           return undefined;
         }
-        const refreshed = await discoverWatchResources(
-          config,
-          compilation,
-          snapshot,
-          allowInvalid,
+        const refreshed = await timeAsync("watch.resources-rediscover", () =>
+          discoverWatchResources(config, compilation, snapshot, allowInvalid),
         );
         if (!sameWatch(snapshot, refreshed)) {
           await watcher?.close();

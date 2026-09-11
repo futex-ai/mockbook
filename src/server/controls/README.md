@@ -30,7 +30,8 @@ ids; malformed or foreign ids return 404. Every response is `no-store` and
 Watched Serve transfers the accepted configuration and already validated
 manifest over its private parent/child IPC channel before readiness, then
 transfers the remaining retained bundle and generated-file set only after the
-child has constructed the catalogue and bound its port. The second response
+child has validated the payload and current source inventory, constructed the
+catalogue and bound its port. The second response
 omits the config, manifest object, and serialized manifest output already
 supplied or represented. Attaching the runtime publishes a reserved higher
 version so an early shell reloads with controls enabled. A successful build with
@@ -38,8 +39,8 @@ an unchanged manifest applies its runtime to the live child before publishing
 the reload event. A changed manifest or reconfiguration stages the runtime for
 the next child; the old child keeps its matching catalogue and controls until
 shutdown. Each spawned child captures both startup IPC responses. Failed
-candidates retain the old graph; recovery receives the accepted graph without
-recompiling broken files.
+candidates retain the old graph. Recovery receives the accepted rendering graph;
+its independent source-inventory validation can still reject broken or stale inputs.
 
 ## Development
 

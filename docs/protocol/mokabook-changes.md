@@ -9,9 +9,19 @@ The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` belongs only to static `export`.
 
+[Pages](./mokabook-pages.md) participate in Changes and removed-entry states,
+while comparison controls remain screen-only. The
+[shared catalogue snapshot](./mokabook-catalogue-changes.md) supplies metadata
+independently of screen results; removed pages are flat Changes-only rows with
+baseline ancestry. Review reads follow the [source policy](./mokabook-source-protection.md).
+
+[Published Changes](./mokabook-publication.md) are opt-in through
+`npm run preview:build -- --include-changes`. Default publication omits Changes,
+comparisons, history, and removals; both options omit live updates.
+
 ## Changes membership
 
-Changes is a review list of added/removed screens, material fragment changes,
+Changes is a review list of added/removed screens and pages, material document changes,
 reviewable route metadata changes, and user flows that embed those screens.
 A new or edited flow is included independently. Source edits, source moves,
 dependency declaration edits, and shared-impact matches alone do not add
@@ -39,7 +49,16 @@ Unreferenced public files never add entries through a broad shared-impact glob.
 Every reachable existing resource is validated, including images and fonts;
 finding a changed resource does not skip its CSS/HTML references or later graph
 edges. Added screens, newly available views, and existing material fragment
-changes do not bypass resource validation.
+changes do not bypass resource validation. Whole-document pages use these same
+rules for their single generated document and its rendered resources; they do
+not gain screen comparison controls or viewport variants.
+For public file and directory aliases, compare changed Git paths against both
+the referenced route and its validated physical path relative to the real
+`mockupsDir`. Editing a target marks its consumers even when the alias itself
+is unchanged. Obtain both identities from the same confined reader used by
+resource watching; source, internal-metadata, and escape checks still apply.
+Historical snapshot reads continue to require regular Git files and reject
+symlink blobs; detecting current impact does not relax baseline validation.
 A deleted resource still marks its consumers only when its closest existing
 ancestor is a confined public directory and its baseline is a regular Git file.
 Dangling symlinks, escaping symlinks, source-root references, and newly missing
@@ -74,7 +93,7 @@ dropping views or disabling Git file validation.
 
 ## Screen controls
 
-Screens and saved component variants with actual changed/added/removed comparison
+Review-enabled screens and saved component variants with actual changed/added/removed comparison
 views offer Current / Side by side / Overlay / Difference in an opaque band
 beneath the heading. Known unchanged views show Unmodified without that band;
 unknown evidence has no invented status. Eligibility follows saved view evidence,
@@ -82,8 +101,7 @@ so affected-only consumers can compare their actual rendered differences while
 staying outside Changes. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
 viewport or color scheme, and receiving a watched update do not generate
-comparison snapshots in development. Published catalogues prepare snapshots at
-build time, but never fetch or render them while browsing in Current. The first
+comparison snapshots in development. Publications with Changes prepare snapshots at build time, but never fetch or render them while browsing in Current. The first
 explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
 Navigation must never let a late comparison response replace another screen.
@@ -154,7 +172,8 @@ See [the shell design](./mokabook-shell-design.md) and
 
 ## Comparison engine
 
-An explicit development diff request, or publishing a catalogue, compares the workspace with a configured base ref, defaulting
+An explicit development diff request, or publishing with `--include-changes`,
+compares the workspace with a configured base ref, defaulting
 to `origin/main`. It resolves the merge base shared by `HEAD` and that ref, then
 reads the committed `mockupsDir` tree at that branch point without checking it
 out or rebuilding it. Commits reachable only from the configured base do not
@@ -174,7 +193,7 @@ scheme, enumerated from the union of base and head manifest entries. Each side's
 view set is `["light", ...(screen.darkFragments ? ["dark"] : [])]`: a dark
 view present only in head is `added`, and one present only in base is
 `removed`. Mobile and desktop still classify separately from their fragments.
-Added, removed, changed, and unchanged states handle version 2 and version 3
+Added, removed, changed, and unchanged states handle historical versions 2/3/4 and current version 5
 manifests during Accounting migration; pre-dark bases simply have no
 `darkFragments`. Configured shared-impact globs and manifest dependencies
 identify changes that can affect many screens. A dependency is a repository file
@@ -203,8 +222,7 @@ not portable in an isolated snapshot and fail comparison instead of being
 silently omitted.
 Current-worktree resources must resolve to regular public files. Every base
 resource, including the pane document itself and each transitive dependency,
-must be a regular Git file. Neither side may read from configured entry or
-legacy source roots. Pane documents remain byte-unmodified and run in
+must be a regular Git file. Neither side may read from protected authoring inputs. Pane documents remain byte-unmodified and run in
 script-disabled sandboxes.
 
 `review.json` is the normative machine-readable result:

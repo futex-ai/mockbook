@@ -27,17 +27,21 @@ export function TopBar({
   viewport,
 }: TopBarProps) {
   const navigation = useDesignNavigation();
+  const open = navigation.drawer?.open ?? drawerOpen;
   return (
     <topBar.Component
       mokabookInstance={useDesignInstance("top-bar")}
       viewport={viewport}
-      placeholder={searchPlaceholder ?? "Search screens…"}
-      menu={drawerOpen ? "close" : "open"}
+      placeholder={searchPlaceholder ?? "Search catalogue…"}
+      menu={open ? "close" : "open"}
       menuPresentation={menuPresentation ?? "text"}
       tags={designTagRecords(navigation.tags)}
       pickerOpen={tagPickerOpen ?? false}
       brandDestination={DESTINATIONS.home}
-      menuDestination={drawerOpen ? DESTINATIONS.home : DESTINATIONS.navigation}
+      menuDestination={
+        navigation.drawer?.to ??
+        (open ? DESTINATIONS.home : DESTINATIONS.navigation)
+      }
       {...optional("query", searchValue)}
       {...optional("activeTag", activeTag)}
       {...optional("pickerDestination", tagPickerTarget(navigation.tags))}

@@ -1,5 +1,21 @@
 # Mokabook CI And Npm Release Contract
 
+## Breaking Page Upgrade Release Note
+
+The page release intentionally removes `legacy` configuration and its exported
+types, automatic `.source` discovery, comment-component expansion, legacy lint
+options, and route aliases. Consumers must register complete documents with
+`definePage` or nested `page`, import existing render helpers, preserve explicit
+routes, and regenerate manifest v5 with `sourceFiles`. Current v2/v3 output is
+rejected; historical readers remain available only for Git comparisons. Follow
+[the migration procedure](./mokabook-page-migration.md) before replacing old
+owned artifacts. Screen and use-case authoring remains supported.
+
+The repository preview command now exports the current catalogue by default.
+Use `--include-changes` to package a frozen baseline and comparisons. Both
+options omit development updates. Release automation must record these changes
+as breaking; version numbers and `CHANGELOG.md` remain release-PR owned.
+
 ## Package Metadata
 
 `package.json` describes the published, unscoped public ESM package `mokabook`,
@@ -44,7 +60,7 @@ to npm scripts and includes:
 - a production-dependency audit of the freshly resolved packed ESM consumer;
 - local-npx and clean-cache npx-style execution from the packed artifact;
 - consumer exports from the installed CLI, including custom configs/bases,
-  cross-platform renderers, legacy pages, and the compiled static client graph;
+  cross-platform renderers, registered pages, and the compiled static client graph;
 - source-tree ESM, declaration, CLI, workspace-resolution, server, Review, and
   watched-runtime regressions;
 - Playwright Browse and Review regressions using Chromium, including isolated
@@ -78,8 +94,12 @@ permissions.
 
 ## Preview Deployments
 
-The [consumer static exporter](./mokabook-export.md) provides the shared package
-implementation. This section describes the repository's deployment adapter;
+The [publication option](./mokabook-publication.md) is implemented. The main
+job publishes the current catalogue with `npm run preview:build`; PR previews
+use `npm run preview:build -- --include-changes --base origin/main`.
+
+The [consumer static exporter](./mokabook-export.md) provides shared output safety and static
+delivery. This section describes the repository's deployment adapter;
 consumer `mokabook export` produces files without deploying or publishing npm.
 
 `.github/workflows/preview.yml` deploys a browsable copy of the synthetic basic
@@ -91,9 +111,9 @@ the deployment result, URL, commit, and workflow run. Fork pull requests never
 receive Cloudflare credentials or write-capable execution.
 
 `npm run preview:build` first rebuilds Mokabook and its committed basic
-consumer. The repository-only preview adapter calls the shared exporter, which
-directly renders the home, not-found, current catalogue routes, and removed-screen
-routes through the existing shell. It copies the shell stylesheet, browser and
+consumer. The repository-only preview builder starts the real Browse server on
+an ephemeral loopback port and snapshots the home, not-found, current catalogue
+routes, plus removed-entry routes only when Changes is included. It copies the shell stylesheet, browser and
 shared navigation modules, fonts, id redirects, and every validated public
 consumer asset into `.context/mokabook-preview`. HTML copies pass through the
 same manifest/header-aware logical-link adapter as served Browse; unowned
@@ -102,19 +122,20 @@ Preview shell links use Cloudflare
 Pages' canonical extensionless HTML routes, and static shell HTML omits the
 watched server's live-update entrypoint. The parent client validates one optional
 `fragment` query and applies its encoded hash to every applicable current and
-light/dark frame source, with first-step-only use-case scope. The builder
-computes route changes from the
-branch point shared with `origin/main`, and both deployment jobs fetch complete
-Git history so that common ancestor can be resolved and the static Browse shell
-always includes the All/Changes filter, including a zero count. Eligible changed screen and component views
-include Current / Side by side / Overlay / Difference in the actual shell;
-known unchanged views show Unmodified without comparison controls. Publishing prepares the real comparison through the same Git engine as
-development, then exports its JSON, isolated snapshots, and their resources
-under one immutable generation path. Static shell metadata addresses that
-generation directly, and the stable comparison redirect remains available.
-Visitors fetch and render comparisons only after selecting a diff;
-refresh reloads the currently published result. Missing baselines and invalid
-comparison output fail the build instead of publishing unusable controls.
+light/dark frame source, with first-step-only use-case scope. Default capture needs no Git or comparison provider and omits review controls,
+counts, removed routes, and baseline artifacts. Explicit Changes capture pins
+one merge-base commit for impact and screen and saved component comparisons and rejects any input
+mutation during capture. It packages comparison JSON and isolated resources
+under an immutable generation path; visitors fetch them only after selecting a
+diff. Refresh loads that same published result. Unavailable requested baselines
+or invalid comparisons abort the build without replacing previous output.
+Both options omit the live-update entrypoint, watch-only modules, event routes,
+and stale comparison directories. Full history remains available in both jobs.
+Static shell metadata addresses an included comparison generation directly;
+the stable comparison redirect remains available when Changes is enabled.
+Eligible changed views offer comparison controls; known unchanged views show
+Unmodified, while unknown evidence has no invented status. Pages retain Changes
+membership but never offer visual comparisons.
 The [Changes contract](./mokabook-changes.md) owns the shared interaction and
 snapshot rules. Artifact
 replacement uses the shared exclusive reservation, ownership inventory, and

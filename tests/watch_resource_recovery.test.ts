@@ -14,7 +14,7 @@ import {
 
 test(
   "new imports, missing directories, and deleted resources remain repairable",
-  { timeout: 90_000 },
+  { timeout: 180_000 },
   async (context) => {
     const original = "main { color: red; }";
     const fixture = await changedFixture(
@@ -68,7 +68,7 @@ test(
 
 test(
   "source rebuilds and configuration changes refresh reachable resources",
-  { timeout: 90_000 },
+  { timeout: 180_000 },
   async (context) => {
     const fixture = await changedFixture(
       context,

@@ -7,7 +7,7 @@ import {
 } from "../navigation/delivery.js";
 import type { Manifest } from "../registry/types.js";
 import type { ReviewArtifact } from "../review/types.js";
-import { createCatalogue, catalogueAtBaseline } from "../server/catalogue.js";
+import { createCatalogue } from "../server/catalogue.js";
 import { parseReviewResult } from "../review/result_validation.js";
 import { canonicalJson } from "../components/data.js";
 import {
@@ -16,7 +16,8 @@ import {
   loadShellFontAssets,
 } from "../server/client_modules.js";
 import { homePage, notFoundPage, viewPage } from "../server/pages.js";
-import { changedManifestRoutes } from "../server/changed.js";
+import { changedManifestRoutes } from "../registry/changed_routes.js";
+import { removedManifestEntries } from "../registry/changes.js";
 import { SHELL_CSS } from "../server/shell/css.js";
 import type { ShellContext } from "../server/shell/context.js";
 import type { ResolvedConfig } from "../config/types.js";
@@ -40,8 +41,12 @@ export function assembleExport(
   shells: ReadonlyMap<string, StaticDelivery>;
 } {
   const current = createCatalogue(compilation.manifest);
-  const catalogue = catalogueAtBaseline(compilation.manifest, baseline);
-  const removed = [...catalogue.removedScreens, ...catalogue.removedComponents];
+  const removedSnapshots = removedManifestEntries(
+    compilation.manifest,
+    baseline,
+  );
+  const removed = removedSnapshots.map(({ entry }) => entry);
+  const catalogue = createCatalogue(compilation.manifest, removedSnapshots);
   const entries = [...current.byRoute.values(), ...removed];
   const idRoutes: Record<string, string> = Object.create(null) as Record<
     string,
@@ -91,17 +96,26 @@ export function assembleExport(
       );
     inventory.add(`${prefix}/${name}`, bytes);
   }
+  const materialRoutes = changedManifestRoutes(
+    compilation.manifest,
+    baseline,
+    config,
+    contentChanges,
+  );
+  const pageRoutes = new Set(
+    compilation.manifest.entries.flatMap((entry) =>
+      entry.kind === "page" ? [entry.route] : [],
+    ),
+  );
   const changes =
     comparison.result.schemaVersion === 3
-      ? comparison.result.changes.map(
-          (item) => (item.after ?? item.before)!.route,
-        )
-      : changedManifestRoutes(
-          compilation.manifest,
-          baseline,
-          config,
-          contentChanges,
-        );
+      ? [
+          ...comparison.result.changes.map(
+            (item) => (item.after ?? item.before)!.route,
+          ),
+          ...materialRoutes.filter((route) => pageRoutes.has(route)),
+        ]
+      : materialRoutes;
   const context: ShellContext = {
     base: comparison.result.baseRef,
     changedRoutes: [

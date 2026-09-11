@@ -53,8 +53,9 @@ export function applyNavVisibility(
       .querySelector('[data-filter="changed"]')
       ?.getAttribute("aria-pressed") === "true";
   for (const row of doc.querySelectorAll<HTMLElement>("[data-nav-row]")) {
-    const matchesFilter =
-      !changedOnly || row.getAttribute("data-changed") === "true";
+    const matchesFilter = changedOnly
+      ? row.getAttribute("data-changed") === "true"
+      : !row.hasAttribute("data-removed-page");
     row.hidden = !(matchesFilter && rowMatchesQuery(query, navRowFacts(row)));
   }
   applyGroupVisibility(doc, queryConstrains(query) || changedOnly, disclosure);

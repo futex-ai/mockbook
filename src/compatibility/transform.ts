@@ -17,7 +17,7 @@ import { rewriteMockLinks } from "../build/mock_links.js";
 import { adaptLinkControls } from "../build/link_controls.js";
 import { validateControlMetadata } from "../build/link_control_metadata.js";
 
-/** Resolve legacy id links and apply an explicitly configured migration bridge. */
+/** Resolve catalogue id links and apply an explicitly configured migration bridge. */
 export function transformCompatibilityDocuments(
   outputs: Map<string, string>,
   entries: readonly ResolvedRegistryEntry[],
@@ -38,8 +38,10 @@ export function transformCompatibilityDocuments(
     ReturnType<typeof logicalArtifactRoutes>
   >();
   for (const [route, original] of outputs) {
-    const { colorScheme, viewport } =
-      fragmentViews.get(route) ?? legacyRouteView(route);
+    const { colorScheme, viewport } = fragmentViews.get(route) ?? {
+      colorScheme: "light",
+      viewport: "desktop",
+    };
     const linked = rewriteMockLinks(
       adaptLinkControls(original, route),
       route,
@@ -116,11 +118,4 @@ function availablePublicRoutes(
     )
     .filter((route) => !pendingOrphans.has(route));
   return [...new Set([...nextRoutes, ...publicRoutes])].sort();
-}
-
-function legacyRouteView(route: string): ArtifactView {
-  if (route.endsWith(".mobile.html")) {
-    return { colorScheme: "light", viewport: "mobile" };
-  }
-  return { colorScheme: "light", viewport: "desktop" };
 }

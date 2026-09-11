@@ -97,7 +97,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build Mokabook preview
-        run: npm run preview:build
+        run: npm run preview:build -- --include-changes --base origin/main
       - name: Deploy Mokabook preview
         id: deploy
         run: |

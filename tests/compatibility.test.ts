@@ -7,6 +7,7 @@ import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
 import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   validEntrySource,
@@ -56,12 +57,23 @@ export default function transform(input: CompatibilityTransformInput): string {
   compatibility: { transformer: "compatibility.ts" },
   colorSchemes: ["light", "dark"],
   entriesDir: "entries",
-  legacy: { exclude: ["retired/**"], pagesDir: "legacy", routeAliases: { "ambiguous.source.ts": "archive/ambiguous.mobile.dark.html" } },
   mockupsDir: "mockups",
   repoRoot: "."
 };\n`,
   );
 
+  await registerFixturePage(
+    fixture,
+    "notice",
+    "notice.html",
+    "legacy/notice.source.ts",
+  );
+  await registerFixturePage(
+    fixture,
+    "ambiguous",
+    "archive/ambiguous.mobile.dark.html",
+    "legacy/ambiguous.source.ts",
+  );
   const compilation = await compileCatalogue(await loadConfig(fixture.root));
   const mobile = compilation.outputs.get("screens/home.mobile.html") ?? "";
   const mobileDark =

@@ -1,7 +1,7 @@
 import type { ColorScheme } from "../authoring/types.js";
 import { MokabookError } from "../errors.js";
-import { validateCatalogueRoute, validateRelativeRoute } from "./paths.js";
-import type { LegacyConfig, StylesheetRule, WatchRule } from "./types.js";
+import { validateRelativeRoute } from "./paths.js";
+import type { StylesheetRule, WatchRule } from "./types.js";
 
 const WATCH_ACTIONS = new Set(["ignore", "rebuild", "reload", "restart"]);
 
@@ -37,46 +37,6 @@ export function validateColorSchemes(value: unknown): ColorScheme[] {
     );
   }
   return schemes.has("dark") ? ["light", "dark"] : ["light"];
-}
-
-/** Normalize configured legacy lint policy. */
-export function resolveLegacyLint(
-  lint: LegacyConfig["lint"],
-): LegacyConfig["lint"] {
-  if (!lint) return undefined;
-  const allowRoutes = validateStringArray(
-    lint.allowRoutes ?? [],
-    "legacy.lint.allowRoutes",
-  ).map((route) => validateCatalogueRoute(route, "legacy.lint.allowRoutes"));
-  if (
-    lint.maxScreensPerPage !== undefined &&
-    (!Number.isInteger(lint.maxScreensPerPage) ||
-      lint.maxScreensPerPage < 1 ||
-      lint.maxScreensPerPage > 100)
-  ) {
-    throw new MokabookError(
-      "config-invalid",
-      "legacy.lint.maxScreensPerPage must be an integer from 1 to 100",
-    );
-  }
-  if (
-    lint.requireStageIds !== undefined &&
-    typeof lint.requireStageIds !== "boolean"
-  ) {
-    throw new MokabookError(
-      "config-invalid",
-      "legacy.lint.requireStageIds must be boolean",
-    );
-  }
-  return {
-    allowRoutes,
-    ...(lint.maxScreensPerPage !== undefined
-      ? { maxScreensPerPage: lint.maxScreensPerPage }
-      : {}),
-    ...(lint.requireStageIds !== undefined
-      ? { requireStageIds: lint.requireStageIds }
-      : {}),
-  };
 }
 
 /** Validate ordered route-to-stylesheet rules. */

@@ -23,11 +23,7 @@ import { runReview } from "../dist/review/run.js";
 import { writeReviewArtifact } from "../dist/review/write.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import type { Compilation } from "../dist/build/compile.js";
-import type {
-  ManifestScreen,
-  Manifest,
-  ManifestV3,
-} from "../dist/registry/types.js";
+import type { ManifestScreen, ManifestV5 } from "../dist/registry/types.js";
 import {
   createFixture,
   removeFixture,
@@ -99,8 +95,8 @@ test("Review classifies added, removed, and unchanged routes independently", asy
   const baseManifest = {
     entries: [{ ...detail, useCaseIds: [] }, old],
     generatedBy: "mokabook" as const,
-    legacyPages: [],
-    schemaVersion: 3 as const,
+    sourceFiles: compilation.manifest.sourceFiles,
+    schemaVersion: 5 as const,
   };
   const gitFiles = new Map<string, string>([
     ["mockups/mokabook-manifest.json", `${JSON.stringify(baseManifest)}\n`],
@@ -470,7 +466,7 @@ function fakeGit(files: ReadonlyMap<string, string>): GitClient {
 }
 
 function filesForCompilation(
-  manifest: Manifest,
+  manifest: ManifestV5,
   compilation: Compilation,
 ): Map<string, string> {
   const files = new Map<string, string>([
@@ -483,15 +479,13 @@ function filesForCompilation(
   return files;
 }
 
-function withoutDarkFragments(manifest: Manifest): ManifestV3 {
-  assert.equal(manifest.schemaVersion, 3);
-  if (manifest.schemaVersion !== 3) throw new Error("fixture must remain v3");
+function withoutDarkFragments(manifest: ManifestV5): ManifestV5 {
   return {
     ...manifest,
     entries: manifest.entries.map((entry) => {
       if (entry.kind !== "screen") return entry;
       const { darkFragments: _darkFragments, ...screen } = entry;
-      return screen as ManifestScreen;
+      return screen;
     }),
   };
 }
@@ -502,10 +496,9 @@ function withHomeIgnoredRegions(
   ids: readonly string[] = ["nav"],
 ): Compilation {
   const home = compilation.manifest.entries.find(
-    (entry): entry is ManifestScreen =>
-      entry.kind === "screen" && entry.id === "home",
+    (entry) => entry.kind === "screen" && entry.id === "home",
   );
-  if (!home) throw new Error("missing home screen");
+  if (home?.kind !== "screen") throw new Error("missing home screen");
   const outputs = new Map(compilation.outputs);
   for (const fragment of screenFragments(home)) {
     const content = outputs.get(fragment);

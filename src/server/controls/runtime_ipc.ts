@@ -1,12 +1,12 @@
 /** Last-good runtime transfer over the watched child's private IPC channel. */
 import type { ComponentRuntime } from "../../build/component_runtime.js";
 import type { ResolvedConfig } from "../../config/types.js";
-import type { Manifest } from "../../registry/types.js";
+import type { ManifestV5 } from "../../registry/types.js";
 
 /** Accepted configuration and manifest transferred before watched readiness. */
 export interface RuntimeStartupMessage {
   config: ResolvedConfig;
-  manifest: Manifest;
+  manifest: ManifestV5;
   type: "component-runtime-startup";
 }
 
@@ -44,7 +44,7 @@ export function requestComponentRuntime(): void {
   process.send?.({ type: "component-runtime-request" });
 }
 
-/** Receive prevalidated startup state without loading consumer modules again. */
+/** Receive parent-validated metadata before the child checks its source inventory. */
 export function receiveComponentRuntimeStartup(): Promise<RuntimeStartupMessage> {
   return new Promise((resolve, reject) => {
     const cleanup = (): void => {
@@ -85,7 +85,7 @@ function parseRuntimeStartupMessage(
   )
     return;
   const config = value.config as ResolvedConfig | undefined;
-  const manifest = value.manifest as Manifest | undefined;
+  const manifest = value.manifest as ManifestV5 | undefined;
   if (
     !config ||
     typeof config.configPath !== "string" ||
@@ -94,7 +94,8 @@ function parseRuntimeStartupMessage(
     typeof config.repoRoot !== "string" ||
     !manifest ||
     !Array.isArray(manifest.entries) ||
-    !Array.isArray(manifest.legacyPages)
+    manifest.schemaVersion !== 5 ||
+    !Array.isArray(manifest.sourceFiles)
   )
     return;
   return { config, manifest, type: "component-runtime-startup" };

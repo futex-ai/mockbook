@@ -4,13 +4,13 @@ import { pathToFileURL } from "node:url";
 
 import { expect, test } from "@playwright/test";
 
-import type { ManifestV4 } from "../../dist/registry/types.js";
+import type { ManifestV5 } from "../../dist/registry/types.js";
 import { repositoryRoot } from "../helpers/fixture.js";
 
 const generated = path.join(repositoryRoot, "examples/basic/generated");
 const manifest = JSON.parse(
   await fs.readFile(path.join(generated, "mokabook-manifest.json"), "utf8"),
-) as ManifestV4;
+) as ManifestV5;
 const fileUrl = (route: string) =>
   pathToFileURL(path.join(generated, route)).href;
 

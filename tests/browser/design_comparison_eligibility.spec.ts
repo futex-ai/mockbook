@@ -4,13 +4,13 @@ import { pathToFileURL } from "node:url";
 
 import { expect, test } from "@playwright/test";
 
-import type { ManifestV3 } from "../../dist/registry/types.js";
+import type { ManifestV5 } from "../../dist/registry/types.js";
 import { repositoryRoot } from "../helpers/fixture.js";
 
 const directory = path.join(repositoryRoot, "examples/basic/generated");
 const manifest = JSON.parse(
   fs.readFileSync(path.join(directory, "mokabook-manifest.json"), "utf8"),
-) as ManifestV3;
+) as ManifestV5;
 const changedDesigns = new Set([
   "design-changes-current",
   "design-changes-overlay",
@@ -19,6 +19,7 @@ const changedDesigns = new Set([
   "design-review-removed",
   "design-review-difference",
   "design-review-dark-scheme",
+  "design-publication-changes",
 ]);
 
 for (const viewport of ["desktop", "mobile"] as const) {
@@ -35,10 +36,11 @@ for (const viewport of ["desktop", "mobile"] as const) {
       await page.goto(
         pathToFileURL(path.join(directory, entry.fragments[viewport])).href,
       );
-      const componentChange = await page
-        .locator(".ce-change-status:not(.ce-unmodified)")
-        .count();
-      const expected = changedDesigns.has(entry.id) || componentChange > 0;
+      const componentChange =
+        entry.route.startsWith("design/components/") &&
+        (await page.locator(".ce-change-status:not(.ce-unmodified)").count()) >
+          0;
+      const expected = changedDesigns.has(entry.id) || componentChange;
       const toolbar = page.locator(".mbk-cmp-toolbar");
       await expect(toolbar, entry.id).toHaveCount(expected ? 1 : 0);
       if (expected) {

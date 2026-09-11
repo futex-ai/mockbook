@@ -18,6 +18,27 @@ export interface ExportShellMetadata {
   readonly delivery: StaticDelivery;
 }
 
+/** Attach static routing only to the root of a trusted captured shell document. */
+export function markCapturedShell(
+  name: string,
+  html: string,
+  delivery: StaticDelivery,
+): string {
+  const document = parse(html, { sourceCodeLocationInfo: true });
+  const root = document.childNodes.find((node) => node.nodeName === "html");
+  if (!root || !("attrs" in root)) throw invalidShell(name);
+  const start = root.sourceCodeLocation?.startTag?.startOffset;
+  if (
+    start === undefined ||
+    html.slice(start, start + 5).toLowerCase() !== "<html" ||
+    root.attrs.some((attr) =>
+      ["data-mokabook-static", "data-mokabook-delivery"].includes(attr.name),
+    )
+  )
+    throw invalidShell(name);
+  return `${html.slice(0, start + 5)} data-mokabook-static="" ${deliveryAttribute(delivery)}${html.slice(start + 5)}`;
+}
+
 /** Require adapters to preserve the original shell-owned routing contract. */
 export function readExportShellMetadata(
   name: string,
@@ -75,12 +96,16 @@ export function stampExportShell(
   shell: ExportShellMetadata,
   deploymentId: string,
 ): string {
-  const value = JSON.stringify({ ...shell.delivery, deploymentId })
+  return `${shell.before}${deliveryAttribute({ ...shell.delivery, deploymentId })}${shell.after}`;
+}
+
+function deliveryAttribute(delivery: StaticDelivery): string {
+  const value = JSON.stringify(delivery)
     .replaceAll("&", "&amp;")
     .replaceAll('"', "&quot;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
-  return `${shell.before}data-mokabook-delivery="${value}"${shell.after}`;
+  return `data-mokabook-delivery="${value}"`;
 }
 
 function invalidShell(name: string, cause?: unknown) {

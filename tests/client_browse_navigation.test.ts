@@ -32,7 +32,7 @@ test("stable collection keys preserve independent disclosure across reloads", ()
 
 test("legacy label paths cannot match current disclosure keys", () => {
   assert.equal(isNavDisclosureKey("collection:example-screens"), true);
-  assert.equal(isNavDisclosureKey("legacy:archive/screens"), true);
+  assert.equal(isNavDisclosureKey("legacy:archive/screens"), false);
   assert.equal(isNavDisclosureKey("/Example/Screens"), false);
 
   const current = group("collection:example-screens", true);
@@ -41,6 +41,33 @@ test("legacy label paths cannot match current disclosure keys", () => {
   );
   preference.apply(fakeDocument(current));
   assert.equal(current.open, true);
+});
+
+test("obsolete legacy keys do not discard valid collection preferences", () => {
+  const current = group("collection:example-screens", true);
+  const other = group("collection:other", false);
+  const preference = new NavDisclosurePreference(
+    new FakeStorage(
+      JSON.stringify(["legacy:example", "collection:example-screens"]),
+    ),
+  );
+  preference.apply(fakeDocument(current, other));
+  assert.equal(current.open, false);
+  assert.equal(other.open, true);
+});
+
+test("removed pages appear only in Changes while removed screens remain in All", () => {
+  const nav = navFixture();
+  nav.glossary.setAttribute("data-removed-page", "");
+  nav.glossary.setAttribute("data-changed", "true");
+  nav.details.setAttribute("data-changed", "true");
+  applyNavVisibility(asDocument(nav.root), "preserve");
+  assert.equal(nav.glossary.hidden, true);
+  assert.equal(nav.details.hidden, false);
+  nav.changed.setAttribute("aria-pressed", "true");
+  applyNavVisibility(asDocument(nav.root), "preserve");
+  assert.equal(nav.glossary.hidden, false);
+  assert.equal(nav.details.hidden, false);
 });
 
 test("a tag term hides untagged rows and the groups they empty", () => {

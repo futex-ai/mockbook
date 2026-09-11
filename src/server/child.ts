@@ -3,7 +3,8 @@ import {
   requestComponentRuntime,
 } from "./controls/runtime_ipc.js";
 import type { ResolvedConfig } from "../config/types.js";
-import type { Manifest } from "../registry/types.js";
+import type { ManifestV5 } from "../registry/types.js";
+import { bindTimings, timeSync } from "../diagnostics/timings.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
 import { parseChildUpdateMessage } from "./update_messages.js";
@@ -16,7 +17,7 @@ export async function runServerChild(
   updateVersion: number,
   strictPort: boolean,
   retainedRuntime: boolean,
-  manifest?: Manifest,
+  manifest?: ManifestV5,
 ): Promise<void> {
   const server = await startCatalogueServer(config, {
     base,
@@ -41,13 +42,13 @@ export async function runServerChild(
 function waitForChildShutdown(
   server: Awaited<ReturnType<typeof startCatalogueServer>>,
   config: ResolvedConfig,
-  manifest?: Manifest,
+  manifest?: ManifestV5,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let closing = false;
     const cleanup = (): void => {
       process.off("disconnect", onDisconnect);
-      process.off("message", onMessage);
+      process.off("message", receive);
       process.off("SIGINT", onSignal);
       process.off("SIGTERM", onSignal);
     };
@@ -66,11 +67,13 @@ function waitForChildShutdown(
     const onMessage = (message: unknown): void => {
       const runtime = parseRuntimeMessage(message);
       if (runtime && manifest) {
-        server.replaceComponentRuntime({
-          ...runtime.runtime,
-          config,
-          manifest,
-        });
+        timeSync("runtime.attach", () =>
+          server.replaceComponentRuntime({
+            ...runtime.runtime,
+            config,
+            manifest,
+          }),
+        );
         if (runtime.version !== undefined)
           server.publishUpdate({ version: runtime.version });
       }
@@ -86,7 +89,8 @@ function waitForChildShutdown(
     const onDisconnect = (): void => void close();
     const onSignal = (): void => void close();
     process.once("disconnect", onDisconnect);
-    process.on("message", onMessage);
+    const receive = bindTimings(onMessage);
+    process.on("message", receive);
     process.once("SIGINT", onSignal);
     process.once("SIGTERM", onSignal);
   });

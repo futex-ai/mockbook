@@ -1,35 +1,70 @@
 import fs from "node:fs";
+import path from "node:path";
 
-import { isInside } from "./paths.js";
+import { isAuthoringSource } from "../build/source_inventory.js";
+import { LEGACY_MANIFEST_NAME, MANIFEST_NAME } from "../registry/manifest.js";
+import { locatePath, type FileLocation } from "./file_locations.js";
+import { projectRealPath } from "./paths.js";
 import type { ResolvedConfig } from "./types.js";
+
+/** Catalogue manifests are internal even when requested through another path. */
+export function isInternalCatalogueFile(
+  candidate: string,
+  config: ResolvedConfig,
+): boolean {
+  const internal = [MANIFEST_NAME, LEGACY_MANIFEST_NAME].map((name) =>
+    path.join(config.mockupsDir, name),
+  );
+  if (internal.includes(candidate)) return true;
+  const realCandidate = projectRealPath(candidate);
+  return internal.some(
+    (file) => fs.existsSync(file) && realCandidate === fs.realpathSync(file),
+  );
+}
+
+/** Shared denial policy for generated references, HTTP, export, and Review. */
+export function isPrivateStaticPath(
+  candidate: string,
+  config: ResolvedConfig,
+): boolean {
+  return (
+    isInternalCatalogueFile(candidate, config) ||
+    isAuthoringSource(candidate, config)
+  );
+}
+
+/** Locate a public path, retaining confined missing paths for deletion handling. */
+export function publicPathLocation(
+  candidate: string,
+  config: ResolvedConfig,
+): FileLocation | undefined {
+  try {
+    const location = locatePath(candidate, config.mockupsDir, config.repoRoot);
+    if (!location || isPrivateStaticPath(location.logicalPath, config)) return;
+    return location;
+  } catch {
+    return;
+  }
+}
+
+/** Locate a public regular file for readers that must use its validated target. */
+export function publicFileLocation(
+  candidate: string,
+  config: ResolvedConfig,
+): FileLocation | undefined {
+  const location = publicPathLocation(candidate, config);
+  try {
+    if (location && fs.statSync(location.physicalPath).isFile())
+      return location;
+  } catch {
+    return;
+  }
+}
 
 /** Return whether a path names a public regular file beneath the output root. */
 export function isPublicStaticFile(
   candidate: string,
   config: ResolvedConfig,
 ): boolean {
-  if (
-    !isInside(config.mockupsDir, candidate) ||
-    isInside(config.entriesDir, candidate) ||
-    Boolean(config.legacy && isInside(config.legacy.pagesDir, candidate))
-  ) {
-    return false;
-  }
-  try {
-    if (!fs.statSync(candidate).isFile()) return false;
-    const realRepoRoot = fs.realpathSync(config.repoRoot);
-    const realRoot = fs.realpathSync(config.mockupsDir);
-    const realCandidate = fs.realpathSync(candidate);
-    const sourceRoots = [
-      fs.realpathSync(config.entriesDir),
-      ...(config.legacy ? [fs.realpathSync(config.legacy.pagesDir)] : []),
-    ];
-    return (
-      isInside(realRepoRoot, realRoot) &&
-      isInside(realRoot, realCandidate) &&
-      !sourceRoots.some((root) => isInside(root, realCandidate))
-    );
-  } catch {
-    return false;
-  }
+  return publicFileLocation(candidate, config) !== undefined;
 }

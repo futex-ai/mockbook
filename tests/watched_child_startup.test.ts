@@ -17,17 +17,13 @@ import {
 } from "./helpers/fixture.js";
 
 test(
-  "watched child uses retained config and reports readiness before requesting its full runtime",
+  "watched child uses retained manifest and reports readiness before requesting its full runtime",
   { timeout: 10_000 },
   async (context) => {
     const fixture = await createFixture(componentEntrySource());
     const config = await loadConfig(fixture.root);
     const compilation = await compileCatalogue(config);
     await writeCompilation(compilation, config);
-    await fs.writeFile(
-      fixture.configPath,
-      "throw new Error('stale config');\n",
-    );
     await fs.writeFile(
       path.join(fixture.mockupsDir, MANIFEST_NAME),
       "invalid stale manifest\n",

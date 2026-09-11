@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 import { build, type Plugin, type PluginBuild } from "esbuild";
 
+import { graphSourceFiles } from "../build/source_inventory.js";
 import { MokabookError, errorMessage } from "../errors.js";
 import type { ResolvedConfig } from "./types.js";
 import { resolveConfig } from "./validate.js";
@@ -70,7 +71,9 @@ export async function loadConfig(
   );
   const outputPath = path.join(temporaryDir, "config.mjs");
   try {
-    await build({
+    const result = await build({
+      metafile: true,
+      preserveSymlinks: true,
       absWorkingDir: path.dirname(configPath),
       bundle: true,
       entryPoints: [configPath],
@@ -92,7 +95,13 @@ export async function loadConfig(
         `${configPath} must have a default export`,
       );
     }
-    return resolveConfig(loaded.default, configPath);
+    const config = resolveConfig(loaded.default, configPath);
+    config.configSourceFiles = graphSourceFiles(
+      result.metafile,
+      path.dirname(configPath),
+      config.repoRoot,
+    );
+    return config;
   } catch (error) {
     if (error instanceof MokabookError) throw error;
     throw new MokabookError(

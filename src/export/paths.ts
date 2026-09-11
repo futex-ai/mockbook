@@ -39,7 +39,9 @@ export function resolveExportOutput(
   const protectedFiles = [
     config.configPath,
     ...(config.renderer ? [config.renderer] : []),
-    ...(config.legacy?.components ? [config.legacy.components] : []),
+    ...(config.sourceFiles ?? []).map((name) =>
+      path.resolve(config.repoRoot, name),
+    ),
     ...config.moduleResolution.packageRoots.map((root) =>
       path.join(root, "package.json"),
     ),

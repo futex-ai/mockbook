@@ -121,7 +121,7 @@ export function CollapseIcon(props: { size?: number }) {
   );
 }
 
-/** A legacy catalogue page: a document that may hold several states. */
+/** A complete catalogue page: a document that may hold several states. */
 export function PageIcon(props: { size?: number }) {
   return (
     <IconSvg size={props.size ?? 13}>

@@ -1,5 +1,6 @@
 /** Latest-wins repository classification for a watched catalogue. */
 
+import { timeAsync, timingCounts } from "../diagnostics/timings.js";
 import type { ResolvedConfig } from "../config/types.js";
 import type { Manifest } from "../registry/types.js";
 import type {
@@ -25,10 +26,14 @@ export class WatchClassification {
     const controller = new AbortController();
     this.active = controller;
     const sequence = ++this.sequence;
-    void this.classifier
-      .read(config, manifest, base, controller.signal)
+    void timeAsync("changes.classify", () =>
+      this.classifier.read(config, manifest, base, controller.signal),
+    )
       .then((snapshot) => {
         if (this.closed || sequence !== this.sequence || !snapshot) return;
+        timingCounts("changes.publish", () => ({
+          changedRoutes: snapshot.changedRoutes?.length ?? 0,
+        }));
         this.publish(snapshot);
       })
       .catch(() => undefined)

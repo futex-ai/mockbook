@@ -9,6 +9,7 @@ let preview: PreviewFixture;
 
 test.describe.configure({ timeout: 90_000 });
 test.beforeAll(async () => {
+  test.setTimeout(90_000);
   fixture = await createPreviewComparisonFixture();
   preview = await servePreviewFixture(fixture.output);
 });

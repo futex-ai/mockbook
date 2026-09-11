@@ -9,12 +9,13 @@ Usage:
 
 Commands:
   serve    Build and serve the catalogue with on-demand diffs
-  build    Generate static HTML fragments and the version 3 manifest
+  build    Generate static HTML documents and the version 4 manifest
   check    Validate source and committed generated output without writing
   export   Build a complete static catalogue to deploy with your own host
 
 Options:
   --config <path>  Use an explicit mokabook.config file
+  --debug-timings  Report phase timings and catalogue counts to stderr
   --port <port>    Starting port; advances if occupied, 0 selects any free port
   --base <ref>     Git base ref used to find the branch point
   --out <path>     Export directory, relative to the config file (export only)

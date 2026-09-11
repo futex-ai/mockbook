@@ -57,7 +57,7 @@ link cannot also submit a form. Ordinary unmarked buttons and metadata-only
 
 The helper emits paired inert template markers around the child. After the
 consumer renderer returns, and before logical-link rewriting or compatibility
-transformation, Mokabook consumes these markers for structured and legacy
+transformation, Mokabook consumes these markers for screen and whole-document
 documents. It validates the parsed HTML structure and patches only marked
 boundaries and control tags/attributes using their original source offsets.
 It does not reserialize the whole document. Markers are an internal reserved
@@ -127,7 +127,7 @@ package change does not migrate or publish downstream consumer repositories.
 Verification covers default-anchor byte compatibility, typed and untyped API
 misuse, source-byte preservation, native/custom controls, disabled and busy
 states, ambiguity and malformed markup, target validation, light/dark and both
-viewports, legacy/custom renderers, compatibility transforms, and clean packed
+viewports, page callbacks/custom renderers, compatibility transforms, and clean packed
 ESM/NodeNext consumers. Browser checks exercise real Firna buttons, pointer and
 keyboard navigation in script-free Browse/use-case frames, focus visibility,
 disabled behavior, standalone file links, and Review snapshot links.

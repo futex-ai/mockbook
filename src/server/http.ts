@@ -1,49 +1,46 @@
 import type { ComponentRuntime } from "../build/component_runtime.js";
-import type { RenderCapability } from "../components/render_types.js";
 import { ComponentRenderService } from "./controls/service.js";
 import { handleControls, localHost } from "./controls/http.js";
-import { redirectId, renderView } from "./view_routes.js";
 import http, { type ServerResponse } from "node:http";
+import { timeAsync, timeSync } from "../diagnostics/timings.js";
 
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
-import { readManifest } from "../registry/manifest.js";
-import type { Manifest } from "../registry/types.js";
 import {
-  openEventStream,
-  serveClientModule,
-  serveFontAsset,
-  type ServedAssets,
-} from "./browser_assets.js";
-import { type ComponentChangeSnapshot } from "./component_changes.js";
+  catalogueSnapshotForConfig,
+  loadServedCatalogueSnapshot,
+  type CatalogueSnapshot,
+} from "./catalogue_snapshot.js";
+import type { ManifestV5 } from "../registry/types.js";
 import {
-  catalogueAtBaseline,
-  createCatalogue,
-  type Catalogue,
-} from "./catalogue.js";
+  ComponentChangeCache,
+  type ComponentChangeSource,
+  type ComponentChangeSnapshot,
+} from "./component_changes.js";
+import { catalogueAtBaseline } from "./catalogue.js";
 import {
   loadBrowserClientModules,
   loadBrowserNavigationModules,
   loadShellFontAssets,
 } from "./client_modules.js";
-import { homePage, notFoundPage } from "./pages.js";
+import { handleCatalogueRequest } from "./http_routes.js";
 import { listenOnAvailablePort } from "./ports.js";
-import { send } from "./respond.js";
 import { ReviewRoutes, type ServedReview } from "./review_routes.js";
-import { shellContext } from "./shell/context.js";
-import { SHELL_CSS } from "./shell/css.js";
-import { serveStatic } from "./static_routes.js";
+import { send } from "./respond.js";
 import type { CatalogueUpdate } from "./update_messages.js";
 
 /** Options for one deterministic server child. */
 export interface ServerOptions {
   base: string;
+  /** Reuse a validated startup or publication generation without rereading metadata. */
+  snapshot?: CatalogueSnapshot;
   componentRuntime?: ComponentRuntime;
   changedRoutes?: readonly string[];
   /** Precomputed component and screen evidence for the immutable generation. */
   componentChanges?: ComponentChangeSnapshot;
+  componentChangeSource?: ComponentChangeSource;
   /** Parent-validated manifest supplied to a watched server child. */
-  manifest?: Manifest;
+  manifest?: ManifestV5;
   port: number;
   /** Enables on-demand comparison JSON and isolated snapshots. */
   review?: ServedReview;
@@ -65,24 +62,50 @@ export async function startCatalogueServer(
   config: ResolvedConfig,
   options: ServerOptions,
 ): Promise<RunningServer> {
-  const manifest = options.manifest ?? readManifest(config);
+  const snapshot =
+    options.snapshot ??
+    (await loadServedCatalogueSnapshot(
+      config,
+      options.manifest ||
+        options.componentChanges ||
+        options.componentChangeSource
+        ? undefined
+        : options.review
+          ? options.base
+          : undefined,
+      options.manifest,
+    ));
+  const { catalogue, changes } = catalogueSnapshotForConfig(snapshot, config);
+  const manifest = catalogue.manifest;
   let controls = options.componentRuntime
     ? new ComponentRenderService(options.componentRuntime)
     : undefined;
-  const catalogue = createCatalogue(manifest);
-  let activeCatalogue = options.componentChanges
-    ? catalogueAtBaseline(manifest, options.componentChanges.baseline)
-    : catalogue;
-  const clientModules = loadBrowserClientModules();
-  const navigationModules = loadBrowserNavigationModules();
-  const fontAssets = loadShellFontAssets();
+  const clientModules = timeSync("server.client-modules", () =>
+    loadBrowserClientModules(),
+  );
+  const navigationModules = timeSync("server.navigation-modules", () =>
+    loadBrowserNavigationModules(),
+  );
+  const fontAssets = timeSync("server.fonts", () => loadShellFontAssets());
   const streams = new Set<ServerResponse>();
   const reviewRoutes = options.review
     ? new ReviewRoutes(options.review)
     : undefined;
-  let componentChanges = options.componentChanges;
+  let componentChanges =
+    options.componentChanges ??
+    snapshot.componentChanges ??
+    (options.review && options.componentChangeSource
+      ? await new ComponentChangeCache(options.componentChangeSource).read(
+          options.updateVersion ?? 1,
+        )
+      : undefined);
+  let activeCatalogue = componentChanges
+    ? catalogueAtBaseline(manifest, componentChanges.baseline)
+    : catalogue;
   let changedRoutes =
-    options.changedRoutes ?? options.componentChanges?.changedRoutes;
+    changes?.changedRoutes ??
+    options.changedRoutes ??
+    componentChanges?.changedRoutes;
   let updateVersion = options.updateVersion ?? 1;
   const server = http.createServer((request, response) => {
     if (controls && !localHost(request))
@@ -99,7 +122,7 @@ export async function startCatalogueServer(
     }
     const requestedVersion = updateVersion;
     const requestedChanges = changedRoutes;
-    handleRequest(
+    handleCatalogueRequest(
       request.url ?? "/",
       request.method ?? "GET",
       response,
@@ -115,10 +138,8 @@ export async function startCatalogueServer(
       controls?.capability(),
     );
   });
-  await listenOnAvailablePort(
-    server,
-    options.port,
-    options.strictPort ?? false,
+  await timeAsync("server.listen", () =>
+    listenOnAvailablePort(server, options.port, options.strictPort ?? false),
   );
   const address = server.address();
   if (!address || typeof address === "string") {
@@ -169,123 +190,4 @@ export async function startCatalogueServer(
     },
     url: `http://127.0.0.1:${address.port}`,
   };
-}
-
-function handleRequest(
-  rawUrl: string,
-  method: string,
-  response: ServerResponse,
-  catalogue: Catalogue,
-  config: ResolvedConfig,
-  base: string,
-  currentChangedRoutes: () => readonly string[] | undefined,
-  streams: Set<ServerResponse>,
-  assets: ServedAssets,
-  currentVersion: () => number,
-  reviewRoutes?: ReviewRoutes,
-  componentChanges?: ComponentChangeSnapshot,
-  renderCapability?: RenderCapability,
-): void {
-  if (method !== "GET" && method !== "HEAD")
-    return send(response, 405, "text/plain", "Method not allowed", method);
-  const url = new URL(rawUrl, "http://mokabook.invalid");
-  const requestVersion = currentVersion();
-  const changed = componentChanges?.result
-    ? componentChanges.result.changes.map(
-        (entry) => (entry.after ?? entry.before)!.route,
-      )
-    : currentChangedRoutes();
-  const context = shellContext(
-    base,
-    changed
-      ? [
-          ...new Set([
-            ...changed,
-            ...[
-              ...catalogue.removedScreens,
-              ...catalogue.removedComponents,
-            ].map((entry) => entry.route),
-          ]),
-        ]
-      : undefined,
-    requestVersion,
-  );
-  if (renderCapability) context.renderCapability = renderCapability;
-  context.comparisons = reviewRoutes !== undefined;
-  if (componentChanges) context.componentChanges = componentChanges;
-  if (url.pathname === "/")
-    return send(
-      response,
-      200,
-      "text/html",
-      homePage(catalogue, context),
-      method,
-    );
-  if (reviewRoutes && url.pathname.startsWith("/__mokabook/diffs/")) {
-    void reviewRoutes.handle(url, response, method);
-    return;
-  }
-  if (url.pathname === "/__mokabook/shell.css")
-    return send(response, 200, "text/css", SHELL_CSS, method);
-  if (url.pathname === "/__mokabook/events")
-    return openEventStream(response, streams, requestVersion, method);
-  if (url.pathname.startsWith("/__mokabook/client/")) {
-    return serveClientModule(
-      response,
-      url.pathname.slice("/__mokabook/client/".length),
-      assets.clientModules,
-      method,
-    );
-  }
-  if (url.pathname.startsWith("/__mokabook/navigation/")) {
-    return serveClientModule(
-      response,
-      url.pathname.slice("/__mokabook/navigation/".length),
-      assets.navigationModules,
-      method,
-    );
-  }
-  if (url.pathname.startsWith("/__mokabook/fonts/")) {
-    return serveFontAsset(
-      response,
-      url.pathname.slice("/__mokabook/fonts/".length),
-      assets.fontAssets,
-      method,
-    );
-  }
-  if (url.pathname.startsWith("/id/"))
-    return redirectId(
-      response,
-      url,
-      url.pathname.slice(4),
-      catalogue,
-      config,
-      context,
-      method,
-    );
-  if (url.pathname.startsWith("/view/"))
-    return renderView(
-      response,
-      url,
-      url.pathname.slice(6),
-      catalogue,
-      config,
-      context,
-      method,
-    );
-  if (url.pathname.startsWith("/static/"))
-    return serveStatic(
-      response,
-      url.pathname.slice(8),
-      config,
-      catalogue,
-      method,
-    );
-  return send(
-    response,
-    404,
-    "text/html",
-    notFoundPage(url.pathname, catalogue, context),
-    method,
-  );
 }

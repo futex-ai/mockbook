@@ -12,12 +12,12 @@ import { PhoneStatusBar } from "./status_bar.js";
 export function PhoneFrame(props: { children?: ReactNode }) {
   return (
     <div className="phone-frame">
-      <div className="phone-notch" />
+      <div className="phone-notch" aria-hidden="true" />
       <div className="phone-screen">
         <PhoneStatusBar />
         {props.children}
       </div>
-      <div className="phone-home" />
+      <div className="phone-home" aria-hidden="true" />
     </div>
   );
 }

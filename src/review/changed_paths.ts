@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  isInside,
   isSafeRepositoryPath,
   projectRealPath,
   toPosixPath,
@@ -35,11 +36,11 @@ export async function reviewChangedPaths(
 }
 
 function outputPaths(repoRoot: string, outDir: string): string[] {
+  const realRepoRoot = fs.realpathSync(repoRoot);
+  const lexicalRoot = isInside(repoRoot, outDir) ? repoRoot : realRepoRoot;
   const paths = [
-    toPosixPath(path.relative(repoRoot, outDir)),
-    toPosixPath(
-      path.relative(fs.realpathSync(repoRoot), projectRealPath(outDir)),
-    ),
+    toPosixPath(path.relative(lexicalRoot, outDir)),
+    toPosixPath(path.relative(realRepoRoot, projectRealPath(outDir))),
   ];
   for (const candidate of paths) {
     if (!isSafeRepositoryPath(candidate)) {

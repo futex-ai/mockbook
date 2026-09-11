@@ -1,7 +1,7 @@
+import { timeAsync, timeSync, timingCounts } from "../diagnostics/timings.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { transformCompatibilityDocuments } from "../compatibility/transform.js";
 import { MokabookError } from "../errors.js";
-import { renderLegacyPages } from "../legacy/pages.js";
 import {
   createManifest,
   fragmentRoute,
@@ -10,7 +10,7 @@ import {
   serializeManifest,
 } from "../registry/manifest.js";
 import { prepareRegistry } from "../registry/prepare.js";
-import type { ManifestLegacyPage, Manifest } from "../registry/types.js";
+import type { ManifestV5 } from "../registry/types.js";
 import type { ArtifactView } from "../registry/views.js";
 import { effectiveColorSchemes, VIEWPORTS } from "../registry/views.js";
 import { normalizeSingleDocument } from "../review/ignore.js";
@@ -18,21 +18,18 @@ import { validateHtmlLinks } from "./html_links.js";
 import { validateLogicalFragments } from "./logical_records.js";
 import { rememberRuntime } from "./component_runtime.js";
 import { loadConsumerGraph } from "./load_graph.js";
-import {
-  generatedHeader,
-  validateGeneratedOwnershipHeaders,
-} from "./ownership.js";
+import { validateGeneratedOwnershipHeaders } from "./ownership.js";
 import { validateGeneratedOutputPaths } from "./output_paths.js";
 import type { ComponentViewRecord } from "../components/manifest_types.js";
 import { componentFragmentRoute } from "../components/paths.js";
 import { rebaseStyleOwnership } from "../components/style_ownership.js";
 import { validateComponentResources } from "../components/output_validation.js";
 import { validateComponentRanges } from "../components/ranges.js";
-import { addOutput, renderFragments } from "./render.js";
+import { renderFragments } from "./render.js";
 
 /** Complete in-memory static compilation result. */
 export interface Compilation {
-  manifest: Manifest;
+  manifest: ManifestV5;
   outputs: ReadonlyMap<string, string>;
 }
 
@@ -40,19 +37,36 @@ export interface Compilation {
 export async function compileCatalogue(
   config: ResolvedConfig,
 ): Promise<Compilation> {
+  return timeAsync("compile", () => compileMeasured(config));
+}
+
+async function compileMeasured(config: ResolvedConfig): Promise<Compilation> {
   const graph = await loadConsumerGraph(config);
-  const registry = prepareRegistry(graph.definitions, config);
+  config = { ...config, sourceFiles: graph.sourceFiles };
+  const registry = timeSync("registry.prepare", () =>
+    prepareRegistry(graph.definitions, config),
+  );
+  timingCounts("catalogue", () => ({
+    entries: registry.entries.length,
+    ...Object.fromEntries(
+      ["collection", "screen", "component", "use-case", "page"].map((kind) => [
+        kind,
+        registry.entries.filter((entry) => entry.kind === kind).length,
+      ]),
+    ),
+  }));
   const fragmentViews = new Map<string, ArtifactView>();
   const componentViews = new Map<string, ComponentViewRecord>();
-  const outputs = renderFragments(
-    registry.entries,
-    graph.renderer,
-    config,
-    fragmentViews,
-    graph.renderWithComponents,
-    componentViews,
+  const outputs = timeSync("render", () =>
+    renderFragments(
+      registry.entries,
+      graph.renderer,
+      config,
+      fragmentViews,
+      graph.renderWithComponents,
+      componentViews,
+    ),
   );
-  const legacy = renderLegacyPages(config, graph);
   const routedEntries = new Set(
     registry.entries.flatMap((entry) =>
       entry.kind === "collection" ? [] : [entry.route],
@@ -60,6 +74,8 @@ export async function compileCatalogue(
   );
   const generatedOwners = new Map<string, string>();
   for (const entry of registry.entries) {
+    if (entry.kind === "page")
+      generatedOwners.set(entry.route, entry.sourceRelativePath);
     if (entry.kind !== "screen" && entry.kind !== "component") continue;
     for (const variantId of entry.kind === "component"
       ? entry.variants.map((variant) => variant.id)
@@ -84,21 +100,14 @@ export async function compileCatalogue(
       }
     }
   }
-  const fragmentRoutes = new Set(generatedOwners.keys());
-  for (const page of legacy) {
-    if (routedEntries.has(page.route) || fragmentRoutes.has(page.route)) {
-      throw new MokabookError(
-        "build-invalid",
-        `legacy route collides with registry output: ${page.route}`,
-      );
-    }
-    addOutput(
-      outputs,
-      page.route,
-      `${generatedHeader(page.sourceRelativePath)}${page.content}`,
-    );
-    generatedOwners.set(page.route, page.sourceRelativePath);
-  }
+  const fragmentRoutes = new Set(
+    [...generatedOwners.keys()].filter(
+      (route) =>
+        !registry.entries.some(
+          (entry) => entry.kind === "page" && entry.route === route,
+        ),
+    ),
+  );
   for (const route of routedEntries) {
     if (fragmentRoutes.has(route)) {
       throw new MokabookError(
@@ -108,46 +117,76 @@ export async function compileCatalogue(
     }
   }
   const beforeTransform = new Map(outputs);
-  const logicalRecords = transformCompatibilityDocuments(
-    outputs,
-    registry.entries,
-    config,
-    graph,
-    fragmentViews,
+  const logicalRecords = timeSync("html.compatibility", () =>
+    transformCompatibilityDocuments(
+      outputs,
+      registry.entries,
+      config,
+      graph,
+      fragmentViews,
+    ),
   );
-  for (const [route, view] of componentViews) {
-    const final = outputs.get(route)!;
-    validateComponentRanges(final, view.ranges);
-    componentViews.set(route, {
-      ...view,
-      styles: rebaseStyleOwnership(
-        beforeTransform.get(route)!,
-        final,
-        view.styles,
-      ),
-    });
-  }
-  validateGeneratedOwnershipHeaders(outputs, generatedOwners);
-  validateLogicalFragments(outputs, logicalRecords, registry.entries, config);
-  for (const [route, content] of outputs) {
-    normalizeSingleDocument(content, route);
-  }
-  const legacyManifest: ManifestLegacyPage[] = legacy.map((page) => ({
-    route: page.route,
-    sourcePath: page.sourceRelativePath,
-  }));
-  const manifest = createManifest(
-    registry.entries,
-    legacyManifest,
-    config.colorSchemes,
-    componentViews,
+  timeSync("components.validate-metadata", () => {
+    for (const [route, view] of componentViews) {
+      const final = outputs.get(route)!;
+      validateComponentRanges(final, view.ranges);
+      componentViews.set(route, {
+        ...view,
+        styles: rebaseStyleOwnership(
+          beforeTransform.get(route)!,
+          final,
+          view.styles,
+        ),
+      });
+    }
+  });
+  timeSync("html.ownership", () =>
+    validateGeneratedOwnershipHeaders(outputs, generatedOwners),
   );
-  parseManifest(manifest);
-  validateComponentResources(componentViews, config);
-  outputs.set(MANIFEST_NAME, serializeManifest(manifest));
-  validateHtmlLinks(outputs, config);
-  validateGeneratedOutputPaths(outputs.keys(), config);
+  timeSync("html.logical-links", () =>
+    validateLogicalFragments(outputs, logicalRecords, registry.entries, config),
+  );
+  timeSync("html.ignore-rules", () => {
+    for (const [route, content] of outputs) {
+      normalizeSingleDocument(content, route);
+    }
+  });
+  const manifest = timeSync("manifest.create", () =>
+    createManifest(
+      registry.entries,
+      graph.sourceFiles,
+      config.colorSchemes,
+      componentViews,
+    ),
+  );
+  timeSync("manifest.validate", () => parseManifest(manifest));
+  timeSync("components.validate-resources", () =>
+    validateComponentResources(componentViews, config),
+  );
+  timeSync("manifest.serialize", () =>
+    outputs.set(MANIFEST_NAME, serializeManifest(manifest)),
+  );
+  timeSync("html.links-and-resources", () =>
+    validateHtmlLinks(outputs, config),
+  );
+  timeSync("output.paths", () =>
+    validateGeneratedOutputPaths(outputs.keys(), config),
+  );
   const compilation = { manifest, outputs };
-  rememberRuntime(compilation, graph, config);
+  timeSync("runtime.retain", () => rememberRuntime(compilation, graph, config));
+  timingCounts("output", () => ({
+    files: outputs.size,
+    views: fragmentViews.size,
+    componentViews: componentViews.size,
+    bytes: [...outputs.values()].reduce(
+      (total, content) => total + Buffer.byteLength(content),
+      0,
+    ),
+    manifestBytes: Buffer.byteLength(outputs.get(MANIFEST_NAME)!),
+    instances: [...componentViews.values()].reduce(
+      (total, view) => total + view.instances.length,
+      0,
+    ),
+  }));
   return compilation;
 }

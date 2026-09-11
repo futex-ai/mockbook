@@ -21,8 +21,7 @@ import { validEntrySource } from "./helpers/fixture.js";
 test("component metadata reuses a precomputed catalogue hierarchy", async (t) => {
   const fixture = await componentReviewFixture(t, (source) => source);
   const manifest = fixture.after.manifest;
-  assert.equal(manifest.schemaVersion, 4);
-  if (manifest.schemaVersion !== 4) return;
+  assert.equal(manifest.schemaVersion, 5);
   let traversals = 0;
   const entries = new Proxy(manifest.entries, {
     get(target, property, receiver) {
@@ -43,7 +42,8 @@ test("component metadata reuses a precomputed catalogue hierarchy", async (t) =>
   ) => string;
 
   for (const entry of manifest.entries) {
-    if (entry.kind !== "collection") project(entry, tracked, hierarchy);
+    if (entry.kind !== "collection" && entry.kind !== "page")
+      project(entry, tracked, hierarchy);
   }
 
   assert.equal(traversals, 0);
@@ -52,8 +52,7 @@ test("component metadata reuses a precomputed catalogue hierarchy", async (t) =>
 test("component dependency ownership is indexed once per changed path", async (t) => {
   const fixture = await componentReviewFixture(t, (source) => source);
   const sourceManifest = fixture.after.manifest;
-  assert.equal(sourceManifest.schemaVersion, 4);
-  if (sourceManifest.schemaVersion !== 4) return;
+  assert.equal(sourceManifest.schemaVersion, 5);
   let ownershipReads = 0;
   const entries = sourceManifest.entries.map((entry) =>
     entry.kind === "component"
@@ -85,8 +84,7 @@ test("component dependency ownership is indexed once per changed path", async (t
 test("component views validate each retained document range index once", async (t) => {
   const fixture = await componentReviewFixture(t, (source) => source);
   const screen = fixture.after.manifest.entries.find(
-    (entry): entry is Extract<RoutedEntry, { kind: "screen" }> =>
-      entry.kind === "screen",
+    (entry) => entry.kind === "screen",
   );
   assert.ok(screen);
   const view = generatedViews(screen)[0];

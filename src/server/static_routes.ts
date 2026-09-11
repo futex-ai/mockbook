@@ -5,7 +5,7 @@ import type { ServerResponse } from "node:http";
 import path from "node:path";
 
 import { adaptBrowseDocument } from "../browse/document_adapter.js";
-import { isPublicStaticFile } from "../config/public_files.js";
+import { publicFileLocation } from "../config/public_files.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { errorMessage } from "../errors.js";
 import type { Catalogue } from "./catalogue.js";
@@ -24,12 +24,13 @@ export function serveStatic(
     return send(response, 400, "text/plain", "Invalid static path", method);
   }
   const candidate = path.resolve(config.mockupsDir, relative);
-  if (!isPublicStaticFile(candidate, config)) {
+  const location = publicFileLocation(candidate, config);
+  if (!location) {
     return send(response, 404, "text/plain", "Not found", method);
   }
   let content: Buffer;
   try {
-    content = fs.readFileSync(candidate);
+    content = fs.readFileSync(location.physicalPath);
   } catch {
     return send(response, 404, "text/plain", "Not found", method);
   }

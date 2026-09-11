@@ -23,7 +23,7 @@ async function compile(
 
 test("component registration emits deterministic variants and actual per-view ownership", async (t) => {
   const result = await compile(t);
-  assert.equal(result.manifest.schemaVersion, 4);
+  assert.equal(result.manifest.schemaVersion, 5);
   const action = result.manifest.entries.find((entry) => entry.id === "action");
   assert.ok(action?.kind === "component");
   assert.equal(

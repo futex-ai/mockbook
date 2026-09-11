@@ -12,10 +12,12 @@ import type { ResolvedConfig } from "../dist/config/types.js";
 import type { CatalogueServerFactory } from "../dist/server/factory.js";
 import type { RunningServer, ServerOptions } from "../dist/server/http.js";
 import { serve } from "../dist/server/serve.js";
+import type {
+  ChildFactory,
+  ChildHandle,
+} from "../dist/server/child_process.js";
 import {
   ReadyProcessSupervisor,
-  type ChildFactory,
-  type ChildHandle,
   type ProcessSupervisor,
   type ProcessSupervisorFactory,
 } from "../dist/server/supervisor.js";
@@ -125,6 +127,8 @@ class FakeChild implements ChildHandle {
   forceKill(): void {
     this.exit(null);
   }
+
+  onDisconnect(_callback: () => void): void {}
 
   onError(callback: (error: Error) => void): void {
     this.errorCallbacks.push(callback);

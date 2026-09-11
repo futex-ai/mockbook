@@ -1,17 +1,19 @@
 # Watched Catalogue Development
 
 `mokabook serve` watches by default; `--no-watch` serves one deterministic
-snapshot. Every catalogue shell loads the package-owned browser client, which connects to
+snapshot. Every development catalogue shell loads the package-owned browser client, which connects to
 the versioned event stream and reloads its current durable URL after a higher
 version arrives. Snapshot panes do not run this client. Watch classification
-derives from resolved config and the resources referenced by generated output:
+derives from resolved config, both source graphs, and the resources referenced
+by generated output:
 
-- the discovered or explicit config file reloads configuration, generated
+- the config file and its transitive authoring imports reload configuration, generated
   output, watch targets, and the child;
-- entry/page/renderer inputs rebuild generated output;
+- entry/page/renderer/transformer imports rebuild generated output, including
+  imported bytes handled by asset loaders;
 - an input shared with shell metadata rebuilds before restarting the child;
 - configured stylesheets and referenced local CSS, fonts, images, and other
-  resources reload the browser without rebuilding;
+  resources used only through public URLs reload the browser without rebuilding;
 - header-proven generated output plus `.git`, `.context`, `node_modules`,
   `dist`, `target`, coverage, browser-test output, comparison output, and Mokabook
   transaction trees are pruned from broad watches and classify as ignored;
@@ -54,24 +56,31 @@ traversal. Active transaction trees and the initialized internal reservation
 namespace remain pruned. Unowned files still make subsequent export replacement
 fail; watch classification does not grant permission to overwrite them.
 
-Source/config watchers become ready before initial compilation begins. Resource
-watches are discovered from the candidate output and become ready before it is
-written. Discovery repeats after readiness to capture newly introduced references
-during watcher attachment. Notifications during generation and child startup are
-buffered. A child receives the parent-validated catalogue and binds before
+The input graphs are resolved before the source/config watcher is constructed.
+It becomes ready before initial compilation; import changes replace its watch
+set using the same readiness and recovery rules as configuration adoption.
+Resource watches are discovered from candidate output and become ready before
+it is written. Discovery repeats after readiness to capture newly introduced
+references during watcher attachment. Notifications during generation and child
+startup are buffered. A child receives the parent-validated catalogue, validates
+its source inventory, and binds before
 readiness. Initial startup tries a requested concrete port and then each higher
 port in order when the address is occupied; port `0` delegates selection to the
 operating system. The resolved port remains stable across child restarts, which
 bind strictly rather than changing the published URL. Exhausting the valid port
 range or encountering another bind error exits non-zero without leaking
-watchers. An unexpected child failure after readiness reports its diagnostic,
-clears the dead process, and enqueues a restart through the same serialized
-action queue used for authored changes.
+watchers. An unexpected child failure after readiness reports its diagnostic
+once, starts cleanup if the process remains alive, and enqueues a restart through
+the same serialized action queue used for authored changes. The supervisor
+retains ownership until terminal confirmation; a replacement cannot bypass an
+in-progress cleanup or contend with the failed child's still-bound port.
 
 The supervisor allows sixty seconds for the child to receive the accepted
 serializable config and validated manifest, construct its catalogue indexes, and
-bind. This startup transfer avoids loading and deeply validating the large
-manifest file a second time. The child requests only the remaining retained
+bind. This startup transfer avoids rereading the large manifest file. The child
+still validates the transferred metadata and re-resolves the config and consumer
+input graphs to enforce source-inventory freshness before binding. These checks
+are visible separately with `--debug-timings`. The child requests only the remaining retained
 renderer and generated-file set afterward; that response omits the config,
 manifest object, and serialized manifest file already supplied or represented.
 Attaching this runtime reserves and publishes a higher update version so an
@@ -97,6 +106,8 @@ Resource watches coalesce file and entry-replacement notifications and replace
 their observers when validity changes, so repairing a dangling alias as a regular
 file also restores subsequent edits. Unnamed raw events and unrelated generated
 entries cannot broaden the resource watch set.
+Generated-output ownership checks return false for unresolvable paths, so a
+temporarily dangling resource remains observable and can recover after repair.
 
 Rebuilds are debounced and transactional. A failed rebuild keeps the last-good
 server and output, reports the error, and waits for another authored change. A
@@ -171,5 +182,34 @@ so an abruptly terminated parent cannot leave a listening orphan. Parent-driven
 shutdown first requests graceful IPC closure, then sends SIGTERM and SIGKILL at
 bounded intervals when necessary; the supervisor does not finish closing until
 the child exit notification arrives.
+
+Each spawned child owns one readiness result, a terminal result registered from
+creation, and one shared cleanup operation. Readiness timeout (15 seconds),
+pre-ready errors, post-ready errors, IPC disconnection, explicit close, and restart all use that
+operation. Startup reports its original failure only after cleanup confirms the
+child has stopped. A ready message followed by failure before startup resolves
+cannot report successful startup. Close cancels pending readiness; later ready
+messages and updates are ignored. Concurrent close/restart calls share cleanup,
+and a separate start while the child is still owned fails without spawning.
+
+The native handle observes IPC disconnection from creation and retains that
+event for late subscribers. Disconnection while waiting for readiness or while
+serving starts the same cleanup immediately, without waiting for another update.
+It reports one unexpected failure only after successful startup, so the watched
+action queue can recover on the retained port. Transport loss never confirms
+process exit: even a disconnected child stays owned through bounded escalation
+and actual terminal confirmation. A disconnection during intentional shutdown
+or after exit does not create a failure or duplicate recovery. An earlier startup
+error retains precedence over a later disconnect. Tests include a real HTTP
+child that disconnects itself, ignores SIGTERM, and is force-killed before its
+replacement resumes receiving updates on the same port.
+
+Terminal observation remains available after exit, including a failed native
+spawn that emits `close` without `exit`. Cleanup for an already-terminal child
+does not signal it or wait for another event. A failed IPC shutdown request or
+signal cannot release ownership or skip the next escalation stage. All timers
+are cancelled on terminal confirmation. Tests cover these event orders with
+controlled children and prove real server termination and port reuse after an
+injected transport failure.
 
 See [the catalogue runtime](./mokabook-runtime.md) and [Changes](./mokabook-changes.md).

@@ -14,11 +14,28 @@ export interface PreviewFixture {
 }
 
 /** Build the static artifact and serve it with query-preserving Pages routes. */
-export async function startPreviewFixture(): Promise<PreviewFixture> {
-  await execute("npm", ["run", "preview:build"], { cwd: repositoryRoot });
-  return await servePreviewFixture(
-    path.join(repositoryRoot, ".context/mokabook-preview"),
+export async function startPreviewFixture(
+  includeChanges = false,
+): Promise<PreviewFixture> {
+  const output = path.join(
+    repositoryRoot,
+    includeChanges
+      ? ".context/mokabook-preview-changes"
+      : ".context/mokabook-preview",
   );
+  await execute(
+    "npm",
+    [
+      "run",
+      "preview:build",
+      "--",
+      "--out",
+      output,
+      ...(includeChanges ? ["--include-changes"] : []),
+    ],
+    { cwd: repositoryRoot },
+  );
+  return await servePreviewFixture(output);
 }
 
 /** Serve an already-published fixture through the real Pages routing runtime. */
@@ -39,6 +56,8 @@ export async function servePreviewFixture(
       "127.0.0.1",
       "--port",
       String(port),
+      "--inspector-port",
+      "0",
     ],
     { cwd: repositoryRoot, stdio: ["ignore", "pipe", "pipe"] },
   );

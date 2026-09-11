@@ -43,6 +43,8 @@ Each view calls `useDesignStyle(slug)` when it renders visible owned markup.
 `style_files.ts` supplies the ordered candidate pool to the example configuration.
 The shared preview layout reserves intrinsic mobile widths so full-size phones
 cannot overlap desktop frames when Both is selected.
+The phone notch and home pill are decorative and ignore pointer events, so
+they cannot intercept interactions with the caller-owned screen below them.
 The configuration orders shared base styles first, requested component sheets
 next, then context/layout overrides. Keep this explicit order: equal-specificity
 mobile rules must not override bounded workspace scrolling.
@@ -95,3 +97,7 @@ allowance does not change any server readiness deadline.
 
 See the [adoption contract](../../../../../docs/protocol/mokabook-design-components.md)
 and [inventory](../../../../../docs/protocol/mokabook-design-component-library.md).
+
+Page artboards compose the shared inspector and metadata rows. An inspector tab
+may name an authored destination when a static scenario has separate open and
+closed artboards; ordinary tabs continue using native disclosure behavior.

@@ -11,6 +11,7 @@ export function checkCompilation(
   compilation: Compilation,
   config: ResolvedConfig,
 ): void {
+  config = { ...config, sourceFiles: compilation.manifest.sourceFiles };
   const missing: string[] = [];
   const stale: string[] = [];
   for (const [route, expected] of compilation.outputs) {

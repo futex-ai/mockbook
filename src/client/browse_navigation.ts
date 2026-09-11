@@ -8,12 +8,12 @@ export interface NavPreferenceStorage {
 
 const NAV_DISCLOSURE_KEY = "mokabook:nav-disclosure:v2";
 
-/** Whether a value identifies a current structured or legacy nav group. */
+/** Whether a value identifies a current collection nav group. */
 export function isNavDisclosureKey(value: string): boolean {
-  return value.startsWith("collection:") || value.startsWith("legacy:");
+  return value.startsWith("collection:");
 }
 
-/** Remember closed groups by stable collection id or legacy route directory. */
+/** Remember closed groups by stable collection id. */
 export class NavDisclosurePreference {
   readonly #storage: NavPreferenceStorage | undefined;
   #closed: ReadonlySet<string> | undefined;
@@ -53,13 +53,11 @@ export class NavDisclosurePreference {
       const parsed: unknown = JSON.parse(value);
       if (
         !Array.isArray(parsed) ||
-        !parsed.every(
-          (item) => typeof item === "string" && isNavDisclosureKey(item),
-        )
+        !parsed.every((item) => typeof item === "string")
       ) {
         return undefined;
       }
-      return new Set(parsed);
+      return new Set(parsed.filter(isNavDisclosureKey));
     } catch {
       return undefined;
     }

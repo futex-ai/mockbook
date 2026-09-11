@@ -64,6 +64,18 @@ test("preview workflow deploys main and same-repository pull requests", async ()
   assert.match(source, /branch="pr-\$\{\{/);
   assert.match(source, /Mokabook preview/);
   assert.match(source, /deployment_trigger\.metadata\.branch/);
+  assert.equal(
+    deployMain.steps.find((step) =>
+      step.run?.startsWith("npm run preview:build"),
+    )?.run,
+    "npm run preview:build",
+  );
+  assert.equal(
+    deployPullRequest.steps.find((step) =>
+      step.run?.startsWith("npm run preview:build"),
+    )?.run,
+    "npm run preview:build -- --include-changes --base origin/main",
+  );
   assertFullHistoryCheckout(deployMain);
   assertFullHistoryCheckout(deployPullRequest);
   assertPinnedActions(workflow);

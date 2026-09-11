@@ -3,29 +3,28 @@ import path from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-import { loadConfig } from "../../dist/config/load.js";
 import { exportCatalogue } from "../../dist/export/run.js";
+import { createExampleBaseline } from "../helpers/example_baseline.js";
 import { repositoryRoot } from "../helpers/fixture.js";
 import { serveStaticFiles } from "../helpers/static_server.js";
 import { chooseViewport } from "./workspace_actions.js";
 
 let output: string;
+let root: string;
 let server: Awaited<ReturnType<typeof serveStaticFiles>>;
 test.beforeAll(async () => {
   test.setTimeout(180_000);
-  output = await fs.promises.mkdtemp(
+  root = await fs.promises.mkdtemp(
     path.join(repositoryRoot, ".context/mokabook-example-export-"),
   );
-  const config = await loadConfig(
-    repositoryRoot,
-    "examples/basic/mokabook.config.ts",
-  );
+  const config = await createExampleBaseline(root);
+  output = path.join(root, "site");
   await exportCatalogue(config, { base: "HEAD", outDir: output });
   server = await serveStaticFiles(output);
 });
 test.afterAll(async () => {
   await server?.close();
-  if (output) await fs.promises.rm(output, { recursive: true, force: true });
+  if (root) await fs.promises.rm(root, { recursive: true, force: true });
 });
 
 test("the owning example stays usable when HEAD is the unchanged baseline", async ({

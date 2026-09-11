@@ -4,10 +4,10 @@ import test from "node:test";
 import type {
   ManifestCollection,
   ManifestEntry,
-  ManifestLegacyPage,
+  ManifestPage,
   ManifestScreen,
   ManifestUseCase,
-  ManifestV3,
+  ManifestV5,
 } from "../dist/registry/types.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
 import {
@@ -27,7 +27,7 @@ test("duplicate collection titles retain independent stable identities", () => {
       screen("beta-screen", "Beta screen"),
     ]),
   );
-  const groups = buildNavTree(catalogue.hierarchy, []);
+  const groups = buildNavTree(catalogue.hierarchy);
 
   assert.deepEqual(
     groups.map((node) => [node.kind, node.key, node.label]),
@@ -69,13 +69,13 @@ test("reparenting moves navigation and crumbs despite stale manifest navPath", (
     { label: "Beta" },
   ]);
   assert.deepEqual(
-    group(buildNavTree(before.hierarchy, []), "collection:alpha").children.map(
+    group(buildNavTree(before.hierarchy), "collection:alpha").children.map(
       ({ label }) => label,
     ),
     ["Target"],
   );
   assert.deepEqual(
-    group(buildNavTree(after.hierarchy, []), "collection:beta").children.map(
+    group(buildNavTree(after.hierarchy), "collection:beta").children.map(
       ({ label }) => label,
     ),
     ["Target"],
@@ -84,7 +84,7 @@ test("reparenting moves navigation and crumbs despite stale manifest navPath", (
 
 test("root entries gain no invented group or breadcrumb", () => {
   const catalogue = createCatalogue(manifest([screen("root", "Root screen")]));
-  const tree = buildNavTree(catalogue.hierarchy, []);
+  const tree = buildNavTree(catalogue.hierarchy);
 
   assert.deepEqual(
     tree.map(({ kind, label }) => [kind, label]),
@@ -93,13 +93,13 @@ test("root entries gain no invented group or breadcrumb", () => {
   assert.deepEqual(structuredCrumbTrail(catalogue.hierarchy, "root"), []);
 });
 
-test("legacy directory keys stay unique when display labels match", () => {
-  const pages: ManifestLegacyPage[] = [
-    { route: "same-name/index.html", sourcePath: "legacy/first.html" },
-    { route: "same_name/index.html", sourcePath: "legacy/second.html" },
+test("page ids stay unique and routes never create directory groups", () => {
+  const pages: ManifestPage[] = [
+    page("first", "Same Name", "same-name/index.html"),
+    page("second", "Same Name", "same_name/index.html"),
   ];
   const catalogue = createCatalogue(manifest([], pages));
-  const tree = buildNavTree(catalogue.hierarchy, pages);
+  const tree = buildNavTree(catalogue.hierarchy);
 
   assert.deepEqual(
     tree.map(({ label }) => label),
@@ -107,14 +107,12 @@ test("legacy directory keys stay unique when display labels match", () => {
   );
   assert.deepEqual(
     new Set(tree.map(({ key }) => key)),
-    new Set(["legacy:same-name", "legacy:same_name"]),
+    new Set(["entry:first", "entry:second"]),
   );
 });
 
 test("declared entry tags reach their navigation leaves", () => {
-  const pages: ManifestLegacyPage[] = [
-    { route: "legacy/notes.html", sourcePath: "legacy/notes.html" },
-  ];
+  const pages: ManifestPage[] = [page("notes", "Notes", "legacy/notes.html")];
   const catalogue = createCatalogue(
     manifest(
       [
@@ -127,7 +125,7 @@ test("declared entry tags reach their navigation leaves", () => {
     ),
   );
   const children = group(
-    buildNavTree(catalogue.hierarchy, pages),
+    buildNavTree(catalogue.hierarchy),
     "collection:screens",
   ).children;
 
@@ -135,10 +133,7 @@ test("declared entry tags reach their navigation leaves", () => {
   assert.deepEqual(leaf(children, "Tour").tags, ["onboarding"]);
   assert.equal(leaf(children, "Details").tags, undefined);
   assert.equal(
-    leaf(
-      group(buildNavTree(catalogue.hierarchy, pages), "legacy:legacy").children,
-      "Notes",
-    ).tags,
+    leaf(buildNavTree(catalogue.hierarchy), "Notes").tags,
     undefined,
   );
 });
@@ -150,7 +145,7 @@ test("malformed cyclic hierarchy cannot recurse during nav construction", () => 
       collection("beta", "Beta", ["alpha"]),
     ]),
   );
-  assert.deepEqual(buildNavTree(catalogue.hierarchy, []), []);
+  assert.deepEqual(buildNavTree(catalogue.hierarchy), []);
 });
 
 function group(
@@ -237,8 +232,32 @@ function useCase(
 }
 
 function manifest(
-  entries: readonly Exclude<ManifestEntry, { kind: "component" }>[],
-  legacyPages: readonly ManifestLegacyPage[] = [],
-): ManifestV3 {
-  return { entries, generatedBy: "mokabook", legacyPages, schemaVersion: 3 };
+  entries: readonly ManifestEntry[],
+  pages: readonly ManifestPage[] = [],
+): ManifestV5 {
+  return {
+    entries: [...entries, ...pages].map((entry) => ({
+      ...entry,
+      declaredDependencies: entry.declaredDependencies ?? [],
+    })),
+    generatedBy: "mokabook",
+    sourceFiles: [
+      ...new Set([...entries, ...pages].map((entry) => entry.sourcePath)),
+    ].sort(),
+    schemaVersion: 5,
+  };
+}
+
+function page(id: string, title: string, route: string): ManifestPage {
+  return {
+    id,
+    title,
+    route,
+    kind: "page",
+    description: title,
+    dependencies: [],
+    relatedDocs: [],
+    navPath: [],
+    sourcePath: `entries/${id}.tsx`,
+  };
 }

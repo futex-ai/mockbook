@@ -141,3 +141,12 @@ background: #bdc5bf;
 outline: 2px solid var(--mbk-sage-deep);
   outline-offset: -2px;
 }
+
+.ce-inspector-link {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}

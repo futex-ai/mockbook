@@ -148,10 +148,19 @@ export function validateManifestComponent(
 
 /** Validate every per-view record against the complete registered component set. */
 export function validateManifestComponentUsage(manifest: Manifest): void {
-  if (manifest.schemaVersion !== 4) return;
+  if (
+    manifest.schemaVersion !== 5 &&
+    (manifest.schemaVersion !== 4 || "sourceFiles" in manifest)
+  )
+    return;
   exactKeys(
     manifest,
-    ["schemaVersion", "generatedBy", "entries", "legacyPages"],
+    [
+      "schemaVersion",
+      "generatedBy",
+      "entries",
+      manifest.schemaVersion === 5 ? "sourceFiles" : "legacyPages",
+    ],
     "$manifest",
   );
   const components = new Map<string, ManifestComponent>(
@@ -159,7 +168,7 @@ export function validateManifestComponentUsage(manifest: Manifest): void {
       entry.kind === "component" ? [[entry.id, entry] as const] : [],
     ),
   );
-  if (!components.size)
+  if (!components.size && manifest.schemaVersion === 4)
     invalidData("$manifest", "v4 requires registered components");
   for (const entry of manifest.entries) {
     sortedStrings(
@@ -186,13 +195,17 @@ export function validateManifestComponentUsage(manifest: Manifest): void {
         entry.id,
         "owned dependencies require an explicit declaration",
       );
-    if (entry.kind === "screen")
-      validateComponentViews(
-        entry.componentViews,
-        entry.darkFragments !== undefined,
-        components,
-        entry.id,
-      );
+    if (entry.kind === "screen") {
+      if (components.size)
+        validateComponentViews(
+          entry.componentViews,
+          entry.darkFragments !== undefined,
+          components,
+          entry.id,
+        );
+      else if (entry.componentViews !== undefined)
+        invalidData(entry.id, "component usage requires registered components");
+    }
     if (entry.kind === "component")
       for (const variant of entry.variants)
         validateComponentViews(

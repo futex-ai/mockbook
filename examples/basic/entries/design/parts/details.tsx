@@ -4,7 +4,7 @@ import { inspector } from "../library/inspector/inspector.js";
 import { useDesignInstance } from "../library/composition.js";
 import { MetaRow } from "./metadata_row.js";
 
-import { DESTINATIONS } from "./destinations.js";
+import { DESTINATIONS, type DesignDestination } from "./destinations.js";
 import { FlowIcon } from "./icons.js";
 import { SUBJECTS, type ScreenSubject } from "./subjects.js";
 import { TagChips } from "./tag_filter.js";
@@ -60,6 +60,7 @@ function DetailsBody({
 }
 
 type DetailsPanelProps = {
+  destination?: DesignDestination | undefined;
   /** Tag drawn as the selected chip because it is the current search term. */
   activeTag?: string | undefined;
   open?: boolean;
@@ -71,6 +72,7 @@ type DetailsPanelProps = {
 
 /** Existing screen metadata in the shared icon inspector. */
 export function DetailsPanel({
+  destination,
   activeTag,
   children,
   comparisonEvidence,
@@ -99,7 +101,13 @@ export function DetailsPanel({
   return (
     <inspector.Component
       mokabookInstance={useDesignInstance("inspector")}
-      tabs={[{ id: "info", label: "Details" }]}
+      tabs={[
+        {
+          id: "info",
+          label: "Details",
+          ...(destination ? { destination } : {}),
+        },
+      ]}
       initial={open || evidence ? "info" : "closed"}
       sheetSize="compact"
       info={info}

@@ -4,32 +4,32 @@ import { test } from "node:test";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { loadConfig } from "../dist/config/load.js";
 import { parseManifest } from "../dist/registry/manifest.js";
-import type { ManifestV4, ManifestScreenV4 } from "../dist/registry/types.js";
+import type { ManifestV5, ManifestScreenV4 } from "../dist/registry/types.js";
 import type { ManifestComponent } from "../dist/components/manifest_types.js";
 import { componentEntrySource } from "./helpers/component_fixture.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
 async function example(t: {
   after: (fn: () => Promise<void>) => void;
-}): Promise<ManifestV4> {
+}): Promise<ManifestV5> {
   const fixture = await createFixture(componentEntrySource());
   t.after(() => removeFixture(fixture));
   const result = await compileCatalogue(await loadConfig(fixture.root));
-  assert.equal(result.manifest.schemaVersion, 4);
-  return result.manifest as ManifestV4;
+  assert.equal(result.manifest.schemaVersion, 5);
+  return result.manifest as ManifestV5;
 }
 
-test("manifest v4 rejects broken identities, ownership references and props before readers can suppress changes", async (t) => {
+test("manifest v5 rejects broken identities, ownership references and props before readers can suppress changes", async (t) => {
   const original = await example(t);
   const edits: readonly [
     string,
     (
-      value: ManifestV4,
+      value: ManifestV5,
       screen: ManifestScreenV4,
       component: ManifestComponent,
     ) => void,
   ][] = [
-    ["unknown schema", (value) => Object.assign(value, { schemaVersion: 5 })],
+    ["unknown schema", (value) => Object.assign(value, { schemaVersion: 6 })],
     [
       "unknown component field",
       (_v, _s, component) => Object.assign(component, { unexpected: true }),

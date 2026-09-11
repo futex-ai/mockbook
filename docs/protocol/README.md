@@ -12,25 +12,35 @@ delivery steps.
 
 | Catalogue                     | Generated manifest | Comparison result |
 | ----------------------------- | ------------------ | ----------------- |
-| Without registered components | 3                  | 2                 |
-| With registered components    | 4                  | 3                 |
+| Without registered components | 5                  | 2                 |
+| With registered components    | 5                  | 3                 |
 
-The current generated manifest is v4 only when it contains registered
-components; comparisons use v3 whenever either side is v4. Removing all
-components therefore restores a v3 current manifest while retaining a v3
-comparison against the earlier v4 baseline. The primary
-`mokabook-manifest.json` reader accepts manifest v3 and v4. Explicit
-`compatibility.readManifestV2` permits the legacy Accounting-format fallback
-only when the primary file is absent, never when it is invalid.
+All current catalogues emit manifest v5 with explicit pages, the complete
+source inventory and declared dependencies. Component catalogues also include
+saved variants and complete per-view usage. Comparisons use v3 whenever either
+side contains registered components, including when the last component is removed;
+otherwise they use v2. Pages participate in Browse Changes without visual comparisons.
+
+The current primary file requires v5. Git baseline readers accept v3 and both
+historical v4 formats: pages with `sourceFiles`, or components with `legacyPages`.
+These envelopes are disjoint; combining them is invalid. Explicit
+`compatibility.readManifestV2` permits the old Accounting-format fallback only
+when the historical primary file is absent, never when it is invalid.
 
 ## Contracts
 
 - [Package and authoring contract](./mokabook-package.md)
 - [Build and Browse runtime](./mokabook-runtime.md)
+- [Startup diagnostics and scale fixtures](./mokabook-timings.md)
+- [Pages in the catalogue](./mokabook-pages.md)
+- [Source protection](./mokabook-source-protection.md)
+- [Catalogue change metadata](./mokabook-catalogue-changes.md)
+- [Breaking page migration](./mokabook-page-migration.md)
+- [Optional changes in publication](./mokabook-publication.md)
 - [Changes and screen comparisons](./mokabook-changes.md)
 - [Registered components](./mokabook-components.md)
 - [Component runtime prop schema](./mokabook-component-props.md)
-- [Component manifest v4 schema](./mokabook-component-manifest.md)
+- [Current manifest v5 schema](./mokabook-component-manifest.md)
 - [Component comparison v3 schema](./mokabook-component-review.md)
 - [Component change attribution](./mokabook-component-changes.md)
 - [Component pages and screen inspection](./mokabook-component-explorer.md)

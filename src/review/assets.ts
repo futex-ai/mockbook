@@ -1,6 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import type { FileLocation } from "../config/file_locations.js";
+import {
+  isPrivateStaticPath,
+  publicPathLocation,
+} from "../config/public_files.js";
 import { isInside, isSafeRepositoryPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
@@ -22,12 +27,14 @@ export interface ReviewAssetReader {
 export interface OptionalReviewAssetReader extends ReviewAssetReader {
   /** Missing paths still require a confined, existing public ancestor. */
   readIfExists(route: string): Promise<Uint8Array | undefined>;
+  /** Expose the validated logical and physical resource identities. */
+  readLocated(route: string): Promise<LocatedReviewAsset>;
 }
 
 /** Validated public location, including a confined location for a missing file. */
 export interface LocatedReviewAsset {
   content?: Uint8Array;
-  physicalPath: string;
+  location: FileLocation;
 }
 
 /** Confined filesystem implementation for current-worktree Review assets. */
@@ -46,60 +53,30 @@ export class FileSystemReviewAssetReader implements OptionalReviewAssetReader {
 
   /** Retain the validated physical location so watchers can observe local aliases. */
   async readLocated(route: string): Promise<LocatedReviewAsset> {
-    const candidate = assertPublicStaticRoute(route, this.config);
+    if (!isSafeRepositoryPath(route)) throw assetError(route, "unsafe path");
+    const candidate = path.resolve(this.config.mockupsDir, route);
     try {
-      const existing = await closestExistingPath(candidate);
-      const [realRoot, realCandidate] = await Promise.all([
-        fs.promises.realpath(this.config.mockupsDir),
-        fs.promises.realpath(existing),
-      ]);
-      const sourceRoots = await Promise.all([
-        fs.promises.realpath(this.config.entriesDir),
-        ...(this.config.legacy
-          ? [fs.promises.realpath(this.config.legacy.pagesDir)]
-          : []),
-      ]);
-      if (
-        !isInside(realRoot, realCandidate) ||
-        sourceRoots.some((root) => isInside(root, realCandidate))
-      ) {
+      const location = publicPathLocation(candidate, this.config);
+      if (!location) {
         throw assetError(route, "not a public static file");
       }
-      const stat = await fs.promises.stat(realCandidate);
-      if (existing !== candidate && stat.isDirectory()) {
-        return {
-          physicalPath: path.resolve(
-            realCandidate,
-            path.relative(existing, candidate),
-          ),
-        };
+      let stat;
+      try {
+        stat = await fs.promises.stat(location.physicalPath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT")
+          return { location };
+        throw error;
       }
-      if (existing !== candidate || !stat.isFile())
-        throw assetError(route, "not a public static file");
+      if (!stat.isFile()) throw assetError(route, "not a public static file");
       return {
-        content: await fs.promises.readFile(realCandidate),
-        physicalPath: realCandidate,
+        content: await fs.promises.readFile(location.physicalPath),
+        location,
       };
     } catch (error) {
       if (error instanceof MokabookError) throw error;
       throw assetError(route, errorMessage(error), error);
     }
-  }
-}
-
-/** Stop at symlinks so dangling or escaping links cannot masquerade as deletions. */
-async function closestExistingPath(candidate: string): Promise<string> {
-  try {
-    await fs.promises.lstat(candidate);
-    return candidate;
-  } catch (error) {
-    const parent = path.dirname(candidate);
-    if (
-      (error as NodeJS.ErrnoException).code !== "ENOENT" ||
-      parent === candidate
-    )
-      throw error;
-    return closestExistingPath(parent);
   }
 }
 
@@ -240,8 +217,7 @@ function assertPublicStaticRoute(
   const candidate = path.resolve(config.mockupsDir, route);
   if (
     !isInside(config.mockupsDir, candidate) ||
-    isInside(config.entriesDir, candidate) ||
-    Boolean(config.legacy && isInside(config.legacy.pagesDir, candidate))
+    isPrivateStaticPath(candidate, config)
   ) {
     throw assetError(route, "not a public static file");
   }

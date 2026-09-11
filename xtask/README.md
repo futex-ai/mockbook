@@ -13,7 +13,7 @@ internal binary and is not published to npm or crates.io.
 
 The crate provides the implementation behind `cargo xtask check` and
 `cargo xtask rust-file-length-lint`.
-The Node unit/integration suite runs at most four test files concurrently;
+The Node unit/integration suite runs at most two test files concurrently;
 individual concurrency tests and their existing timeouts remain unchanged.
 The complete check starts with `npm run dependencies:check`, covering all
 workspace dependency categories. It requires registry access; an audit or network

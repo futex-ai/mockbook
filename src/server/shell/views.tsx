@@ -28,7 +28,7 @@ export type ShellView =
  * has no room for below the breakpoint.
  */
 function HeadActions(props: { catalogue: Catalogue; target: RouteTarget }) {
-  if (props.target.kind !== "entry") {
+  if (props.target.entry.kind === "page") {
     return null;
   }
   return (
@@ -49,19 +49,24 @@ function TargetView(props: {
   const target = props.target;
   const removed =
     target.kind === "entry" &&
-    props.catalogue.removedScreens.some(
-      (screen) => screen.route === target.entry.route,
+    props.catalogue.removedEntries.some(
+      ({ entry }) => entry.route === target.entry.route,
     );
   const stage = removed ? (
     <div className="mbk-empty" data-mokabook-stage="" data-viewport="both">
-      <h2>This screen was removed</h2>
-      <p>Select a comparison to see the previous screen.</p>
+      <h2>
+        This {target.entry.kind === "page" ? "page" : "screen"} was removed
+      </h2>
+      {target.entry.kind === "page" ? (
+        <p>This document is no longer in the catalogue.</p>
+      ) : (
+        <p>Select a comparison to see the previous screen.</p>
+      )}
     </div>
   ) : (
     <TargetStage
       catalogue={props.catalogue}
       {...(props.fragment ? { fragment: props.fragment } : {})}
-      legacyTitle={head.title}
       target={props.target}
     />
   );
@@ -94,12 +99,12 @@ function HomeView(props: { catalogue: Catalogue }) {
     (entry) => entry.kind === "component",
   ).length;
   const useCases = entries.filter((entry) => entry.kind === "use-case").length;
-  const pages = props.catalogue.manifest.legacyPages.length;
+  const pages = entries.filter((entry) => entry.kind === "page").length;
   return (
     <EmptyStage heading="Mokabook">
       <p>
-        Browse the mockup catalogue: expand folders and choose a screen,
-        component or user flow from the navigation.
+        Browse the mockup catalogue: expand folders and choose an item from the
+        navigation.
       </p>
       <p className="mbk-empty-note">
         {screens} screen{screens === 1 ? "" : "s"}
@@ -116,14 +121,14 @@ function HomeView(props: { catalogue: Catalogue }) {
 
 function MissingView(props: { requested: string }) {
   return (
-    <EmptyStage heading="Screen not found">
+    <EmptyStage heading="Item not found">
       <p>
         Nothing in the catalogue matches <code>{props.requested}</code>. It may
-        have been renamed or removed — choose a screen from the navigation
+        have been renamed or removed — choose another item from the navigation
         instead.
       </p>
       <p className="mbk-empty-note">
-        If a screen was just added, rebuild the catalogue with{" "}
+        If this item was just added, rebuild the catalogue with{" "}
         <code>mokabook build</code>.
       </p>
       <a className="mbk-empty-link" href="/">
@@ -138,9 +143,7 @@ export function activeRouteForView(view: ShellView): string | undefined {
   if (view.kind !== "target") {
     return undefined;
   }
-  return view.target.kind === "entry"
-    ? view.target.entry.route
-    : view.target.page.route;
+  return view.target.entry.route;
 }
 
 /** The browser document title for a shell view. */
@@ -170,7 +173,8 @@ export function ShellMain(props: {
       ) : null}
       {props.view.kind === "target" ? (
         props.view.target.kind === "entry" &&
-        props.view.target.entry.kind !== "use-case" ? (
+        (props.view.target.entry.kind === "screen" ||
+          props.view.target.entry.kind === "component") ? (
           <ComponentWorkspace
             catalogue={props.catalogue}
             context={props.context}

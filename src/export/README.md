@@ -7,11 +7,15 @@ Deployment and hosting credentials remain outside Mokabook.
 `run.ts` pins one Git baseline, runs the normal build, captures public inputs,
 compares them through the existing review engine, and verifies inputs again
 before installation. `site.ts` uses the existing shell and Browse adapter to
-assemble exact pages, real id aliases, package assets, and immutable comparisons.
+assemble exact v5 pages, real id aliases, package assets, and immutable comparisons.
+Removed screens and pages use the shared catalogue change snapshots; page
+removal preserves ancestor context without introducing visual comparisons.
 The shared `server/changed_content.ts` calculation receives the same captured
 asset reader as comparisons, preserving Serve's material-output/resource Changes
 membership without reading a different current-file snapshot.
 
+`stage.ts` shares ownership assembly, alias/reference validation, and staged
+file writes between consumer export and repository preview capture.
 `deployment.ts` finalizes a separate complete-artifact identity after provider
 transformation and ownership assembly. `content_id.ts` uses deterministic file
 hashes and alias edges; `shell_metadata.ts` normalizes and stamps only known
@@ -31,7 +35,10 @@ platform dependencies when installing the package.
 directory prefixes and the final ownership marker. Reference validation also
 proves local resource closure. `ignored.ts` keeps owned
 outputs and transactions out of broad Watch rules. The repository-only preview
-adapter supplies validated host aliases and legacy ownership explicitly.
+adapter supplies validated host aliases and legacy ownership explicitly. It
+captures already-built Browse output, retaining optional Changes and its
+source/resource fingerprint contract. Current-only static delivery explicitly
+disables comparison requests while retaining canonical id navigation.
 It also declares its stricter `.context` output root; the same shared path
 validator enforces that scope at preflight and before installation.
 

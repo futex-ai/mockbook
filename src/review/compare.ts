@@ -1,3 +1,4 @@
+import { hasRegisteredComponents } from "../registry/manifest_capabilities.js";
 import crypto from "node:crypto";
 import path from "node:path";
 
@@ -17,8 +18,8 @@ import {
   GitReviewAssetReader,
   type ReviewAssetReader,
 } from "./assets.js";
+import { baselineResourceConfig, readBaseManifest } from "./base_manifest.js";
 import { compareComponentCatalogue } from "./component_compare.js";
-import { readBaseManifest } from "./base_manifest.js";
 import { reviewChangedPaths } from "./changed_paths.js";
 import type { GitClient } from "./git.js";
 import { normalizeReviewPair, normalizeSingleDocument } from "./ignore.js";
@@ -61,14 +62,14 @@ export async function compareReview(
     path.relative(config.repoRoot, config.mockupsDir),
   );
   const baseAssetReader = new GitReviewAssetReader(
-    config,
+    baselineResourceConfig(config, baseManifest),
     git,
     baseCommit,
     mockupsPrefix,
   );
   if (
-    baseManifest.schemaVersion === 4 ||
-    compilation.manifest.schemaVersion === 4
+    hasRegisteredComponents(baseManifest) ||
+    hasRegisteredComponents(compilation.manifest)
   )
     return compareComponentCatalogue(
       compilation,

@@ -15,6 +15,7 @@ export function artifactRouteForEntry(
   byId: ReadonlyMap<string, ResolvedRegistryEntry>,
   catalogueSchemes: readonly ColorScheme[],
 ): string | undefined {
+  if (entry.kind === "page") return entry.route;
   if (entry.kind === "component") {
     const scheme = effectiveColorSchemes(entry, catalogueSchemes).includes(
       colorScheme,

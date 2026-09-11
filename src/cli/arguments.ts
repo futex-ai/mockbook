@@ -9,6 +9,7 @@ export interface CliArguments {
   base?: string;
   command: CliCommand;
   config?: string;
+  debugTimings?: boolean;
   help: boolean;
   out?: string;
   port?: number;
@@ -43,6 +44,7 @@ export function parseArguments(argv: readonly string[]): CliArguments {
     const option = values.shift();
     if (option === "--help" || option === "-h") parsed.help = true;
     else if (option === "--version" || option === "-v") parsed.version = true;
+    else if (option === "--debug-timings") parsed.debugTimings = true;
     else if (option === "--watch") parsed.watch = true;
     else if (option === "--no-watch") parsed.watch = false;
     else if (option === "--retained-runtime") parsed.retainedRuntime = true;

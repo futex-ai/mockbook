@@ -67,6 +67,29 @@ export function validateEntry(
   } else {
     validateRoute(entry, violations);
   }
+  if (entry.kind === "page") {
+    if (typeof entry.render !== "function")
+      violations.push(
+        problem(entry, "missing-render", "page render callback is required"),
+      );
+    for (const field of [
+      "mobile",
+      "desktop",
+      "colorSchemes",
+      "address",
+      "useCaseIds",
+      "steps",
+      "childIds",
+      "viewports",
+      "fragments",
+      "darkFragments",
+    ]) {
+      if (field in entry)
+        violations.push(
+          problem(entry, "invalid-page-field", `pages do not support ${field}`),
+        );
+    }
+  }
   if (entry.kind === "screen" || entry.kind === "component") {
     if (entry.colorSchemes !== undefined) {
       const validSchemes = validColorSchemes(entry.colorSchemes);

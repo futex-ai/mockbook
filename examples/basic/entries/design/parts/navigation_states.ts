@@ -14,6 +14,8 @@ interface TagState {
 
 /** Only authored transitions are present; absence always means a depiction. */
 export interface NavigationState {
+  inspector?: DesignDestination;
+  drawer?: { open: boolean; to: DesignDestination };
   all?: DesignDestination;
   changes?: DesignDestination;
   comparison?: Partial<Record<ComparisonMode, DesignDestination>>;
@@ -39,6 +41,25 @@ const welcomeBrowse: NavigationState = {
 export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
   ...COMPONENT_NAVIGATION_STATES,
   [D.home]: {},
+  [D.page]: {
+    inspector: D.pageDetails,
+    drawer: { open: false, to: D.pageNavigation },
+  },
+  [D.pageDetails]: {
+    inspector: D.page,
+    drawer: { open: false, to: D.pageNavigation },
+  },
+  [D.pageNavigation]: {
+    inspector: D.pageDetails,
+    drawer: { open: true, to: D.page },
+  },
+  [D.pageRemoved]: { all: D.home },
+  [D.publication]: {},
+  [D.publicationChanges]: {
+    all: D.publicationChanges,
+    changes: D.current,
+    comparison: welcomeModes,
+  },
   [D.missing]: {},
   [D.navigation]: {},
   [D.tour]: {},

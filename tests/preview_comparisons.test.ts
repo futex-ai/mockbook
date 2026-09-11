@@ -1,12 +1,17 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { promisify } from "node:util";
 
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import type { ReviewResult } from "../dist/review/types.js";
 import { createPreviewComparisonFixture } from "./helpers/preview_comparison_fixture.js";
+import { repositoryRoot } from "./helpers/fixture.js";
+
+const execute = promisify(execFile);
 
 test("published comparisons retain real baseline bytes, removed routes, and isolated output", async (context) => {
   const fixture = await createPreviewComparisonFixture();
@@ -74,6 +79,28 @@ test("published comparisons retain real baseline bytes, removed routes, and isol
   );
   assert.match(redirects, /\/id\/removed \/view\/screens\/removed 302/);
   assert.match(await read("_headers"), /Cache-Control: no-store/);
+  assert.match(
+    await read("view/removed-document.html"),
+    /This page was removed/,
+  );
+  assert.doesNotMatch(
+    await read("view/removed-document.html"),
+    /data-diff-screen|data-nav-collection="collection:documents"/,
+  );
+  for (const file of [
+    "index.html",
+    "view/handbook.html",
+    "view/screens/removed.html",
+    "view/removed-document.html",
+    "404.html",
+  ])
+    assert.doesNotMatch(await read(file), /client\/browser\.js|EventSource/);
+  assert.equal(
+    fs.existsSync(
+      path.join(fixture.output, "__mokabook/client/live_updates.js"),
+    ),
+    false,
+  );
   assert.equal(
     fs.existsSync(path.join(fixture.output, generation, "summary.md")),
     false,
@@ -88,7 +115,7 @@ test("published comparisons retain real baseline bytes, removed routes, and isol
   );
 
   await fixture.git("update-ref", "-d", "refs/remotes/origin/main");
-  await assert.rejects(fixture.build, /preview comparison failed/);
+  await assert.rejects(fixture.build, /find merge base/);
   assert.equal(await read("_redirects"), redirects);
   assert.deepEqual(await fs.promises.readdir(path.dirname(fixture.output)), [
     ".mokabook-export-reservations",
@@ -103,6 +130,70 @@ test("published comparisons retain real baseline bytes, removed routes, and isol
     ),
     [],
   );
+});
+
+test("capture mutation aborts atomically and default replacement removes old review output", async (context) => {
+  const fixture = await createPreviewComparisonFixture();
+  context.after(() => fixture.close());
+  const before = await fs.promises.readFile(
+    path.join(fixture.output, "_redirects"),
+    "utf8",
+  );
+  const publisher =
+    'import fs from "node:fs"; import path from "node:path"; import { loadConfig } from "./dist/config/load.js"; import { buildPreview } from "./scripts/preview/catalogue.mjs"; const config = await loadConfig(process.argv[1]);';
+  await assert.rejects(
+    execute(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        publisher +
+          'const original = globalThis.fetch; let changed = false; globalThis.fetch = async (...args) => { const response = await original(...args); if (!changed && String(args[0]).includes("/view/")) { changed = true; fs.appendFileSync(path.join(config.repoRoot, "notes.md"), "changed during capture"); } return response; }; await buildPreview(config, process.argv[2], { includeChanges: true });',
+        fixture.root,
+        fixture.output,
+      ],
+      { cwd: repositoryRoot },
+    ),
+    /inputs changed during publication/,
+  );
+  assert.equal(
+    await fs.promises.readFile(path.join(fixture.output, "_redirects"), "utf8"),
+    before,
+  );
+  const stale = path.join(fixture.mockupsDir, "archived-review");
+  await fs.promises.mkdir(stale);
+  await fs.promises.writeFile(
+    path.join(stale, ".mokabook-review-artifact"),
+    "owned",
+  );
+  await fs.promises.writeFile(
+    path.join(stale, "private-snapshot.html"),
+    "previous snapshot",
+  );
+  await execute(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      publisher + "await buildPreview(config, process.argv[2]);",
+      fixture.root,
+      fixture.output,
+    ],
+    { cwd: repositoryRoot },
+  );
+  for (const file of [
+    "view/removed-document.html",
+    "view/screens/removed.html",
+    "__mokabook/diffs",
+    "static/archived-review/private-snapshot.html",
+    "_headers",
+  ])
+    assert.equal(fs.existsSync(path.join(fixture.output, file)), false, file);
+  assert.doesNotMatch(
+    await fs.promises.readFile(path.join(fixture.output, "index.html"), "utf8"),
+    /data-filter|removed-document/,
+  );
+  assert.ok(fs.existsSync(path.join(fixture.output, "view/handbook.html")));
 });
 
 test("a published renamed screen keeps its current id redirect and old comparison route", async (context) => {

@@ -8,8 +8,12 @@ import { checkCompilation } from "../dist/build/check.js";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";
 import { loadConfig } from "../dist/config/load.js";
-import { parseManifest } from "../dist/registry/manifest.js";
 import {
+  parseManifest,
+  parseHistoricalManifest,
+} from "../dist/registry/manifest.js";
+import {
+  registerFixturePage,
   createFixture,
   removeFixture,
   repositoryRoot,
@@ -104,9 +108,10 @@ test("manifest readers accept version 2 only through explicit compatibility", as
     ...compilation.manifest,
     generatedBy: undefined,
     schemaVersion: 2,
+    legacyPages: [],
   };
-  assert.throws(() => parseManifest(legacy), /schema version 3/);
-  assert.equal(parseManifest(legacy, true).schemaVersion, 3);
+  assert.throws(() => parseManifest(legacy), /schema version 5/);
+  assert.equal(parseHistoricalManifest(legacy, true).schemaVersion, 3);
 });
 
 test("check groups missing, stale, and proven orphan output", async (context) => {
@@ -354,7 +359,13 @@ test("generic legacy TypeScript sources coexist through explicit config", async 
   );
   await fs.promises.writeFile(
     fixture.configPath,
-    `export default { entriesDir: "entries", legacy: { pagesDir: "legacy", routeAliases: { "old.source.ts": "archive/old.html" }, lint: { maxScreensPerPage: 5 } }, mockupsDir: "mockups", repoRoot: "." };\n`,
+    `export default { entriesDir: "entries",  mockupsDir: "mockups", repoRoot: "." };\n`,
+  );
+  await registerFixturePage(
+    fixture,
+    "old",
+    "archive/old.html",
+    "legacy/old.source.ts",
   );
   const config = await loadConfig(fixture.root);
   const compilation = await compileCatalogue(config);
@@ -363,22 +374,20 @@ test("generic legacy TypeScript sources coexist through explicit config", async 
   checkCompilation(await compileCatalogue(config), config);
 });
 
-test("legacy HTML component expansion and opt-in lints stay consumer-configured", async (context) => {
+test("consumer page composition replaces HTML comment components and owns lint policy", async (context) => {
   const fixture = await createFixture();
   context.after(() => removeFixture(fixture));
-  const pages = path.join(fixture.root, "legacy");
-  await fs.promises.mkdir(pages);
   await fs.promises.writeFile(
-    path.join(pages, "components.tsx"),
-    `export function renderComponent(name: string, attributes: Record<string, string>) { return name === "notice" ? <aside id="notice">{attributes.label}</aside> : ""; }\n`,
+    path.join(fixture.root, "document.source.tsx"),
+    `import { renderToStaticMarkup } from "react-dom/server";
+function Notice({label}) { return <aside id="notice">{label}</aside>; }
+export function source() { return "<!doctype html>" + renderToStaticMarkup(<html><body><Notice label="Expanded" /></body></html>); }`,
   );
-  await fs.promises.writeFile(
-    path.join(pages, "old.source.html"),
-    `<!doctype html><html><body data-mokabook-screen><!-- @mokabook/component notice label="Expanded" --></body></html>\n`,
-  );
-  await fs.promises.writeFile(
-    fixture.configPath,
-    `export default { entriesDir: "entries", legacy: { pagesDir: "legacy", components: "legacy/components.tsx", lint: { maxScreensPerPage: 1 } }, mockupsDir: "mockups", repoRoot: "." };\n`,
+  await registerFixturePage(
+    fixture,
+    "notice",
+    "old.html",
+    "document.source.tsx",
   );
   const config = await loadConfig(fixture.root);
   const compilation = await compileCatalogue(config);
@@ -386,13 +395,9 @@ test("legacy HTML component expansion and opt-in lints stay consumer-configured"
     compilation.outputs.get("old.html") ?? "",
     /<aside id="notice">Expanded<\/aside>/,
   );
-  await fs.promises.writeFile(
-    path.join(pages, "old.source.html"),
-    `<!doctype html><html><body><main data-mokabook-screen></main><main data-mokabook-screen></main></body></html>\n`,
-  );
-  await assert.rejects(
-    () => compileCatalogue(config),
-    /configured maximum is 1/,
+  assert.equal(
+    (compilation.outputs.get("old.html") ?? "").match(/<aside/g)?.length,
+    1,
   );
 });
 

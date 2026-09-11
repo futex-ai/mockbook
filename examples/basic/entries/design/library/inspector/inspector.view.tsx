@@ -1,3 +1,4 @@
+import { MockLink } from "mokabook";
 import { useDesignStyle } from "../style_context.js";
 import { useId, type CSSProperties } from "react";
 import {
@@ -33,7 +34,17 @@ export function InspectorView({
           style={{ "--tab-column": index + 1 } as CSSProperties}
         >
           <summary role="button" aria-label={tab.label} title={tab.label}>
-            <InspectorIcon tab={tab.id} />
+            {tab.destination ? (
+              <MockLink
+                to={tab.destination}
+                className="ce-inspector-link"
+                aria-label={tab.label}
+              >
+                <InspectorIcon tab={tab.id} />
+              </MockLink>
+            ) : (
+              <InspectorIcon tab={tab.id} />
+            )}
             <span
               className="ce-inspector-close"
               data-inspector-close=""
