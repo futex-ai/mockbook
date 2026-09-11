@@ -12,6 +12,7 @@ import { configuredServedReview } from "../dist/server/review_routes.js";
 import { serve } from "../dist/server/serve.js";
 import { changedFixture } from "./helpers/changed_fixture.js";
 import { validEntrySource } from "./helpers/fixture.js";
+import { observeBackgroundClassification } from "./helpers/background_classification.js";
 
 const page = `
 import { definePage } from "mokabook";
@@ -20,6 +21,7 @@ mockups.push(definePage({ id: "guide", title: "Guide", route: "guide.html", desc
 
 test("no-watch startup retains removed metadata from its single Changes calculation", async (context) => {
   const fixture = await changedFixture(context, validEntrySource() + page);
+  const classified = observeBackgroundClassification(context, fixture.config);
   await fs.writeFile(fixture.entryPath, validEntrySource());
   const mergeBase = RepositoryGitClient.prototype.mergeBase;
   let calls = 0;
@@ -41,7 +43,7 @@ test("no-watch startup retains removed metadata from its single Changes calculat
     watch: false,
   });
   context.after(() => running.close());
-
+  await classified;
   const home = await (await fetch(running.url)).text();
   const removed = await fetch(`${running.url}/view/guide.html`);
   assert.equal(removed.status, 200);
@@ -53,6 +55,7 @@ test("no-watch startup retains removed metadata from its single Changes calculat
 
 test("unavailable startup Changes leaves a complete current catalogue without retrying Git", async (context) => {
   const fixture = await changedFixture(context, validEntrySource() + page);
+  const classified = observeBackgroundClassification(context, fixture.config);
   await fs.writeFile(fixture.entryPath, validEntrySource());
   let calls = 0;
   context.mock.method(RepositoryGitClient.prototype, "mergeBase", async () => {
@@ -65,7 +68,7 @@ test("unavailable startup Changes leaves a complete current catalogue without re
     watch: false,
   });
   context.after(() => running.close());
-
+  await classified;
   const home = await (await fetch(running.url)).text();
   assert.match(home, /data-entry-id="home"/);
   assert.doesNotMatch(home, /data-mokabook-filter|data-removed-page/);
@@ -98,6 +101,7 @@ test("server startup rejects invalid current metadata before querying history", 
 
 test("no-watch HTTP startup reuses the catalogue validated before factory handoff", async (context) => {
   const fixture = await changedFixture(context);
+  const classified = observeBackgroundClassification(context, fixture.config);
   const start = NodeCatalogueServerFactory.prototype.start;
   context.mock.method(
     NodeCatalogueServerFactory.prototype,
@@ -124,6 +128,7 @@ test("no-watch HTTP startup reuses the catalogue validated before factory handof
     watch: false,
   });
   context.after(() => running.close());
+  await classified;
   const home = await (await fetch(running.url)).text();
   assert.doesNotMatch(home, /Later catalogue/);
   assert.match(home, /class="mbk-nav-filter-count">0</);
@@ -132,6 +137,7 @@ test("no-watch HTTP startup reuses the catalogue validated before factory handof
 test("a no-watch component catalogue reuses its resolved ownership evidence", async (context) => {
   const source = componentEntrySource() + page;
   const fixture = await changedFixture(context, source);
+  const classified = observeBackgroundClassification(context, fixture.config);
   await fs.writeFile(
     fixture.entryPath,
     source.replace(
@@ -158,6 +164,7 @@ test("a no-watch component catalogue reuses its resolved ownership evidence", as
     watch: false,
   });
   context.after(() => running.close());
+  await classified;
   const component = await (
     await fetch(`${running.url}/view/components/action.html`)
   ).text();

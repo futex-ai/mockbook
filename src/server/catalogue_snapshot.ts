@@ -5,6 +5,10 @@ import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import type { CatalogueChangeSnapshot } from "../registry/changes.js";
 import { parseManifest, readManifest } from "../registry/manifest.js";
+import {
+  parseCatalogueIndex,
+  type CatalogueIndex,
+} from "../registry/catalogue_index.js";
 import type { ManifestV5 } from "../registry/types.js";
 import { createCatalogue, type Catalogue } from "./catalogue.js";
 import {
@@ -47,6 +51,16 @@ export async function loadCatalogueSnapshot(
       ? { componentChanges: changes.componentChanges }
       : {}),
   };
+}
+
+/** Validate the distinct live index without claiming uncomputed render evidence. */
+export async function loadLiveCatalogueSnapshot(
+  config: ResolvedConfig,
+  index: CatalogueIndex,
+): Promise<CatalogueSnapshot> {
+  parseCatalogueIndex(index);
+  await assertFreshSourceInventory(config, index);
+  return { [configIdentity]: config, catalogue: createCatalogue(index) };
 }
 
 /** Validate startup metadata once, retaining Browse when optional history is unavailable. */

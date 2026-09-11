@@ -18,28 +18,39 @@ import {
   type ParsedResource,
   type ResourceReference,
 } from "../html_link_validation.js";
-import { pendingGeneratedOrphanRoutes } from "./ownership.js";
+import { isOwned, pendingGeneratedOrphanRoutes } from "./ownership.js";
 
 interface ReferenceResult {
   target?: string;
   violation?: string;
 }
 
+/** Generation-scoped lookup for validating a requested document and its resources. */
+export interface HtmlValidationContext {
+  generatedRoutes: ReadonlySet<string>;
+  readGenerated(route: string): string;
+  parsed: Map<string, ParsedResource>;
+  pendingOrphans: ReadonlySet<string>;
+}
+
 /** Validate navigation links and transitive local resources in generated HTML. */
 export function validateHtmlLinks(
   outputs: ReadonlyMap<string, string>,
   config: ResolvedConfig,
+  context?: HtmlValidationContext,
 ): void {
-  const pendingOrphans = new Set(
-    pendingGeneratedOrphanRoutes(config, outputs.keys()),
-  );
-  const parsed = new Map<string, ParsedResource>();
+  const pendingOrphans =
+    context?.pendingOrphans ??
+    new Set(pendingGeneratedOrphanRoutes(config, outputs.keys()));
+  const parsed = context?.parsed ?? new Map<string, ParsedResource>();
   for (const [route, content] of outputs) {
     if (isPrivateStaticPath(path.resolve(config.mockupsDir, route), config))
       continue;
     parsed.set(route, htmlResource(extractHtmlReferences(content)));
   }
-  const pending = [...parsed.keys()].sort();
+  const pending = [...outputs.keys()]
+    .filter((route) => parsed.has(route))
+    .sort();
   const visited = new Set<string>();
   const violations: string[] = [];
   while (pending.length > 0) {
@@ -56,6 +67,7 @@ export function validateHtmlLinks(
         parsed,
         config,
         pendingOrphans,
+        context,
       );
       if (result.violation) violations.push(`${route}: ${result.violation}`);
       if (
@@ -63,12 +75,9 @@ export function validateHtmlLinks(
         !visited.has(result.target) &&
         !pending.includes(result.target)
       ) {
-        const targetResource = loadResource(
-          result.target,
-          outputs,
-          config,
-          pendingOrphans,
-        );
+        const targetResource =
+          parsed.get(result.target) ??
+          loadResource(result.target, outputs, config, pendingOrphans, context);
         if (targetResource) {
           parsed.set(result.target, targetResource);
           pending.push(result.target);
@@ -95,6 +104,7 @@ function validateReference(
   parsed: Map<string, ParsedResource>,
   config: ResolvedConfig,
   pendingOrphans: ReadonlySet<string>,
+  context?: HtmlValidationContext,
 ): ReferenceResult {
   const reference = item.value;
   if (reference === "" || /^(?:https?:|mailto:|tel:|data:)/i.test(reference)) {
@@ -137,8 +147,21 @@ function validateReference(
   if (isPrivateStaticPath(path.resolve(config.mockupsDir, target), config))
     return { violation: `missing target ${reference} (protected file)` };
   let targetResource = parsed.get(target);
+  if (context?.generatedRoutes.has(target)) {
+    if (item.checkFragment && !reference.includes("#")) return {};
+    targetResource ??= htmlResource(
+      extractHtmlReferences(context.readGenerated(target)),
+    );
+    parsed.set(target, targetResource);
+  }
   if (!targetResource) {
-    targetResource = loadResource(target, new Map(), config, pendingOrphans);
+    targetResource = loadResource(
+      target,
+      new Map(),
+      config,
+      pendingOrphans,
+      context,
+    );
     if (!targetResource) return { violation: `missing target ${reference}` };
     parsed.set(target, targetResource);
   }
@@ -146,7 +169,7 @@ function validateReference(
     ? fragmentViolation(reference, targetResource.anchors)
     : undefined;
   if (violation) return { violation };
-  return { target };
+  return context && item.checkFragment ? {} : { target };
 }
 
 function loadResource(
@@ -154,9 +177,16 @@ function loadResource(
   outputs: ReadonlyMap<string, string>,
   config: ResolvedConfig,
   pendingOrphans: ReadonlySet<string>,
+  context?: HtmlValidationContext,
 ): ParsedResource | undefined {
   const candidate = path.resolve(config.mockupsDir, route);
   if (isPrivateStaticPath(candidate, config)) return undefined;
+  if (
+    context &&
+    !context.generatedRoutes.has(route) &&
+    isOwned(candidate, config)
+  )
+    return undefined;
   const generated = outputs.get(route);
   if (generated !== undefined)
     return htmlResource(extractHtmlReferences(generated));

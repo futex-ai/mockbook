@@ -5,6 +5,8 @@ import test from "node:test";
 
 import { compileCatalogue } from "../dist/build/compile.js";
 import { loadConfig } from "../dist/config/load.js";
+import { loadConsumerGraph } from "../dist/build/load_graph.js";
+import { prepareRegistry } from "../dist/registry/prepare.js";
 import {
   runWithTimings,
   type TimingEvent,
@@ -18,6 +20,28 @@ test("large fixture validates dimensions and defaults to Accounting-scale routes
     assert.throws(() => largeSize({ areas: value }), /positive integer/);
   assert.throws(() => largeSize({ screens: 1 }), /at least two/);
 });
+
+for (const screens of [10, 11, 20, 21]) {
+  test(`large fixture keeps collection ownership unique at ${screens} screens`, async (t) => {
+    const root = await fs.mkdtemp(
+      path.join(repositoryRoot, ".context/large-test-"),
+    );
+    t.after(() => fs.rm(root, { recursive: true, force: true }));
+    await generateLargeFixture(root, { areas: 1, screens, rows: 1 });
+    const config = await loadConfig(root);
+    const graph = await loadConsumerGraph(config);
+    const registry = prepareRegistry(graph.definitions, config);
+    assert.equal(
+      registry.entries.filter((entry) => entry.kind === "screen").length,
+      screens,
+    );
+    assert.ok(
+      registry.entries
+        .filter((entry) => entry.kind === "use-case")
+        .every((entry) => entry.steps.length >= 2),
+    );
+  });
+}
 
 test("scaled consumer exercises the same render, hierarchy, resource and component paths", async (t) => {
   const root = await fs.mkdtemp(

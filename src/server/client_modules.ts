@@ -14,6 +14,7 @@ export function loadBrowserClientModules(): ReadonlyMap<string, Buffer> {
     "diffs.js",
     "diff_views.js",
     "workspace.js",
+    "workspace_loading.js",
     "component_controls.js",
     "control_fields.js",
     "control_transport.js",

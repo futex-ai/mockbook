@@ -1,5 +1,5 @@
 /** Strict shared validation for private control edits, separate from renderer execution. */
-import type { Manifest } from "../registry/types.js";
+import type { CatalogueMetadata } from "../registry/catalogue_index.js";
 import { decodeProps, decodeValue } from "./codec.js";
 import { validateControlledValues } from "./controls.js";
 import { exactKeys, plainKeys } from "./data.js";
@@ -13,7 +13,7 @@ import { generatedViews } from "./views.js";
 
 export function validateRenderRequest(
   value: unknown,
-  manifest: Manifest,
+  manifest: CatalogueMetadata,
   generation: string,
 ): {
   request: ComponentRenderRequest;

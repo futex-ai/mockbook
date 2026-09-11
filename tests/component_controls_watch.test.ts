@@ -30,7 +30,7 @@ test(
         const data = JSON.parse(
           html.match(/data-workspace-data="">(.*?)<\/script>/s)![1]!,
         );
-        if (data.renderCapability)
+        if (data.renderCapability && data.usageComplete !== false)
           return {
             ...data.renderCapability,
             version: html.match(/data-mokabook-update-version="(\d+)"/)![1],

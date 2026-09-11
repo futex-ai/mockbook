@@ -1,4 +1,5 @@
 import { installWorkspaceEvents } from "./workspace_events.js";
+import { workspaceLoader } from "./workspace_loading.js";
 import { collapseFrame, expandedFrame } from "./browse_frames.js";
 import { ComponentControls } from "./component_controls.js";
 /** One disposable controller for the package's component and screen inspector. */
@@ -76,6 +77,10 @@ export function installWorkspace(
     currentViews()[0];
   const currentInstance = (): ComponentInstanceRecord | undefined =>
     current()?.usage?.instances.find((item) => item.key === selected);
+  const loadViews = workspaceLoader(data, signal, () => {
+    refresh();
+    if (selected && currentInstance()) open("props", false);
+  });
   const select = (key: string, viewport = activeViewport) => {
     activeViewport = viewport;
     if (!current()?.usage?.instances.some((item) => item.key === key)) return;
@@ -110,9 +115,10 @@ export function installWorkspace(
     stopHighlight = undefined;
     controls?.sync(variant.variant, savedViews(), comparison());
     const views = currentViews();
+    if (!comparison()) loadViews(savedViews());
     const view = current();
     activeViewport = view?.viewport ?? activeViewport;
-    if (!currentInstance()) selected = undefined;
+    if (current()?.usage && !currentInstance()) selected = undefined;
     const selection = {
       ...(view?.usage ? { usage: view.usage } : {}),
       ...(currentInstance() ? { instance: currentInstance()! } : {}),

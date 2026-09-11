@@ -52,8 +52,8 @@ export function componentManifestEntry(
             }
           : {}),
         componentViews: VIEWPORTS.flatMap((viewport) =>
-          effectiveColorSchemes(entry, schemes).map((scheme) =>
-            views.get(fragment(viewport, scheme))!,
+          effectiveColorSchemes(entry, schemes).flatMap(
+            (scheme) => views.get(fragment(viewport, scheme)) ?? [],
           ),
         ),
       };

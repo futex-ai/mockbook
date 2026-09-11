@@ -25,7 +25,10 @@ progress or a terminated process. `ok` means a phase returned successfully, not
 that optional Git evidence was available.
 
 `serve.ready` ends when Serve returns a listening URL, not when the process
-shuts down. Watched Changes runs separately after listener readiness. Timings
+shuts down. Complete rendering and Changes run separately after listener readiness
+for both watched and non-watched Serve. `catalogue.prepare-index` measures foreground
+metadata preparation; `preview.render` measures requested documents. Exhaustive
+Serve compilation has role `background`, not `serve`. Timings
 continue for rebuilds and later classification. The parent forwards the flag to
 every replacement child; the child reports startup transfer, source-inventory
 validation, catalogue preparation, and listening separately.
@@ -43,8 +46,9 @@ visible even when it repeats compilation's graph work.
 The repository's large consumer is synthetic and opt-in. Its generator and
 screen/component templates live under `tests/fixtures/large`. A small instance
 of the same generator runs in automated tests. A full-sized instance must be
-smoke-tested without a fixed wall-clock assertion: machine load and filesystem
-performance affect results.
+smoke-tested using the opt-in browser benchmark's under-five-second usable-startup
+assertion. It runs with other heavy checks idle; CI's small correctness fixtures
+have no machine-specific wall-clock assertion.
 
 The fixture uses real React Native Web and Firna rendering, nested collections,
 saved component variants, repeated and nested component usage, caller-owned
@@ -52,3 +56,13 @@ slots, both viewports and color schemes, logical links, whole-document pages,
 flows, local CSS imports, and images. Sizes are configurable. It is a repeatable
 workload for locating scaling costs, not a claim of identical Accounting data
 or timings. It must provide a Git baseline so Changes performs real comparison.
+
+`fixture:large` explicitly prepares and records an isolated baseline under
+`.context`; setup time includes exhaustive Build and Git and is reported separately.
+`dev:large` and `benchmark:large` reuse that fixture without compiling the package
+or rebuilding a baseline. Rebuild Mokabook explicitly after package-source edits.
+The benchmark launches Chrome before timing a fresh Serve subprocess and measures
+searchable navigation with real preview content, then repeats in a fresh server
+and browser context for an OS-warm restart. “Cold” means application-cold, not a
+flushed OS page cache. It also verifies theme/viewport changes, a real Props edit,
+whole-document pages and eventual Changes. Stdout reports each measurement as JSON.

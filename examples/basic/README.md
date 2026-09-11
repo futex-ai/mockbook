@@ -15,8 +15,9 @@ styles and the design mockups. Registration and source ownership live in
 `entries/components/action.tsx` and `toolbar.tsx`.
 It contains no Accounting or Juno product screen.
 
-For a much larger synthetic catalogue, use `npm run dev:large -- --debug-timings`
-or `npm run benchmark:large`. The [large fixture](../../tests/fixtures/large/README.md)
+For a much larger synthetic catalogue, first prepare it with `npm run fixture:large`,
+then use `npm run dev:large -- --debug-timings` or `npm run benchmark:large`.
+The [large fixture](../../tests/fixtures/large/README.md)
 uses the same Firna/React Native Web rendering stack with configurable volume,
 without expanding this committed example or slowing ordinary development startup.
 

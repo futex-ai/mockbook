@@ -18,41 +18,47 @@ import type {
 } from "../dist/server/watcher.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
-test("shutdown during config adoption closes the final watcher without restart", async (context) => {
-  const fixture = await createFixture();
-  context.after(() => removeFixture(fixture));
-  const loaded = await loadConfig(fixture.root);
-  const config: ResolvedConfig = {
-    ...loaded,
-    watch: { ...loaded.watch, debounceMs: 0 },
-  };
-  const output = new BlockingOutputStore();
-  const watchers = new FakeWatcherFactory();
-  const supervisor = new FakeSupervisor();
-  const running = await serve(
-    config,
-    { port: 0, watch: true },
-    {
-      configLoader: { load: async () => config },
-      outputStore: output,
-      processSupervisorFactory: new FakeSupervisorFactory(supervisor),
-      serverFactory: new UnusedServerFactory(),
-      watcherFactory: watchers,
-    },
-  );
+test(
+  "shutdown during background output closes the accepted watcher without another restart",
+  { timeout: 15000 },
+  async (context) => {
+    const fixture = await createFixture();
+    context.after(() => removeFixture(fixture));
+    const loaded = await loadConfig(fixture.root);
+    const config: ResolvedConfig = {
+      ...loaded,
+      watch: { ...loaded.watch, debounceMs: 0 },
+    };
+    const output = new BlockingOutputStore();
+    const watchers = new FakeWatcherFactory();
+    const supervisor = new FakeSupervisor();
+    const running = await serve(
+      config,
+      { port: 0, watch: true },
+      {
+        configLoader: { load: async () => config },
+        outputStore: output,
+        processSupervisorFactory: new FakeSupervisorFactory(supervisor),
+        serverFactory: new UnusedServerFactory(),
+        watcherFactory: watchers,
+      },
+    );
 
-  watchers.watchers[0]?.change(config.configPath);
-  await output.candidateStarted;
-  const closing = running.close();
-  output.releaseCandidate();
-  await closing;
+    context.after(() => running.close());
+    await output.initialWritten;
+    watchers.watchers[0]?.change(config.configPath);
+    await output.candidateStarted;
+    const closing = running.close();
+    output.releaseCandidate();
+    await closing;
 
-  assert.equal(watchers.watchers.length, 2);
-  assert.equal(watchers.watchers[0]?.closed, true);
-  assert.equal(watchers.watchers[1]?.closed, true);
-  assert.equal(supervisor.restarts, 0);
-  assert.equal(supervisor.closed, true);
-});
+    assert.equal(watchers.watchers.length, 2);
+    assert.equal(watchers.watchers[0]?.closed, true);
+    assert.equal(watchers.watchers[1]?.closed, true);
+    assert.equal(supervisor.restarts, 1);
+    assert.equal(supervisor.closed, true);
+  },
+);
 
 test("shutdown cancels replacement watcher readiness", async (context) => {
   const fixture = await createFixture();
@@ -91,6 +97,10 @@ class BlockingOutputStore implements GeneratedOutputStore {
   private writes = 0;
   private release: (() => void) | undefined;
   private markCandidateStarted: () => void = () => undefined;
+  private markInitialWritten: () => void = () => undefined;
+  readonly initialWritten = new Promise<void>((resolve) => {
+    this.markInitialWritten = resolve;
+  });
   readonly candidateStarted = new Promise<void>((resolve) => {
     this.markCandidateStarted = resolve;
   });
@@ -102,7 +112,10 @@ class BlockingOutputStore implements GeneratedOutputStore {
     _config: ResolvedConfig,
   ): Promise<void> {
     this.writes += 1;
-    if (this.writes === 1) return;
+    if (this.writes === 1) {
+      this.markInitialWritten();
+      return;
+    }
     this.markCandidateStarted();
     await new Promise<void>((resolve) => {
       this.release = resolve;

@@ -7,8 +7,9 @@ import { requestedFragment, withFragmentQuery } from "./fragments.js";
 import { notFoundPage, viewPage } from "./pages.js";
 import { safeDecode, safeDecodePath, send } from "./respond.js";
 import type { ShellContext } from "./shell/context.js";
+import type { DocumentService } from "./demand/service.js";
 
-export function redirectId(
+export async function redirectId(
   response: ServerResponse,
   url: URL,
   encodedId: string,
@@ -16,7 +17,8 @@ export function redirectId(
   config: ResolvedConfig,
   context: ShellContext,
   method: string,
-): void {
+  documents?: DocumentService,
+): Promise<void> {
   const entry = catalogue.byId.get(safeDecode(encodedId));
   if (!entry || entry.kind === "collection")
     return send(
@@ -26,7 +28,13 @@ export function redirectId(
       notFoundPage(encodedId, catalogue, context),
       method,
     );
-  const fragment = requestedFragment(url, entry, catalogue, config);
+  const fragment = await requestedFragment(
+    url,
+    entry,
+    catalogue,
+    config,
+    documents,
+  );
   if (fragment === null) {
     return send(response, 400, "text/plain", "Invalid fragment query", method);
   }
@@ -39,7 +47,7 @@ export function redirectId(
   response.end();
 }
 
-export function renderView(
+export async function renderView(
   response: ServerResponse,
   url: URL,
   encodedRoute: string,
@@ -47,7 +55,8 @@ export function renderView(
   config: ResolvedConfig,
   context: ShellContext,
   method: string,
-): void {
+  documents?: DocumentService,
+): Promise<void> {
   const route = safeDecodePath(encodedRoute);
   const entry = route
     ? (catalogue.byRoute.get(route) ??
@@ -70,7 +79,7 @@ export function renderView(
     ? url.searchParams.has("fragment")
       ? null
       : undefined
-    : requestedFragment(url, manifestEntry, catalogue, config);
+    : await requestedFragment(url, manifestEntry, catalogue, config, documents);
   if (fragment === null) {
     return send(response, 400, "text/plain", "Invalid fragment query", method);
   }

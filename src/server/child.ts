@@ -1,13 +1,17 @@
 import {
   parseRuntimeMessage,
   requestComponentRuntime,
+  receiveRequestedRuntime,
 } from "./controls/runtime_ipc.js";
 import type { ResolvedConfig } from "../config/types.js";
-import type { ManifestV5 } from "../registry/types.js";
+import type { ComponentRuntime } from "../build/component_runtime.js";
 import { bindTimings, timeSync } from "../diagnostics/timings.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
-import { parseChildUpdateMessage } from "./update_messages.js";
+import {
+  parseCatalogueCompleteMessage,
+  parseChildUpdateMessage,
+} from "./update_messages.js";
 
 /** Run the hidden deterministic server child until its parent shuts it down. */
 export async function runServerChild(
@@ -17,11 +21,22 @@ export async function runServerChild(
   updateVersion: number,
   strictPort: boolean,
   retainedRuntime: boolean,
-  manifest?: ManifestV5,
+  manifest?: ComponentRuntime["manifest"],
 ): Promise<void> {
+  const initial =
+    retainedRuntime && manifest?.schemaVersion === "live-index-1"
+      ? await receiveRequestedRuntime()
+      : undefined;
+  if (initial?.version) updateVersion = initial.version;
   const server = await startCatalogueServer(config, {
     base,
+    onForeground: (active) => process.send?.({ type: "foreground", active }),
+    onPreviewResources: (observation) =>
+      process.send?.({ type: "preview-resources", ...observation }),
     ...(manifest ? { manifest } : {}),
+    ...(initial && manifest
+      ? { componentRuntime: { ...initial.runtime, config, manifest } }
+      : {}),
     port,
     review: configuredServedReview(config, base),
     strictPort,
@@ -31,7 +46,7 @@ export async function runServerChild(
   process.send?.({ port: server.port, type: "ready", version: updateVersion });
   if (!process.send)
     process.stdout.write(`Mokabook listening at ${server.url}\n`);
-  if (retainedRuntime) requestComponentRuntime();
+  if (retainedRuntime && !initial) requestComponentRuntime();
   try {
     await shutdown;
   } finally {
@@ -42,7 +57,7 @@ export async function runServerChild(
 function waitForChildShutdown(
   server: Awaited<ReturnType<typeof startCatalogueServer>>,
   config: ResolvedConfig,
-  manifest?: ManifestV5,
+  manifest?: ComponentRuntime["manifest"],
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let closing = false;
@@ -65,6 +80,13 @@ function waitForChildShutdown(
       }
     };
     const onMessage = (message: unknown): void => {
+      const complete = parseCatalogueCompleteMessage(message);
+      if (
+        complete &&
+        server.completeCatalogue?.(complete.manifest, complete.generation)
+      ) {
+        server.publishUpdate({ version: complete.version });
+      }
       const runtime = parseRuntimeMessage(message);
       if (runtime && manifest) {
         timeSync("runtime.attach", () =>

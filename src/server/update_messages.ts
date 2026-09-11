@@ -3,6 +3,7 @@ import type {
   RuntimeStartupMessage,
 } from "./controls/runtime_ipc.js";
 import type { ComponentChangeSnapshot } from "./component_changes.js";
+import type { ManifestV5 } from "../registry/types.js";
 /** Typed watched-server updates crossing the parent/child IPC boundary. */
 
 import { isSafeCatalogueRoute } from "../config/paths.js";
@@ -25,8 +26,41 @@ export interface ChildUpdateMessage {
   version: number;
 }
 
+export interface CatalogueCompleteMessage {
+  type: "catalogue-complete";
+  manifest: ManifestV5;
+  generation: string;
+  version: number;
+}
+
+/** Validate the envelope here; the active server validates matching manifest contents. */
+export function parseCatalogueCompleteMessage(
+  value: unknown,
+): CatalogueCompleteMessage | undefined {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("type" in value) ||
+    value.type !== "catalogue-complete"
+  )
+    return;
+  const candidate = value as Partial<CatalogueCompleteMessage>;
+  if (
+    typeof candidate.generation !== "string" ||
+    !/^[a-f0-9]{32}$/.test(candidate.generation) ||
+    !Number.isSafeInteger(candidate.version) ||
+    (candidate.version ?? 0) <= 0 ||
+    !candidate.manifest ||
+    typeof candidate.manifest !== "object" ||
+    candidate.manifest.schemaVersion !== 5
+  )
+    return;
+  return candidate as CatalogueCompleteMessage;
+}
+
 /** Commands accepted by the watched server child. */
 export type ChildCommand =
+  | CatalogueCompleteMessage
   | ChildUpdateMessage
   | RuntimeMessage
   | RuntimeStartupMessage

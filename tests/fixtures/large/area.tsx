@@ -21,7 +21,9 @@ export function createArea(area: string, count: number, rows: number) {
   const groups = Array.from({ length: Math.ceil(count / 10) }, (_, index) =>
     ids.slice(index * 10, index * 10 + 10),
   );
-  if (groups.at(-1)!.length === 1) groups.at(-1)!.push(ids[0]!);
+  const flows = groups.map((group) =>
+    group.length === 1 ? [...group, ids[0]!] : group,
+  );
   return [
     components.action.entry,
     components.panel.entry,
@@ -72,7 +74,7 @@ export function createArea(area: string, count: number, rows: number) {
         title: `Activity journey ${index + 1}`,
         description: "Review connected activities.",
         route: `user-flows/${area}/journey-${index + 1}.html`,
-        steps: group.map((screenId) => ({ screenId })),
+        steps: flows[index]!.map((screenId) => ({ screenId })),
       }),
     ]),
     ...ids.map((id, index) => {
@@ -90,7 +92,7 @@ export function createArea(area: string, count: number, rows: number) {
         description: "Review and manage workspace activity.",
         route: `${area}/screens/activity-${index + 1}.html`,
         tags: ["activity", index % 2 ? "complete" : "in-progress"],
-        useCaseIds: groups.flatMap((group, groupIndex) =>
+        useCaseIds: flows.flatMap((group, groupIndex) =>
           group.includes(id) ? [`${area}-flow-${groupIndex + 1}`] : [],
         ),
         mobile: <MobileScreen {...props} />,

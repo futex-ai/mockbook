@@ -47,7 +47,8 @@ test(
         path.join(fixture.mockupsDir, "image.svg"),
         '<svg width="200"><rect width="20"/></svg>',
       );
-      const html = await waitForUpdate(running.url, previousVersion);
+      await waitForUpdate(running.url, previousVersion);
+      const html = await waitForClassifiedCount(running.url, 2);
       const after = readManifest(fixture.config).entries.find(
         (entry) => entry.id === "home",
       )?.title;

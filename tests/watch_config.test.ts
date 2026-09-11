@@ -51,11 +51,12 @@ test("watched graphs add imported helpers and retain last-good inputs after fail
     },
   );
   context.after(() => running.close());
+  await waitFor(() => output.configs.length === 1);
   assert.ok(watchers.targets[0]?.includes(helper));
   const before = [...(initial.sourceFiles ?? [])];
   await fs.promises.writeFile(nextHelper, 'export const title = "Next";');
   await fs.promises.writeFile(helper, 'export { title } from "./next.ts";');
-  output.failNext = true;
+  watchers.failNext = true;
   watchers.watchers[0]?.change(helper);
   await waitFor(() => watchers.watchers[1]?.closed === true);
   assert.deepEqual(initial.sourceFiles, before);
@@ -121,8 +122,10 @@ test("watched Serve reloads config with a ready replacement watcher", async (con
   );
   context.after(() => running.close());
 
+  await waitFor(() => output.configs.length === 1);
   watchers.watchers[0]?.change(initial.configPath);
   await waitFor(() => supervisor.restarts === 1);
+  await waitFor(() => output.configs.length === 2);
 
   assert.equal(loader.loads, 1);
   assert.equal(watchers.watchers.length, 2);
@@ -168,7 +171,8 @@ test("failed config adoption retains the last-good watcher and child", async (co
   );
   context.after(() => running.close());
 
-  output.failNext = true;
+  await waitFor(() => output.configs.length === 1);
+  watchers.failNext = true;
   watchers.watchers[0]?.change(initial.configPath);
   await waitFor(() => watchers.watchers[1]?.closed === true);
 
@@ -178,6 +182,7 @@ test("failed config adoption retains the last-good watcher and child", async (co
 
   watchers.watchers[0]?.change(initial.configPath);
   await waitFor(() => supervisor.restarts === 1);
+  await waitFor(() => output.configs.length === 2);
 
   assert.equal(watchers.watchers[0]?.closed, true);
   assert.equal(watchers.watchers[2]?.closed, false);
@@ -216,10 +221,12 @@ class FakeOutputStore implements GeneratedOutputStore {
 class FakeWatcherFactory implements ConsumerWatcherFactory {
   readonly targets: string[][] = [];
   readonly watchers: FakeWatcher[] = [];
+  failNext = false;
 
   create(targets: readonly string[]): ConsumerWatcher {
     this.targets.push([...targets]);
-    const watcher = new FakeWatcher();
+    const watcher = new FakeWatcher(this.failNext);
+    this.failNext = false;
     this.watchers.push(watcher);
     return watcher;
   }
@@ -228,6 +235,7 @@ class FakeWatcherFactory implements ConsumerWatcherFactory {
 class FakeWatcher implements ConsumerWatcher {
   closed = false;
   private changeCallback: ((path: string) => void) | undefined;
+  constructor(private readonly failReady = false) {}
 
   async close(): Promise<void> {
     this.closed = true;
@@ -239,7 +247,9 @@ class FakeWatcher implements ConsumerWatcher {
 
   onError(_callback: (error: Error) => void): void {}
 
-  async ready(): Promise<void> {}
+  async ready(): Promise<void> {
+    if (this.failReady) throw new Error("candidate watcher failed");
+  }
 
   change(candidate: string): void {
     this.changeCallback?.(candidate);
@@ -291,7 +301,7 @@ class UnusedServerFactory implements CatalogueServerFactory {
 }
 
 async function waitFor(condition: () => boolean): Promise<void> {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < 500; attempt += 1) {
     if (condition()) return;
     await new Promise((resolve) => setTimeout(resolve, 10));
   }

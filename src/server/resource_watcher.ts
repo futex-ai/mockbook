@@ -39,12 +39,23 @@ export class ResourceWatcher {
   /** Observe new inputs before adoption and retain removed inputs until it succeeds. */
   async prepare(
     config: ResolvedConfig,
-    compilation: Compilation,
+    compilation: Pick<Compilation, "outputs">,
     shutdownStarted: Promise<void>,
     allowInvalid = false,
+    incremental = false,
   ): Promise<PreparedResourceWatch | undefined> {
+    const previous = incremental ? this.#snapshot : undefined;
+    const discover = async (last?: ResourceWatchSnapshot) => {
+      const next = await discoverWatchResources(
+        config,
+        compilation,
+        last,
+        allowInvalid,
+      );
+      return previous ? mergeResourceSnapshots(previous, next) : next;
+    };
     let snapshot = await timeAsync("watch.resources-discover", () =>
-      discoverWatchResources(config, compilation, this.#snapshot, allowInvalid),
+      discover(this.#snapshot),
     );
     if (sameWatch(snapshot, this.#snapshot)) {
       return {
@@ -85,7 +96,7 @@ export class ResourceWatcher {
           return undefined;
         }
         const refreshed = await timeAsync("watch.resources-rediscover", () =>
-          discoverWatchResources(config, compilation, snapshot, allowInvalid),
+          discover(snapshot),
         );
         if (!sameWatch(snapshot, refreshed)) {
           await watcher?.close();
@@ -127,6 +138,18 @@ export class ResourceWatcher {
     this.#closed = true;
     await this.#watcher?.close();
   }
+}
+
+function mergeResourceSnapshots(
+  previous: ResourceWatchSnapshot,
+  next: ResourceWatchSnapshot,
+): ResourceWatchSnapshot {
+  return {
+    paths: new Set([...previous.paths, ...next.paths]),
+    invalid: new Set([...previous.invalid, ...next.invalid]),
+    references: new Map([...previous.references, ...next.references]),
+    locations: new Map([...previous.locations, ...next.locations]),
+  };
 }
 
 /** Replace observers after invalid entries recover, even at the same lexical path. */

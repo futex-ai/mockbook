@@ -90,9 +90,11 @@ real directory-index id aliases, static delivery metadata, and lazy immutable
 comparisons are defined by [Static export delivery](./mokabook-export-delivery.md).
 No server or watcher is started for export; served behavior below is unchanged.
 
-Browse validates the v4 manifest and independently resolves both source graphs
-before binding its listening port. A stale inventory requires a rebuild. This
-scan never renders pages or rewrites output. It exposes:
+Serve validates its distinct live catalogue index and independently resolves both
+source graphs before binding. Full-manifest consumers still require validated v5
+output and a current source inventory. These scans never render pages or rewrite
+output. The [on-demand contract](./mokabook-on-demand.md) defines completeness,
+worker isolation and generation-local caches. Browse exposes:
 
 - `/` for the catalogue home;
 - `/view/<route>` for screens, use cases, and registered whole-document pages;
@@ -104,17 +106,14 @@ scan never renders pages or rewrites output. It exposes:
   redirects to immutable generations and snapshot files beneath the same prefix;
 - package-owned client and update endpoints under `/__mokabook/`.
 
-Watched Browse does not run Git classification on the HTTP child or on the
-request path. The child receives the accepted config and already validated
-manifest from its parent and avoids rereading the large manifest file. It
-validates the payload and rechecks source-inventory freshness before constructing
-the catalogue and binding. It signals readiness before receiving
-the remaining retained component runtime. Runtime attachment publishes a
-reserved higher update version, so a shell loaded in that brief interval
-reloads with local controls enabled. The
-initial shell remains usable without a Changes filter while the parent computes
-one shared repository snapshot; a later versioned update installs that evidence.
-Non-watched Serve continues to resolve its deterministic snapshot before bind.
+Browse does not run Git classification on its HTTP event loop or request path.
+The watched child receives the accepted config, live index and retained bundle
+before readiness, without rendered HTML or a full manifest-file read. It validates
+metadata and source-inventory freshness, then binds with local controls enabled.
+Requested views render in a bounded worker. Complete output, catalogue-wide usage
+and Changes follow in background work; versioned updates install only current
+generation evidence. Non-watched Serve has the same readiness boundary and computes
+background evidence once, without later file/ref observation.
 
 All ordinary routes support GET and HEAD. HEAD returns the same status and
 headers without a body, including `/id` not-found and fragment-validation

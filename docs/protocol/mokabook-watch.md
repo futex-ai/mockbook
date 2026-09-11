@@ -57,7 +57,7 @@ namespace remain pruned. Unowned files still make subsequent export replacement
 fail; watch classification does not grant permission to overwrite them.
 
 The input graphs are resolved before the source/config watcher is constructed.
-It becomes ready before initial compilation; import changes replace its watch
+It becomes ready before initial index preparation; import changes replace its watch
 set using the same readiness and recovery rules as configuration adoption.
 Resource watches are discovered from candidate output and become ready before
 it is written. Discovery repeats after readiness to capture newly introduced
@@ -75,30 +75,36 @@ the same serialized action queue used for authored changes. The supervisor
 retains ownership until terminal confirmation; a replacement cannot bypass an
 in-progress cleanup or contend with the failed child's still-bound port.
 
-The supervisor allows sixty seconds for the child to receive the accepted
-serializable config and validated manifest, construct its catalogue indexes, and
-bind. This startup transfer avoids rereading the large manifest file. The child
+The supervisor retains the five-minute readiness safety allowance for the child
+to receive the accepted config, live index and retained renderer, construct its
+catalogue and bind. The interactive performance target is under five seconds;
+the timeout is not an acceptable startup duration. Startup transfers no rendered
+HTML and avoids rereading the large manifest file. The child
 still validates the transferred metadata and re-resolves the config and consumer
 input graphs to enforce source-inventory freshness before binding. These checks
-are visible separately with `--debug-timings`. The child requests only the remaining retained
-renderer and generated-file set afterward; that response omits the config,
-manifest object, and serialized manifest file already supplied or represented.
-Attaching this runtime reserves and publishes a higher update version so an
-early shell cannot remain stuck without local component controls.
+are visible separately with `--debug-timings`. Local controls are available at
+readiness. The older full-manifest internal startup path retains its post-ready
+runtime handoff; live Serve uses the lightweight pre-ready handoff.
 
 On a config-file change, the parent first loads and validates the candidate,
-starts a replacement watcher and waits for readiness, then transactionally
-builds the candidate output. Only after those steps succeed does it adopt the
-new resolved config, close the old watcher, and restart the child. A load,
-watcher-readiness, or candidate-build failure closes the candidate watcher and
-retains the previous config, watcher, output, and child. An explicit CLI
+starts a replacement watcher, waits for readiness and validates a new index and
+rendering graph. It then adopts the config, closes the old watcher and restarts
+the child. Load, watcher-readiness or index-validation failure retains the previous
+config, watcher, output and child. Full rendering and transactional output writing
+follow in the background. Their failure preserves old disk output and withholds
+complete usage/Changes; valid current previews remain available. An explicit CLI
 `--base` remains pinned; without one, the restarted child uses the newly loaded
 config's comparison base.
 
 Initial startup, successful rebuilds and configuration changes, and resource
 reloads refresh the reachable resource watch set. A ready replacement is adopted
 only with its matching output; failed writes discard it and retain the previous
-resource watches. Reloads keep missing or invalid paths and their last-known
+resource watches. Independently, visited previews send generation-tagged document
+closures to the parent, which attaches incremental resource watches immediately,
+even when exhaustive rendering has not finished or fails elsewhere. Incremental
+watches accumulate within a source generation and are replaced by the next
+generation's visited closure. Discovery repeats after watcher readiness. Reloads
+keep missing or invalid paths and their last-known
 descendants observable until repaired or unreferenced. Invalid resources still
 make Changes unavailable, while verified baseline deletions identify affected
 screens. Neither case prevents a live reload or comparison-cache invalidation.
@@ -109,8 +115,10 @@ entries cannot broaden the resource watch set.
 Generated-output ownership checks return false for unresolvable paths, so a
 temporarily dangling resource remains observable and can recover after repair.
 
-Rebuilds are debounced and transactional. A failed rebuild keeps the last-good
-server and output, reports the error, and waits for another authored change. A
+Rebuilds are debounced and accept metadata and the retained graph together. A failed
+index candidate keeps the last-good server and output; a background failure keeps
+the last-good disk output without claiming completeness. Errors are reported while
+the watcher waits for another authored change. A
 successful rebuild or healthy restart publishes a new update version. Browsers
 reload their current durable URL and restore search, changed-only selection,
 current collection disclosure, the disclosure baseline captured before active
@@ -141,8 +149,11 @@ action; the current successful result publishes a second typed update that
 atomically replaces route membership, removed-entry baseline data, and component
 evidence. An available empty list keeps the filter visible at zero; a failed or
 unavailable comparison leaves it absent. Initial watched startup follows the
-same asynchronous classification rule after listener readiness. Non-watched
-Serve resolves the shared snapshot before it binds.
+same asynchronous classification rule after listener readiness, as does non-watched
+Serve. Watched Serve polls resolved HEAD/base commits once per second outside HTTP;
+Git resolves symbolic refs, worktrees and packed refs. A changed or newly available
+ref clears evidence and reclassifies existing completed output without rerendering
+views. Replacement and shutdown cancel old ref reads and discard stale results.
 
 Watch actions execute serially. Changes received during an active action are
 coalesced by impact before the next action starts, so two rebuilds cannot race
@@ -184,13 +195,14 @@ bounded intervals when necessary; the supervisor does not finish closing until
 the child exit notification arrives.
 
 Each spawned child owns one readiness result, a terminal result registered from
-creation, and one shared cleanup operation. Readiness timeout (15 seconds),
-pre-ready errors, post-ready errors, IPC disconnection, explicit close, and restart all use that
-operation. Startup reports its original failure only after cleanup confirms the
-child has stopped. A ready message followed by failure before startup resolves
-cannot report successful startup. Close cancels pending readiness; later ready
-messages and updates are ignored. Concurrent close/restart calls share cleanup,
-and a separate start while the child is still owned fails without spawning.
+creation, and one shared cleanup operation. Readiness timeout (300 seconds),
+pre-ready errors, post-ready errors, IPC disconnection, explicit close, and
+restart all use that operation. Startup reports its original failure only after
+cleanup confirms the child has stopped. A ready message followed by failure
+before startup resolves cannot report successful startup. Close cancels pending
+readiness; later ready messages and updates are ignored. Concurrent close/restart
+calls share cleanup, and a separate start while the child is still owned fails
+without spawning.
 
 The native handle observes IPC disconnection from creation and retains that
 event for late subscribers. Disconnection while waiting for readiness or while

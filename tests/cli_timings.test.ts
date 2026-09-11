@@ -131,6 +131,11 @@ test(
         (event) => event.role === "child" && event.stage === "server.listen",
       ),
     );
+    await wait(() =>
+      events(stderr).some(
+        (event) => event.stage === "changes.classify" && event.event === "end",
+      ),
+    );
     const source = await fs.readFile(fixture.entryPath, "utf8");
     await fs.writeFile(
       fixture.entryPath,
@@ -152,7 +157,14 @@ test(
     assert.ok(
       events(stderr)
         .filter((event) => event.stage === "compile")
-        .every((event) => event.role === "serve"),
+        .every((event) => event.role === "background"),
+    );
+    assert.equal(
+      events(stderr).filter(
+        (event) =>
+          event.stage === "catalogue.prepare-index" && event.event === "end",
+      ).length,
+      2,
     );
   },
 );

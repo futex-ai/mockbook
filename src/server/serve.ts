@@ -1,5 +1,4 @@
-import { componentRuntime } from "../build/component_runtime.js";
-import { compileCatalogue } from "../build/compile.js";
+import { prepareLiveRuntime } from "../build/live_runtime.js";
 import {
   FileSystemGeneratedOutputStore,
   type GeneratedOutputStore,
@@ -11,7 +10,6 @@ import {
   type CatalogueServerFactory,
 } from "./factory.js";
 import { configuredServedReview } from "./review_routes.js";
-import { loadServedCatalogueSnapshot } from "./catalogue_snapshot.js";
 import {
   RepositoryCatalogueChangeClassifier,
   type CatalogueChangeClassifier,
@@ -24,7 +22,7 @@ import {
   ChokidarWatcherFactory,
   type ConsumerWatcherFactory,
 } from "./watcher.js";
-import { serverLifecycle } from "./serve_lifecycle.js";
+import { BackgroundGeneration } from "./demand/generation.js";
 import { serveWatched } from "./serve_watched.js";
 
 /** Public Serve options after CLI validation. */
@@ -68,22 +66,39 @@ export async function serve(
   dependencies: ServeDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<RunningServe> {
   if (!options.watch) {
-    const compilation = await compileCatalogue(config);
-    await dependencies.outputStore.write(compilation, config);
+    const runtime = await prepareLiveRuntime(config);
+    config = runtime.config;
     const base = options.base ?? config.review.base;
-    const snapshot = await loadServedCatalogueSnapshot(
-      config,
-      base,
-      compilation.manifest,
+    const background = new BackgroundGeneration(
+      dependencies.outputStore,
+      dependencies.changeClassifier ?? DEFAULT_CHANGE_CLASSIFIER,
+      (compilation, accepted) => {
+        server.completeCatalogue?.(compilation.manifest, accepted.generation);
+        server.publishUpdate();
+      },
+      (snapshot) =>
+        server.publishUpdate({
+          changedRoutes: snapshot.changedRoutes ?? null,
+          componentChanges: snapshot,
+        }),
     );
     const server = await dependencies.serverFactory.start(config, {
       base,
-      snapshot,
-      componentRuntime: componentRuntime(compilation),
+      onForeground: (active) => background.foreground(active),
+      manifest: runtime.manifest,
+      componentRuntime: runtime,
       port: options.port,
       review: configuredServedReview(config, base),
     });
-    return serverLifecycle(server);
+    background.start(runtime, base);
+    return {
+      port: server.port,
+      url: server.url,
+      async close() {
+        await background.close();
+        await server.close();
+      },
+    };
   }
   return serveWatched(config, options, dependencies);
 }

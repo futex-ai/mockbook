@@ -70,6 +70,7 @@ export const SHELL_CHROME_CSS = `
   transform: translateX(-50%);
   border-radius: 999px;
   background: rgba(20, 24, 20, 0.4);
+  pointer-events: none;
 }
 
 .browser-frame {

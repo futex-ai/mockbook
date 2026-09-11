@@ -1,7 +1,8 @@
 # Local Component Rendering
 
-Serve enables this private service with the runtime retained by a successful
-Build. Static export never supplies a capability, token, or rendering endpoint.
+Serve enables this private service with the runtime retained by validated catalogue
+index preparation; it does not wait for exhaustive Build. Static export never
+supplies a capability, token, or rendering endpoint.
 The public authoring API and ordinary renderer remain the integration boundary.
 
 The parent shell sends controlled overrides to
@@ -17,7 +18,9 @@ bundle; no independently configured renderer or React graph is loaded. A
 renderer cannot occupy the server's HTTP thread or delay its shutdown.
 
 `transient.ts` uses Build's stylesheet selection, renderer, compatibility/link
-transformation, ownership, range, prop, manifest and resource checks. Existing
+transformation, ownership, range, prop, per-view metadata and resource checks.
+It retains one `DocumentCompiler` per generation instead of cloning and validating
+the full catalogue for each keystroke. Existing
 public resources are copied into the edited document's immutable memory bundle.
 Generated inline styles remain part of its HTML. No generated file, manifest,
 watch event, Review artifact, or export inventory is written by this service.
@@ -27,20 +30,22 @@ metadata. Five-minute expiration and eviction return 410 for authenticated old
 ids; malformed or foreign ids return 404. Every response is `no-store` and
 `nosniff`; documents also carry script-disabled sandbox policy.
 
-Watched Serve transfers the accepted configuration and already validated
-manifest over its private parent/child IPC channel before readiness, then
-transfers the remaining retained bundle and generated-file set only after the
-child has validated the payload and current source inventory, constructed the
-catalogue and bound its port. The second response
-omits the config, manifest object, and serialized manifest output already
-supplied or represented. Attaching the runtime publishes a reserved higher
-version so an early shell reloads with controls enabled. A successful build with
-an unchanged manifest applies its runtime to the live child before publishing
-the reload event. A changed manifest or reconfiguration stages the runtime for
+Watched Serve transfers the accepted configuration, live catalogue index and bundle
+over private IPC before readiness. No rendered HTML or full manifest file is sent.
+The child validates metadata and source freshness and binds with controls enabled.
+The controls worker evaluates a compact retained runtime once, without unrelated
+HTML or usage. A successful source update with an unchanged index applies its
+runtime to the live child before publishing the reload event. A changed index or
+reconfiguration stages the runtime for
 the next child; the old child keeps its matching catalogue and controls until
 shutdown. Each spawned child captures both startup IPC responses. Failed
 candidates retain the old graph. Recovery receives the accepted rendering graph;
 its independent source-inventory validation can still reject broken or stale inputs.
+
+Props and saved-preview requests share an activity tracker so background rendering
+pauses between documents while either is busy. Relative navigation in an edited
+preview falls back to `/static/` routes; only embedded resources are copied into
+its immutable bundle, not every linked page.
 
 ## Development
 

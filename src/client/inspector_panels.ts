@@ -40,6 +40,16 @@ export function usageHref(link: UsageLink): string {
 export function renderUsage(panel: HTMLElement, data: WorkspaceData): void {
   const doc = panel.ownerDocument;
   panel.replaceChildren();
+  if (data.usageComplete === false) {
+    panel.append(
+      element(
+        doc,
+        "p",
+        "Usage is unavailable until the catalogue has been checked.",
+      ),
+    );
+    return;
+  }
   for (const [title, links] of [
     ["Used by", data.usedBy],
     ["Affected screens and components", data.affected],

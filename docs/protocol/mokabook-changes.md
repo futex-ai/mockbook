@@ -73,13 +73,15 @@ resource deletions, an unavailable or invalid input disables the filter,
 preserving access through All.
 Watched updates and static publishing use this same membership calculation.
 
-Watched Serve performs the calculation in its parent after the HTTP child is
-ready, never during a shell request. Until the immutable route, baseline, and
+Serve performs the calculation in a background worker after HTTP is ready and
+complete generated output has been adopted, never during a shell request.
+The watched parent publishes the result. Until the immutable route, baseline, and
 component-evidence snapshot arrives, Browse serves All without inventing a
 Changes count. Content updates clear the previous snapshot before notifying the
 browser, then publish a second version only when the latest sequence finishes;
-late results from superseded generations are ignored. Non-watched Serve awaits
-the same shared calculation before binding.
+late results from superseded generations are ignored. Non-watched Serve uses the
+same asynchronous startup boundary, without observing later edits. Watched Git-only
+ref changes reclassify completed output without rendering views again.
 
 Component-aware classification preloads every baseline screen and saved-variant
 view in one logical, bounded Git batch, including mobile, desktop, dark and

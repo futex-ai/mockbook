@@ -25,18 +25,23 @@ export function transformCompatibilityDocuments(
   graph: LoadedGraph,
   fragmentViews: ReadonlyMap<string, ArtifactView>,
   retainedRoutes?: readonly string[],
+  context?: CompatibilityContext,
 ): readonly LogicalReferenceRecord[] {
-  const byId = new Map(entries.map((entry) => [entry.id, entry]));
+  const byId =
+    context?.byId ?? new Map(entries.map((entry) => [entry.id, entry]));
   const records: LogicalReferenceRecord[] = [];
   const outputRoutes = [...outputs.keys()];
-  const availableRoutes = availablePublicRoutes(
-    retainedRoutes ?? outputRoutes,
-    config,
-  );
+  const availableRoutes = graph.compatibilityTransformer
+    ? (context?.availableRoutes ??
+      availablePublicRoutes(retainedRoutes ?? outputRoutes, config))
+    : [];
+  if (context && graph.compatibilityTransformer)
+    context.availableRoutes = availableRoutes;
   const routeIndexes = new Map<
     string,
     ReturnType<typeof logicalArtifactRoutes>
   >();
+  const indexes = context?.routeIndexes ?? routeIndexes;
   for (const [route, original] of outputs) {
     const { colorScheme, viewport } = fragmentViews.get(route) ?? {
       colorScheme: "light",
@@ -57,7 +62,7 @@ export function transformCompatibilityDocuments(
       continue;
     }
     const routeIndexKey = `${viewport}:${colorScheme}`;
-    let logicalRoutes = routeIndexes.get(routeIndexKey);
+    let logicalRoutes = indexes.get(routeIndexKey);
     if (!logicalRoutes) {
       logicalRoutes = logicalArtifactRoutes(
         entries,
@@ -65,7 +70,7 @@ export function transformCompatibilityDocuments(
         colorScheme,
         config.colorSchemes,
       );
-      routeIndexes.set(routeIndexKey, logicalRoutes);
+      indexes.set(routeIndexKey, logicalRoutes);
     }
     let transformed: string;
     try {
@@ -101,6 +106,13 @@ export function transformCompatibilityDocuments(
     outputs.set(route, normalized);
   }
   return records;
+}
+
+/** Immutable-route indexes reused across documents of one consumer generation. */
+export interface CompatibilityContext {
+  byId: ReadonlyMap<string, ResolvedRegistryEntry>;
+  availableRoutes?: string[];
+  routeIndexes: Map<string, ReturnType<typeof logicalArtifactRoutes>>;
 }
 
 function availablePublicRoutes(

@@ -32,6 +32,8 @@ test("watched startup attaches the watcher before the initial output write", asy
   );
   context.after(() => running.close());
 
+  assert.equal(events.includes("output:write"), false);
+  await waitForEvent(events, "output:write");
   assert.ok(events.indexOf("watcher:create") < events.indexOf("output:write"));
   assert.ok(events.indexOf("watcher:ready") < events.indexOf("output:write"));
 });
@@ -78,6 +80,7 @@ test("watched startup does not await repository classification", async (context)
   );
   context.after(() => running.close());
 
+  await waitForEvent(events, "classification:start");
   assert.ok(
     events.indexOf("supervisor:start") < events.indexOf("classification:start"),
   );
@@ -95,6 +98,7 @@ test("watched shutdown cancels background repository classification", async (con
   const classifier: CatalogueChangeClassifier = {
     async read(_config, manifest, _base, signal) {
       classificationSignal = signal;
+      events.push("classification:start");
       await new Promise<void>((resolve) =>
         signal?.addEventListener("abort", () => resolve(), { once: true }),
       );
@@ -107,6 +111,8 @@ test("watched shutdown cancels background repository classification", async (con
     dependencies(events, new FakeWatcher(events), classifier),
   );
 
+  context.after(() => running.close());
+  await waitForEvent(events, "classification:start");
   await running.close();
 
   assert.equal(classificationSignal?.aborted, true);
@@ -214,7 +220,7 @@ class FakeSupervisor implements ProcessSupervisor {
 }
 
 async function waitForEvent(events: readonly string[], expected: string) {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < 600; attempt += 1) {
     if (events.includes(expected)) return;
     await new Promise((resolve) => setTimeout(resolve, 5));
   }

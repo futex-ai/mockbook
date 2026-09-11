@@ -1,12 +1,11 @@
 /** Last-good runtime transfer over the watched child's private IPC channel. */
 import type { ComponentRuntime } from "../../build/component_runtime.js";
 import type { ResolvedConfig } from "../../config/types.js";
-import type { ManifestV5 } from "../../registry/types.js";
 
 /** Accepted configuration and manifest transferred before watched readiness. */
 export interface RuntimeStartupMessage {
   config: ResolvedConfig;
-  manifest: ManifestV5;
+  manifest: ComponentRuntime["manifest"];
   type: "component-runtime-startup";
 }
 
@@ -42,6 +41,35 @@ export function componentRuntimeMessage(
 /** Ask the watched parent for its retained graph after server readiness. */
 export function requestComponentRuntime(): void {
   process.send?.({ type: "component-runtime-request" });
+}
+
+/** Live indexes need their small rendering graph attached before announcing readiness. */
+export function receiveRequestedRuntime(): Promise<RuntimeMessage> {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      process.off("message", receive);
+      process.off("disconnect", disconnected);
+    };
+    const receive = (value: unknown) => {
+      const message = parseRuntimeMessage(value);
+      if (message) {
+        cleanup();
+        resolve(message);
+      }
+    };
+    const disconnected = () => {
+      cleanup();
+      reject(new Error("Parent disconnected during runtime transfer"));
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Consumer runtime transfer timed out"));
+    }, 10_000);
+    process.on("message", receive);
+    process.once("disconnect", disconnected);
+    requestComponentRuntime();
+  });
 }
 
 /** Receive parent-validated metadata before the child checks its source inventory. */
@@ -85,7 +113,7 @@ function parseRuntimeStartupMessage(
   )
     return;
   const config = value.config as ResolvedConfig | undefined;
-  const manifest = value.manifest as ManifestV5 | undefined;
+  const manifest = value.manifest as ComponentRuntime["manifest"] | undefined;
   if (
     !config ||
     typeof config.configPath !== "string" ||
@@ -94,7 +122,8 @@ function parseRuntimeStartupMessage(
     typeof config.repoRoot !== "string" ||
     !manifest ||
     !Array.isArray(manifest.entries) ||
-    manifest.schemaVersion !== 5 ||
+    (manifest.schemaVersion !== 5 &&
+      manifest.schemaVersion !== "live-index-1") ||
     !Array.isArray(manifest.sourceFiles)
   )
     return;

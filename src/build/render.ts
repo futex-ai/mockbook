@@ -27,6 +27,12 @@ export function renderFragments(
   fragmentViews: Map<string, ArtifactView>,
   graphRenderer: ComponentGraphRenderer,
   componentViews: Map<string, ComponentViewRecord>,
+  selection?: {
+    entryId: string;
+    viewport: "mobile" | "desktop";
+    colorScheme: ColorScheme;
+    variantId?: string;
+  },
 ): Map<string, string> {
   const outputs = new Map<string, string>();
   const components = entries.filter((entry) => entry.kind === "component");
@@ -35,6 +41,7 @@ export function renderFragments(
     ...entries.filter((entry) => entry.kind === "page"),
   ];
   for (const entry of ordered) {
+    if (selection && selection.entryId !== entry.id) continue;
     if (entry.kind === "page") {
       addOutput(outputs, entry.route, renderPage(entry));
       fragmentViews.set(entry.route, {
@@ -52,6 +59,13 @@ export function renderFragments(
           entry,
           config.colorSchemes,
         )) {
+          if (
+            selection &&
+            (selection.variantId !== variantId ||
+              selection.viewport !== viewport ||
+              selection.colorScheme !== colorScheme)
+          )
+            continue;
           const route = variantId
             ? componentFragmentRoute(
                 entry.route,

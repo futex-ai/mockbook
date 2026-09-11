@@ -186,6 +186,13 @@ test("CLI no-watch lifecycle becomes ready and exits cleanly on SIGTERM", async 
   });
   const url = await outputUrl(child.stdout);
   assert.equal((await fetch(url)).status, 200);
+  assert.match(
+    await (await fetch(`${url}/static/screens/home.desktop.html`)).text(),
+    /id="home"/,
+  );
+  await waitFor(async () =>
+    fs.existsSync(path.join(fixture.mockupsDir, "mokabook-manifest.json")),
+  );
   child.kill("SIGTERM");
   const code = await new Promise<number | null>((resolve) =>
     child.once("exit", resolve),

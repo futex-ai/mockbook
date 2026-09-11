@@ -105,7 +105,9 @@ test("watched Serve restarts through the action queue after an unexpected child 
   context.after(() => running.close());
 
   supervisor.exitUnexpectedly();
-  await new Promise((resolve) => setImmediate(resolve));
+  const deadline = performance.now() + 5000;
+  while (supervisor.restarts === 0 && performance.now() < deadline)
+    await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(supervisor.restarts, 1);
 });
 

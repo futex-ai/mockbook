@@ -146,7 +146,7 @@ produce the same fragment names and manifest bytes as before.
 Run the CLI through a local dependency or directly with npx:
 
 ```bash
-npx mokabook                         # build, serve, and watch
+npx mokabook                         # browse immediately, render on demand, and watch
 npx mokabook serve --no-watch --port 0
 npx mokabook serve --debug-timings
 npx mokabook build
@@ -162,7 +162,7 @@ fall back to the registry. A clean machine may use
 
 | Command                        | Outcome                                                   |
 | ------------------------------ | --------------------------------------------------------- |
-| `mokabook`                     | Build, serve, and watch using a stable development URL    |
+| `mokabook`                     | Browse on demand and watch using a stable development URL |
 | `mokabook serve`               | Serve the catalogue and on-demand diffs; watch by default |
 | `mokabook build`               | Validate and transactionally write generated output       |
 | `mokabook check`               | Compare expected and committed bytes without writing      |
@@ -183,28 +183,31 @@ validation, file writes, watcher setup, child readiness, and background Changes.
 Parent timings include child phases; overlapping timings must not be added
 together. See the [diagnostic contract](./docs/protocol/mokabook-timings.md).
 
-To investigate scale locally, `npm run dev:large -- --debug-timings` creates a
-synthetic 1,410-route catalogue with 5,550 mobile/desktop, light/dark and page
-documents, commits an isolated Git baseline, then starts a watched server.
-`npm run benchmark:large` measures startup, Changes, and representative HTTP
-requests and stops the server. Use `--areas 2 --screens 10 --rows 6` for a smaller
-run. Generated fixtures stay under `.context`, outside the basic example and
-normal generated output. See the [large fixture guide](./tests/fixtures/large/README.md).
-With `--no-watch`, Serve validates the compiled catalogue and resolves Changes
-once before starting HTTP. Navigation, counts, and removed-page routes use that
-same snapshot. Unavailable Git history omits Changes while current pages remain
-accessible.
+To investigate scale locally, first run `npm run fixture:large`. This explicitly
+prepares a synthetic 1,410-route catalogue with 5,550 documents and an isolated Git
+baseline. Then run `npm run dev:large -- --debug-timings` or
+`npm run benchmark:large`; neither repeats setup. The browser benchmark requires
+searchable navigation and a real preview within five seconds for both a fresh
+process and a warm restart, exercises Props, themes, viewports and pages, and
+waits for Changes separately. Use matching `--areas 2 --screens 10 --rows 6`
+options for smaller setup and benchmark runs. Fixtures stay under `.context`.
+See the [large fixture guide](./tests/fixtures/large/README.md).
 
-Watched Serve makes Browse available after the validated build and manifest load,
-before resolving Git-based Changes evidence. The first shell omits the optional
-filter; one shared background classification then publishes a versioned update
-with the complete Changes state. Shell requests never repeat that repository
-work. Component comparisons batch saved baseline views when Serve starts and
-when Changes refreshes, so classification does not require a separate Git
-process for every screen, variant, viewport and color scheme. The watched child
-receives its retained component-rendering graph only after it is listening, and
-the transfer omits the manifest file already represented by the validated
-manifest data.
+Serve validates a lightweight catalogue index and makes navigation and local Props
+controls available without rendering every document. A worker renders and validates
+each requested preview, caching it for the current source generation. Props edits
+render only the selected variant and view. An unrelated renderer failure does not
+prevent valid previews from opening. Catalogue-wide Usage is explicitly unavailable
+until the background check finishes; it is not shown as zero consumers.
+
+Full generated output and Git-based Changes finish in the background, with preview
+and Props work taking priority between background documents. Build, Check and Export
+remain exhaustive. The first shell omits Changes; versioned updates publish complete
+usage and then Changes. Shell requests never repeat that repository work. Baseline
+views are read in batches, not one Git process per view. Watched Serve also observes
+Git ref changes off the request path. `--no-watch` uses the same fast startup but
+does not observe later source, resource or Git edits. Unavailable history omits
+Changes while current previews remain accessible. See [on-demand Serve](./docs/protocol/mokabook-on-demand.md).
 
 `build` writes one fragment per effective viewport and color-scheme view plus
 `mokabook-manifest.json` under `mockupsDir`. `check` calculates those bytes
@@ -310,9 +313,10 @@ through graceful, terminate, and force-kill stages. Failed startup, child
 transport errors, and unexpected IPC disconnection use the same cleanup;
 disconnection is detected immediately even if the child remains alive and no
 further update is sent. A replacement waits until the previous process has
-stopped. Concurrent shutdown requests share that wait, and late
-readiness messages cannot revive a closing child. Every served catalogue shell records the update version
-captured when its request begins. Open shell pages compare that
+stopped. Concurrent shutdown requests share that wait, and late readiness
+messages cannot revive a closing child. Startup allows a watched child up to five
+minutes to become ready before cleanup begins. Every served catalogue shell
+records the update version captured when its request begins. Open shell pages compare that
 snapshot with the versioned event stream and reload after a newer build or
 asset version arrives, including when the build completes before the initial
 stream connection. Publishing a reload-only watch update invalidates the comparison cache; another
@@ -326,8 +330,9 @@ still restore the matching page. While Changes filtering is active, route change
 the user collapsed and open only the destination's ancestor path. Editing the
 search or filter reveals its current matches. Clearing all filtering restores
 the earlier disclosures, except that a navigated destination's path stays open.
-A rejected config or failed candidate build leaves the last-good watcher,
-output, and child active.
+A rejected config, index, or replacement watcher leaves the last-good generation
+active. A later background render/write failure preserves the previous generated
+output and withholds complete evidence; valid on-demand previews remain usable.
 
 ## Configuration
 

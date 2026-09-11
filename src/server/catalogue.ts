@@ -3,6 +3,7 @@ import {
   type RemovedEntrySnapshot,
 } from "../registry/changes.js";
 import type { ManifestComponent } from "../components/manifest_types.js";
+import type { CatalogueMetadata } from "../registry/catalogue_index.js";
 import type {
   ManifestEntry,
   ManifestScreen,
@@ -20,7 +21,7 @@ export interface Catalogue {
   /** Whether any screen in the catalogue was rendered in the dark scheme. */
   hasDarkFragments: boolean;
   hierarchy: CatalogueHierarchy<ManifestEntry>;
-  manifest: Manifest;
+  manifest: CatalogueMetadata;
   /** Every classification tag the entries declare, deduplicated and sorted. */
   tags: readonly string[];
   /** Baseline screens retained only for on-demand comparisons. */
@@ -41,7 +42,7 @@ function collectTags(entries: readonly ManifestEntry[]): readonly string[] {
 
 /** Build deterministic id and route indexes from a validated manifest. */
 export function createCatalogue(
-  manifest: Manifest,
+  manifest: CatalogueMetadata,
   removedEntries: readonly RemovedEntrySnapshot[] = [],
 ): Catalogue {
   const removedScreens = removedEntries.flatMap(({ entry }) =>
@@ -84,7 +85,7 @@ export function createCatalogue(
 
 /** Preserve baseline leaves without inserting them into current ownership. */
 export function catalogueAtBaseline(
-  manifest: Manifest,
+  manifest: CatalogueMetadata,
   baseline: Manifest,
 ): Catalogue {
   return createCatalogue(manifest, removedManifestEntries(manifest, baseline));

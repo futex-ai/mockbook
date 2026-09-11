@@ -187,18 +187,18 @@ and nosniff headers and a fixed validated MIME type, preserving frame sandboxing
 
 Watched registry/config replacement invalidates the old generation, stops or
 discards its queued work, and only swaps to a fully validated replacement graph.
-When the manifest is unchanged, apply the new runtime to the live child before
-publishing the update. A changed manifest or reconfiguration stages it for the
+When the catalogue index is unchanged, apply the new runtime to the live child before
+publishing the update. A changed index or reconfiguration stages it for the
 next child, leaving the old catalogue and its controls paired through shutdown.
 Capture the startup runtime when spawning, so later staging cannot change either
 IPC response. Before readiness, the child requests that runtime's accepted
-serializable config and already validated manifest, constructs the catalogue,
-and binds without loading the manifest file again. It requests the remaining
-retained renderer and generated-file set after readiness; that response omits
-the config, manifest object, and serialized manifest file already supplied or
-represented. Runtime attachment reserves and publishes the next update version
-so any shell served during transfer reloads with the capability.
-Failed candidate builds retain the last-good registry/renderer and its controls.
+serializable config, validated live index and retained renderer, constructs the
+catalogue and binds with controls enabled. No generated HTML or full rendered
+manifest is transferred. The worker evaluates the retained graph once, validates
+only the requested edited view, and captures its resource closure; it never clones
+the full rendered catalogue. Navigation-only destinations need no resource copy.
+Props and document requests jointly pause background rendering between documents.
+Failed index candidates retain the last-good registry/renderer and its controls.
 Server shutdown stops admission, rejects queued work, terminates the worker,
 and cleans transient artifacts. Controls cannot delay ordinary catalogue
 watch/reload or comparison generation indefinitely.
