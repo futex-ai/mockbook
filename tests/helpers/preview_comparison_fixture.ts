@@ -12,8 +12,10 @@ import { createFixture, removeFixture, repositoryRoot } from "./fixture.js";
 const execute = promisify(execFile);
 
 /** Build a published catalogue against a real Git baseline and changed assets. */
-export async function createPreviewComparisonFixture() {
-  const fixture = await createFixture(comparisonEntrySource(false), {
+export async function createPreviewComparisonFixture(
+  entrySource: (changed: boolean) => string = comparisonEntrySource,
+) {
+  const fixture = await createFixture(entrySource(false), {
     extraConfig:
       'colorSchemes: ["light", "dark"], stylesheets: [{ match: "**/*.html", stylesheets: ["styles.css"] }],',
   });
@@ -43,7 +45,7 @@ export async function createPreviewComparisonFixture() {
     await git("add", ".");
     await git("commit", "-qm", "test: published baseline");
     await git("update-ref", "refs/remotes/origin/main", "HEAD");
-    await fs.promises.writeFile(fixture.entryPath, comparisonEntrySource(true));
+    await fs.promises.writeFile(fixture.entryPath, entrySource(true));
     await fs.promises.writeFile(
       path.join(fixture.mockupsDir, "styles.css"),
       'body { color: blue; background: url("./pixel.png"); }\n',
