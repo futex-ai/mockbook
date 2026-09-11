@@ -614,7 +614,7 @@ canonical destinations and the controls that remain visual depictions.
 - [`examples/basic/entries/design/library`](./examples/basic/entries/design/library/README.md)
   — shared components used by the design catalogue itself.
 - [`src/legacy`](./src/legacy) — opt-in migration sources and component expansion.
-- [`xtask`](./xtask/README.md) — full repository checks and post-push review.
+- [`xtask`](./xtask/README.md) — full repository verification.
 
 ### Related Docs
 
@@ -631,4 +631,5 @@ in the [plans index](./plans/README.md).
 - [Package ownership boundary](./docs/architecture/package-boundary.md)
 - [Accounting migration inventory](./docs/migration/accounting-framework-inventory.md)
 - [Styled control migration guide](./docs/migration/accounting-link-controls.md)
+- [Implementation review prompt](./docs/implementation-review-prompt.md)
 - [Implementation plans](./plans/README.md)

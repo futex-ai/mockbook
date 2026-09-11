@@ -159,4 +159,6 @@ Run `npm run example:build`, `npm run example:check`, and
 opens every artboard directly from disk, checks links, selection semantics,
 counts, missing states, responsive overflow, and mask geometry. Visually inspect
 all generated mobile and desktop pages, including both selected-instance states.
-Run `cargo xtask check` before committing and pushing, then `cargo xtask review`.
+Run `cargo xtask check` before committing and pushing. After the push, use the
+[implementation review prompt](../implementation-review-prompt.md) against
+`origin/main` and report findings without changing the implementation.

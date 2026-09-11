@@ -45,9 +45,6 @@ pub(crate) enum Error {
         /// Sorted violation report.
         details: String,
     },
-    /// The review process could not receive its prompt.
-    #[error("[xtask/review] Codex review stdin was unavailable")]
-    ReviewStdin,
 }
 
 /// Add typed context to filesystem results without obscuring call sites.

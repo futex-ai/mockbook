@@ -225,5 +225,7 @@ normal enhanced navigation. Do not equate these two contexts.
 - Use a small semantic expectation set per control family plus catalogue-wide
   target validation. A positive total-link count alone does not prove adoption.
 - Run the relevant suites and complete `cargo xtask check`, then commit all
-  source/generated/docs changes, push, and run `cargo xtask review`. Report
-  findings for the user's decision without automatically fixing them.
+  source/generated/docs changes and push. After the push, use the
+  [implementation review prompt](../implementation-review-prompt.md) against
+  `origin/main`. Report findings for the user's decision without automatically
+  fixing them.
