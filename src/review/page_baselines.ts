@@ -9,7 +9,7 @@ export function pageBaselines(
   baseline: HistoricalManifest,
 ): ReadonlyMap<string, PageBaseline> {
   const historical: ReadonlyMap<string, PageBaseline> =
-    baseline.schemaVersion === 4
+    "sourceFiles" in baseline
       ? new Map(
           baseline.entries.flatMap((entry) =>
             entry.kind === "page" ? [[entry.id, entry]] : [],
@@ -20,7 +20,7 @@ export function pageBaselines(
   for (const entry of current.entries) {
     if (entry.kind !== "page") continue;
     const match = historical.get(
-      baseline.schemaVersion === 4 ? entry.id : entry.route,
+      "sourceFiles" in baseline ? entry.id : entry.route,
     );
     if (match) matches.set(entry.id, match);
   }

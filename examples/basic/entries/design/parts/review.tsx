@@ -6,11 +6,36 @@ export type ReviewState =
   "added" | "changed" | "ignored-only" | "removed" | "unchanged";
 
 const CHANGED_NODES: readonly NavNode[] = [
-  { depth: 0, kind: "collection", label: "Example", open: true },
-  { depth: 1, kind: "collection", label: "Screens", open: true },
-  { depth: 2, kind: "screen", label: "Welcome", to: DESTINATIONS.current },
-  { depth: 2, kind: "screen", label: "Details", to: DESTINATIONS.added },
   {
+    key: "example",
+    depth: 0,
+    kind: "collection",
+    label: "Example",
+    open: true,
+  },
+  {
+    key: "screens",
+    depth: 1,
+    kind: "collection",
+    label: "Screens",
+    open: true,
+  },
+  {
+    key: "welcome",
+    depth: 2,
+    kind: "screen",
+    label: "Welcome",
+    to: DESTINATIONS.current,
+  },
+  {
+    key: "details",
+    depth: 2,
+    kind: "screen",
+    label: "Details",
+    to: DESTINATIONS.added,
+  },
+  {
+    key: "farewell-removed",
     depth: 0,
     kind: "screen",
     label: "Farewell · Removed",

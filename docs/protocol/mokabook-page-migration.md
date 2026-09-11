@@ -23,7 +23,7 @@ Every whole-document page must be a `definePage` or nested `page` entry under
 Collections own its membership. Existing `.source.ts`/`.source.tsx` modules may
 remain as ordinary imported render helpers; their filename has no discovery
 meaning. The compiler never scans them into a second inventory. Consumers with
-only structured entries need no screen API rewrite but must rebuild v4 output.
+only structured entries need no screen API rewrite but must rebuild v5 output.
 
 Consumers replace `.source.html` comment templates with ordinary TSX/function
 composition returning complete HTML. Preserve the rendered component content
@@ -63,7 +63,7 @@ whole output directories, or generated files outside the recorded inventory.
 On failure, restore the previous dependency/config, authoring tree, and artifacts;
 do not commit a half-migrated catalogue. On success, compare old and new route,
 anchor, resource, and rendered-content inventories and commit the regenerated
-pages with the new ownership headers and v4 manifest. A missing document is a
+pages with the new ownership headers and v5 manifest. A missing document is a
 migration failure even when the remaining catalogue builds successfully.
 
 Follow the [source-protection contract](./mokabook-source-protection.md): record
@@ -74,16 +74,16 @@ unimported helpers under `entriesDir` or a reserved source name. Removing
 
 ## Manifest Readers And Git Baselines
 
-New successful builds emit only schema v4. `check` recomputes that output
-without rewriting files and reports a committed v3 manifest as stale. A
-current Browse or publication reader requires v4; encountering v2/v3 reports
+New successful builds emit only schema v5. `check` recomputes that output
+without rewriting files and reports a committed older manifest as stale. A
+current Browse or publication reader requires v5; encountering v2/v3/v4 reports
 that the catalogue must be migrated and rebuilt before serving. Watched Serve
 retains its last-good child if a candidate migration fails validation.
 
 Historical v3 manifests remain valid Git baselines; v2 keeps its existing
 `compatibility.readManifestV2` opt-in and filename fallback. A present malformed
 canonical manifest never falls back to the older filename. Build a dedicated,
-typed historical reader so current-v4 validation cannot reject an otherwise
+typed historical reader so current-v5 validation cannot reject an otherwise
 valid screen comparison against a v2/v3 base or silently accept legacy current
 navigation. Parse and validate historical source/route/artifact fields before
 using them; never rewrite the Git baseline or synthesize a current legacy tree.
@@ -93,7 +93,8 @@ whose uniqueness has been validated. Use the historical document/source for
 artifact comparison and the current ID for attribution. This is a comparison
 adapter only: it cannot assign a current collection or change a current title.
 The typed page-baseline index maps each current ID to a validated historical
-document: v4 matches by ID, and normalized v2/v3 matches only by route. It feeds
+document: v5 and page-v4 match by ID; legacy records in v2/v3 or component-v4
+match only by route. It feeds
 the existing paired-ignore/material comparison and rendered-resource traversal.
 Historical source paths retain the baseline's own source-protection policy;
 document reads still require public, regular Git files. The adapter executes no
@@ -102,8 +103,8 @@ New explicit metadata/ancestry can mark migration routes changed; there is no
 promise of a zero Changes count during adoption. A changed historical route
 without an explicit preserved match is treated as an added current page.
 
-Unmatched v2/v3 legacy records have no catalogue IDs and remain historical
-artifact records; they never become synthetic removed-page entries. Normal v4
+Unmatched legacy records have no catalogue IDs and remain historical
+artifact records; they never become synthetic removed-page entries. Normal v5
 page removals have real IDs and use the missing-current behavior in the page
 contract and its [shared metadata](./mokabook-catalogue-changes.md) wherever
 Changes is enabled. Ordinary publication omits removed pages;

@@ -1,5 +1,7 @@
 /** Restart supervision retains ownership until each child's cleanup completes. */
 
+import type { ComponentRuntime } from "../build/component_runtime.js";
+
 import { MokabookError } from "../errors.js";
 import { ManagedChild, type ChildShutdownTimings } from "./child_lifecycle.js";
 import { NodeChildFactory, type ChildFactory } from "./child_process.js";
@@ -7,6 +9,11 @@ import { childUpdateMessage } from "./update_messages.js";
 
 /** Restartable child interface used by watched Serve. */
 export interface ProcessSupervisor {
+  /** Stage the next child's graph, or update a child whose catalogue is unchanged. */
+  replaceComponentRuntime(
+    runtime: ComponentRuntime,
+    delivery: "stage" | "live",
+  ): void;
   close(): Promise<void>;
   notifyUpdate(changedRoutes: readonly string[] | undefined): void;
   /** Register the watched-runtime handler for a post-readiness child failure. */
@@ -45,6 +52,7 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   #unexpectedExit: ((error: Error) => void) | undefined;
   #resolvedPort: number | undefined;
   #updateVersion = 0;
+  #runtime: ComponentRuntime | undefined;
 
   constructor(
     private readonly factory: ChildFactory,
@@ -61,8 +69,10 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
       );
     const resolvedPort = this.#resolvedPort;
     this.#updateVersion++;
+    const runtime = this.#runtime;
     const handle = this.factory.spawn([
       ...this.baseArguments,
+      ...(runtime ? ["--retained-runtime"] : []),
       "--port",
       String(resolvedPort ?? this.requestedPort),
       ...(resolvedPort === undefined ? [] : ["--strict-port"]),
@@ -81,6 +91,16 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
       this.shutdownTimings,
     );
     this.#child = child;
+    child.onMessage((message) => {
+      if (
+        message &&
+        typeof message === "object" &&
+        "type" in message &&
+        message.type === "component-runtime-request" &&
+        runtime
+      )
+        child.send({ type: "component-runtime", runtime });
+    });
     try {
       const readyPort = await child.ready;
       if (child.failure) throw child.failure;
@@ -101,6 +121,15 @@ export class ReadyProcessSupervisor implements ProcessSupervisor {
   async restart(): Promise<number> {
     await this.close();
     return this.start();
+  }
+
+  replaceComponentRuntime(
+    runtime: ComponentRuntime,
+    delivery: "stage" | "live",
+  ): void {
+    this.#runtime = runtime;
+    if (delivery === "live")
+      this.#child?.send({ type: "component-runtime", runtime });
   }
 
   notifyUpdate(changedRoutes: readonly string[] | undefined): void {

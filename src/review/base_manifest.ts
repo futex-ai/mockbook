@@ -36,7 +36,7 @@ export function baselineResourceConfig(
   return {
     ...config,
     sourceFiles:
-      manifest.schemaVersion === 4
+      "sourceFiles" in manifest
         ? manifest.sourceFiles
         : [
             ...manifest.entries.map((entry) => entry.sourcePath),

@@ -1,28 +1,3 @@
-/* Screen comparisons inside the catalogue: controls, panes, and details. */
-
-.mbk-cmp-toolbar {
-  align-items: center;
-  background: var(--chrome-surface);
-  border-bottom: 1px solid var(--chrome-border);
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: space-between;
-  padding: 8px 24px;
-}
-
-.mbk-cmp-refresh {
-  align-items: center;
-  color: var(--mbk-sage);
-  display: inline-flex;
-  font-size: 20px;
-  height: 26px;
-  justify-content: center;
-  margin-left: auto;
-  width: 26px;
-}
-
 .mbk-comparison-stage {
   background: radial-gradient(circle, rgba(20, 28, 22, 0.05) 1px, transparent 1px) 0 0 / 22px 22px;
   flex: 1;
@@ -64,31 +39,9 @@
   isolation: isolate;
 }
 
-.mbk-compare-side { min-width: 0; }
-
-.mbk-compare-label {
-  color: var(--chrome-muted);
-  font-size: 12px;
-  margin: 0 0 8px;
-}
-
 .mbk-compare .browser-frame {
   height: 470px;
   width: 100%;
-}
-
-.mbk-pane-missing {
-  align-items: center;
-  background: var(--chrome-surface);
-  border: 1px dashed var(--chrome-border-strong);
-  border-radius: 12px;
-  color: var(--chrome-muted);
-  display: flex;
-  font-size: 12.5px;
-  justify-content: center;
-  min-height: 240px;
-  padding: 20px;
-  text-align: center;
 }
 
 .mbk-compare[data-compare-mode="difference"] {
@@ -106,10 +59,8 @@
 .mbk-compare[data-compare-mode="difference"] .mbk-compare-side--after .mbk-frame-wrap {
   mix-blend-mode: difference;
 }
-
-.mbk-shell--mobile .mbk-cmp-toolbar { padding: 8px 12px; }
 .mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg { display: flex; flex: 1; }
-.mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg > :is(span, a) {
+.mbk-shell--mobile .mbk-cmp-toolbar .mbk-seg > :is(span, a, button) {
   flex: 1;
   font-size: 11px;
   padding: 4px 6px;
@@ -117,4 +68,3 @@
 }
 .mbk-shell--mobile .mbk-comparison-stage { padding: 16px; }
 .mbk-shell--mobile .mbk-compare { grid-template-columns: minmax(0, 1fr); }
-.mbk-shell--mobile .mbk-pane-missing { width: 100%; }

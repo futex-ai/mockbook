@@ -7,7 +7,7 @@ Deployment and hosting credentials remain outside Mokabook.
 `run.ts` pins one Git baseline, runs the normal build, captures public inputs,
 compares them through the existing review engine, and verifies inputs again
 before installation. `site.ts` uses the existing shell and Browse adapter to
-assemble exact v4 pages, real id aliases, package assets, and immutable comparisons.
+assemble exact v5 pages, real id aliases, package assets, and immutable comparisons.
 Removed screens and pages use the shared catalogue change snapshots; page
 removal preserves ancestor context without introducing visual comparisons.
 The shared `server/changed_content.ts` calculation receives the same captured
@@ -69,3 +69,9 @@ npm run package:smoke
 See the [export contract](../../docs/protocol/mokabook-export.md),
 [static delivery contract](../../docs/protocol/mokabook-export-delivery.md), and
 [plan index](../../plans/README.md).
+
+Registered components export through the same transactional delivery boundary.
+The manifest, saved variants and validated comparison evidence supply the shared
+workspace; removed components and variants retain baseline snapshots. Controls
+have no rendering capability in exported pages, while usage, highlighting and
+saved-variant navigation remain available without the consumer repository.

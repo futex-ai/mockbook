@@ -1,3 +1,7 @@
+import {
+  componentFragmentPaths,
+  validateManifestComponentUsage,
+} from "../components/manifest_validation.js";
 import { MokabookError } from "../errors.js";
 import { isCatalogueId } from "../navigation/logical.js";
 import { validateManifestRelationships } from "./manifest_relationships.js";
@@ -25,16 +29,19 @@ export function validateManifest(
     value.schemaVersion === 2 && allowV2 && historical
       ? { ...value, generatedBy: "mokabook", schemaVersion: 3 }
       : value;
-  const current = normalized.schemaVersion === 4;
+  const current = normalized.schemaVersion === 5;
+  const pages =
+    current || (normalized.schemaVersion === 4 && "sourceFiles" in normalized);
   if (
-    (!current && !(historical && normalized.schemaVersion === 3)) ||
+    (!current &&
+      !(historical && [3, 4].includes(normalized.schemaVersion as number))) ||
     normalized.generatedBy !== "mokabook"
   )
     throw new MokabookError(
       "manifest-invalid",
-      "expected Mokabook manifest schema version 4; run mokabook build",
+      "expected Mokabook manifest schema version 5; run mokabook build",
     );
-  if (current) {
+  if (pages) {
     if (
       Object.keys(normalized).some(
         (key) =>
@@ -43,10 +50,7 @@ export function validateManifest(
           ),
       )
     )
-      throw new MokabookError(
-        "manifest-invalid",
-        "unexpected schema-v4 manifest field",
-      );
+      throw new MokabookError("manifest-invalid", "unexpected manifest field");
     if (
       !stringArray(normalized.sourceFiles) ||
       JSON.stringify(normalized.sourceFiles) !==
@@ -82,8 +86,8 @@ export function validateManifest(
     if (!isCatalogueId(id)) {
       throw new MokabookError("manifest-invalid", `invalid manifest id: ${id}`);
     }
-    if (current) {
-      validateCurrentFields(entry);
+    if (pages) {
+      validateCurrentFields(entry, current);
       if (
         !(normalized.sourceFiles as string[]).includes(
           entry.sourcePath as string,
@@ -96,9 +100,9 @@ export function validateManifest(
     } else if (entry.kind === "page")
       throw new MokabookError(
         "manifest-invalid",
-        "pages require schema version 4",
+        "pages require the registered-page manifest format",
       );
-    validateEntry(entry);
+    validateEntry(entry, current || (normalized.schemaVersion === 4 && !pages));
     if (byId.has(id)) {
       throw new MokabookError(
         "manifest-invalid",
@@ -118,10 +122,12 @@ export function validateManifest(
     }
   }
   const outputRoutes = validateFragmentRoutes(entries, routes);
-  if (!current)
+  if (!pages)
     validateLegacyPages(normalized.legacyPages as unknown[], outputRoutes);
   validateManifestRelationships(entries, byId);
-  return normalized as unknown as HistoricalManifest;
+  const manifest = normalized as unknown as HistoricalManifest;
+  validateManifestComponentUsage(manifest);
+  return manifest;
 }
 
 function validateFragmentRoutes(
@@ -130,6 +136,17 @@ function validateFragmentRoutes(
 ): Set<string> {
   const outputRoutes = new Set(routedEntries);
   for (const entry of entries) {
+    if (entry.kind === "component") {
+      for (const fragment of componentFragmentPaths(entry)) {
+        if (outputRoutes.has(fragment))
+          throw new MokabookError(
+            "manifest-invalid",
+            `colliding component fragment: ${fragment}`,
+          );
+        outputRoutes.add(fragment);
+      }
+      continue;
+    }
     if (entry.kind !== "screen" || !record(entry.fragments)) continue;
     for (const viewport of ["mobile", "desktop"] as const) {
       const fragment = entry.fragments[viewport] as string;

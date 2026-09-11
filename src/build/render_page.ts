@@ -1,0 +1,32 @@
+import type { ResolvedRegistryEntry } from "../authoring/types.js";
+import { MokabookError, errorMessage } from "../errors.js";
+import { serializeReviewSentinels } from "../renderer/sentinels.js";
+import { generatedHeader } from "./ownership.js";
+
+/** Capture a complete document once, outside viewport/component rendering. */
+export function renderPage(
+  entry: ResolvedRegistryEntry & { kind: "page" },
+): string {
+  let rendered: unknown;
+  try {
+    rendered = entry.render();
+  } catch (error) {
+    throw new MokabookError(
+      "build-invalid",
+      `page render failed for ${entry.id} (${entry.sourceRelativePath}): ${errorMessage(error)}`,
+      { cause: error },
+    );
+  }
+  if (
+    typeof rendered !== "string" ||
+    !/<html[\s>]/i.test(rendered) ||
+    !/<\/html\s*>/i.test(rendered)
+  ) {
+    if (rendered instanceof Promise) void rendered.catch(() => undefined);
+    throw new MokabookError(
+      "build-invalid",
+      `page render must return a complete HTML document synchronously for ${entry.id} (${entry.sourceRelativePath})`,
+    );
+  }
+  return `${generatedHeader(entry.sourceRelativePath)}${serializeReviewSentinels(rendered)}`;
+}

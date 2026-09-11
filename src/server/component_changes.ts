@@ -1,0 +1,170 @@
+import { changedManifestRoutes } from "../registry/changed_routes.js";
+import { hasRegisteredComponents } from "../registry/manifest_capabilities.js";
+import { changedContentPaths } from "./changed_content.js";
+import path from "node:path";
+
+import { projectRealPath, toPosixPath } from "../config/paths.js";
+import type { ResolvedConfig } from "../config/types.js";
+import type { Manifest } from "../registry/types.js";
+import {
+  FileSystemReviewAssetReader,
+  GitReviewAssetReader,
+} from "../review/assets.js";
+import {
+  baselineResourceConfig,
+  readBaseManifest,
+} from "../review/base_manifest.js";
+import { reviewChangedPaths } from "../review/changed_paths.js";
+import { classifyComponents } from "../review/component_classification.js";
+import type { ReviewResultV3 } from "../review/component_types.js";
+import {
+  NodeGitCommandRunner,
+  RepositoryGitClient,
+  type GitClient,
+} from "../review/git.js";
+
+export interface ComponentChangeSnapshot {
+  baseline: Manifest;
+  changedRoutes?: readonly string[];
+  result?: ReviewResultV3;
+}
+export interface ComponentChangeSource {
+  baseline(): Promise<string>;
+  read(commit: string): Promise<ComponentChangeSnapshot | undefined>;
+}
+
+/** Retain one immutable classification; resolving the baseline never creates Review artifacts. */
+export class ComponentChangeCache {
+  private cached:
+    | {
+        sequence: number;
+        key: string;
+        result: Promise<ComponentChangeSnapshot | undefined>;
+      }
+    | undefined;
+  private epoch = 0;
+  private sequence = 0;
+  constructor(private readonly source: ComponentChangeSource) {}
+  invalidate(): void {
+    this.epoch++;
+    this.cached = undefined;
+  }
+  async read(generation: number): Promise<ComponentChangeSnapshot | undefined> {
+    const epoch = this.epoch;
+    const sequence = ++this.sequence;
+    try {
+      const baseline = await this.source.baseline();
+      const key = `${epoch}:${generation}:${baseline}`;
+      if (this.cached?.key === key) return this.cached.result;
+      const result = this.source.read(baseline).catch(() => undefined);
+      if (epoch === this.epoch && sequence >= (this.cached?.sequence ?? 0))
+        this.cached = { sequence, key, result };
+      return result;
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+/** Production read boundary for a last-good catalogue and its current Git branch point. */
+export class RepositoryComponentChanges implements ComponentChangeSource {
+  private readonly runner: NodeGitCommandRunner;
+  private readonly git: RepositoryGitClient;
+  constructor(
+    private readonly config: ResolvedConfig,
+    private readonly manifest: Manifest,
+    private readonly base: string,
+  ) {
+    this.runner = new NodeGitCommandRunner(config.repoRoot);
+    this.git = new RepositoryGitClient(this.runner);
+  }
+  async baseline(): Promise<string> {
+    if (
+      projectRealPath(
+        (await this.runner.run(["rev-parse", "--show-toplevel"])).trim(),
+      ) !== projectRealPath(this.config.repoRoot)
+    )
+      throw new Error("Comparison requires the configured repository root");
+    return this.git.mergeBase(this.base, "HEAD");
+  }
+  async read(commit: string): Promise<ComponentChangeSnapshot | undefined> {
+    return readCatalogueChanges(
+      this.config,
+      this.manifest,
+      this.base,
+      this.git,
+      commit,
+    );
+  }
+}
+
+/** Classify pages and ownership-aware component views against one pinned baseline. */
+export async function readCatalogueChanges(
+  config: ResolvedConfig,
+  manifest: Manifest,
+  base: string,
+  git: GitClient,
+  commit: string,
+): Promise<ComponentChangeSnapshot> {
+  const baseline = await readBaseManifest(git, commit, config);
+  const changedPaths = await reviewChangedPaths(
+    git,
+    commit,
+    config,
+    config.review.outDir,
+  );
+  const components =
+    hasRegisteredComponents(baseline) || hasRegisteredComponents(manifest);
+  const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
+  const reader = new FileSystemReviewAssetReader(config);
+  const result = components
+    ? await classifyComponents({
+        before: baseline,
+        after: manifest,
+        config,
+        baseCommit: commit,
+        baseRef: base,
+        changedPaths,
+        beforeReader: new GitReviewAssetReader(
+          baselineResourceConfig(config, baseline),
+          git,
+          commit,
+          prefix,
+        ),
+        afterReader: reader,
+      })
+    : undefined;
+  const content = await changedContentPaths(
+    manifest,
+    baseline,
+    config,
+    git,
+    commit,
+    changedPaths,
+    reader,
+    components ? "pages" : "all",
+  );
+  const pageRoutes = new Set(
+    manifest.entries.flatMap((entry) =>
+      entry.kind === "page" ? [entry.route] : [],
+    ),
+  );
+  const routes = changedManifestRoutes(
+    manifest,
+    baseline,
+    config,
+    content,
+  ).filter((route) => !components || pageRoutes.has(route));
+  return {
+    baseline,
+    ...(result ? { result } : {}),
+    changedRoutes: [
+      ...new Set([
+        ...routes,
+        ...(result?.changes.map(
+          (entry) => (entry.after ?? entry.before)!.route,
+        ) ?? []),
+      ]),
+    ].sort(),
+  };
+}

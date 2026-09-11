@@ -12,6 +12,7 @@ function UseCaseSteps({ viewport }: { viewport: "desktop" | "mobile" }) {
     <div className="mbk-flow">
       <div className="flow-track">
         <FlowStep
+          name="arrival"
           number={1}
           title="Welcome"
           description="The tour starts on the landing screen."
@@ -28,6 +29,7 @@ function UseCaseSteps({ viewport }: { viewport: "desktop" | "mobile" }) {
           )}
         </FlowStep>
         <FlowStep
+          name="detail"
           number={2}
           title="Details"
           description="The tour ends on the details screen."

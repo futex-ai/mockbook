@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { startStaticFixture } from "./static_fixture.js";
+import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 
 let site: Awaited<ReturnType<typeof startStaticFixture>>;
 test.beforeAll(async () => {
@@ -24,14 +25,14 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   const modes = page.getByRole("group", { name: "Comparison mode" });
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const viewport of ["Mobile", "Desktop", "Both"]) {
-      await page.getByRole("button", { name: viewport, exact: true }).click();
-      for (const scheme of ["Light", "Dark"]) {
-        await page.getByRole("button", { name: scheme, exact: true }).click();
+    for (const viewport of ["mobile", "desktop", "both"] as const) {
+      await chooseViewport(page, viewport);
+      for (const scheme of ["light", "dark"] as const) {
+        await chooseScheme(page, scheme);
         for (const mode of ["Side by side", "Overlay", "Difference"]) {
           await modes.getByRole("button", { name: mode, exact: true }).click();
           const frames = page.locator("[data-diff-stage] iframe");
-          await expect(frames).toHaveCount(viewport === "Both" ? 4 : 2);
+          await expect(frames).toHaveCount(viewport === "both" ? 4 : 2);
           await expect(
             page.frameLocator("[data-diff-stage] iframe").first().locator("h1"),
           ).toHaveText("Previous home");
@@ -75,7 +76,7 @@ test("added, removed, and light-only screens retain the right comparison sides",
     ["added", "added"],
   ]) {
     await page.goto(`${site.url}/id/${id}/`);
-    await page.getByRole("button", { name: "Mobile", exact: true }).click();
+    await chooseViewport(page, "mobile");
     await expect(page).toHaveURL(`${site.url}/view/screens/${id}.html`);
     await page
       .getByRole("button", { name: "Side by side", exact: true })
@@ -89,7 +90,7 @@ test("added, removed, and light-only screens retain the right comparison sides",
     );
   }
   await page.goto(`${site.url}/view/screens/details.html`);
-  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await chooseScheme(page, "dark");
   await page.getByRole("button", { name: "Overlay", exact: true }).click();
   for (const frame of await page.locator("[data-diff-stage] iframe").all())
     await expect(frame).not.toHaveAttribute("src", /\.dark\.html$/);
@@ -99,7 +100,7 @@ test("static failures retry the same generation and abandoned requests stay canc
   page,
 }) => {
   await page.goto(`${site.url}/view/screens/home.html`);
-  await page.getByRole("button", { name: "Mobile", exact: true }).click();
+  await chooseViewport(page, "mobile");
   let fail = true;
   await page.route("**/review.json*", async (route) => {
     if (fail)

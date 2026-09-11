@@ -3,7 +3,7 @@
 ## Delivery Status
 
 Implemented alongside [Pages in the catalogue](./mokabook-pages.md).
-Catalogue impact and removed-entry metadata are independent of the screen-only
+Catalogue impact and removed-entry metadata are independent of the visual
 [comparison result](./mokabook-changes.md). Verification is tracked in
 [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
 
@@ -25,7 +25,7 @@ interface CatalogueChangeSnapshot {
 }
 
 interface RemovedEntrySnapshot {
-  entry: ManifestScreen | ManifestPage;
+  entry: ManifestScreen | ManifestPage | ManifestComponent;
   ancestors: readonly { id: string; title: string }[];
 }
 ```
@@ -42,7 +42,7 @@ requested on-demand screen comparison to the startup Git state.
 
 The entry types are the validated manifest DTOs, including their common metadata
 and tags. Historical screen readers normalize older supported shapes first;
-pages enter `removedEntries` only from a v4 baseline with a real catalogue ID.
+pages enter `removedEntries` only from v5 or the historical page-v4 format with a real catalogue ID.
 `ancestors` is the baseline's root-to-parent collection path, captured before
 current hierarchy lookup. It never depends on a surviving current parent or on
 serialized `navPath` labels.
@@ -51,15 +51,16 @@ serialized `navPath` labels.
 and the selected removed-entry routes. Current route attribution keeps the
 existing ID-based metadata, material generated-output, rendered-resource, and
 ancestry rules, extended with the page's single document. Apply the same paired
-ignore normalization to page documents. Source paths, dependency declarations,
-and shared-impact matches alone do not add otherwise unchanged entries, as
-specified by the [Changes contract](./mokabook-changes.md). Screen impact
+ignore normalization to page documents. For pages and catalogues without registered components, source paths, dependency
+declarations and shared-impact matches alone do not add otherwise unchanged
+entries. Component catalogues use the [ownership-aware classification](./mokabook-component-changes.md)
+for screens, components and flows, unioned with material/metadata page Changes. Screen impact
 continues to propagate to use cases through their screen steps. Current display
 metadata comes from the matching current catalogue; removed display metadata
 comes from `removedEntries`. No removed-use-case support is introduced here.
 
-Keep the existing screen-only `ReviewResult` and its visual classification
-schema. Neither catalogue change detection nor page removal requires snapshot
+Visual comparisons retain schema v2 for screen-only catalogues and schema v3
+when either side contains registered components. Pages add no comparison records. Neither catalogue change detection nor page removal requires snapshot
 generation. The publisher must not discover removed pages by reading
 `ReviewResult.screens`; that array remains the source of screen comparisons.
 The shared catalogue snapshot drives its routes, ID redirects, shell metadata,
@@ -68,7 +69,7 @@ endpoint or comparison JSON schema change.
 
 ## Removal Selection And Precedence
 
-Select a baseline screen or v4 page when its old route is absent from every
+Select a baseline screen or registered page when its old route is absent from every
 current routed entry. Sort removed entries by canonical route, then ID. Current
 route ownership always wins, including a different entry kind reusing a route.
 Never attach a removed-state view to a current route.
@@ -78,7 +79,9 @@ route, retain the old route's removed row/view if that route is free, but omit
 its historical ID redirect. Removed rows link by their old route, not by an ID
 that now opens a current entry. Reusing both ID and route leaves no historical
 row at that destination. These rules preserve current removed-screen route
-precedence while extending it to pages.
+precedence while extending it to pages. Components additionally require their
+stable ID to be absent from the current catalogue; a moved component retains
+its identity and comparison on the current route.
 
 Reject duplicate removed routes, invalid historical metadata, and snapshots
 whose current catalogue or baseline commit differs from the generation being
@@ -138,3 +141,9 @@ watch, and opted-in publication; preserve screen comparison regression coverage.
 Test filters/search, All versus Changes visibility, direct old-route access,
 baseline breadcrumbs, no recreated collections, unavailable/malformed baselines,
 and zero Git/comparison work for publication without Changes.
+
+The validated serving/publication snapshot also retains component ownership
+classification from the same pinned baseline. No-watch Serve and publication
+reuse that evidence for every route, including saved component variants; they
+never retry or resolve a newer baseline while rendering the snapshot. Watched
+component serving retains its generation-aware live cache.

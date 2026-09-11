@@ -12,6 +12,8 @@ import { browseStateScreens, browseViewScreens } from "./browse_screens.js";
 import { browseTagScreens } from "./browse_tag_screens.js";
 import { changesScreens } from "./changes_screens.js";
 import { reviewImpactScreens } from "./review_impact_screens.js";
+import { componentDesign } from "./components/index.js";
+
 import { reviewOutcomeScreens } from "./review_outcome_screens.js";
 
 const DESIGN_DEPENDENCIES = [
@@ -21,6 +23,7 @@ const DESIGN_DEPENDENCIES = [
 
 const designMockups = defineRoot({
   children: [
+    componentDesign,
     collection({
       children: [
         collection({
@@ -134,7 +137,7 @@ const designMockups = defineRoot({
 /** The neutral Mokabook catalogue and Changes design catalogue. */
 export const mockups = [
   defineCollection({
-    childIds: ["design"],
+    childIds: ["design", "design-library"],
     dependencies: DESIGN_DEPENDENCIES,
     description: "Neutral design references for the Mokabook package.",
     id: "design-root",

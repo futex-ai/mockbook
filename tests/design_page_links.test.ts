@@ -19,7 +19,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       const { document } = await designDocument(id, viewport);
       assert.equal(
         attribute(
-          byClass(document, "mbk-details-bar")[0]!,
+          byClass(document, "ce-inspector-link")[0]!,
           "data-mokabook-link",
         ),
         target,

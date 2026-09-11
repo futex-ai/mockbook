@@ -5,19 +5,19 @@ import {
   parseStaticDelivery,
   type StaticDelivery,
 } from "../navigation/delivery.js";
-import type { HistoricalManifest } from "../registry/types.js";
+import type { Manifest } from "../registry/types.js";
 import type { ReviewArtifact } from "../review/types.js";
 import { createCatalogue } from "../server/catalogue.js";
+import { parseReviewResult } from "../review/result_validation.js";
+import { canonicalJson } from "../components/data.js";
 import {
   loadBrowserClientModules,
   loadBrowserNavigationModules,
   loadShellFontAssets,
 } from "../server/client_modules.js";
 import { homePage, notFoundPage, viewPage } from "../server/pages.js";
-import {
-  changedManifestRoutes,
-  removedManifestEntries,
-} from "../server/changed.js";
+import { changedManifestRoutes } from "../registry/changed_routes.js";
+import { removedManifestEntries } from "../registry/changes.js";
 import { SHELL_CSS } from "../server/shell/css.js";
 import type { ShellContext } from "../server/shell/context.js";
 import type { ResolvedConfig } from "../config/types.js";
@@ -31,7 +31,7 @@ import { STAGED_DEPLOYMENT_ID } from "./shell_metadata.js";
 export function assembleExport(
   config: ResolvedConfig,
   compilation: Compilation,
-  baseline: HistoricalManifest,
+  baseline: Manifest,
   comparison: ReviewArtifact,
   publicFiles: ReadonlyMap<string, Buffer>,
   contentChanges: readonly string[],
@@ -62,9 +62,11 @@ export function assembleExport(
     idRoutes[entry.id] = catalogueViewHref(entry.route);
   }
   const comparisonFiles = new Map(comparison.files);
+  if (comparison.result.schemaVersion === 3)
+    parseReviewResult(comparison.result);
   comparisonFiles.set(
     "review.json",
-    `${JSON.stringify(comparison.result, null, 2)}\n`,
+    `${comparison.result.schemaVersion === 3 ? canonicalJson(comparison.result, 2) : JSON.stringify(comparison.result, null, 2)}\n`,
   );
   const generation = comparisonContentId(comparisonFiles);
   const prefix = `__mokabook/diffs/__generations/${generation}`;
@@ -94,18 +96,38 @@ export function assembleExport(
       );
     inventory.add(`${prefix}/${name}`, bytes);
   }
-  const changes = changedManifestRoutes(
+  const materialRoutes = changedManifestRoutes(
     compilation.manifest,
     baseline,
     config,
     contentChanges,
   );
+  const pageRoutes = new Set(
+    compilation.manifest.entries.flatMap((entry) =>
+      entry.kind === "page" ? [entry.route] : [],
+    ),
+  );
+  const changes =
+    comparison.result.schemaVersion === 3
+      ? [
+          ...comparison.result.changes.map(
+            (item) => (item.after ?? item.before)!.route,
+          ),
+          ...materialRoutes.filter((route) => pageRoutes.has(route)),
+        ]
+      : materialRoutes;
   const context: ShellContext = {
     base: comparison.result.baseRef,
     changedRoutes: [
       ...new Set([...changes, ...removed.map((entry) => entry.route)]),
     ],
     comparisons: true,
+    componentChanges: {
+      baseline,
+      ...(comparison.result.schemaVersion === 3
+        ? { result: comparison.result }
+        : {}),
+    },
     updateVersion: 0,
     delivery,
   };

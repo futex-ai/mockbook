@@ -27,17 +27,20 @@ for (const viewport of ["mobile", "desktop"] as const) {
       ["design-review-changed", "design-review-dark-scheme"],
     ]) {
       for (const [source, target, label] of [
-        [light!, dark!, "Dark"],
-        [dark!, light!, "Light"],
+        [light!, dark!, "Switch to dark mode"],
+        [dark!, light!, "Switch to light mode"],
       ]) {
         const { document } = await designDocument(source!, viewport);
         const group = elements(
           document,
-          (node) => attribute(node, "aria-label") === "Color scheme",
+          (node) => attribute(node, "aria-label") === "Preview options",
         )[0];
         assert.ok(group);
         assert.deepEqual(
-          destinations(elements(group, (node) => node.tagName === "a")),
+          elements(group, (node) => node.tagName === "a").map((node) => [
+            attribute(node, "aria-label"),
+            attribute(node, "data-mokabook-link"),
+          ]),
           [[label, target]],
         );
       }
@@ -52,7 +55,6 @@ for (const viewport of ["mobile", "desktop"] as const) {
       ["Difference", "design-review-difference"],
     ];
     for (const [source, active] of [
-      ["design-browse-screen", "Current"],
       ["design-changes-current", "Current"],
       ["design-review-changed", "Side by side"],
       ["design-changes-overlay", "Overlay"],
@@ -66,16 +68,22 @@ for (const viewport of ["mobile", "desktop"] as const) {
         welcomeModes.filter(([label]) => label !== active),
       );
     }
+    for (const source of [
+      "design-browse-screen",
+      "design-review-shared-impact",
+      "design-review-ignored-only",
+      "design-review-empty",
+      "design-browse-details-screen",
+      "design-browse-dark-scheme",
+      "design-browse-light-only",
+    ]) {
+      const { document } = await designDocument(source, viewport);
+      assert.equal(byClass(document, "mbk-cmp-toolbar").length, 0, source);
+    }
     for (const [source, expected] of [
       ["design-review-added", [["Current", "design-browse-details-screen"]]],
-      ["design-review-shared-impact", [["Current", "design-changes-current"]]],
-      ["design-review-ignored-only", [["Current", "design-changes-current"]]],
       ["design-review-removed", []],
       ["design-review-dark-scheme", []],
-      ["design-review-empty", []],
-      ["design-browse-details-screen", []],
-      ["design-browse-dark-scheme", []],
-      ["design-browse-light-only", []],
     ] as const) {
       const { document } = await designDocument(source, viewport);
       const toolbar = byClass(document, "mbk-cmp-toolbar")[0];
@@ -91,7 +99,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
         source,
       );
       assert.equal(
-        attribute(byClass(document, "mbk-details-bar")[0]!, "href"),
+        attribute(
+          elements(document, (node) => node.tagName === "summary")[0]!,
+          "href",
+        ),
         undefined,
         source,
       );

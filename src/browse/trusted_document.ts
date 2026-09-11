@@ -4,11 +4,13 @@ import type { Viewport } from "../authoring/types.js";
 import { encodeUrlPath } from "../config/paths.js";
 import { MokabookError } from "../errors.js";
 import type { LogicalTarget } from "../navigation/logical.js";
-import type { ManifestScreen } from "../registry/types.js";
+import type { ComponentViewRecord } from "../components/manifest_types.js";
+import { generatedViews } from "../components/views.js";
 import type { Catalogue } from "../server/catalogue.js";
 
 /** Manifest-derived identity for one generated Browse document. */
 export interface TrustedBrowseDocument {
+  componentView?: ComponentViewRecord;
   colorScheme: "dark" | "light";
   sourcePath: string;
   viewport: Viewport;
@@ -26,14 +28,14 @@ export function trustedDocument(
         sourcePath: entry.sourcePath,
         viewport: "desktop",
       };
-    if (entry.kind !== "screen") continue;
-    for (const viewport of ["mobile", "desktop"] as const) {
-      if (entry.fragments[viewport] === route) {
-        return { colorScheme: "light", sourcePath: entry.sourcePath, viewport };
-      }
-      if (entry.darkFragments?.[viewport] === route) {
-        return { colorScheme: "dark", sourcePath: entry.sourcePath, viewport };
-      }
+    for (const view of generatedViews(entry)) {
+      if (view.path === route)
+        return {
+          colorScheme: view.colorScheme,
+          sourcePath: entry.sourcePath,
+          viewport: view.viewport,
+          ...(view.usage ? { componentView: view.usage } : {}),
+        };
     }
   }
   return undefined;
@@ -48,23 +50,34 @@ export function expectedPortableHref(
 ): string {
   const entry = catalogue.byId.get(destination.id);
   const screen =
-    entry?.kind === "screen"
+    entry?.kind === "screen" || entry?.kind === "component"
       ? entry
       : entry?.kind === "use-case" && entry.steps[0]
         ? catalogue.byId.get(entry.steps[0].screenId)
         : undefined;
-  if (entry?.kind !== "page" && screen?.kind !== "screen") {
+  if (
+    entry?.kind !== "page" &&
+    screen?.kind !== "screen" &&
+    screen?.kind !== "component"
+  ) {
     throw invalid(
       sourceRoute,
       `trusted marker links to an invalid id: ${destination.id}`,
     );
   }
+  const views = screen
+    ? generatedViews(screen).filter(
+        (view) =>
+          view.viewport === source.viewport &&
+          (screen.kind !== "component" ||
+            view.variantId === screen.variants[0]!.id),
+      )
+    : [];
   const targetRoute =
     entry?.kind === "page"
       ? entry.route
-      : screen?.kind === "screen"
-        ? fragmentFor(screen, source.viewport, source.colorScheme)
-        : "";
+      : (views.find((view) => view.colorScheme === source.colorScheme)?.path ??
+        views[0]!.path);
   const relative = path.posix.relative(
     path.posix.dirname(sourceRoute),
     targetRoute,
@@ -72,16 +85,6 @@ export function expectedPortableHref(
   const encoded = encodeUrlPath(relative);
   const portable = encoded.startsWith(".") ? encoded : `./${encoded}`;
   return `${portable}${destination.fragment ? `#${destination.fragment}` : ""}`;
-}
-
-function fragmentFor(
-  screen: ManifestScreen,
-  viewport: Viewport,
-  colorScheme: "dark" | "light",
-): string {
-  return colorScheme === "dark" && screen.darkFragments?.[viewport]
-    ? screen.darkFragments[viewport]
-    : screen.fragments[viewport];
 }
 
 function invalid(route: string, message: string): MokabookError {

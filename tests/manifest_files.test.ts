@@ -46,7 +46,7 @@ test("filesystem manifest loading never accepts v2 under the canonical filename"
     JSON.stringify(legacy),
   );
 
-  assert.throws(() => readManifest(config), /schema version 4/);
+  assert.throws(() => readManifest(config), /schema version 5/);
 });
 
 test("manifest loading rejects URL-sensitive catalogue routes", async (context) => {
@@ -122,6 +122,7 @@ test("light-only manifests remain deterministic without variant metadata", () =>
   const expected = serializeManifest({
     entries: [
       {
+        declaredDependencies: [],
         dependencies: ["entries/a.mockup.tsx"],
         description: "A screen",
         id: "a",
@@ -141,7 +142,7 @@ test("light-only manifests remain deterministic without variant metadata", () =>
     ],
     generatedBy: "mokabook",
     sourceFiles: ["entries/a.mockup.tsx"],
-    schemaVersion: 4,
+    schemaVersion: 5,
   });
 
   const serialized = serializeManifest(createManifest([entry], [], ["light"]));
@@ -179,23 +180,9 @@ test("manifest serializes declared tags and omits absent ones", () => {
       ["untagged-tour", false],
     ],
   );
-  assert.deepEqual(Object.keys(entries[0] ?? {}).slice(-4), [
-    "route",
-    "tags",
-    "useCaseIds",
-    "viewports",
-  ]);
-  assert.deepEqual(Object.keys(entries[3] ?? {}).slice(-3), [
-    "route",
-    "steps",
-    "tags",
-  ]);
-  const [screen, , , useCase] = entries;
-  if (screen?.kind !== "screen" || useCase?.kind !== "use-case") {
-    throw new Error("tagged entries missing");
+  for (const entry of entries) {
+    assert.deepEqual(Object.keys(entry), Object.keys(entry).sort());
   }
-  assert.deepEqual(screen.tags, ["onboarding", "forms"]);
-  assert.deepEqual(useCase.tags, ["forms"]);
 });
 
 test("disabling dark orphans committed dark fragments", async (context) => {

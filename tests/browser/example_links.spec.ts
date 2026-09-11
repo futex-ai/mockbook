@@ -1,3 +1,5 @@
+import { expectFrameSource } from "./workspace_actions.js";
+import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -12,11 +14,8 @@ for (const viewport of ["mobile", "desktop"] as const) {
       page,
     }) => {
       await page.goto("/view/screens/welcome.html");
-      await page.locator(`[data-viewport-option="${viewport}"]`).click();
-      if (scheme === "dark")
-        await page
-          .locator('.mbk-topbar [data-color-scheme-option="dark"]')
-          .click();
+      await chooseViewport(page, viewport);
+      if (scheme === "dark") await chooseScheme(page, "dark");
       const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
       const next = frame.getByRole("link", {
         name: "View details",
@@ -34,15 +33,16 @@ for (const viewport of ["mobile", "desktop"] as const) {
       await expect(page).toHaveURL(
         /\/view\/screens\/details\.html\?fragment=details$/,
       );
-      await expect(
+      await expectFrameSource(
         page.locator(`.mbk-frame-${viewport} iframe`),
-      ).toHaveAttribute(
-        "src",
         new RegExp(
           `details\\.${viewport}${scheme === "dark" ? "\\.dark" : ""}\\.html#details$`,
         ),
       );
-      await frame.locator('a[data-mokabook-link-control="button"]').click();
+      await frame
+        .locator('a[data-mokabook-link-control="button"]')
+        .filter({ hasText: "Return to welcome" })
+        .click();
       await expect(page).toHaveURL(/\/view\/screens\/welcome\.html$/);
 
       const suffix = `${viewport}${scheme === "dark" ? ".dark" : ""}.html`;
@@ -62,7 +62,9 @@ for (const viewport of ["mobile", "desktop"] as const) {
           `/screens/details\\.${suffix.replaceAll(".", "\\.")}#details$`,
         ),
       );
-      const back = page.locator('a[data-mokabook-link-control="button"]');
+      const back = page
+        .locator('a[data-mokabook-link-control="button"]')
+        .filter({ hasText: "Return to welcome" });
       await page.waitForLoadState("load");
       await focusDesignLink(back);
       await expect(back).toBeFocused();
@@ -81,11 +83,11 @@ test("the real example tour reuses the styled buttons in both owning screens", a
   for (const scheme of ["light", "dark"] as const) {
     for (const step of [0, 1]) {
       await page.goto("/view/user-flows/example-tour.html");
-      await page
-        .locator(`.mbk-topbar [data-color-scheme-option="${scheme}"]`)
-        .click();
+      await chooseScheme(page, scheme);
       const frame = page.frameLocator(".mbk-flow-screen iframe").nth(step);
-      const button = frame.locator('a[data-mokabook-link-control="button"]');
+      const button = frame
+        .locator('a[data-mokabook-link-control="button"]')
+        .filter({ hasText: step === 0 ? "View details" : "Return to welcome" });
       if (step === 0) await button.click();
       else {
         await focusDesignLink(button);

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { ComponentDefinition } from "../components/types.js";
+
 /** Light or dark color-scheme rendering target. */
 export type ColorScheme = "dark" | "light";
 
@@ -85,7 +87,11 @@ export interface UseCaseDefinition extends UseCaseInput, DefinitionBrand {
 
 /** Any structured catalogue definition. */
 export type RegistryDefinition =
-  ScreenDefinition | PageDefinition | CollectionDefinition | UseCaseDefinition;
+  | ScreenDefinition
+  | PageDefinition
+  | CollectionDefinition
+  | UseCaseDefinition
+  | ComponentDefinition;
 
 /** Fields inherited by a nested child from its ancestors. */
 export interface NestedInherited {

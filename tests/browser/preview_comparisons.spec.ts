@@ -1,3 +1,4 @@
+import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 import { expect, test } from "@playwright/test";
 
 import { createPreviewComparisonFixture } from "../helpers/preview_comparison_fixture.js";
@@ -34,7 +35,7 @@ test("published Mokabook exposes lazy comparisons in the actual shell", async ({
     modes.getByRole("button", { name: "Current", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.locator('[data-filter="changed"]').click();
-  await page.getByRole("button", { name: "Desktop", exact: true }).click();
+  await chooseViewport(page, "desktop");
   expect(requests.filter((url) => url.includes("/__mokabook/diffs/"))).toEqual(
     [],
   );
@@ -89,7 +90,7 @@ test("published comparisons retain mobile, dark, and removed-screen navigation",
     await expect(page.locator("[data-current-screen]")).toContainText(
       "This screen was removed",
     );
-    await page.getByRole("button", { name: "Mobile", exact: true }).click();
+    await chooseViewport(page, "mobile");
     await page
       .getByRole("button", { name: "Side by side", exact: true })
       .click();
@@ -114,8 +115,8 @@ test("published comparisons retain mobile, dark, and removed-screen navigation",
       "This screen was added on this branch.",
     );
     await page.goto(`${server.url}/view/screens/home`);
-    await page.getByRole("button", { name: "Mobile", exact: true }).click();
-    await page.getByRole("button", { name: "Dark", exact: true }).click();
+    await chooseViewport(page, "mobile");
+    await chooseScheme(page, "dark");
     await page.getByRole("button", { name: "Difference", exact: true }).click();
     const frames = page.locator("[data-diff-stage] iframe");
     await expect(frames).toHaveCount(2);

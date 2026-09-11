@@ -6,6 +6,14 @@ Implemented in the 30 design screens and two real example screens using
 `MockLink` and `MockLink asChild`. Verification and delivery are tracked by the
 [implementation plan](../../plans/mokabook-design-mocklinks.md).
 
+The [component design inventory](./mokabook-component-design.md) extend the
+catalogue with their own state contract and native component/control depictions.
+The existing 24 Browse/Changes designs retain the canonical links below.
+They now share native icon inspector tabs and working viewport dropdowns with
+the component designs; the legacy disclosure links and segmented view controls
+are removed. Catalogue-wide link and inventory checks cover
+both families; component keyboard-control checks live in the component suites.
+
 ## Scope And Ownership
 
 Make the catalogue under `examples/basic/entries/design/` a navigable prototype
@@ -45,7 +53,10 @@ available. `example-farewell` remains an intentionally absent product entry.
   routing, or consumer scripts as substitutes for `MockLink`.
 - A control without a destination has no `href`, no mock-link marker, and no
   misleading keyboard stop. Keep the selected state visibly identified.
-  Inactive controls must remain non-interactive after static generation.
+  Inactive controls must remain non-interactive after static generation. Native
+  inspector tabs and viewport selections operate in place without navigation.
+  Links inside inspector bodies use ordinary `MockLink` anchors; `asChild`
+  deliberately rejects interactive ancestors including `details`.
 - Keep reusable mockup controls in `entries/design/parts/`. Share the existing
   miniature screens between their owning standalone design screens and the
   depicted use case. Keep new files near 200 lines and below 300 lines.
@@ -71,7 +82,9 @@ completed before link adoption.
 | `design-browse-tag-onboarding`        | `design/browse/states/tags/onboarding.html`        | Welcome, `tag:onboarding`, Welcome retained, picker closed        |
 | `design-browse-tag-onboarding-picker` | `design/browse/states/tags/onboarding-picker.html` | The same onboarding filter with the picker open                   |
 
-`design-browse-details` continues to mean Welcome's expanded inspector;
+`design-browse-details` continues to mean Welcome's expanded inspector and remains
+reachable from its catalogue entry. Opening/closing the Details icon stays on
+the current screen and retains its query;
 `design-browse-light-only` continues to depict Details with dark selected and
 light-only device content. Neither substitutes for the new normal Details view.
 `design-browse-tag-filter` retains its existing route and depicts the forms
@@ -91,7 +104,6 @@ directory and catalogue group without moving the existing page.
 | MiniFarewell: Return to welcome                 | `design-browse-screen`                                                                         |
 | Depicted use-case step reference                | Welcome: `design-browse-screen`; Details: `design-browse-details-screen`                       |
 | Welcome/Details inspector: Example tour         | `design-browse-use-case`                                                                       |
-| Welcome inspector, closed / open                | `design-browse-details` / `design-browse-screen`                                               |
 | Home menu open / drawer close                   | `design-browse-navigation` / `design-browse-home`                                              |
 | Menu from another narrow design                 | Canonical `design-browse-navigation`; selecting a leaf opens that leaf's canonical destination |
 | Welcome All / Changes filter                    | `design-browse-screen` / `design-changes-current`                                              |
@@ -133,8 +145,10 @@ none borrows another subject's inspector or drawer identity.
 
 ## Scheme, Comparison, And Tag States
 
-Expose the scheme control on both endpoints of each pair, using the normal
-wide top-bar and narrow head-band positions:
+Expose the theme icon on both endpoints of each pair in the shared screen-header
+view controls. Its accessible label is “Switch to dark mode” or “Switch to light
+mode”. The top bar contains no theme control. Unsupported pairs use a disabled
+icon with an explanatory tooltip:
 
 | Light state                    | Dark-selected state         |
 | ------------------------------ | --------------------------- |
@@ -144,22 +158,19 @@ wide top-bar and narrow head-band positions:
 
 The Welcome light comparison controls map Side by side to
 `design-review-changed`, Overlay to `design-changes-overlay`, and Difference
-to `design-review-difference`. Browse Welcome in light mode offers those diff
-destinations as well. Each comparison destination depicts Changes selected;
+to `design-review-difference`. These controls appear in the explicit changed
+Welcome states; Browse and tag-picker states omit them. Each comparison destination depicts Changes selected;
 its Current action returns to `design-changes-current`. Current is already
-selected in `design-browse-screen` and `design-changes-current`, so it has no
+selected in `design-changes-current`, so it has no
 transition there. Returning to All uses the navigation table above.
 
 Added Details offers Current as `design-browse-details-screen`; removed
 Farewell has no Current destination. Other modes on Added/Removed, other modes
-on the dark comparison, and alternative modes on shared-impact/ignored-only
-scenarios have no matching authored state and remain non-link depictions.
-Shared-impact/ignored-only can return to Welcome Current. They must never use
-a generic Welcome-mode mapping that silently changes the depicted subject or
-comparison classification. Their existing routes remain available in the real
-outer catalogue. A future interactive mode needs its own contract and owning
-screen first. The empty Changes fixture keeps its Current selection and All
-escape; it does not link a diff option to a changed-screen scenario.
+on the dark comparison have no matching authored state and remain non-link
+depictions. Shared-impact/ignored-only and empty Changes keep a Current preview
+without comparison modes; factual evidence lives in Details. Their existing
+routes and All escape remain available. A future interactive mode needs its
+own contract and owning screen first.
 
 Tag interactions are restricted to the canonical Welcome light states:
 

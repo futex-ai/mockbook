@@ -13,10 +13,8 @@ import {
   RepositoryGitClient,
   type GitClient,
 } from "../dist/review/git.js";
-import {
-  changedManifestRoutes,
-  computeChangedRoutes,
-} from "../dist/server/changed.js";
+import { changedManifestRoutes } from "../dist/registry/changed_routes.js";
+import { computeChangedRoutes } from "../dist/server/changed.js";
 import {
   createFixture,
   removeFixture,

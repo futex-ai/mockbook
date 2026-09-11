@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { parseArguments } from "../dist/cli/arguments.js";
 import { HELP } from "../dist/cli/help.js";
 import { serve } from "../dist/server/serve.js";
-import { changedManifestRoutes } from "../dist/server/changed.js";
+import { changedManifestRoutes } from "../dist/registry/changed_routes.js";
 import { loadConfig } from "../dist/config/load.js";
 import { compileCatalogue } from "../dist/build/compile.js";
 import { writeCompilation } from "../dist/build/transaction.js";

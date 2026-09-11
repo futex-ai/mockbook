@@ -1,8 +1,12 @@
-import type { RemovedEntrySnapshot } from "../registry/changes.js";
+import {
+  removedManifestEntries,
+  type RemovedEntrySnapshot,
+} from "../registry/changes.js";
+import type { ManifestComponent } from "../components/manifest_types.js";
 import type {
   ManifestEntry,
   ManifestScreen,
-  ManifestV4,
+  Manifest,
 } from "../registry/types.js";
 import {
   analyzeHierarchy,
@@ -16,12 +20,14 @@ export interface Catalogue {
   /** Whether any screen in the catalogue was rendered in the dark scheme. */
   hasDarkFragments: boolean;
   hierarchy: CatalogueHierarchy<ManifestEntry>;
-  manifest: ManifestV4;
+  manifest: Manifest;
   /** Every classification tag the entries declare, deduplicated and sorted. */
   tags: readonly string[];
   /** Baseline screens retained only for on-demand comparisons. */
   removedScreens: readonly ManifestScreen[];
   removedEntries: readonly RemovedEntrySnapshot[];
+  /** Removed component variants retain their immutable baseline for inspection. */
+  removedComponents: readonly ManifestComponent[];
 }
 
 /** The union of the tags declared across every entry that can carry them. */
@@ -35,11 +41,14 @@ function collectTags(entries: readonly ManifestEntry[]): readonly string[] {
 
 /** Build deterministic id and route indexes from a validated manifest. */
 export function createCatalogue(
-  manifest: ManifestV4,
+  manifest: Manifest,
   removedEntries: readonly RemovedEntrySnapshot[] = [],
 ): Catalogue {
   const removedScreens = removedEntries.flatMap(({ entry }) =>
     entry.kind === "screen" ? [entry] : [],
+  );
+  const removedComponents = removedEntries.flatMap(({ entry }) =>
+    entry.kind === "component" ? [entry] : [],
   );
   const byId = new Map(manifest.entries.map((entry) => [entry.id, entry]));
   const byRoute = new Map<string, ManifestEntry>();
@@ -48,10 +57,17 @@ export function createCatalogue(
   }
   for (const { entry } of removedEntries)
     if (!byId.has(entry.id)) byId.set(entry.id, entry);
-  const hasDarkFragments = [...manifest.entries, ...removedScreens].some(
-    (entry) => entry.kind === "screen" && entry.darkFragments !== undefined,
+  const hasDarkFragments = [
+    ...manifest.entries,
+    ...removedScreens,
+    ...removedComponents,
+  ].some((entry) =>
+    entry.kind === "screen"
+      ? entry.darkFragments !== undefined
+      : entry.kind === "component" &&
+        entry.variants.some((variant) => variant.darkFragments !== undefined),
   );
-  const hierarchy = analyzeHierarchy(manifest.entries).hierarchy;
+  const hierarchy = analyzeHierarchy<ManifestEntry>(manifest.entries).hierarchy;
   const tags = collectTags(manifest.entries);
   return {
     byId,
@@ -61,6 +77,15 @@ export function createCatalogue(
     manifest,
     tags,
     removedScreens,
+    removedComponents,
     removedEntries,
   };
+}
+
+/** Preserve baseline leaves without inserting them into current ownership. */
+export function catalogueAtBaseline(
+  manifest: Manifest,
+  baseline: Manifest,
+): Catalogue {
+  return createCatalogue(manifest, removedManifestEntries(manifest, baseline));
 }

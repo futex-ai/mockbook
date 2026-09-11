@@ -110,7 +110,7 @@ test("manifest readers accept version 2 only through explicit compatibility", as
     schemaVersion: 2,
     legacyPages: [],
   };
-  assert.throws(() => parseManifest(legacy), /schema version 4/);
+  assert.throws(() => parseManifest(legacy), /schema version 5/);
   assert.equal(parseHistoricalManifest(legacy, true).schemaVersion, 3);
 });
 

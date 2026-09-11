@@ -1,3 +1,4 @@
+import { componentRuntime } from "../build/component_runtime.js";
 import { compileCatalogue } from "../build/compile.js";
 import {
   FileSystemGeneratedOutputStore,
@@ -71,6 +72,7 @@ export async function serve(
     const server = await dependencies.serverFactory.start(config, {
       base,
       snapshot,
+      componentRuntime: componentRuntime(compilation),
       port: options.port,
       review: configuredServedReview(config, base),
     });

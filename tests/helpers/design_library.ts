@@ -1,0 +1,33 @@
+export const designLibrary = [
+  ["chrome", "top-bar", ["default", "search", "tag-picker", "drawer-open"]],
+  ["chrome", "catalogue-navigation", ["all", "changes", "empty", "drawer"]],
+  ["chrome", "screen-header", ["screen", "component", "changed", "removed"]],
+  [
+    "controls",
+    "comparison-toolbar",
+    ["current", "side-by-side", "overlay", "difference"],
+  ],
+  [
+    "controls",
+    "view-controls",
+    ["default", "both", "highlighted", "unavailable"],
+  ],
+  ["controls", "tag-picker", ["all", "selected", "empty"]],
+  ["controls", "tag-chip", ["default", "selected", "inactive"]],
+  ["controls", "change-status", ["unmodified", "added", "changed", "removed"]],
+  ["inspector", "inspector", ["details", "props", "closed"]],
+  ["inspector", "metadata-row", ["text", "code", "linked", "tags"]],
+  [
+    "inspector",
+    "prop-field",
+    ["text", "boolean", "invalid-number", "select", "optional-unset"],
+  ],
+  ["preview", "device-frame", ["phone", "browser", "dark", "light-only"]],
+  [
+    "preview",
+    "comparison-pane",
+    ["before", "current", "missing-before", "missing-current"],
+  ],
+  ["preview", "empty-state", ["home", "missing-route", "no-changes"]],
+  ["preview", "flow-step", ["first", "second"]],
+] as const;

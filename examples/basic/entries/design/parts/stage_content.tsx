@@ -1,74 +1,58 @@
 import type { ReactNode } from "react";
-
-import { DesignLink } from "./design_navigation.js";
+import { emptyState } from "../library/preview/empty-state.js";
+import { flowStep } from "../library/preview/flow-step.js";
+import { optional, useDesignInstance } from "../library/composition.js";
 import type { DesignDestination } from "./destinations.js";
 
-interface FlowStepProps {
-  children: ReactNode;
-  description: string;
-  number: number;
-  screenId: DesignDestination;
-  title: string;
-}
-
-/** One ordered use-case step embedding an existing screen. */
 export function FlowStep({
   children,
+  name,
   description,
   number,
   screenId,
   title,
-}: FlowStepProps) {
+}: {
+  children: ReactNode;
+  name: string;
+  description: string;
+  number: number;
+  screenId: DesignDestination;
+  title: string;
+}) {
   return (
-    <section className="flow-step">
-      <div className="flow-step-head">
-        <span className="flow-step-num">{number}</span>
-        <div>
-          <h3>{title}</h3>
-          <p>{description}</p>
-          <DesignLink to={screenId}>
-            <span className="flow-step-link">
-              This screen in the catalogue: #{screenId} →
-            </span>
-          </DesignLink>
-        </div>
-      </div>
-      <div className="mbk-flow-screen">{children}</div>
-    </section>
+    <flowStep.Component
+      mokabookInstance={useDesignInstance(name)}
+      number={number}
+      title={title}
+      description={description}
+      screenId={screenId}
+    >
+      {children}
+    </flowStep.Component>
   );
 }
 
-interface EmptyStateProps {
-  to: DesignDestination;
-  body: string;
-  code?: string;
-  linkLabel: string;
-  title: string;
-}
-
-/** Centered home, missing-route, or empty-result view. */
 export function EmptyState({
   body,
   code,
   linkLabel,
   title,
   to,
-}: EmptyStateProps) {
+}: {
+  body: string;
+  code?: string;
+  linkLabel: string;
+  title: string;
+  to: DesignDestination;
+}) {
   return (
-    <div className="mbk-empty">
-      <h2>{title}</h2>
-      <p>
-        {body}
-        {code ? (
-          <>
-            {" "}
-            <code>{code}</code>
-          </>
-        ) : null}
-      </p>
-      <DesignLink to={to}>
-        <span className="mbk-empty-link">{linkLabel}</span>
-      </DesignLink>
-    </div>
+    <emptyState.Component
+      mokabookInstance={useDesignInstance("empty")}
+      body={body}
+      title={title}
+      actionLabel={linkLabel}
+      destination={to}
+      {...optional("code", code)}
+    />
   );
 }

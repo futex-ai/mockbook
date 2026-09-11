@@ -1,4 +1,5 @@
 import { MokabookError } from "../errors.js";
+import { validateManifestComponent } from "../components/manifest_validation.js";
 import { isCatalogueId } from "../navigation/logical.js";
 import {
   nonEmptyString,
@@ -9,13 +10,17 @@ import {
 } from "./manifest_values.js";
 
 /** Validate the public fields for one historical or current entry. */
-export function validateEntry(entry: Record<string, unknown>): void {
+export function validateEntry(
+  entry: Record<string, unknown>,
+  components = false,
+): void {
   const kind = entry.kind;
   if (
     kind !== "collection" &&
     kind !== "screen" &&
     kind !== "page" &&
-    kind !== "use-case"
+    kind !== "use-case" &&
+    !(components && kind === "component")
   ) {
     throw new MokabookError(
       "manifest-invalid",
@@ -75,7 +80,8 @@ export function validateEntry(entry: Record<string, unknown>): void {
       `${String(entry.id)} has invalid tags`,
     );
   }
-  if (kind === "screen") validateScreen(entry);
+  if (kind === "component") validateManifestComponent(entry);
+  else if (kind === "screen") validateScreen(entry);
   else if (kind === "use-case") validateUseCase(entry);
 }
 
@@ -164,8 +170,11 @@ function validateUseCase(entry: Record<string, unknown>): void {
   }
 }
 
-/** Reject fields outside the schema-v4 entry contract. */
-export function validateCurrentFields(entry: Record<string, unknown>): void {
+/** Reject fields outside the source-inventoried entry contract. */
+export function validateCurrentFields(
+  entry: Record<string, unknown>,
+  components = false,
+): void {
   const common = [
     "dependencies",
     "description",
@@ -176,23 +185,36 @@ export function validateCurrentFields(entry: Record<string, unknown>): void {
     "relatedDocs",
     "sourcePath",
     "title",
+    ...(components ? ["declaredDependencies"] : []),
   ];
   const specific =
     entry.kind === "collection"
       ? ["childIds"]
       : entry.kind === "page"
         ? ["route", "tags"]
-        : entry.kind === "screen"
+        : entry.kind === "component" && components
           ? [
               "route",
               "tags",
-              "address",
-              "darkFragments",
-              "fragments",
-              "useCaseIds",
               "viewports",
+              "propSchema",
+              "slots",
+              "controls",
+              "ownedDependencies",
+              "variants",
             ]
-          : ["route", "tags", "steps"];
+          : entry.kind === "screen"
+            ? [
+                "route",
+                "tags",
+                "address",
+                "darkFragments",
+                "fragments",
+                "useCaseIds",
+                "viewports",
+                ...(components ? ["componentViews"] : []),
+              ]
+            : ["route", "tags", "steps"];
   for (const field of Object.keys(entry))
     if (![...common, ...specific].includes(field))
       throw new MokabookError(

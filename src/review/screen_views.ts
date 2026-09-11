@@ -3,7 +3,7 @@
 import type { ColorScheme, Viewport } from "../authoring/types.js";
 import type { ManifestScreen } from "../registry/types.js";
 import { VIEWPORTS } from "../registry/views.js";
-import type { ReviewResult, ScreenReview } from "./types.js";
+import type { ReviewResult, ReviewState, ScreenReview } from "./types.js";
 
 const COLOR_SCHEMES: readonly ColorScheme[] = ["light", "dark"];
 const COLOR_SCHEME_RANK: Readonly<Record<ColorScheme, number>> = {
@@ -84,4 +84,17 @@ export function aggregateIgnored(
           COLOR_SCHEME_RANK[right.colorScheme] ||
         left.id.localeCompare(right.id),
     );
+}
+
+export function aggregateState(states: readonly ReviewState[]): ReviewState {
+  for (const state of [
+    "changed",
+    "added",
+    "removed",
+    "ignored-only",
+    "unchanged",
+  ] as const) {
+    if (states.includes(state)) return state;
+  }
+  return "unchanged";
 }

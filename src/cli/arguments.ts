@@ -13,6 +13,7 @@ export interface CliArguments {
   out?: string;
   port?: number;
   strictPort?: boolean;
+  retainedRuntime?: boolean;
   updateVersion?: number;
   version: boolean;
   watch?: boolean;
@@ -44,6 +45,7 @@ export function parseArguments(argv: readonly string[]): CliArguments {
     else if (option === "--version" || option === "-v") parsed.version = true;
     else if (option === "--watch") parsed.watch = true;
     else if (option === "--no-watch") parsed.watch = false;
+    else if (option === "--retained-runtime") parsed.retainedRuntime = true;
     else if (option === "--strict-port") parsed.strictPort = true;
     else if (option === "--config") parsed.config = takeValue(option, values);
     else if (option === "--base") parsed.base = takeValue(option, values);
@@ -90,6 +92,11 @@ function parsePort(value: string): number {
 }
 
 function validateCommandOptions(arguments_: CliArguments): void {
+  if (arguments_.retainedRuntime && arguments_.command !== "__serve-child")
+    throw new MokabookError(
+      "cli-invalid",
+      "--retained-runtime is reserved for the watched server child",
+    );
   if (arguments_.out !== undefined && arguments_.command !== "export")
     throw new MokabookError("cli-invalid", "--out belongs to export");
   if (arguments_.out?.trim() === "")

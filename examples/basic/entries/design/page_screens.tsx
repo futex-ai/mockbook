@@ -1,3 +1,5 @@
+import { DetailsPanel } from "./parts/details.js";
+import { MetaRow } from "./parts/metadata_row.js";
 import { screen } from "mokabook";
 
 import { ExampleDocument } from "../document.js";
@@ -5,14 +7,39 @@ import { NavDrawer, NavTree, type NavNode } from "./parts/nav.js";
 import { ScreenHead, Shell, type ArtboardViewport } from "./parts/shell.js";
 import { Stage } from "./parts/stage.js";
 import { EmptyState } from "./parts/stage_content.js";
-import { DesignLink, useDesignNavigation } from "./parts/design_navigation.js";
+import { useDesignNavigation } from "./parts/design_navigation.js";
 import { DESTINATIONS } from "./parts/destinations.js";
 
 const nodes: readonly NavNode[] = [
-  { kind: "collection", label: "Example", count: 3, depth: 0, open: true },
-  { kind: "screen", label: "Welcome", depth: 1, to: DESTINATIONS.welcome },
-  { kind: "flow", label: "Example tour", depth: 1, to: DESTINATIONS.tour },
-  { kind: "page", label: "Getting started", depth: 1, to: DESTINATIONS.page },
+  {
+    key: "example",
+    kind: "collection",
+    label: "Example",
+    count: 3,
+    depth: 0,
+    open: true,
+  },
+  {
+    key: "welcome",
+    kind: "screen",
+    label: "Welcome",
+    depth: 1,
+    to: DESTINATIONS.welcome,
+  },
+  {
+    key: "tour",
+    kind: "flow",
+    label: "Example tour",
+    depth: 1,
+    to: DESTINATIONS.tour,
+  },
+  {
+    key: "handbook",
+    kind: "page",
+    label: "Getting started",
+    depth: 1,
+    to: DESTINATIONS.page,
+  },
 ];
 
 function PageDetails({
@@ -24,29 +51,30 @@ function PageDetails({
 }) {
   const navigation = useDesignNavigation();
   return (
-    <section className="mbk-details">
-      <DesignLink to={navigation.inspector}>
-        <div className="mbk-details-bar">Details</div>
-      </DesignLink>
-      {open ? (
-        <div className="mbk-details-body">
-          <div>
-            <p>A handbook to accompany the example screens.</p>
-            {removed ? <p>Location: Example › Handbook</p> : null}
-          </div>
-          <div className="mbk-meta">
-            <p>
-              Source: <code>entries/catalogue.mockup.tsx</code>
-            </p>
-            <p>
-              Generated: <code>handbook.html</code>
-            </p>
-            <p>Tags: documents</p>
-            <p>Related docs: Example notes</p>
-          </div>
+    <DetailsPanel open={open} destination={navigation.inspector}>
+      <div className="mbk-details-body">
+        <div>
+          <p className="mbk-details-desc">
+            A handbook to accompany the example screens.
+          </p>
+          {removed ? <p>Location: Example › Handbook</p> : null}
         </div>
-      ) : null}
-    </section>
+        <div className="mbk-meta">
+          <MetaRow name="source" label="Source">
+            <code className="mbk-code">entries/catalogue.mockup.tsx</code>
+          </MetaRow>
+          <MetaRow name="generated" label="Generated">
+            <code className="mbk-code">handbook.html</code>
+          </MetaRow>
+          <MetaRow name="tags" label="Tags">
+            documents
+          </MetaRow>
+          <MetaRow name="related-docs" label="Related docs">
+            Example notes
+          </MetaRow>
+        </div>
+      </div>
+    </DetailsPanel>
   );
 }
 
@@ -63,7 +91,15 @@ function PageView({
 }) {
   const label = removed ? "Getting started · Removed" : "Getting started";
   const tree = removed
-    ? [{ kind: "page" as const, label, depth: 0, to: DESTINATIONS.pageRemoved }]
+    ? [
+        {
+          key: "removed-handbook",
+          kind: "page" as const,
+          label,
+          depth: 0,
+          to: DESTINATIONS.pageRemoved,
+        },
+      ]
     : nodes;
   const nav = (
     <NavTree
@@ -102,7 +138,7 @@ function PageView({
         crumbs={removed ? ["Example", "Handbook"] : ["Example"]}
         idChip="example-handbook"
         title="Getting started"
-        status={removed ? <span>Removed</span> : null}
+        {...(removed ? { status: "removed" as const } : {})}
       />
       {removed ? (
         <EmptyState

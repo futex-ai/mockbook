@@ -6,9 +6,11 @@ import type {
   ManifestScreen,
   ManifestUseCase,
 } from "../../registry/types.js";
+import type { ManifestComponent } from "../../components/manifest_types.js";
 
 /** A routed structured entry: a screen or a use case, never a collection. */
-export type RoutedEntry = ManifestScreen | ManifestPage | ManifestUseCase;
+export type RoutedEntry =
+  ManifestScreen | ManifestPage | ManifestUseCase | ManifestComponent;
 
 /** One resolved viewable destination: a screen, use case, or complete page. */
 export type RouteTarget = { kind: "entry"; entry: RoutedEntry };

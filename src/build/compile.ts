@@ -9,20 +9,26 @@ import {
   serializeManifest,
 } from "../registry/manifest.js";
 import { prepareRegistry } from "../registry/prepare.js";
-import type { ManifestV4 } from "../registry/types.js";
+import type { ManifestV5 } from "../registry/types.js";
 import type { ArtifactView } from "../registry/views.js";
 import { effectiveColorSchemes, VIEWPORTS } from "../registry/views.js";
 import { normalizeSingleDocument } from "../review/ignore.js";
 import { validateHtmlLinks } from "./html_links.js";
 import { validateLogicalFragments } from "./logical_records.js";
+import { rememberRuntime } from "./component_runtime.js";
 import { loadConsumerGraph } from "./load_graph.js";
 import { validateGeneratedOwnershipHeaders } from "./ownership.js";
 import { validateGeneratedOutputPaths } from "./output_paths.js";
+import type { ComponentViewRecord } from "../components/manifest_types.js";
+import { componentFragmentRoute } from "../components/paths.js";
+import { rebaseStyleOwnership } from "../components/style_ownership.js";
+import { validateComponentResources } from "../components/output_validation.js";
+import { validateComponentRanges } from "../components/ranges.js";
 import { renderFragments } from "./render.js";
 
 /** Complete in-memory static compilation result. */
 export interface Compilation {
-  manifest: ManifestV4;
+  manifest: ManifestV5;
   outputs: ReadonlyMap<string, string>;
 }
 
@@ -34,11 +40,14 @@ export async function compileCatalogue(
   config = { ...config, sourceFiles: graph.sourceFiles };
   const registry = prepareRegistry(graph.definitions, config);
   const fragmentViews = new Map<string, ArtifactView>();
+  const componentViews = new Map<string, ComponentViewRecord>();
   const outputs = renderFragments(
     registry.entries,
     graph.renderer,
     config,
     fragmentViews,
+    graph.renderWithComponents,
+    componentViews,
   );
   const routedEntries = new Set(
     registry.entries.flatMap((entry) =>
@@ -49,16 +58,27 @@ export async function compileCatalogue(
   for (const entry of registry.entries) {
     if (entry.kind === "page")
       generatedOwners.set(entry.route, entry.sourceRelativePath);
-    if (entry.kind !== "screen") continue;
-    for (const viewport of VIEWPORTS) {
-      for (const colorScheme of effectiveColorSchemes(
-        entry,
-        config.colorSchemes,
-      )) {
-        generatedOwners.set(
-          fragmentRoute(entry.route, viewport, colorScheme),
-          entry.sourceRelativePath,
-        );
+    if (entry.kind !== "screen" && entry.kind !== "component") continue;
+    for (const variantId of entry.kind === "component"
+      ? entry.variants.map((variant) => variant.id)
+      : [undefined]) {
+      for (const viewport of VIEWPORTS) {
+        for (const colorScheme of effectiveColorSchemes(
+          entry,
+          config.colorSchemes,
+        )) {
+          generatedOwners.set(
+            variantId
+              ? componentFragmentRoute(
+                  entry.route,
+                  variantId,
+                  viewport,
+                  colorScheme,
+                )
+              : fragmentRoute(entry.route, viewport, colorScheme),
+            entry.sourceRelativePath,
+          );
+        }
       }
     }
   }
@@ -78,6 +98,7 @@ export async function compileCatalogue(
       );
     }
   }
+  const beforeTransform = new Map(outputs);
   const logicalRecords = transformCompatibilityDocuments(
     outputs,
     registry.entries,
@@ -85,6 +106,18 @@ export async function compileCatalogue(
     graph,
     fragmentViews,
   );
+  for (const [route, view] of componentViews) {
+    const final = outputs.get(route)!;
+    validateComponentRanges(final, view.ranges);
+    componentViews.set(route, {
+      ...view,
+      styles: rebaseStyleOwnership(
+        beforeTransform.get(route)!,
+        final,
+        view.styles,
+      ),
+    });
+  }
   validateGeneratedOwnershipHeaders(outputs, generatedOwners);
   validateLogicalFragments(outputs, logicalRecords, registry.entries, config);
   for (const [route, content] of outputs) {
@@ -94,10 +127,14 @@ export async function compileCatalogue(
     registry.entries,
     graph.sourceFiles,
     config.colorSchemes,
+    componentViews,
   );
   parseManifest(manifest);
+  validateComponentResources(componentViews, config);
   outputs.set(MANIFEST_NAME, serializeManifest(manifest));
   validateHtmlLinks(outputs, config);
   validateGeneratedOutputPaths(outputs.keys(), config);
-  return { manifest, outputs };
+  const compilation = { manifest, outputs };
+  rememberRuntime(compilation, graph, config);
+  return compilation;
 }

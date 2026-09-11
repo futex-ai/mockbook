@@ -1,30 +1,24 @@
 /** Optional changed-route detection powering the Browse changed/all filter. */
-
-import path from "node:path";
-import { isDeepStrictEqual } from "node:util";
-
-import { MokabookError } from "../errors.js";
-import type {
-  CatalogueChangeSnapshot,
-  RemovedEntrySnapshot,
-} from "../registry/changes.js";
-import { projectRealPath, toPosixPath } from "../config/paths.js";
+import { projectRealPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
+import { MokabookError } from "../errors.js";
 import {
-  analyzeHierarchy,
-  type CatalogueHierarchy,
-} from "../registry/hierarchy.js";
+  removedManifestEntries,
+  type CatalogueChangeSnapshot,
+} from "../registry/changes.js";
 import { readManifest } from "../registry/manifest.js";
-import type {
-  ManifestEntry,
-  ManifestV4,
-  HistoricalManifest,
-} from "../registry/types.js";
-import { readBaseManifest } from "../review/base_manifest.js";
-import { reviewChangedPaths } from "../review/changed_paths.js";
+import type { ManifestV5 } from "../registry/types.js";
 import type { GitClient } from "../review/git.js";
 import { NodeGitCommandRunner, RepositoryGitClient } from "../review/git.js";
-import { changedContentPaths } from "./changed_content.js";
+import {
+  readCatalogueChanges,
+  type ComponentChangeSnapshot,
+} from "./component_changes.js";
+
+/** Impact and ownership evidence resolved together from one baseline. */
+export interface ResolvedCatalogueChanges extends CatalogueChangeSnapshot {
+  componentChanges?: ComponentChangeSnapshot;
+}
 
 /** Compute routes affected since the base branch point, if available. */
 export async function computeChangedRoutes(
@@ -44,8 +38,8 @@ export async function computeCatalogueChanges(
   config: ResolvedConfig,
   base: string,
   git?: GitClient,
-  manifest: ManifestV4 = readManifest(config),
-): Promise<CatalogueChangeSnapshot> {
+  manifest: ManifestV5 = readManifest(config),
+): Promise<ResolvedCatalogueChanges> {
   let client = git;
   if (!client) {
     const runner = new NodeGitCommandRunner(config.repoRoot);
@@ -60,171 +54,26 @@ export async function computeCatalogueChanges(
     client = new RepositoryGitClient(runner);
   }
   const commit = await client.mergeBase(base, "HEAD");
-  const changed = await reviewChangedPaths(
-    client,
-    commit,
+  const componentChanges = await readCatalogueChanges(
     config,
-    config.review.outDir,
-  );
-  const baseline = await readBaseManifest(client, commit, config);
-  const contentChanges = await changedContentPaths(
     manifest,
-    baseline,
-    config,
+    base,
     client,
     commit,
-    changed,
   );
+  const { baseline, changedRoutes } = componentChanges;
   const removedEntries = removedManifestEntries(manifest, baseline);
   return {
     schemaVersion: 1,
+    componentChanges,
     baseRef: base,
     baseCommit: commit,
     removedEntries,
     changedRoutes: [
       ...new Set([
-        ...changedManifestRoutes(manifest, baseline, config, contentChanges),
+        ...(changedRoutes ?? []),
         ...removedEntries.map(({ entry }) => entry.route),
       ]),
     ].sort(),
   };
-}
-
-/** Only a free old route retains a baseline leaf; current ids and routes always win. */
-export function removedManifestEntries(
-  manifest: HistoricalManifest,
-  baseline: HistoricalManifest,
-): RemovedEntrySnapshot[] {
-  const routes = new Set(
-    manifest.entries.flatMap((entry) =>
-      entry.kind === "collection" ? [] : [entry.route],
-    ),
-  );
-  const hierarchy = analyzeHierarchy(baseline.entries).hierarchy;
-  return baseline.entries
-    .flatMap((entry): RemovedEntrySnapshot[] =>
-      (entry.kind === "page" || entry.kind === "screen") &&
-      !routes.has(entry.route)
-        ? [
-            {
-              entry,
-              ancestors: (hierarchy.ancestorsById.get(entry.id) ?? []).map(
-                ({ id, title }) => ({ id, title }),
-              ),
-            },
-          ]
-        : [],
-    )
-    .sort(
-      (a, b) =>
-        a.entry.route.localeCompare(b.entry.route) ||
-        a.entry.id.localeCompare(b.entry.id),
-    );
-}
-
-/** Match manifest entries against repository-relative changed paths. */
-export function changedManifestRoutes(
-  manifest: HistoricalManifest,
-  baseManifest: HistoricalManifest,
-  config: ResolvedConfig,
-  changedPaths: readonly string[],
-): readonly string[] {
-  const mockupsPrefix = toPosixPath(
-    path.relative(config.repoRoot, config.mockupsDir),
-  );
-  const routes = new Set<string>();
-  const changedScreenIds = new Set<string>();
-  const baseEntries = new Map(
-    baseManifest.entries.map((entry) => [entry.id, entry]),
-  );
-  const hierarchy = analyzeHierarchy(manifest.entries).hierarchy;
-  const baseHierarchy = analyzeHierarchy(baseManifest.entries).hierarchy;
-  for (const entry of manifest.entries) {
-    if (entry.kind === "collection") continue;
-    const baseEntry = baseEntries.get(entry.id);
-    const candidates = changedPathCandidates(entry, baseEntry, mockupsPrefix);
-    if (
-      isDeepStrictEqual(
-        routeChangeProjection(entry, hierarchy),
-        routeChangeProjection(baseEntry, baseHierarchy),
-      ) &&
-      !candidates.some((candidate) =>
-        changedPaths.some((changedPath) => candidate === changedPath),
-      )
-    ) {
-      continue;
-    }
-    routes.add(entry.route);
-    if (entry.kind === "screen") changedScreenIds.add(entry.id);
-  }
-  for (const entry of manifest.entries) {
-    if (
-      entry.kind === "use-case" &&
-      entry.steps.some((step) => changedScreenIds.has(step.screenId))
-    ) {
-      routes.add(entry.route);
-    }
-  }
-  return [...routes].sort();
-}
-
-/** Select manifest metadata whose changes can affect a routed Browse entry. */
-function routeChangeProjection(
-  entry: ManifestEntry | undefined,
-  hierarchy: CatalogueHierarchy<ManifestEntry>,
-): unknown {
-  if (!entry) return undefined;
-  const common = {
-    ancestorCollections: (hierarchy.ancestorsById.get(entry.id) ?? []).map(
-      ({ id, title }) => ({ id, title }),
-    ),
-    description: entry.description,
-    id: entry.id,
-    kind: entry.kind,
-    rationale: entry.rationale,
-    relatedDocs: entry.relatedDocs,
-    tags: entry.kind === "collection" ? undefined : entry.tags,
-    title: entry.title,
-  };
-  if (entry.kind === "collection") {
-    return { ...common, childIds: entry.childIds };
-  }
-  if (entry.kind === "page") return { ...common, route: entry.route };
-  if (entry.kind === "use-case") {
-    return { ...common, route: entry.route, steps: entry.steps };
-  }
-  return {
-    ...common,
-    address: entry.address,
-    darkFragments: entry.darkFragments,
-    fragments: entry.fragments,
-    route: entry.route,
-    useCaseIds: entry.useCaseIds,
-    viewports: entry.viewports,
-  };
-}
-
-function changedPathCandidates(
-  entry: ManifestEntry,
-  baseEntry: ManifestEntry | undefined,
-  mockupsPrefix: string,
-): string[] {
-  const candidates: string[] = [];
-  const prefix = mockupsPrefix ? `${mockupsPrefix}/` : "";
-  for (const candidate of [entry, baseEntry]) {
-    if (candidate?.kind === "page")
-      candidates.push(`${prefix}${candidate.route}`);
-    if (candidate?.kind !== "screen") continue;
-    candidates.push(
-      `${prefix}${candidate.fragments.mobile}`,
-      `${prefix}${candidate.fragments.desktop}`,
-    );
-    if (candidate.darkFragments) {
-      candidates.push(
-        `${prefix}${candidate.darkFragments.mobile}`,
-        `${prefix}${candidate.darkFragments.desktop}`,
-      );
-    }
-  }
-  return [...new Set(candidates)];
 }

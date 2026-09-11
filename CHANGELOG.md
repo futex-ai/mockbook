@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.7.0](https://github.com/futex-ai/mokabook/compare/v0.6.0...v0.7.0) (2026-09-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* use mokabook serve and select a screen comparison instead of invoking mokabook review or opening a standalone Review report.
+
+### Features
+
+* add consumer static catalogue export ([#49](https://github.com/futex-ai/mokabook/issues/49)) ([a0e349a](https://github.com/futex-ai/mokabook/commit/a0e349a06bac83a1f873d7ee4980b6504ad1cfdf))
+* add MockLinks to the Mokabook catalogue ([#46](https://github.com/futex-ai/mokabook/issues/46)) ([93ac778](https://github.com/futex-ai/mokabook/commit/93ac77848993bf1757eceac9387aef485823acf2))
+* adopt screen stack logo ([#44](https://github.com/futex-ai/mokabook/issues/44)) ([815405e](https://github.com/futex-ai/mokabook/commit/815405e8206f4db1ae44ef005c04b6a658bceaaa))
+* move screen diffs into Changes ([#40](https://github.com/futex-ai/mokabook/issues/40)) ([b1d74a5](https://github.com/futex-ai/mokabook/commit/b1d74a5390341f8fb9a851f3e59f0cb3183e280c))
+* **shell:** make navigation resizable ([#38](https://github.com/futex-ai/mokabook/issues/38)) ([b45327a](https://github.com/futex-ai/mokabook/commit/b45327a722e0f16a214005a91692709f7181d481))
+* support MockLink child controls ([#42](https://github.com/futex-ai/mokabook/issues/42)) ([f11e516](https://github.com/futex-ai/mokabook/commit/f11e516d144b4616986423ccf3e8ed86095eed21))
+
+
+### Bug Fixes
+
+* **browse:** preserve collapsed groups across navigation ([#35](https://github.com/futex-ai/mokabook/issues/35)) ([ef66bf2](https://github.com/futex-ai/mokabook/commit/ef66bf219e7a846f5660f55ef6359ae0d07d5823))
+* collapse details inspector by default ([#41](https://github.com/futex-ai/mokabook/issues/41)) ([9398ff6](https://github.com/futex-ai/mokabook/commit/9398ff64fb5a115a4aa3a08c910176ebd10d03a3))
+* focus Changes on reviewable screen output ([#47](https://github.com/futex-ai/mokabook/issues/47)) ([a5ecbc0](https://github.com/futex-ai/mokabook/commit/a5ecbc06d6169ec4af5329d52b6f13b2cd2f0276))
+* **search:** match authored page IDs ([#39](https://github.com/futex-ai/mokabook/issues/39)) ([1dcfb67](https://github.com/futex-ai/mokabook/commit/1dcfb67ce1e058051f5f1d0e76e3042ad9d40cc3))
+* **shell:** draw copy and expand as legible icons ([#50](https://github.com/futex-ai/mokabook/issues/50)) ([aa5adea](https://github.com/futex-ai/mokabook/commit/aa5adea1b7d00fbfc4c3c3cf5e95c553635ccd2f))
+* **shell:** replace tiny search glyph with a legible search icon ([#43](https://github.com/futex-ai/mokabook/issues/43)) ([bb3a22f](https://github.com/futex-ai/mokabook/commit/bb3a22facae6b98355c4e20effdfd47676f8fdb6))
+
 ## [0.6.0](https://github.com/futex-ai/mokabook/compare/v0.5.1...v0.6.0) (2026-08-26)
 
 

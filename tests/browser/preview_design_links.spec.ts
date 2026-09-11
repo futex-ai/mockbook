@@ -1,3 +1,8 @@
+import {
+  chooseScheme,
+  chooseViewport,
+  expectFrameSource,
+} from "./workspace_actions.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -28,7 +33,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
   }) => {
     await page.setViewportSize({ width: 1600, height: 1000 });
     await page.goto(`${preview.url}/view/design/browse/views/home`);
-    await page.locator(`[data-viewport-option="${viewport}"]`).click();
+    await chooseViewport(page, viewport);
     const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
     await frame.locator(".mbk-empty-link").click();
     await expect(page).toHaveURL(/\/view\/design\/browse\/views\/screen$/);
@@ -58,24 +63,26 @@ for (const viewport of ["mobile", "desktop"] as const) {
       .click();
     await expect(page).toHaveURL(/\/view\/design\/browse\/views\/screen$/);
     await page.goto(`${preview.url}/id/design-page-view`);
-    await frame.locator(".mbk-details-bar").click();
+    await frame.locator(".ce-inspector-link").click();
     await expect(page).toHaveURL(/\/view\/design\/browse\/pages\/details$/);
-    await frame.locator(".mbk-details-bar").click();
+    await frame.locator(".ce-inspector-link").click();
     await frame
       .getByRole("link", { name: "Open Welcome", exact: true })
       .click();
     await expect(page).toHaveURL(/\/view\/design\/browse\/views\/screen$/);
     await page.goto(`${preview.url}/view/screens/welcome`);
-    await page.locator('.mbk-topbar [data-color-scheme-option="dark"]').click();
+    await chooseScheme(page, "dark");
     await frame
       .getByRole("link", { name: "View details", exact: true })
       .click();
     await expect(page).toHaveURL(/\/view\/screens\/details\?fragment=details$/);
-    await expect(page.locator(`.mbk-frame-${viewport} iframe`)).toHaveAttribute(
-      "src",
+    await expectFrameSource(
+      page.locator(`.mbk-frame-${viewport} iframe`),
       /\.dark(?:\.html)?#details$/,
     );
-    const back = frame.locator('a[data-mokabook-link-control="button"]');
+    const back = frame
+      .locator('a[data-mokabook-link-control="button"]')
+      .filter({ hasText: "Return to welcome" });
     await focusDesignLink(back);
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/view\/screens\/welcome$/);
@@ -85,7 +92,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
     page,
   }) => {
     await page.goto(`${preview.url}/view/screens/welcome`);
-    await page.locator(`[data-viewport-option="${viewport}"]`).click();
+    await chooseViewport(page, viewport);
     await page
       .getByRole("button", { name: "Side by side", exact: true })
       .click();
@@ -97,10 +104,28 @@ for (const viewport of ["mobile", "desktop"] as const) {
       "href",
       `./details.${viewport}.html#details`,
     );
-    await next.click();
+    const snapshot = await (await iframe.elementHandle())?.contentFrame();
+    if (!snapshot) throw new Error("The current snapshot frame is missing");
+    await snapshot.waitForLoadState("load");
+    await iframe.scrollIntoViewIfNeeded();
+    await Promise.all([
+      snapshot.waitForURL(
+        new RegExp(`/details\\.${viewport}(?:\\.html)?#details$`),
+        { waitUntil: "load" },
+      ),
+      next.click(),
+    ]);
     await expect(page).toHaveURL(`${preview.url}/view/screens/welcome`);
     await expect(frame.locator("main#details")).toBeVisible();
-    await frame.locator('a[data-mokabook-link-control="button"]').click();
+    await Promise.all([
+      snapshot.waitForURL(new RegExp(`/welcome\\.${viewport}(?:\\.html)?$`), {
+        waitUntil: "load",
+      }),
+      frame
+        .locator('a[data-mokabook-link-control="button"]')
+        .filter({ hasText: "Return to welcome" })
+        .click(),
+    ]);
     await expect(frame.locator("main#welcome")).toBeVisible();
     await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
   });

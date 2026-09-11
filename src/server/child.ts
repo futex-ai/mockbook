@@ -1,3 +1,5 @@
+import type { ComponentRuntime } from "../build/component_runtime.js";
+import { parseRuntimeMessage } from "./controls/runtime_ipc.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { startCatalogueServer } from "./http.js";
 import { configuredServedReview } from "./review_routes.js";
@@ -10,9 +12,11 @@ export async function runServerChild(
   base: string,
   updateVersion: number,
   strictPort: boolean,
+  componentRuntime?: ComponentRuntime,
 ): Promise<void> {
   const server = await startCatalogueServer(config, {
     base,
+    ...(componentRuntime ? { componentRuntime } : {}),
     port,
     review: configuredServedReview(config, base),
     strictPort,
@@ -52,6 +56,8 @@ function waitForChildShutdown(
       }
     };
     const onMessage = (message: unknown): void => {
+      const runtime = parseRuntimeMessage(message);
+      if (runtime) server.replaceComponentRuntime(runtime.runtime);
       const update = parseChildUpdateMessage(message);
       if (update) server.publishUpdate(update);
       if (isMessage(message, "shutdown")) void close();

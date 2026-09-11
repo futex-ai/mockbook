@@ -24,6 +24,21 @@ fragment transport, ownership-aware preview adaptation, and active-tree
 disclosure are implemented. Their delivery history is recorded in the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
+## Component Workspaces
+
+Registered components extend this runtime with saved variant pages, nested usage,
+actual screen instances, and local prop editing. The [explorer contract](./mokabook-component-explorer.md)
+owns the icon inspector, bounded panes, desktop resizing, mobile bottom sheet,
+viewport/theme controls, and authenticated highlighting. The [controls contract](./mokabook-component-controls.md)
+owns the private same-origin endpoint, bounded worker, immutable memory previews,
+last-good watched generation, and no-output/no-reload editing boundary. Exported
+workspaces retain saved variants and inspection with read-only props.
+
+[Component attribution](./mokabook-component-changes.md) separates directly changed
+entries from affected consumers. Watch, Browse and export share that calculation;
+a component implementation edit cannot add its otherwise unchanged screens to
+Changes. Screen-owned prop and slot changes still count as screen changes.
+
 ## Build
 
 `mokabook build` performs this transaction:
@@ -33,7 +48,7 @@ disclosure are implemented. Their delivery history is recorded in the completed
 3. Validate registry metadata, routes, relationships, and output collisions.
 4. Render screen fragments and registered whole-document pages in deterministic order.
 5. Resolve id links and validate document links and anchors.
-6. Build the version 4 manifest and resolved source inventory.
+6. Build the version 5 manifest and resolved source inventory.
 7. Stage every generated file before changing the last-good output.
 8. Atomically replace generated files and remove proven generated orphans.
 

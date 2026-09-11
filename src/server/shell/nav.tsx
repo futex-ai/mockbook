@@ -23,6 +23,7 @@ import { navRowStyle } from "./nav_guides.js";
 import { NavigationResizeHandle } from "./nav_resize.js";
 import { buildNavTree } from "./nav_tree.js";
 import type { NavGroupNode, NavLeafNode, NavNode } from "./nav_tree.js";
+import { WorkspaceIcon } from "./workspace_icons.js";
 
 function containsRoute(node: NavNode, route: string | undefined): boolean {
   if (route === undefined) {
@@ -44,7 +45,13 @@ function LeafGlyph(props: { entryKind: NavLeafNode["entryKind"] }) {
   }
   return (
     <span className="mbk-nav-ico">
-      {props.entryKind === "page" ? <PageIcon /> : <ScreenIcon />}
+      {props.entryKind === "component" ? (
+        <WorkspaceIcon name="components" />
+      ) : props.entryKind === "page" ? (
+        <PageIcon />
+      ) : (
+        <ScreenIcon />
+      )}
     </span>
   );
 }

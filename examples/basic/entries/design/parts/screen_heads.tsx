@@ -1,22 +1,14 @@
 import { ScreenHead, ViewSwitch } from "./shell.js";
-import { SchemeSwitch } from "./top_bar.js";
 
-/** The head band of the example Welcome screen with its viewport control. */
+/** The head band of the example Welcome screen with shared preview controls. */
 export function WelcomeHead({
   active,
-  scheme,
 }: {
   active: "both" | "desktop" | "mobile";
-  scheme?: "light";
 }) {
   return (
     <ScreenHead
-      action={
-        <>
-          <ViewSwitch active={active} />
-          {scheme ? <SchemeSwitch active={scheme} /> : null}
-        </>
-      }
+      action={<ViewSwitch active={active} />}
       crumbs={["Example", "Screens"]}
       idChip="example-welcome"
       title="Welcome"

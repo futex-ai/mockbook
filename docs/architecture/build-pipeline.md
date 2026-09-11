@@ -24,7 +24,7 @@ adapt explicit child controls -> resolve mock:id links -> compatibility bridge
 validate markers/links/resources
         |
         v
-mobile/desktop light and optional dark HTML + whole documents + schema-v4 manifest in memory
+mobile/desktop light and optional dark HTML, saved component variants, whole documents + schema-v5 manifest in memory
         |
         +---- check: compare with committed bytes, write nothing
         |
@@ -43,7 +43,14 @@ then resolved from the config file and confined to `repoRoot`.
 Registry `*.mockup.ts(x)` files, the configured renderer, imported page
 helpers, and an optional temporary compatibility transformer are imported by a single virtual entry and
 bundled together. The internal bundle is CommonJS so Node-oriented consumer
-dependencies can retain dynamic built-in imports.
+dependencies can retain dynamic built-in imports. Esbuild returns this bundle
+in memory; evaluation creates no temporary module file. A private compilation
+association retains the exact bundle, configuration and accepted artifacts for
+local controls. Serve transfers that runtime over private IPC after successful
+watched builds; failed candidates preserve the last-good graph. A supervised
+worker rerenders one edited view through the same validation pipeline, retaining
+its document and resources only in bounded memory. See the
+[local rendering service](../../src/server/controls/README.md).
 
 An esbuild resolver uses `createRequire(configPath)` for `react`, React
 subpaths, `react-dom`, and React DOM subpaths. Imports of `mokabook` resolve to
@@ -79,25 +86,27 @@ its neutral default. The renderer receives:
 
 ```ts
 interface RenderInput {
-  entry: ScreenDefinition;
+  entry: ScreenDefinition | ComponentDefinition;
+  variantId?: string;
   node: ReactNode;
   stylesheets: readonly string[];
   viewport: "mobile" | "desktop";
   colorScheme: "light" | "dark";
 }
 
-type Renderer = (input: RenderInput) => string;
+type Renderer = (input: RenderInput) => string | RenderResult;
 ```
 
-The returned string must be a complete HTML document. Mokabook
-converts `ReviewIgnore` templates into inert comments, consumes the paired
-`MockLink asChild` templates to adapt marked controls into native links, and resolves every
-complete value of the form `mock:<id>[#fragment]` found in `href` or
-`data-nav-href` to viewport-matched fragments in the same color scheme, falling
-back to light when the destination screen has no dark view. Both
-attributes are resolved when they coexist, and the same pass covers whole-document pages, which use desktop/light link targets. Text, scripts, styles, and unrelated attributes
-containing the same characters remain unchanged. A use-case link resolves
-through its first screen; collections are intentionally not linkable.
+The returned string, or `RenderResult.html`, must be a complete HTML document.
+The optional structured result supplies exact component style/resource ownership;
+see the [component manifest](../protocol/mokabook-component-manifest.md).
+Registered entries render each saved variant in every configured context through
+the same consumer graph. Wrappers record actual invocations, data, caller-owned
+slots, and layout-neutral ranges. The root saved variant is not its own instance.
+All catalogues emit manifest v5 with the complete source inventory. Registered
+components add saved variants and complete per-view invocation/ownership records;
+explicit page callbacks still emit exactly one complete document. Both historical
+v4 envelopes remain readable only at the Git boundary. Current readers require v5.
 
 The [child-control adapter](../protocol/mokabook-link-controls.md) uses parsed
 source locations to patch only the marked control and its boundary templates.
@@ -188,3 +197,13 @@ roots, or by the reserved manifest name. It installs staged files by rename and
 restores backups on error. It refuses to overwrite an unknown or foreign HTML
 file, rejects lexical or symlink-resolved targets beneath authored roots, and
 never recursively replaces the consumer's mixed source/asset root.
+
+## Package Browser Assets
+
+The package build bundles pure schema/codec and comparison validation code into
+browser modules while retaining shared shell and navigation module imports.
+Served and published catalogues load the same allowlisted files from
+`dist/browser`; no consumer runtime is bundled into preview frames. Browser
+packaging fails if a client imports Node-only code. Comparison JSON is decoded
+with the same new-record validator used by its producer; v2 artifacts remain
+supported without adding component suppression.

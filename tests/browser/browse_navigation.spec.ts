@@ -1,3 +1,5 @@
+import { expectFrameSource } from "./workspace_actions.js";
+import { chooseViewport } from "./workspace_actions.js";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -42,15 +44,15 @@ test("MockLink navigation reveals the destination and preserves shell state", as
   page,
 }) => {
   await page.goto(`${navigation.url}/view/screens/home.html`);
-  await page.click('[data-viewport-option="mobile"]');
+  await chooseViewport(page, "mobile");
   await clickAndWaitForFrameLoad(
     page,
     ".mbk-frame-mobile iframe",
-    '.mbk-topbar [data-color-scheme-option="dark"]',
+    "[data-workspace-scheme]",
   );
-  const detailsPanel = page.locator("details[data-mokabook-details]");
-  if ((await detailsPanel.getAttribute("open")) !== null) {
-    await detailsPanel.locator("summary").click();
+  const detailsPanel = page.locator("[data-workspace-inspector]");
+  if ((await detailsPanel.getAttribute("data-open")) === "true") {
+    await page.getByRole("tab", { name: "Details", exact: true }).click();
   }
   const other = page.locator('details[data-nav-collection="collection:other"]');
   await other.evaluate((element: HTMLDetailsElement) => {
@@ -85,7 +87,7 @@ test("MockLink navigation reveals the destination and preserves shell state", as
     .all()) {
     await expect(ancestor).toHaveAttribute("open", "");
   }
-  await expect(detailsPanel).not.toHaveAttribute("open", "");
+  await expect(detailsPanel).not.toHaveAttribute("data-open", "true");
   await expect(page.locator("[data-mokabook-stage]")).toHaveAttribute(
     "data-viewport",
     "mobile",
@@ -94,8 +96,8 @@ test("MockLink navigation reveals the destination and preserves shell state", as
     "data-mokabook-color-scheme",
     "dark",
   );
-  await expect(page.locator(".mbk-frame-mobile iframe")).toHaveAttribute(
-    "src",
+  await expectFrameSource(
+    page.locator(".mbk-frame-mobile iframe"),
     /details\.mobile\.dark\.html#section$/,
   );
 

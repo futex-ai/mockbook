@@ -7,7 +7,7 @@ import { isInside, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import { LEGACY_MANIFEST_NAME, MANIFEST_NAME } from "../registry/manifest.js";
-import type { HistoricalManifest } from "../registry/types.js";
+import type { Manifest } from "../registry/types.js";
 import { VIEWPORTS } from "../registry/views.js";
 import {
   FileSystemReviewAssetReader,
@@ -36,8 +36,8 @@ interface DocumentPair {
  * Exclude authoring paths lexically so retargeted public aliases still reach validation.
  */
 export async function changedContentPaths(
-  manifest: HistoricalManifest,
-  baseline: HistoricalManifest,
+  manifest: Manifest,
+  baseline: Manifest,
   config: ResolvedConfig,
   git: GitClient,
   commit: string,
@@ -45,6 +45,7 @@ export async function changedContentPaths(
   headReader: OptionalReviewAssetReader = new FileSystemReviewAssetReader(
     config,
   ),
+  documents: "all" | "pages" = "all",
 ): Promise<readonly string[]> {
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
   const repoPath = (route: string) => (prefix ? `${prefix}/${route}` : route);
@@ -65,7 +66,7 @@ export async function changedContentPaths(
     }),
   );
   if (publicChanges.size === 0) return [];
-  const pairs = documentPairs(manifest, baseline, publicChanges);
+  const pairs = documentPairs(manifest, baseline, publicChanges, documents);
   const baseReader = new GitReviewAssetReader(
     baselineResourceConfig(config, baseline),
     git,
@@ -73,7 +74,7 @@ export async function changedContentPaths(
     prefix,
   );
   const result = new Set<string>();
-  const documents = new Map<string, string>();
+  const normalizedDocuments = new Map<string, string>();
   const changedPairs = pairs.filter(
     (pair): pair is DocumentPair & { base: string } =>
       pair.changed && pair.base !== undefined,
@@ -94,7 +95,7 @@ export async function changedContentPaths(
         "utf8",
       );
       const normalized = normalizeReviewPair(before, after, pair.context);
-      documents.set(pair.head, normalized.head);
+      normalizedDocuments.set(pair.head, normalized.head);
       if (normalized.base !== normalized.head) {
         result.add(repoPath(pair.head));
       } else if (pair.base === pair.head) {
@@ -107,10 +108,10 @@ export async function changedContentPaths(
     headReader,
     baseReader,
     publicChanges,
-    documents,
+    normalizedDocuments,
   );
   for (const pair of pairs) {
-    let document = documents.get(pair.head);
+    let document = normalizedDocuments.get(pair.head);
     if (document === undefined) {
       const after = Buffer.from(await headReader.read(pair.head)).toString(
         "utf8",
@@ -126,9 +127,10 @@ export async function changedContentPaths(
 }
 
 function documentPairs(
-  manifest: HistoricalManifest,
-  baseline: HistoricalManifest,
+  manifest: Manifest,
+  baseline: Manifest,
   changed: ReadonlySet<string>,
+  documents: "all" | "pages",
 ): DocumentPair[] {
   const bases = new Map(baseline.entries.map((entry) => [entry.id, entry]));
   const pages = pageBaselines(manifest, baseline);
@@ -145,7 +147,7 @@ function documentPairs(
       });
       continue;
     }
-    if (screen.kind !== "screen") continue;
+    if (documents === "pages" || screen.kind !== "screen") continue;
     const base = baseEntry?.kind === "screen" ? baseEntry : undefined;
     for (const viewport of VIEWPORTS) {
       for (const scheme of unionColorSchemes(base, screen)) {

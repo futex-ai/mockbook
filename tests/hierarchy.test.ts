@@ -7,7 +7,7 @@ import {
   parseManifest,
   parseHistoricalManifest,
 } from "../dist/registry/manifest.js";
-import type { ManifestV4 } from "../dist/registry/types.js";
+import type { ManifestV5 } from "../dist/registry/types.js";
 import type {
   RegistryDefinition,
   ResolvedRegistryEntry,
@@ -162,7 +162,7 @@ function entry(
 }
 
 type MutableManifest = Omit<
-  ManifestV4,
+  ManifestV5,
   "entries" | "generatedBy" | "schemaVersion"
 > & {
   entries: Array<{
@@ -174,7 +174,7 @@ type MutableManifest = Omit<
   schemaVersion: number;
 };
 
-function hierarchyManifest(): ManifestV4 {
+function hierarchyManifest(): ManifestV5 {
   return createManifest(
     [
       resolved(

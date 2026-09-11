@@ -1,11 +1,15 @@
+import type { ComponentChangeSnapshot } from "./component_changes.js";
 import { assertFreshSourceInventory } from "../build/source_freshness.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import type { CatalogueChangeSnapshot } from "../registry/changes.js";
 import { parseManifest, readManifest } from "../registry/manifest.js";
-import type { ManifestV4 } from "../registry/types.js";
+import type { ManifestV5 } from "../registry/types.js";
 import { createCatalogue, type Catalogue } from "./catalogue.js";
-import { computeCatalogueChanges } from "./changed.js";
+import {
+  computeCatalogueChanges,
+  type ResolvedCatalogueChanges,
+} from "./changed.js";
 
 const configIdentity = Symbol("validated catalogue config");
 
@@ -14,15 +18,16 @@ export interface CatalogueSnapshot {
   readonly [configIdentity]: ResolvedConfig;
   readonly catalogue: Catalogue;
   readonly changes?: CatalogueChangeSnapshot;
+  readonly componentChanges?: ComponentChangeSnapshot;
 }
 
 /** Read current metadata once; resolve impact from exactly that validated manifest. */
 export async function loadCatalogueSnapshot(
   config: ResolvedConfig,
   resolveChanges?: (
-    manifest: ManifestV4,
-  ) => Promise<CatalogueChangeSnapshot | undefined>,
-  manifest: ManifestV4 = readManifest(config),
+    manifest: ManifestV5,
+  ) => Promise<ResolvedCatalogueChanges | undefined>,
+  manifest: ManifestV5 = readManifest(config),
 ): Promise<CatalogueSnapshot> {
   parseManifest(manifest);
   await assertFreshSourceInventory(config, manifest);
@@ -31,6 +36,9 @@ export async function loadCatalogueSnapshot(
     [configIdentity]: config,
     catalogue: createCatalogue(manifest, changes?.removedEntries),
     ...(changes ? { changes } : {}),
+    ...(changes?.componentChanges
+      ? { componentChanges: changes.componentChanges }
+      : {}),
   };
 }
 
@@ -38,7 +46,7 @@ export async function loadCatalogueSnapshot(
 export function loadServedCatalogueSnapshot(
   config: ResolvedConfig,
   base?: string,
-  manifest?: ManifestV4,
+  manifest?: ManifestV5,
 ): Promise<CatalogueSnapshot> {
   return loadCatalogueSnapshot(
     config,

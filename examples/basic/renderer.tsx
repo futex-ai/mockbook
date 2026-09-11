@@ -11,6 +11,11 @@ import { AppRegistry } from "react-native-web";
 import type { RenderInput } from "mokabook";
 
 import { darkTokens, tokens } from "./theme.js";
+import { LibraryHost } from "./entries/design/library/host.js";
+import {
+  DesignStyleCollector,
+  DesignStyles,
+} from "./entries/design/library/style_context.js";
 
 const themes = {
   dark: createSharedUiTheme(darkTokens),
@@ -37,15 +42,26 @@ function collectNativeStyles(): string {
 
 export default function render(input: RenderInput): string {
   const theme = themes[input.colorScheme];
+  const styles = new DesignStyleCollector(input.stylesheets);
   const body = renderToStaticMarkup(
-    <SharedUiThemeProvider theme={theme}>
-      <ViewportContext.Provider value={input.viewport}>
-        <RenderBody>{input.node}</RenderBody>
-      </ViewportContext.Provider>
-    </SharedUiThemeProvider>,
+    <DesignStyles value={styles}>
+      <SharedUiThemeProvider theme={theme}>
+        <ViewportContext.Provider value={input.viewport}>
+          <RenderBody>
+            {input.entry.kind === "component" &&
+            input.entry.id.startsWith("design-ui-") ? (
+              <LibraryHost input={input}>{input.node}</LibraryHost>
+            ) : (
+              input.node
+            )}
+          </RenderBody>
+        </ViewportContext.Provider>
+      </SharedUiThemeProvider>
+    </DesignStyles>,
   );
   const nativeStyles = collectNativeStyles();
-  const links = input.stylesheets
+  const links = styles
+    .stylesheets()
     .map((href) => `<link rel="stylesheet" href="${href}">`)
     .join("");
   const documentStyles =

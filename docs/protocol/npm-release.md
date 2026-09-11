@@ -6,7 +6,7 @@ The page release intentionally removes `legacy` configuration and its exported
 types, automatic `.source` discovery, comment-component expansion, legacy lint
 options, and route aliases. Consumers must register complete documents with
 `definePage` or nested `page`, import existing render helpers, preserve explicit
-routes, and regenerate manifest v4 with `sourceFiles`. Current v2/v3 output is
+routes, and regenerate manifest v5 with `sourceFiles`. Current v2/v3 output is
 rejected; historical readers remain available only for Git comparisons. Follow
 [the migration procedure](./mokabook-page-migration.md) before replacing old
 owned artifacts. Screen and use-case authoring remains supported.
@@ -124,7 +124,7 @@ watched server's live-update entrypoint. The parent client validates one optiona
 `fragment` query and applies its encoded hash to every applicable current and
 light/dark frame source, with first-step-only use-case scope. Default capture needs no Git or comparison provider and omits review controls,
 counts, removed routes, and baseline artifacts. Explicit Changes capture pins
-one merge-base commit for impact and screen comparisons and rejects any input
+one merge-base commit for impact and screen and saved component comparisons and rejects any input
 mutation during capture. It packages comparison JSON and isolated resources
 under an immutable generation path; visitors fetch them only after selecting a
 diff. Refresh loads that same published result. Unavailable requested baselines
@@ -133,6 +133,9 @@ Both options omit the live-update entrypoint, watch-only modules, event routes,
 and stale comparison directories. Full history remains available in both jobs.
 Static shell metadata addresses an included comparison generation directly;
 the stable comparison redirect remains available when Changes is enabled.
+Eligible changed views offer comparison controls; known unchanged views show
+Unmodified, while unknown evidence has no invented status. Pages retain Changes
+membership but never offer visual comparisons.
 The [Changes contract](./mokabook-changes.md) owns the shared interaction and
 snapshot rules. Artifact
 replacement uses the shared exclusive reservation, ownership inventory, and

@@ -2,7 +2,7 @@
 
 ## Delivery Status
 
-Implemented for schema-v4 [pages](./mokabook-pages.md), screens, and flows.
+Implemented for schema-v5 [pages](./mokabook-pages.md), screens, and flows.
 The same resolved inventory protects build, runtime, comparisons, and both
 publication options. Verification is tracked in
 [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
@@ -52,7 +52,7 @@ that needs it as a public resource fails validation with its referring route.
 
 ## Complete Source Inventory
 
-Manifest v4 `sourceFiles` is a sorted, unique array of repository-relative POSIX
+Manifest v5 `sourceFiles` is a sorted, unique array of repository-relative POSIX
 paths. Derive it from the union of file inputs resolved by both the config
 bundle and the consumer bundle, including inputs eliminated by tree shaking:
 
@@ -93,7 +93,7 @@ inside `repoRoot` or explicitly configure a common root containing it.
 ## Freshness And Lifecycle
 
 Build/check derive the inventory from the same resolved graphs used for that
-compilation. Before serving or publishing a current v4 catalogue, independently
+compilation. Before serving or publishing a current v5 catalogue, independently
 resolve the config and consumer input graphs and require the persisted inventory
 to match. This scan may bundle modules but must not run page render callbacks,
 rewrite generated output, or read Git history. A missing, malformed, or stale
@@ -109,11 +109,11 @@ the browser. A failed candidate keeps the last-good generation. Asset checks
 continue resolving the requested realpath at read time so changed symlinks
 cannot bypass the generation's protected paths.
 
-For historical v4 Review resources, use that baseline's structurally validated
+For v5 or historical page-v4 Review resources, use that baseline's structurally validated
 inventory, entry source paths, and reserved-name rules. Never execute historical
-config or rebuild a Git baseline to refresh its inventory. Historical v2/v3
+config or rebuild a Git baseline to refresh its inventory. Historical v2/v3 and component-v4
 readers retain their version-specific source/root safeguards and also deny
-reserved source basenames; they are the only readers allowed to lack v4's
+reserved source basenames; they are the only readers allowed to lack v5's
 inventory. Internal manifest paths stay private for every historical schema.
 Current-side resource reads always use the current validated policy.
 
@@ -132,4 +132,4 @@ current and historical Review reads, and both publication options. Verify that
 CSS, fonts, images, and public scripts still work. Test watcher reclassification
 after dependency changes and prove default publication validation uses no Git.
 Cover internal manifests, their symlink aliases, generated links/resources,
-ordinary public JSON, and continued internal current/v2/v3/v4 manifest reads.
+ordinary public JSON, and continued internal current/v2/v3/both-v4 manifest reads.

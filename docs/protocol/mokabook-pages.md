@@ -3,7 +3,7 @@
 ## Delivery Status
 
 Implemented in this branch. All routed entries use one collection hierarchy,
-and current builds emit schema v4. [Page migration](./mokabook-page-migration.md)
+and current builds emit schema v5. [Page migration](./mokabook-page-migration.md)
 defines the required breaking consumer upgrade and historical comparison
 support. Verification is tracked in
 [Unified Catalogue Pages](../../plans/unified-catalogue-pages.md).
@@ -123,7 +123,7 @@ paths never imply collection ancestry.
 
 ## Manifest And Runtime Model
 
-New builds write schema v4 at the existing `mokabook-manifest.json` filename:
+New builds write schema v5 at the existing `mokabook-manifest.json` filename:
 
 ```ts
 interface ManifestPage extends ManifestEntryBase {
@@ -132,18 +132,18 @@ interface ManifestPage extends ManifestEntryBase {
   tags?: readonly string[];
 }
 
-interface ManifestV4 {
+interface ManifestV5 {
   entries: readonly ManifestEntry[];
   generatedBy: "mokabook";
-  schemaVersion: 4;
+  schemaVersion: 5;
   sourceFiles: readonly string[];
 }
 ```
 
-`ManifestEntry` includes pages, screens, collections, and use cases, and its
+`ManifestEntry` includes pages, screens, collections, use cases and components, and its
 base `kind` union includes `page`. All existing common fields remain,
-including derived `navPath` compatibility output. Pages have no fragments,
-viewport arrays, callbacks, or screen-only fields in the manifest. Schema v4
+including derived `navPath` compatibility output and required `declaredDependencies`. Pages have no fragments,
+viewport arrays, callbacks, or screen-only fields in the manifest. Schema v5
 rejects a top-level `legacyPages` field. Preserve existing deterministic
 entry sorting, dependency normalization, and serialization conventions.
 
@@ -231,7 +231,7 @@ Static publishing includes each page route, generated document and resources,
 ID redirect, validated anchor navigation, metadata, search/filter behavior,
 and the current hierarchy. The [publication option](./mokabook-publication.md)
 defaults to the current catalogue; only an explicit opt-in includes Changes,
-removed-v4-page state, and screen comparison artifacts. Removed pages are absent
+removed registered-page state, and screen comparison artifacts. Removed pages are absent
 from ordinary publication. Preserve transactional publication and generate no
 page comparisons. Local development retains its Git-aware Changes behavior.
 

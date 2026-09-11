@@ -7,7 +7,7 @@ import type {
   ManifestPage,
   ManifestScreen,
   ManifestUseCase,
-  ManifestV4,
+  ManifestV5,
 } from "../dist/registry/types.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
 import {
@@ -234,14 +234,17 @@ function useCase(
 function manifest(
   entries: readonly ManifestEntry[],
   pages: readonly ManifestPage[] = [],
-): ManifestV4 {
+): ManifestV5 {
   return {
-    entries: [...entries, ...pages],
+    entries: [...entries, ...pages].map((entry) => ({
+      ...entry,
+      declaredDependencies: entry.declaredDependencies ?? [],
+    })),
     generatedBy: "mokabook",
     sourceFiles: [
       ...new Set([...entries, ...pages].map((entry) => entry.sourcePath)),
     ].sort(),
-    schemaVersion: 4,
+    schemaVersion: 5,
   };
 }
 

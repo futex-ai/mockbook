@@ -85,6 +85,7 @@ async function generateExport(
       commit,
       changed,
       assetReader,
+      comparison.result.schemaVersion === 3 ? "pages" : "all",
     );
     const site = assembleExport(
       config,

@@ -1,3 +1,4 @@
+import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -38,8 +39,8 @@ test("Changes and screen browsing stay lazy until a diff is selected", async ({
     "aria-pressed",
     "true",
   );
-  await page.getByRole("button", { name: "Mobile", exact: true }).click();
-  await page.getByRole("button", { name: "Dark", exact: true }).first().click();
+  await chooseViewport(page, "mobile");
+  await chooseScheme(page, "dark");
   expect(requests).toEqual([]);
   await loadComparison(page, "Overlay");
   await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
@@ -60,34 +61,34 @@ test("Changes and screen browsing stay lazy until a diff is selected", async ({
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
-test("any screen supports modes, viewport selection, and light-only fallback", async ({
+test("unchanged views omit comparisons while changed views retain all modes", async ({
   page,
 }) => {
   await page.goto(`${fixture.url}/view/screens/details.html`);
-  await loadComparison(page, "Overlay");
-  await expect(page.locator("[data-diff-stage]")).toContainText(
-    "No changes to this screen",
+  await expect(page.locator("[data-workspace-status]")).toHaveText(
+    "Unmodified",
   );
-  await page.getByRole("button", { name: "Dark", exact: true }).first().click();
-  await expect(page.locator("[data-diff-stage]")).toContainText("Light only");
-  await page.getByRole("button", { name: "Desktop", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
-  await page.getByRole("button", { name: "Difference", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
-    "data-compare-mode",
-    "difference",
-  );
-  await page.getByRole("button", { name: "Side by side", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
-    "data-compare-mode",
-    "side",
-  );
-  await page.getByRole("button", { name: "Both", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(4);
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await chooseScheme(page, "dark");
+  await expect(page.locator(".mbk-frame-scheme-note").first()).toBeVisible();
   await page.locator('[data-route="screens/home.html"]').click();
-  await expect(
-    page.getByRole("button", { name: "Current", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  await loadComparison(page, "Overlay");
+  await chooseViewport(page, "desktop");
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
+  for (const [name, mode] of [
+    ["Difference", "difference"],
+    ["Side by side", "side"],
+  ] as const) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(page.locator("[data-diff-stage] .mb-panes")).toHaveAttribute(
+      "data-compare-mode",
+      mode!,
+    );
+  }
+  await chooseViewport(page, "both");
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(4);
+  await page.locator('[data-route="screens/details.html"]').click();
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
@@ -138,9 +139,10 @@ test("pending requests cannot replace Current or a newly navigated screen", asyn
   release();
   await expect(page.locator("h2")).toHaveText("Details");
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Current", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(page.locator("[data-workspace-status]")).toHaveText(
+    "Unmodified",
+  );
 });
 
 test("a failed comparison stays in the screen and retries explicitly", async ({
@@ -192,7 +194,7 @@ test("narrow diffs fit the shell and retain the catalogue drawer", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${fixture.url}/view/screens/home.html`);
-  await page.getByRole("button", { name: "Mobile", exact: true }).click();
+  await chooseViewport(page, "mobile");
   await loadComparison(page, "Overlay");
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(2);
   expect(
@@ -229,7 +231,7 @@ test("mode switches keep frames and cannot expand one side alone", async ({
   page,
 }) => {
   await page.goto(`${fixture.url}/view/screens/home.html`);
-  await page.getByRole("button", { name: "Desktop", exact: true }).click();
+  await chooseViewport(page, "desktop");
   await loadComparison(page, "Overlay");
   const frame = await page
     .locator("[data-diff-stage] iframe")

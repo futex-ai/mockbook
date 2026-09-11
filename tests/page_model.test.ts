@@ -4,10 +4,8 @@ import test from "node:test";
 
 import { compileCatalogue } from "../src/build/compile.js";
 import { loadConfig } from "../src/config/load.js";
-import {
-  changedManifestRoutes,
-  removedManifestEntries,
-} from "../src/server/changed.js";
+import { changedManifestRoutes } from "../src/registry/changed_routes.js";
+import { removedManifestEntries } from "../src/registry/changes.js";
 import { createCatalogue } from "../src/server/catalogue.js";
 import { buildNavTree } from "../src/server/shell/nav_tree.js";
 import { viewPage, homePage } from "../src/server/pages.js";

@@ -1,3 +1,4 @@
+import { componentEntrySource } from "./helpers/component_fixture.js";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -126,4 +127,46 @@ test("no-watch HTTP startup reuses the catalogue validated before factory handof
   const home = await (await fetch(running.url)).text();
   assert.doesNotMatch(home, /Later catalogue/);
   assert.match(home, /class="mbk-nav-filter-count">0</);
+});
+
+test("a no-watch component catalogue reuses its resolved ownership evidence", async (context) => {
+  const source = componentEntrySource() + page;
+  const fixture = await changedFixture(context, source);
+  await fs.writeFile(
+    fixture.entryPath,
+    source.replace(
+      "<button data-viewport=",
+      '<button className="updated" data-viewport=',
+    ),
+  );
+  const mergeBase = RepositoryGitClient.prototype.mergeBase;
+  let calls = 0;
+  context.mock.method(
+    RepositoryGitClient.prototype,
+    "mergeBase",
+    async function (
+      this: RepositoryGitClient,
+      ...args: Parameters<typeof mergeBase>
+    ) {
+      if (++calls > 1) throw new Error("The baseline must stay pinned");
+      return mergeBase.apply(this, args);
+    },
+  );
+  const running = await serve(fixture.config, {
+    base: "main",
+    port: 0,
+    watch: false,
+  });
+  context.after(() => running.close());
+  const component = await (
+    await fetch(`${running.url}/view/components/action.html`)
+  ).text();
+  assert.match(component, /data-workspace-data/);
+  assert.match(component, /"status":"Changed"/);
+  assert.match(
+    component,
+    /data-changed="true"[^>]*data-route="components\/action.html"/,
+  );
+  assert.equal((await fetch(`${running.url}/view/guide.html`)).status, 200);
+  assert.equal(calls, 1);
 });

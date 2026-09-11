@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { ManifestV4 } from "../dist/registry/types.js";
+import type { ManifestV5 } from "../dist/registry/types.js";
 import type { Catalogue } from "../dist/server/catalogue.js";
 import { createCatalogue } from "../dist/server/catalogue.js";
 import { homePage, notFoundPage, viewPage } from "../dist/server/pages.js";
 import { SHELL_CSS } from "../dist/server/shell/css.js";
 import { buildNavTree } from "../dist/server/shell/nav_tree.js";
 
-const manifest: ManifestV4 = {
+const manifest: ManifestV5 = {
   entries: [
     {
       kind: "page",
@@ -17,6 +17,7 @@ const manifest: ManifestV4 = {
       description: "Original complete document",
       route: "legacy/old.html",
       sourcePath: "entries/fixture.mockup.tsx",
+      declaredDependencies: [],
       dependencies: [],
       relatedDocs: [],
       navPath: [],
@@ -28,12 +29,14 @@ const manifest: ManifestV4 = {
       description: "Catalogue overview",
       route: "legacy/index.html",
       sourcePath: "entries/fixture.mockup.tsx",
+      declaredDependencies: [],
       dependencies: [],
       relatedDocs: [],
       navPath: [],
     },
     {
       childIds: ["screens", "tour", "old", "overview"],
+      declaredDependencies: [],
       dependencies: [],
       description: "Example catalogue",
       id: "example",
@@ -45,6 +48,7 @@ const manifest: ManifestV4 = {
     },
     {
       childIds: ["welcome", "details"],
+      declaredDependencies: [],
       dependencies: [],
       description: "Screens",
       id: "screens",
@@ -56,6 +60,7 @@ const manifest: ManifestV4 = {
     },
     {
       address: "example.test/welcome",
+      declaredDependencies: [],
       dependencies: ["styles.css"],
       description: "Landing screen",
       fragments: {
@@ -75,6 +80,7 @@ const manifest: ManifestV4 = {
       viewports: ["mobile", "desktop"],
     },
     {
+      declaredDependencies: [],
       dependencies: [],
       description: "Second screen",
       fragments: {
@@ -93,6 +99,7 @@ const manifest: ManifestV4 = {
       viewports: ["mobile", "desktop"],
     },
     {
+      declaredDependencies: [],
       dependencies: [],
       description: "Ordered journey",
       id: "tour",
@@ -107,10 +114,10 @@ const manifest: ManifestV4 = {
   ],
   generatedBy: "mokabook",
   sourceFiles: ["entries/fixture.mockup.tsx"],
-  schemaVersion: 4,
+  schemaVersion: 5,
 };
 
-const darkManifest: ManifestV4 = {
+const darkManifest: ManifestV5 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
     entry.kind === "screen" && entry.id === "welcome"
@@ -125,7 +132,7 @@ const darkManifest: ManifestV4 = {
   ),
 };
 
-const taggedFlowManifest: ManifestV4 = {
+const taggedFlowManifest: ManifestV5 = {
   ...manifest,
   entries: manifest.entries.map((entry) =>
     entry.kind === "use-case"
@@ -134,7 +141,7 @@ const taggedFlowManifest: ManifestV4 = {
   ),
 };
 
-const untaggedManifest: ManifestV4 = {
+const untaggedManifest: ManifestV5 = {
   ...manifest,
   entries: manifest.entries.map((entry) => {
     if (entry.kind === "collection") return entry;
@@ -225,7 +232,9 @@ function darkTokenSelectors(css: string): string[] {
 
 /** The details inspector alone, so top-bar chips cannot satisfy a check. */
 function detailsSection(html: string): string {
-  const start = html.indexOf('<details class="mbk-details"');
+  const legacy = html.indexOf('<details class="mbk-details"');
+  const start =
+    legacy >= 0 ? legacy : html.indexOf('<section class="mbk-inspector"');
   assert.ok(start > -1);
   return html.slice(start);
 }
@@ -355,11 +364,8 @@ test("screen page renders device chrome, viewport switch, and details", () => {
   assert.match(html, /class="browser-expand"/);
   assert.match(html, /class="address-url">example\.test\/welcome</);
   assert.match(html, /data-mokabook-stage="" data-viewport="both"/);
-  assert.match(html, /data-viewport-option="mobile"/);
-  assert.match(
-    html,
-    /data-mokabook-viewswitch=""[\s\S]*<\/span><\/div><div class="mbk-stage/,
-  );
+  assert.match(html, /<option value="mobile">Mobile<\/option>/);
+  assert.match(html, /aria-label="Viewport" data-workspace-viewport=""/);
   assert.equal(html.includes('class="mbk-viewbar"'), false);
   assert.match(html, /class="mbk-crumbs"/);
   assert.match(
@@ -369,7 +375,11 @@ test("screen page renders device chrome, viewport switch, and details", () => {
   assert.doesNotMatch(html, /class="mbk-idchip"[^>]*href=/);
   assert.match(html, /Proves the shell/);
   assert.match(html, /notes\.md/);
-  assert.match(html, /<details class="mbk-details" data-mokabook-details="">/);
+  assert.match(
+    html,
+    /<section class="mbk-inspector" data-workspace-inspector=""/,
+  );
+  assert.match(html, /role="tab"[^>]*aria-label="Details"/);
   assert.match(
     html,
     /class="mbk-chip flow" href="\/view\/user-flows\/tour\.html"/,
@@ -413,10 +423,11 @@ test("scheme switch renders only for catalogues with dark fragments", () => {
   );
 
   const screen = routePage(dark, "screens/welcome.html");
-  assert.equal(occurrences(screen, "data-mokabook-schemeswitch"), 2);
+  assert.equal(occurrences(screen, "data-mokabook-schemeswitch"), 1);
+  assert.equal(occurrences(screen, "data-workspace-scheme"), 1);
   assert.match(
     screen,
-    /data-mokabook-viewswitch=""[\s\S]*?<\/span><span aria-label="Color scheme" class="mbk-seg" data-mokabook-schemeswitch="" role="group">[\s\S]*?<\/span><\/div><div class="mbk-stage/,
+    /class="mbk-view-tools"[\s\S]*?data-workspace-viewport=""[\s\S]*?data-workspace-scheme=""/,
   );
 
   const flow = routePage(dark, "user-flows/tour.html");
@@ -436,11 +447,11 @@ test("screen stage carries per-frame scheme fragment data", () => {
   const screen = routePage(dark, "screens/welcome.html");
   assert.match(
     screen,
-    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-fragment-dark="\/static\/screens\/welcome\.mobile\.dark\.html" data-fragment-light="\/static\/screens\/welcome\.mobile\.html" sandbox="allow-same-origin" src="\/static\/screens\/welcome\.mobile\.html" title="Welcome — mobile"><\/iframe>/,
+    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-workspace-frame="mobile" data-fragment-dark="\/static\/screens\/welcome\.mobile\.dark\.html" data-fragment-light="\/static\/screens\/welcome\.mobile\.html" sandbox="allow-same-origin" src="\/static\/screens\/welcome\.mobile\.html" title="Welcome — mobile"><\/iframe>/,
   );
   assert.match(
     screen,
-    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-fragment-dark="\/static\/screens\/welcome\.desktop\.dark\.html" data-fragment-light="\/static\/screens\/welcome\.desktop\.html" sandbox="allow-same-origin" src="\/static\/screens\/welcome\.desktop\.html" title="Welcome — desktop"><\/iframe>/,
+    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-workspace-frame="desktop" data-fragment-dark="\/static\/screens\/welcome\.desktop\.dark\.html" data-fragment-light="\/static\/screens\/welcome\.desktop\.html" sandbox="allow-same-origin" src="\/static\/screens\/welcome\.desktop\.html" title="Welcome — desktop"><\/iframe>/,
   );
   assert.equal(screen.includes("data-color-scheme-fallback"), false);
   assert.equal(screen.includes("mbk-frame-scheme-note"), false);
@@ -457,7 +468,7 @@ test("screen stage carries per-frame scheme fragment data", () => {
   );
   assert.match(
     fallback,
-    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-fragment-light="\/static\/screens\/details\.mobile\.html" sandbox="allow-same-origin" src="\/static\/screens\/details\.mobile\.html" title="Details — mobile"><\/iframe>/,
+    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-workspace-frame="mobile" data-fragment-light="\/static\/screens\/details\.mobile\.html" sandbox="allow-same-origin" src="\/static\/screens\/details\.mobile\.html" title="Details — mobile"><\/iframe>/,
   );
   assert.equal(fallback.includes("data-fragment-dark"), false);
   assertLightSrcMatchesAttribute(fallback, 2);
@@ -482,7 +493,7 @@ test("screen stage carries per-frame scheme fragment data", () => {
   );
   assert.match(
     lightScreen,
-    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" sandbox="allow-same-origin" src="\/static\/screens\/welcome\.mobile\.html" title="Welcome — mobile"><\/iframe>/,
+    /<iframe class="mbk-frag" data-mokabook-fragment-frame="" data-workspace-frame="mobile" sandbox="allow-same-origin" src="\/static\/screens\/welcome\.mobile\.html" title="Welcome — mobile"><\/iframe>/,
   );
   assert.equal(lightScreen.includes("data-fragment-"), false);
   assert.equal(lightScreen.includes("data-color-scheme-fallback"), false);

@@ -56,8 +56,20 @@ for (const viewport of ["mobile", "desktop"] as const) {
         );
         assert.equal(
           elements(document, (node) => node.tagName === "a").length,
-          source === "example-welcome" ? 4 : 2,
+          source === "example-welcome" ? 6 : 4,
         );
+        for (const [title, id] of [
+          ["Browse details", "example-details#details"],
+          ["Browse welcome", "example-welcome"],
+        ]) {
+          const nested = elements(
+            document,
+            (node) =>
+              node.tagName === "a" && textContent(node).trim() === title,
+          );
+          assert.equal(nested.length, 1);
+          assert.equal(attribute(nested[0]!, "data-mokabook-link"), id);
+        }
         if (fragment)
           assert.ok(
             elements(

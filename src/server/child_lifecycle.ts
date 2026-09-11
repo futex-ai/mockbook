@@ -24,6 +24,7 @@ export class ManagedChild {
   #resolveExit: () => void = () => undefined;
   #state: "waiting" | "ready" | "stopping" | "exited" = "waiting";
   #failure: MokabookError | undefined;
+  readonly #messages: Array<(message: unknown) => void> = [];
   #cleanup: Promise<void> | undefined;
   #readinessTimer: ReturnType<typeof setTimeout> | undefined;
   #terminateTimer: ReturnType<typeof setTimeout> | undefined;
@@ -49,10 +50,13 @@ export class ManagedChild {
     handle.onError((error) => this.fail(error));
     handle.onDisconnect(() => this.didDisconnect());
     handle.onMessage((message) => {
-      if (this.#state !== "waiting" || !isReady(message)) return;
-      this.#state = "ready";
-      clearTimeout(this.#readinessTimer);
-      this.#resolveReady(message.port);
+      if (this.#state === "waiting" && isReady(message)) {
+        this.#state = "ready";
+        clearTimeout(this.#readinessTimer);
+        this.#resolveReady(message.port);
+      }
+      if (this.#state === "waiting" || this.#state === "ready")
+        for (const callback of this.#messages) callback(message);
     });
   }
 
@@ -69,9 +73,18 @@ export class ManagedChild {
     return this.#failure;
   }
 
-  /** Send live updates only while the child is ready. */
+  /** Observe messages while this lifecycle still owns a starting or ready child. */
+  onMessage(callback: (message: unknown) => void): void {
+    this.#messages.push(callback);
+  }
+
+  /** Deliver the startup graph before readiness; other updates require a ready child. */
   send(message: ChildCommand): void {
-    if (this.#state !== "ready") return;
+    if (
+      this.#state !== "ready" &&
+      !(this.#state === "waiting" && message.type === "component-runtime")
+    )
+      return;
     try {
       this.handle.send(message);
     } catch (error) {

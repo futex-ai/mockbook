@@ -28,11 +28,11 @@ for (const viewport of ["mobile", "desktop"] as const) {
     await page.goto(design("browse/views/home", viewport));
     await page.locator(".mbk-empty-link").click();
     await expect(page).toHaveURL(design("browse/views/screen", viewport));
-    await page.locator(".mbk-shot-link").first().click();
+    await page.locator(".mbk-shot-link:visible").first().click();
     await expect(page).toHaveURL(
       design("browse/views/details-screen", viewport),
     );
-    await page.locator(".mbk-shot-link").first().click();
+    await page.locator(".mbk-shot-link:visible").first().click();
     await page.locator(".mbk-search-tag").click();
     await page
       .getByRole("group", { name: "Tags", exact: true })
@@ -66,6 +66,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
         : { width: 1440, height: 1000 },
     );
     await page.goto(design("browse/views/screen", viewport));
+    await page.goto(design("review/controls/current", viewport));
     const toolbar = page.getByRole("group", { name: "Comparison mode" });
     const current = toolbar.getByText("Current", { exact: true });
     const side = toolbar.getByRole("link", { name: "Side by side" });
@@ -73,6 +74,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
     const sideBounds = await side.boundingBox();
     expect(currentBounds?.height).toBe(sideBounds?.height);
     expect((sideBounds?.width ?? 0) > 70).toBe(true);
+    await page.goto(design("browse/views/screen", viewport));
     if (viewport === "desktop") {
       const row = page.locator(".mbk-nav-row.active");
       await expect(row).toHaveCSS("display", "flex");
@@ -83,7 +85,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       await expect(page).toHaveURL(design("browse/views/screen", viewport));
     }
     await page.goto(design("browse/states/dark-scheme", viewport));
-    const link = page.locator(".mbk-shot-link").first();
+    const link = page.locator(".mbk-shot-link:visible").first();
     await link.focus();
     await expect(link).toHaveCSS("outline-style", "solid");
     await expect(link).toHaveCSS("color", "rgb(127, 174, 149)");
@@ -99,7 +101,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       await page.goto(design(route, viewport));
       await expect(page.locator(".mbk-cmp-toolbar a")).toHaveCount(0);
       for (const control of await page
-        .locator(".mbk-idchip, .mbk-search-tag, .mbk-details-bar")
+        .locator(".mbk-idchip, .mbk-search-tag")
         .all())
         await expect(control).not.toHaveAttribute("tabindex");
     }

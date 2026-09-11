@@ -1,3 +1,4 @@
+import { chooseViewport } from "./workspace_actions.js";
 import { expect, test } from "@playwright/test";
 
 for (const width of [390, 1280]) {
@@ -78,8 +79,7 @@ for (const width of [390, 1280]) {
       .click();
     await page.locator('[data-entry-id="example-welcome"]').click();
     await expect(page.locator("#mb-main h2")).toHaveText("Welcome");
-    if (width < 700)
-      await page.getByRole("button", { name: "Mobile", exact: true }).click();
+    if (width < 700) await chooseViewport(page, "mobile");
     const screenFrame =
       width < 700 ? ".mbk-frame-mobile iframe" : ".mbk-frame-desktop iframe";
     await page
@@ -100,16 +100,16 @@ for (const viewport of ["mobile", "desktop"] as const) {
   }) => {
     await page.setViewportSize({ width: 1600, height: 1000 });
     await page.goto("/id/design-page-view");
-    await page.locator(`[data-viewport-option="${viewport}"]`).click();
+    await chooseViewport(page, viewport);
     const frame = page.frameLocator(`.mbk-frame-${viewport} iframe`);
-    await frame.locator(".mbk-details-bar").click();
+    await frame.locator(".ce-inspector-link").click();
     await expect(page).toHaveURL(
       /\/view\/design\/browse\/pages\/details\.html$/,
     );
     await expect(frame.locator(".mbk-details-body")).toContainText(
       "handbook.html",
     );
-    await frame.locator(".mbk-details-bar").click();
+    await frame.locator(".ce-inspector-link").click();
     await expect(page).toHaveURL(/\/view\/design\/browse\/pages\/view\.html$/);
     if (viewport === "mobile") {
       await frame

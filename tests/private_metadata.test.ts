@@ -219,7 +219,7 @@ for (const includeChanges of [false, true]) {
   });
 }
 
-for (const schemaVersion of [2, 3, 4]) {
+for (const schemaVersion of [2, 3, 4, 5]) {
   test(`historical v${schemaVersion} manifests remain readable internally but cannot become Review assets`, async (context) => {
     const fixture = await createFixture();
     context.after(() => removeFixture(fixture));
@@ -228,14 +228,22 @@ for (const schemaVersion of [2, 3, 4]) {
     await writeCompilation(compilation, config);
     const { sourceFiles: _sources, ...historical } = compilation.manifest;
     const manifest =
-      schemaVersion === 4
+      schemaVersion === 5
         ? compilation.manifest
-        : {
-            ...historical,
-            schemaVersion,
-            generatedBy: schemaVersion === 2 ? "mockbook" : "mokabook",
-            legacyPages: [],
-          };
+        : schemaVersion === 4
+          ? {
+              ...compilation.manifest,
+              schemaVersion: 4,
+              entries: compilation.manifest.entries.map(
+                ({ declaredDependencies: _declared, ...entry }) => entry,
+              ),
+            }
+          : {
+              ...historical,
+              schemaVersion,
+              generatedBy: schemaVersion === 2 ? "mockbook" : "mokabook",
+              legacyPages: [],
+            };
     const filename = schemaVersion === 2 ? LEGACY_MANIFEST_NAME : MANIFEST_NAME;
     if (schemaVersion === 2)
       await fs.promises.rm(path.join(fixture.mockupsDir, MANIFEST_NAME));

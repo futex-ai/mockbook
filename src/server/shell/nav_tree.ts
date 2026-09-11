@@ -8,7 +8,7 @@ import type { ManifestEntry } from "../../registry/types.js";
 export interface NavLeafNode {
   entryId?: string;
   removedPage?: boolean;
-  entryKind: "screen" | "use-case" | "page";
+  entryKind: "component" | "screen" | "use-case" | "page";
   key: string;
   kind: "leaf";
   label: string;

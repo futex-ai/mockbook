@@ -1,3 +1,4 @@
+import type { RuntimeMessage } from "./controls/runtime_ipc.js";
 /** Typed watched-server updates crossing the parent/child IPC boundary. */
 
 import { isSafeCatalogueRoute } from "../config/paths.js";
@@ -18,7 +19,8 @@ export interface ChildUpdateMessage {
 }
 
 /** Commands accepted by the watched server child. */
-export type ChildCommand = ChildUpdateMessage | { type: "shutdown" };
+export type ChildCommand =
+  ChildUpdateMessage | RuntimeMessage | { type: "shutdown" };
 
 /** Create an immutable IPC update payload from the latest route computation. */
 export function childUpdateMessage(

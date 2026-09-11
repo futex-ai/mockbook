@@ -43,7 +43,34 @@ export type {
   UseCaseStep,
   Viewport,
 } from "./authoring/types.js";
-export type { Renderer, RenderInput } from "./renderer/types.js";
+export { defineComponent } from "./components/definition.js";
+export type {
+  ComponentDefinition,
+  ComponentInput,
+  ComponentProps,
+  ComponentRenderContext,
+  ComponentVariant,
+  RegisteredComponent,
+} from "./components/types.js";
+export type {
+  ComponentControl,
+  ComponentControlLabel,
+  ControlFor,
+} from "./components/control_types.js";
+export type {
+  ComponentPropsData,
+  DataPropField,
+  DataPropSchema,
+  InferProp,
+  ObjectPropSchema,
+  PropPrimitive,
+  PropValue,
+} from "./components/prop_types.js";
+export type {
+  ComponentStyleOwnership,
+  ComponentResourceOwnership,
+} from "./components/manifest_types.js";
+export type { Renderer, RenderInput, RenderResult } from "./renderer/types.js";
 export type {
   CompatibilityTransformer,
   CompatibilityTransformInput,

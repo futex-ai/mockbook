@@ -21,3 +21,40 @@ await build({
   platform: "browser",
   target: "es2023",
 });
+
+// Keep shell/navigation modules shared, while bundling their pure package data
+// dependencies so browser clients use the same validators as artifact producers.
+const clientRoot = path.join(repositoryRoot, "src", "client");
+const browserRoot = path.join(repositoryRoot, "dist", "browser");
+await fs.promises.rm(browserRoot, { force: true, recursive: true });
+await build({
+  bundle: true,
+  entryPoints: (await fs.promises.readdir(clientRoot))
+    .filter((name) => name.endsWith(".ts") && name !== "nav_resize.ts")
+    .map((name) => path.join(clientRoot, name)),
+  outdir: browserRoot,
+  format: "esm",
+  platform: "browser",
+  target: "es2023",
+  logLevel: "silent",
+  plugins: [
+    {
+      name: "shared-shell-modules",
+      setup(builder) {
+        builder.onResolve({ filter: /^\.\.?\// }, (args) => {
+          if (path.dirname(args.importer) !== clientRoot) return undefined;
+          if (
+            args.path.startsWith("./") ||
+            args.path.startsWith("../navigation/")
+          )
+            return { external: true, path: args.path };
+          return undefined;
+        });
+      },
+    },
+  ],
+});
+await fs.promises.copyFile(
+  path.join(repositoryRoot, "dist", "client", "navigation-resize.js"),
+  path.join(browserRoot, "navigation-resize.js"),
+);

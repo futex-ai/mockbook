@@ -1,15 +1,14 @@
-import fs from "node:fs";
-import { createRequire } from "node:module";
-import os from "node:os";
 import path from "node:path";
 
 import { graphSourceFiles, normalizeSourceFiles } from "./source_inventory.js";
 import { build } from "esbuild";
+import { evaluateBundle, rememberBundle } from "./consumer_bundle.js";
 
 import type { RegistryDefinition } from "../authoring/types.js";
 import type { CompatibilityTransformer } from "../compatibility/types.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError, errorMessage } from "../errors.js";
+import type { ComponentGraphRenderer } from "../components/render.js";
 import type { Renderer } from "../renderer/types.js";
 import { discoverEntryModules } from "./discovery.js";
 import {
@@ -29,6 +28,7 @@ export interface LoadedGraph {
   entrySources: readonly string[];
   sourceFiles: readonly string[];
   renderer: Renderer;
+  renderWithComponents: ComponentGraphRenderer;
 }
 
 /** Bundle and import all React-bearing consumer modules as one graph. */
@@ -37,12 +37,13 @@ export async function loadConsumerGraph(
   evaluate = true,
 ): Promise<LoadedGraph> {
   const entrySources = discoverEntryModules(config.entriesDir);
-  const temporaryDir = await fs.promises.mkdtemp(
-    path.join(os.tmpdir(), "mokabook-graph-"),
+  const outputPath = path.join(
+    path.dirname(config.configPath),
+    ".mokabook-consumer.cjs",
   );
-  const outputPath = path.join(temporaryDir, "consumer.cjs");
   try {
-    const result = await build({
+    const built = await build({
+      write: false,
       metafile: true,
       preserveSymlinks: true,
       absWorkingDir: path.dirname(config.configPath),
@@ -75,7 +76,7 @@ export async function loadConsumerGraph(
     const sourceFiles = normalizeSourceFiles(
       [
         ...graphSourceFiles(
-          result.metafile,
+          built.metafile,
           path.dirname(config.configPath),
           config.repoRoot,
         ),
@@ -93,15 +94,19 @@ export async function loadConsumerGraph(
         definitions: [],
         entrySources,
         sourceFiles,
+        renderWithComponents: () => {
+          throw new Error("inventory-only graph cannot render");
+        },
         renderer: () => {
           throw new Error("inventory-only graph cannot render");
         },
       };
-    const imported = createRequire(import.meta.url)(outputPath) as {
-      compatibilityTransformer?: unknown;
-      definitions: unknown[];
-      renderer: unknown;
+    const bundle = {
+      code: built.outputFiles!.find((file) => file.path === outputPath)!.text,
+      filename: outputPath,
+      entrySources,
     };
+    const imported = evaluateBundle(bundle);
     if (typeof imported.renderer !== "function") {
       throw new MokabookError(
         "build-invalid",
@@ -117,7 +122,7 @@ export async function loadConsumerGraph(
         "compatibility transformer module must default-export a function",
       );
     }
-    return {
+    const graph: LoadedGraph = {
       ...(typeof imported.compatibilityTransformer === "function"
         ? {
             compatibilityTransformer:
@@ -128,7 +133,10 @@ export async function loadConsumerGraph(
       entrySources,
       sourceFiles,
       renderer: imported.renderer as Renderer,
+      renderWithComponents: imported.renderWithComponents,
     };
+    rememberBundle(graph, bundle);
+    return graph;
   } catch (error) {
     if (error instanceof MokabookError) throw error;
     throw new MokabookError(
@@ -138,8 +146,6 @@ export async function loadConsumerGraph(
         cause: error,
       },
     );
-  } finally {
-    await fs.promises.rm(temporaryDir, { force: true, recursive: true });
   }
 }
 

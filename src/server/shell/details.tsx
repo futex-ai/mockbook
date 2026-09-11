@@ -105,7 +105,10 @@ function UsedByChips(props: {
   );
 }
 
-function EntryDetailsBody(props: { catalogue: Catalogue; entry: RoutedEntry }) {
+export function EntryDetailsBody(props: {
+  catalogue: Catalogue;
+  entry: RoutedEntry;
+}) {
   const entry = props.entry;
   return (
     <div className="mbk-details-body">

@@ -126,6 +126,7 @@ class FakeSupervisorFactory implements ProcessSupervisorFactory {
 }
 
 class FakeSupervisor implements ProcessSupervisor {
+  replaceComponentRuntime(): void {}
   constructor(private readonly events: string[]) {}
 
   async close(): Promise<void> {

@@ -70,10 +70,9 @@ test("Review validates malformed markers on added and removed panes", async (con
   );
 
   const home = compilation.manifest.entries.find(
-    (entry): entry is ManifestScreen =>
-      entry.kind === "screen" && entry.id === "home",
+    (entry) => entry.kind === "screen" && entry.id === "home",
   );
-  assert.ok(home);
+  assert.ok(home?.kind === "screen");
   const removed = {
     ...home,
     fragments: {

@@ -1,49 +1,27 @@
 import type { ReactNode } from "react";
-
-import { DesignLink, useDesignNavigation } from "./design_navigation.js";
+import { comparisonToolbar } from "../library/controls/comparison-toolbar.js";
+import { comparisonPane } from "../library/preview/comparison-pane.js";
+import { useDesignInstance } from "../library/composition.js";
+import { useDesignNavigation } from "./design_navigation.js";
 import type { ReviewState } from "./review.js";
+import type { ComparisonMode } from "./destinations.js";
 
-interface CompareToolbarProps {
-  mode: "current" | "difference" | "overlay" | "side-by-side";
-}
-
-const MODE_LABELS: readonly {
-  key: CompareToolbarProps["mode"];
-  label: string;
-}[] = [
-  { key: "current", label: "Current" },
-  { key: "side-by-side", label: "Side by side" },
-  { key: "overlay", label: "Overlay" },
-  { key: "difference", label: "Difference" },
-];
-
-/** Compact display options inside the normal screen. */
-export function CompareToolbar({ mode }: CompareToolbarProps) {
+export function CompareToolbar({
+  mode,
+  accessible = false,
+}: {
+  mode: ComparisonMode;
+  accessible?: boolean | undefined;
+}) {
   const navigation = useDesignNavigation();
   return (
-    <div className="mbk-cmp-toolbar">
-      <span className="mbk-seg" role="group" aria-label="Comparison mode">
-        {MODE_LABELS.map((option) => (
-          <DesignLink
-            key={option.key}
-            to={
-              option.key === mode
-                ? undefined
-                : navigation.comparison?.[option.key]
-            }
-          >
-            <span className={option.key === mode ? "active" : undefined}>
-              {option.label}
-            </span>
-          </DesignLink>
-        ))}
-      </span>
-      {mode !== "current" ? (
-        <span className="mbk-cmp-refresh" aria-label="Refresh comparison">
-          ↻
-        </span>
-      ) : null}
-    </div>
+    <comparisonToolbar.Component
+      mokabookInstance={useDesignInstance("comparison")}
+      mode={mode}
+      eligible
+      accessible={accessible}
+      destinations={navigation.comparison ?? {}}
+    />
   );
 }
 
@@ -58,12 +36,10 @@ const STATE_LABELS: Record<ReviewState, string> = {
 /** Comparison status and secondary evidence share the scrollable screen stage. */
 export function ComparisonStage({
   children,
-  evidence,
   state,
   viewport,
 }: {
   children: ReactNode;
-  evidence?: ReactNode;
   state: ReviewState;
   viewport: "mobile" | "desktop";
 }) {
@@ -73,11 +49,6 @@ export function ComparisonStage({
         {viewport === "mobile" ? "Mobile" : "Desktop"} · {STATE_LABELS[state]}
       </h3>
       {children}
-      <details className="mbk-comparison-details" open={evidence !== undefined}>
-        <summary>Comparison details</summary>
-        <p>Compared with the branch point on origin/main.</p>
-        {evidence}
-      </details>
     </section>
   );
 }
@@ -100,23 +71,27 @@ export function CompareGrid({
   );
 }
 
-interface PaneProps {
+export function Pane({
+  children,
+  label,
+  side,
+}: {
   children: ReactNode;
   label: string;
   side: "after" | "before";
-}
-
-/** One labeled before or current comparison pane. */
-export function Pane({ children, label, side }: PaneProps) {
+}) {
   return (
-    <div className={`mbk-compare-side mbk-compare-side--${side}`}>
-      <p className="mbk-compare-label">{label}</p>
+    <comparisonPane.Component
+      mokabookInstance={useDesignInstance(side)}
+      side={side}
+      label={label}
+      state="present"
+    >
       {children}
-    </div>
+    </comparisonPane.Component>
   );
 }
 
-/** Explicit absence of a screen on one side. */
 export function MissingPane({
   label,
   message,
@@ -127,8 +102,12 @@ export function MissingPane({
   side: "after" | "before";
 }) {
   return (
-    <Pane label={label} side={side}>
-      <div className="mbk-pane-missing">{message}</div>
-    </Pane>
+    <comparisonPane.Component
+      mokabookInstance={useDesignInstance(side)}
+      side={side}
+      label={label}
+      state="missing"
+      message={message}
+    />
   );
 }

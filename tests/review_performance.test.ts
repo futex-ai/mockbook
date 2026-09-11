@@ -10,7 +10,6 @@ import { renderReviewArtifact } from "../dist/review/artifact.js";
 import { compareReview } from "../dist/review/compare.js";
 import { RepositoryGitClient, type GitClient } from "../dist/review/git.js";
 import type { ReviewResult } from "../dist/review/types.js";
-import type { ManifestScreen } from "../dist/registry/types.js";
 import { createFixture, removeFixture } from "./helpers/fixture.js";
 
 const execFileAsync = promisify(execFile);
@@ -33,7 +32,7 @@ test("Review batches base viewport reads", async (context) => {
   const config = await loadConfig(fixture.root);
   const compilation = await compileCatalogue(config);
   const screens = compilation.manifest.entries.filter(
-    (entry): entry is ManifestScreen => entry.kind === "screen",
+    (entry) => entry.kind === "screen",
   );
   const files = new Map<string, string>([
     ["mockups/mokabook-manifest.json", JSON.stringify(compilation.manifest)],
@@ -107,7 +106,7 @@ test("Review batches dark base fragments through RepositoryGitClient", async (co
   await compareReview(compilation, config, client, "HEAD");
 
   const screens = compilation.manifest.entries.filter(
-    (entry): entry is ManifestScreen => entry.kind === "screen",
+    (entry) => entry.kind === "screen",
   );
   const expected = screens.flatMap((screen) => {
     assert.ok(screen.darkFragments);

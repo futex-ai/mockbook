@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { renderToStaticMarkup } from "react-dom/server";
-
-import { DetailsPanel } from "../examples/basic/entries/design/parts/details.js";
 import {
   attribute,
   byClass,
@@ -82,7 +79,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       assert.equal(
         elements(
           document,
-          (node) => attribute(node, "aria-label") === "Color scheme",
+          (node) => attribute(node, "aria-label") === "Switch to dark mode",
         ).length,
         1,
         id,
@@ -91,17 +88,21 @@ for (const viewport of ["mobile", "desktop"] as const) {
   });
 }
 
-test("inspector metadata belongs to its depicted subject", () => {
-  const details = renderToStaticMarkup(<DetailsPanel open subject="details" />);
+test("inspector metadata belongs to its depicted subject", async () => {
+  const detailPage = await designDocument("design-review-added", "desktop");
+  const detailBody = byClass(detailPage.document, "mbk-details-body")[0];
+  assert.ok(detailBody);
+  const details = textContent(detailBody);
   assert.match(details, /screens\/details\.html/);
   assert.doesNotMatch(
     details,
     /screens\/welcome\.html|landing screen|onboarding/,
   );
   assert.match(details, /Example tour/);
-  const removed = renderToStaticMarkup(
-    <DetailsPanel open subject="farewell" />,
-  );
+  const removedPage = await designDocument("design-review-removed", "desktop");
+  const removedBody = byClass(removedPage.document, "mbk-details-body")[0];
+  assert.ok(removedBody);
+  const removed = textContent(removedBody);
   assert.doesNotMatch(
     removed,
     /screens\/welcome\.html|Example tour|onboarding/,

@@ -8,6 +8,7 @@ const expected = [
   "ReviewIgnoreScope",
   "collection",
   "defineCollection",
+  "defineComponent",
   "defineConfig",
   "definePage",
   "defineRoot",

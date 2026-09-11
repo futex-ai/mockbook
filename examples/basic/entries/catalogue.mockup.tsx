@@ -1,5 +1,6 @@
+import { action } from "./components/action.js";
+import { toolbar } from "./components/toolbar.js";
 import { Badge } from "@firna/ui/badge";
-import { Button } from "@firna/ui/button";
 import { Input } from "@firna/ui/input";
 import {
   defineCollection,
@@ -43,14 +44,18 @@ function Welcome({ compact }: { compact: boolean }) {
         placeholder="Name this workspace"
         value=""
       />
-      <MockLink asChild fragment="details" to="example-details">
-        <Button onPress={noop} tone="primary">
-          View details
-        </Button>
-      </MockLink>
+      <action.Component
+        mokabookInstance="details"
+        label="View details"
+        tone="primary"
+        destination="details"
+      />
       <MockLink fragment="details" to="example-details">
         Open the details screen
       </MockLink>
+      <toolbar.Component title="Workspace actions">
+        <p>Explore the catalogue.</p>
+      </toolbar.Component>
       <p>
         <MockLink to="example-handbook" fragment="next-steps">
           Read the handbook
@@ -73,20 +78,38 @@ function Details({ compact }: { compact: boolean }) {
         <Badge tone="neutral">Synthetic</Badge>
       </header>
       <p>This screen is synthetic and belongs only to the package example.</p>
-      <MockLink asChild to="example-welcome">
-        <Button onPress={noop} tone="secondary">
-          Return to welcome
-        </Button>
-      </MockLink>
+      <action.Component
+        mokabookInstance="welcome"
+        label="Return to welcome"
+        tone="secondary"
+        destination="welcome"
+      />
       <MockLink to="example-welcome">Return to welcome</MockLink>
+      <toolbar.Component title="Catalogue actions">
+        <p>Browse the connected screens.</p>
+      </toolbar.Component>
     </main>
   );
 }
 
 export const mockups = [
+  action.entry,
+  toolbar.entry,
   defineCollection({
     ...metadata,
-    childIds: ["example-screens", "example-tour", "example-handbook"],
+    id: "example-components",
+    title: "Components",
+    description: "Shared actions and composition.",
+    childIds: ["example-action", "example-toolbar"],
+  }),
+  defineCollection({
+    ...metadata,
+    childIds: [
+      "example-screens",
+      "example-tour",
+      "example-components",
+      "example-handbook",
+    ],
     description: "Synthetic examples for the reusable Mokabook package.",
     id: "example",
     title: "Example",

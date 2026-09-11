@@ -62,7 +62,7 @@ test("navigation sequencing is latest-wins", () => {
   assert.equal(second.signal.aborted, false);
 });
 
-test("setColorScheme swaps fragment sources and marks the body", () => {
+test("setColorScheme replaces frame history and marks the body", () => {
   const view = schemeView();
   const doc = asDocument(view.doc);
 
@@ -72,22 +72,26 @@ test("setColorScheme swaps fragment sources and marks the body", () => {
     "dark",
   );
   assert.equal(currentColorScheme(doc), "dark");
-  assert.equal(view.mobileFrame.getAttribute("src"), MOBILE_DARK);
-  assert.equal(view.desktopFrame.getAttribute("src"), DESKTOP_DARK);
+  assert.equal(view.mobileFrame.contentWindow.location.pathname, MOBILE_DARK);
+  assert.equal(view.desktopFrame.contentWindow.location.pathname, DESKTOP_DARK);
   assert.equal(view.fallbackFrame.getAttribute("src"), FALLBACK_LIGHT);
   assert.equal(view.fallbackFrame.srcWrites, 0);
+  assert.equal(view.mobileFrame.srcWrites, 0);
+  assert.equal(view.desktopFrame.srcWrites, 0);
   assert.deepEqual(pressedOptions(view), ["false", "true", "false", "true"]);
 
   setColorScheme(doc, "dark");
-  assert.equal(view.mobileFrame.srcWrites, 1);
-  assert.equal(view.desktopFrame.srcWrites, 1);
+  assert.equal(view.mobileFrame.replacements, 1);
+  assert.equal(view.desktopFrame.replacements, 1);
 
   setColorScheme(doc, "light");
   assert.equal(currentColorScheme(doc), "light");
   assert.equal(view.mobileFrame.getAttribute("src"), MOBILE_LIGHT);
   assert.equal(view.desktopFrame.getAttribute("src"), DESKTOP_LIGHT);
-  assert.equal(view.mobileFrame.srcWrites, 2);
+  assert.equal(view.mobileFrame.replacements, 2);
   assert.equal(view.fallbackFrame.srcWrites, 0);
+  assert.equal(view.mobileFrame.srcWrites, 0);
+  assert.equal(view.desktopFrame.srcWrites, 0);
   assert.deepEqual(pressedOptions(view), ["true", "false", "true", "false"]);
 });
 
@@ -120,7 +124,10 @@ test("recovery state restores color scheme strictly", () => {
     reloaded.doc.body.getAttribute("data-mokabook-color-scheme"),
     "dark",
   );
-  assert.equal(reloaded.mobileFrame.getAttribute("src"), MOBILE_DARK);
+  assert.equal(
+    reloaded.mobileFrame.contentWindow.location.pathname,
+    MOBILE_DARK,
+  );
   assert.equal(reloaded.fallbackFrame.getAttribute("src"), FALLBACK_LIGHT);
   assert.deepEqual(pressedOptions(reloaded), [
     "false",
@@ -305,6 +312,16 @@ class FakeElement {
   hidden = false;
   open = true;
   srcWrites = 0;
+  replacements = 0;
+  readonly contentWindow = {
+    location: {
+      pathname: "",
+      replace: (url: string) => {
+        this.replacements += 1;
+        this.contentWindow.location.pathname = new URL(url).pathname;
+      },
+    },
+  };
   value = "";
   readonly #attributes = new Map<string, string>();
 
@@ -346,6 +363,7 @@ class FakeElement {
 
 class FakeDocument {
   readonly body = new FakeElement("body");
+  readonly URL = "http://127.0.0.1:4173/view/screens/welcome.html";
 
   constructor(private readonly elements: readonly FakeElement[]) {}
 

@@ -1,5 +1,10 @@
 # Changes and screen comparisons
 
+The implemented [component attribution extension](./mokabook-component-changes.md)
+keeps component-only consumers out of Changes while linking them from the
+component's Affected screens list. Screen and manual Review-ignore behavior
+remains documented below.
+
 The catalogue is Mokabook's only browsing surface. Its All / Changes filter
 narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` belongs only to static `export`.
@@ -68,10 +73,24 @@ resource deletions, an unavailable or invalid input disables the filter,
 preserving access through All.
 Watched updates and static publishing use this same membership calculation.
 
+Component-aware classification preloads every baseline screen and saved-variant
+view in one logical, bounded Git batch, including mobile, desktop, dark and
+removed views. This applies to Serve startup, cached Browse evidence, watched
+updates and publishing, including a screen-only baseline during component
+adoption. Readers without bulk support retain individual cached reads. Resource
+discovery stays lazy and follows the comparison's ignore and ownership rules;
+prefetching view documents does not traverse excluded or hint-only resources.
+An incomplete or invalid batch fails classification rather than silently
+dropping views or disabling Git file validation.
+
 ## Screen controls
 
-Every screen in a review-enabled catalogue offers Current / Side by side / Overlay / Difference
-in a compact band beneath its heading. Current is selected initially, including
+Review-enabled screens and saved component variants with actual changed/added/removed comparison
+views offer Current / Side by side / Overlay / Difference in an opaque band
+beneath the heading. Known unchanged views show Unmodified without that band;
+unknown evidence has no invented status. Eligibility follows saved view evidence,
+so affected-only consumers can compare their actual rendered differences while
+staying outside Changes. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
 viewport or color scheme, and receiving a watched update do not generate
 comparison snapshots in development. Publications with Changes prepare snapshots at build time, but never fetch or render them while browsing in Current. The first
@@ -90,7 +109,7 @@ Comparison frames retain matching dimensions; individual browser expansion is
 available only in Current so it cannot misalign an overlay.
 
 Loading, unavailable, and failed comparison states use plain product copy.
-Failure offers a retry. Unchanged screens can still be compared from All.
+Failure offers a retry. All and Changes share the same comparison eligibility.
 Removed screens remain discoverable in Changes and show an explicit missing
 current state until a comparison is requested. Dependency and ignored-region
 evidence stays secondary to the screen preview.
@@ -166,7 +185,7 @@ scheme, enumerated from the union of base and head manifest entries. Each side's
 view set is `["light", ...(screen.darkFragments ? ["dark"] : [])]`: a dark
 view present only in head is `added`, and one present only in base is
 `removed`. Mobile and desktop still classify separately from their fragments.
-Added, removed, changed, and unchanged states handle historical version 2, version 3, and current version 4
+Added, removed, changed, and unchanged states handle historical versions 2/3/4 and current version 5
 manifests during Accounting migration; pre-dark bases simply have no
 `darkFragments`. Configured shared-impact globs and manifest dependencies
 identify changes that can affect many screens. A dependency is a repository file

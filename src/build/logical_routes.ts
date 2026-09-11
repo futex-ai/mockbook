@@ -3,6 +3,7 @@ import type {
   ResolvedRegistryEntry,
   Viewport,
 } from "../authoring/types.js";
+import { componentFragmentRoute } from "../components/paths.js";
 import { fragmentRoute } from "../registry/manifest.js";
 import { effectiveColorSchemes } from "../registry/views.js";
 
@@ -15,6 +16,19 @@ export function artifactRouteForEntry(
   catalogueSchemes: readonly ColorScheme[],
 ): string | undefined {
   if (entry.kind === "page") return entry.route;
+  if (entry.kind === "component") {
+    const scheme = effectiveColorSchemes(entry, catalogueSchemes).includes(
+      colorScheme,
+    )
+      ? colorScheme
+      : "light";
+    return componentFragmentRoute(
+      entry.route,
+      entry.variants[0]!.id,
+      viewport,
+      scheme,
+    );
+  }
   const screen =
     entry.kind === "screen"
       ? entry

@@ -1,3 +1,4 @@
+import { chooseScheme } from "./workspace_actions.js";
 import { expect, test, type Page } from "@playwright/test";
 
 import { startPreviewFixture, type PreviewFixture } from "./preview_fixture.js";
@@ -178,7 +179,7 @@ test("JavaScript-disabled static preview stays at its portable top", async ({
 });
 
 async function chooseDark(page: Page): Promise<void> {
-  await page.click('.mbk-topbar [data-color-scheme-option="dark"]');
+  await chooseScheme(page, "dark");
 }
 
 async function expectAllSources(page: Page, suffix: string): Promise<void> {

@@ -7,6 +7,8 @@ import { isPublicStaticFile } from "../config/public_files.js";
 import type { ResolvedConfig } from "../config/types.js";
 import { extractHtmlReferences } from "../html_references.js";
 import { isLogicalFragment } from "../navigation/logical.js";
+import type { ManifestComponent } from "../components/manifest_types.js";
+import { generatedViews } from "../components/views.js";
 import type { ManifestEntry, ManifestScreen } from "../registry/types.js";
 import type { Catalogue } from "./catalogue.js";
 
@@ -38,25 +40,25 @@ export function withFragmentQuery(route: string, fragment?: string): string {
 function destinationScreen(
   entry: ManifestEntry | undefined,
   catalogue: Catalogue,
-): ManifestScreen | undefined {
-  if (entry?.kind === "screen") return entry;
+): ManifestScreen | ManifestComponent | undefined {
+  if (entry?.kind === "screen" || entry?.kind === "component") return entry;
   if (entry?.kind !== "use-case" || !entry.steps[0]) return undefined;
   const candidate = catalogue.byId.get(entry.steps[0].screenId);
   return candidate?.kind === "screen" ? candidate : undefined;
 }
 
 function allViewsContain(
-  screen: ManifestScreen,
+  screen: ManifestScreen | ManifestComponent,
   fragment: string,
   config: ResolvedConfig,
 ): boolean {
-  const routes = [
-    screen.fragments.mobile,
-    screen.fragments.desktop,
-    ...(screen.darkFragments
-      ? [screen.darkFragments.mobile, screen.darkFragments.desktop]
-      : []),
-  ];
+  const routes = generatedViews(screen)
+    .filter(
+      (view) =>
+        screen.kind !== "component" ||
+        view.variantId === screen.variants[0]!.id,
+    )
+    .map((view) => view.path);
   return routes.every((route) => containsFragment(route, fragment, config));
 }
 

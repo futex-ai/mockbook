@@ -27,7 +27,7 @@ test("a page renders exactly one complete document even with dark screens enable
     "app/handbook.html",
     "mokabook-manifest.json",
   ]);
-  assert.equal(result.manifest.schemaVersion, 4);
+  assert.equal(result.manifest.schemaVersion, 5);
   assert.equal("legacyPages" in result.manifest, false);
   assert.match(result.outputs.get("app/handbook.html") ?? "", /Whole document/);
   await writeCompilation(result, config);

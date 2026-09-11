@@ -20,7 +20,7 @@ the completed
 [in-frame catalogue link navigation plan](../../plans/in-frame-catalogue-link-navigation.md).
 
 [Whole-document pages](./mokabook-pages.md) use the same IDs and hierarchy as
-screens and flows. Current manifests require v4. The
+screens and flows. Current manifests require v5. The
 [breaking migration](./mokabook-page-migration.md) removes legacy configuration,
 discovery, and rendering adapters; consumers use ordinary page definitions.
 
@@ -216,6 +216,7 @@ The root package export supplies typed, documented authoring helpers:
 - `defineConfig`;
 - `defineScreen`, `definePage`, `defineCollection`, and `defineUseCase`;
 - `defineRoot`, `collection`, `screen`, and `page` for nested trees;
+- `defineComponent` and its schema-derived props, variants, and control types;
 - `mockLink` and `MockLink` for id-addressed links;
 - `ReviewIgnore`, `ReviewIgnoreScope`, and `reviewMaterialKey`.
 
@@ -223,6 +224,12 @@ The root also exports the authoring input/definition types, including
 `PageInput`, `PageDefinition`, and `NestedPageInput`, plus configuration,
 renderer, and compatibility-transformer interfaces. `ColorScheme` is exactly
 `"dark" | "light"`; `Viewport` is `"desktop" | "mobile"`.
+
+The [registered component contract](./mokabook-components.md) owns the complete
+`defineComponent` shape, slots, repeated-instance identity, dependencies, saved
+variants, and runtime prop schema. It returns a renderable `Component` facade
+and a registry `entry`; collections can reference that entry like a screen.
+Component pages and controls use the existing consumer renderer and providers.
 
 A screen owns one mobile React node and one desktop React node. A collection is
 structural and owns child ids but no route. A use case owns ordered references
@@ -373,20 +380,38 @@ contract:
 
 ```ts
 import type { ReactNode } from "react";
-import type { ColorScheme, ScreenDefinition, Viewport } from "mokabook";
+import type {
+  ColorScheme,
+  ScreenDefinition,
+  ComponentDefinition,
+  ComponentStyleOwnership,
+  ComponentResourceOwnership,
+  Viewport,
+} from "mokabook";
 
 interface RenderInput {
   colorScheme: ColorScheme;
-  entry: ScreenDefinition;
+  entry: ScreenDefinition | ComponentDefinition;
+  variantId?: string;
+  componentProps?: Readonly<Record<string, unknown>>;
   node: ReactNode;
   stylesheets: readonly string[];
   viewport: Viewport;
 }
 
-export default function render(input: RenderInput): string;
+interface RenderResult {
+  html: string;
+  styles?: readonly ComponentStyleOwnership[];
+  resources?: readonly ComponentResourceOwnership[];
+}
+
+export default function render(input: RenderInput): string | RenderResult;
 ```
 
-The string must contain a complete `<html>` document. Mokabook
+The string or `html` field must contain a complete `<html>` document. Optional
+style/resource records provide exact component ownership; unclaimed or mixed
+material stays conservative. The [component contract](./mokabook-components.md)
+and [attribution contract](./mokabook-component-changes.md) define validation. Mokabook
 serializes Review-ignore markers, adapts opt-in `MockLink asChild` controls,
 and rewrites every complete
 `mock:<id>[#fragment]` value found in `href` or `data-nav-href` after this
@@ -468,7 +493,7 @@ never copied into the npm package.
 - `<screen>.mobile.dark.html` and `<screen>.desktop.dark.html` when that screen's
   effective schemes include dark;
 - one complete HTML document at each page route;
-- `mokabook-manifest.json` using schema version 4.
+- `mokabook-manifest.json` using schema version 5.
 
 Screen and use-case routes are durable identifiers and do not imply a composed
 HTML file. A screen's fragments are bare product renders with required head
@@ -492,11 +517,14 @@ header's source must belong to the current entries root even when
 that source was just deleted. It never deletes an unknown or foreign-catalogue
 file.
 
-The normative version 4 manifest shape is:
+All catalogues emit [manifest v5](./mokabook-component-manifest.md), including
+pages, source inventory, saved component variants and per-view invocation/ownership
+records. Historical readers accept v3, both disjoint v4 formats, and opt-in v2.
+The common current shape is:
 
 ```ts
-interface ManifestV4 {
-  schemaVersion: 4;
+interface ManifestV5 {
+  schemaVersion: 5;
   generatedBy: "mokabook";
   entries: readonly ManifestEntry[];
   sourceFiles: readonly string[];
@@ -504,7 +532,7 @@ interface ManifestV4 {
 
 interface CommonEntry {
   id: string;
-  kind: "screen" | "collection" | "use-case" | "page";
+  kind: "screen" | "collection" | "use-case" | "page" | "component";
   title: string;
   description: string;
   rationale?: string;
@@ -512,15 +540,18 @@ interface CommonEntry {
   sourcePath: string;
   relatedDocs: readonly string[];
   dependencies: readonly string[];
+  declaredDependencies: readonly string[];
 }
 
 type ManifestEntry =
+  | ManifestComponent // See the component manifest contract for the complete shape.
   | (CommonEntry & { kind: "page"; route: string; tags?: readonly string[] })
   | (CommonEntry & {
       kind: "screen";
       route: string;
       address?: string;
       tags?: readonly string[];
+      componentViews?: readonly ComponentViewRecord[];
       darkFragments?: { mobile: string; desktop: string };
       fragments: { mobile: string; desktop: string };
       viewports: readonly ["mobile", "desktop"];
@@ -567,9 +598,9 @@ comment components, source allowlists, and stage policy into consumer code.
 The [migration contract](./mokabook-page-migration.md) specifies safe archival
 of verified old artifacts without weakening generated-file ownership.
 
-Current reads accept only canonical `mokabook-manifest.json` schema v4 and
+Current reads accept only canonical `mokabook-manifest.json` schema v5 and
 validate the [resolved source inventory](./mokabook-source-protection.md).
-Git comparisons accept validated historical v3 or v4. A v2
+Git comparisons accept v5, historical v3 and both disjoint historical v4 formats. A v2
 `mockbook-manifest.json` is considered only when the historical canonical file
 is absent and `compatibility.readManifestV2` is enabled. Invalid canonical
 history never falls back. Historical readers never execute consumer code.
