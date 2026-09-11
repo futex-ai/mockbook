@@ -202,7 +202,9 @@ until the background check finishes; it is not shown as zero consumers.
 
 Full generated output and Git-based Changes finish in the background, with preview
 and Props work taking priority between background documents. Build, Check and Export
-remain exhaustive. The first shell omits Changes; versioned updates publish complete
+remain exhaustive. Replacing or stopping background work cancels and drains its Git
+subprocesses before terminating the worker, including when that worker is unresponsive.
+The first shell omits Changes; versioned updates publish complete
 usage and then Changes. Shell requests never repeat that repository work. Baseline
 views are read in batches, not one Git process per view. Watched Serve also observes
 Git ref changes off the request path. `--no-watch` uses the same fast startup but

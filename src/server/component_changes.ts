@@ -21,6 +21,7 @@ import {
   NodeGitCommandRunner,
   RepositoryGitClient,
   type GitClient,
+  type GitCommandRunner,
 } from "../review/git.js";
 
 export interface ComponentChangeSnapshot {
@@ -45,6 +46,8 @@ export interface CatalogueChangeClassifier {
 
 /** Classify one generated catalogue against its repository branch point. */
 export class RepositoryCatalogueChangeClassifier implements CatalogueChangeClassifier {
+  constructor(private readonly commands?: GitCommandRunner) {}
+
   async read(
     config: ResolvedConfig,
     manifest: Manifest,
@@ -57,11 +60,12 @@ export class RepositoryCatalogueChangeClassifier implements CatalogueChangeClass
         manifest,
         base,
         signal,
+        this.commands,
       );
       signal?.throwIfAborted();
       const baseline = await source.baseline();
       signal?.throwIfAborted();
-      return source.read(baseline);
+      return await source.read(baseline);
     } catch {
       return undefined;
     }
@@ -103,15 +107,16 @@ export class ComponentChangeCache {
 
 /** Production read boundary for a last-good catalogue and its current Git branch point. */
 export class RepositoryComponentChanges implements ComponentChangeSource {
-  private readonly runner: NodeGitCommandRunner;
+  private readonly runner: GitCommandRunner;
   private readonly git: RepositoryGitClient;
   constructor(
     private readonly config: ResolvedConfig,
     private readonly manifest: Manifest,
     private readonly base: string,
     signal?: AbortSignal,
+    commands?: GitCommandRunner,
   ) {
-    this.runner = new NodeGitCommandRunner(config.repoRoot, signal);
+    this.runner = commands ?? new NodeGitCommandRunner(config.repoRoot, signal);
     this.git = new RepositoryGitClient(this.runner);
   }
   async baseline(): Promise<string> {

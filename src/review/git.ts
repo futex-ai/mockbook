@@ -1,7 +1,6 @@
-import { execFile } from "node:child_process";
-
 import { MokabookError, errorMessage } from "../errors.js";
 import { readGitFiles } from "./git_batch.js";
+import { executeGit } from "./git_process.js";
 
 /** Repository object classification used before reading Review dependencies. */
 export type GitFileKind = "missing" | "other" | "regular" | "symlink";
@@ -45,70 +44,19 @@ export class NodeGitCommandRunner implements GitCommandRunner {
     private readonly signal?: AbortSignal,
   ) {}
 
-  run(arguments_: readonly string[]): Promise<string> {
-    return new Promise((resolve, reject) => {
-      execFile(
-        "git",
-        [...arguments_],
-        {
-          cwd: this.cwd,
-          encoding: "utf8",
-          maxBuffer: 64 * 1024 * 1024,
-          ...(this.signal ? { signal: this.signal } : {}),
-        },
-        (error, stdout) => {
-          if (error) reject(error);
-          else resolve(stdout);
-        },
-      );
-    });
+  async run(arguments_: readonly string[]): Promise<string> {
+    return Buffer.from(await this.runBytes(arguments_)).toString("utf8");
   }
 
   runBytes(arguments_: readonly string[]): Promise<Uint8Array> {
-    return new Promise((resolve, reject) => {
-      execFile(
-        "git",
-        [...arguments_],
-        {
-          cwd: this.cwd,
-          encoding: "buffer",
-          maxBuffer: 64 * 1024 * 1024,
-          ...(this.signal ? { signal: this.signal } : {}),
-        },
-        (error, stdout) => {
-          if (error) reject(error);
-          else resolve(Buffer.from(stdout));
-        },
-      );
-    });
+    return executeGit(this.cwd, arguments_, this.signal);
   }
 
   runBytesWithInput(
     arguments_: readonly string[],
     input: Uint8Array,
   ): Promise<Uint8Array> {
-    return new Promise((resolve, reject) => {
-      let inputError: Error | undefined;
-      const child = execFile(
-        "git",
-        [...arguments_],
-        {
-          cwd: this.cwd,
-          encoding: "buffer",
-          maxBuffer: 64 * 1024 * 1024,
-          ...(this.signal ? { signal: this.signal } : {}),
-        },
-        (error, stdout) => {
-          if (error) reject(error);
-          else if (inputError) reject(inputError);
-          else resolve(Buffer.from(stdout));
-        },
-      );
-      child.stdin?.on("error", (error) => {
-        inputError = error;
-      });
-      child.stdin?.end(Buffer.from(input));
-    });
+    return executeGit(this.cwd, arguments_, this.signal, input);
   }
 }
 

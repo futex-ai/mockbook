@@ -62,6 +62,17 @@ validated index and rendering graph together; failed candidates retain the previ
 working generation. Replacements invalidate cached documents, usage and comparisons.
 Resource edits invalidate cached resource evidence. Shutdown cancels outstanding work.
 
+Background classification runs in the worker, but Git commands run through a private
+request/reply channel owned by the parent. Source replacement, shutdown and worker
+failure stop command admission, cancel all active Git processes and wait for their
+process/pipe closure before completing cleanup. This does not depend on the worker
+handling a shutdown message or yielding its CPU. On POSIX, cancellable Git commands
+have dedicated process groups so cancellation also stops their ordinary helpers.
+SIGTERM escalates to SIGKILL after one second; Windows terminates the direct child.
+Concurrent Git-service cleanup callers share the same drain. Late replies cannot publish stale
+classification. Git output remains capped at 64 MiB per stream; classification and
+its parsing/comparison work remain outside the HTTP event loop.
+
 Background generation uses the ordinary exhaustive Build pipeline and render order,
 with checkpoints between documents and major validation phases. Forward-anchor
 validation cannot render a destination ahead of that order. Stateful style registries
@@ -79,5 +90,7 @@ only exhaustive, validated artifacts, never the live index.
 Regression tests cover cold start with an unrelated failing renderer, identical
 exhaustive/demand output, cache coalescing, worker failure/timeout, source and resource
 confinement, anchor checks, partial evidence, Props isolation, source replacement,
-stale background results and shutdown. The full-sized browser benchmark checks real
+stale background results and shutdown. Real-process regressions prove Git is gone
+after shutdown/replacement, ignored termination is escalated, and worker failure or
+an unresponsive worker cannot orphan parent-owned Git. The full-sized browser benchmark checks real
 frame content, search, themes/viewports and a successful Props edit, cold and warm.

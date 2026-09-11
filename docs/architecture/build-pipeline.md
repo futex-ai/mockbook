@@ -54,6 +54,9 @@ for a requested view. Foreground and Props workers retain only bounded
 generation-local documents/resources. Background compilation runs the ordinary
 exhaustive Build pipeline with cooperative checkpoints in the original render order,
 then uses the existing transactional writer. Build/Check/Export stay exhaustive.
+Background Git I/O is parent-owned over a private worker channel. Cancellation
+drains the actual subprocesses before worker termination, even if the worker cannot
+yield; CPU-intensive classification stays in the worker.
 See [on-demand Serve](../protocol/mokabook-on-demand.md) and the
 [local rendering service](../../src/server/controls/README.md).
 
