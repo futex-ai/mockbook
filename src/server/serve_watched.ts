@@ -109,6 +109,7 @@ export async function serveWatched(
         snapshot?.changedRoutes,
         snapshot,
         snapshot ? "ready" : "unavailable",
+        "evidence",
       ),
     resources,
     shutdown,
@@ -192,7 +193,7 @@ export async function serveWatched(
       if (activeCompilation) {
         await background.invalidate();
         if (!closed) {
-          running.notifyUpdate(undefined);
+          running.notifyUpdate(undefined, undefined, "pending", "evidence");
           schedule(activeCompilation);
         }
       }
