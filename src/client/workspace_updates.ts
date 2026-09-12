@@ -100,9 +100,10 @@ export function updateWorkspaceEvidence(
   applyVariant(root, data, selected.variant, selected.error, {
     preservePreview: true,
   });
-  const usage = doc.createElement("div");
-  renderUsage(usage, data);
-  copyChildren(root.querySelector('[data-inspector-panel="usage"]'), usage);
+  const usage = root.querySelector<HTMLElement>(
+    '[data-inspector-panel="usage"]',
+  );
+  if (usage) updateUsage(usage, data);
   const evidence = doc.createElement("div");
   renderWorkspaceEvidence(evidence, data, selected.variant?.value.id);
   const panel = root.querySelector<HTMLElement>("[data-workspace-evidence]");
@@ -112,4 +113,96 @@ export function updateWorkspaceEvidence(
   if (json) json.textContent = JSON.stringify(data);
   restoreRegionScrolls(doc, scrolls);
   return selected;
+}
+
+/** Reconcile independently changing Usage sections without remounting their links. */
+function updateUsage(panel: HTMLElement, data: WorkspaceData): void {
+  const expected = panel.ownerDocument.createElement("div");
+  renderUsage(expected, data);
+  const sections = new Map(
+    [...panel.children].map((section) => [usageKey(section), section]),
+  );
+  let position = panel.firstElementChild;
+  for (const next of [...expected.children]) {
+    const key = usageKey(next);
+    const current = sections.get(key);
+    if (current?.tagName === next.tagName) {
+      if (current instanceof HTMLElement && next instanceof HTMLElement)
+        updateUsageSection(current, next);
+      sections.delete(key);
+      if (current === position) position = position.nextElementSibling;
+      else panel.insertBefore(current, position);
+    } else {
+      const inserted = panel.ownerDocument.importNode(next, true);
+      panel.insertBefore(inserted, position);
+    }
+  }
+  for (const stale of sections.values()) stale.remove();
+}
+
+function updateUsageSection(current: HTMLElement, next: HTMLElement): void {
+  const currentList = current.querySelector<HTMLUListElement>(
+    ":scope > .mbk-usage-list",
+  );
+  const nextList = next.querySelector<HTMLUListElement>(
+    ":scope > .mbk-usage-list",
+  );
+  if (!currentList || !nextList) {
+    copyChildren(current, next);
+    return;
+  }
+  const heading = current.querySelector(":scope > h3");
+  const nextHeading = next.querySelector(":scope > h3");
+  if (heading && nextHeading && heading.textContent !== nextHeading.textContent)
+    heading.textContent = nextHeading.textContent;
+  updateUsageLinks(currentList, nextList);
+}
+
+function updateUsageLinks(
+  current: HTMLUListElement,
+  next: HTMLUListElement,
+): void {
+  const rows = new Map(
+    [...current.children].map((row) => [usageKey(row), row]),
+  );
+  let position = current.firstElementChild;
+  for (const nextRow of [...next.children]) {
+    const key = usageKey(nextRow);
+    const row = rows.get(key);
+    if (row instanceof HTMLLIElement && nextRow instanceof HTMLLIElement) {
+      updateUsageLink(row, nextRow);
+      rows.delete(key);
+      if (row === position) position = position.nextElementSibling;
+      else current.insertBefore(row, position);
+    } else {
+      const inserted = current.ownerDocument.importNode(nextRow, true);
+      current.insertBefore(inserted, position);
+    }
+  }
+  for (const stale of rows.values()) stale.remove();
+}
+
+function updateUsageLink(current: HTMLLIElement, next: HTMLLIElement): void {
+  const link = current.querySelector(":scope > a");
+  const nextLink = next.querySelector(":scope > a");
+  const details = current.querySelector(":scope > small");
+  const nextDetails = next.querySelector(":scope > small");
+  if (!link || !nextLink || !details || !nextDetails) {
+    copyChildren(current, next);
+    return;
+  }
+  if (link.getAttribute("href") !== nextLink.getAttribute("href"))
+    link.setAttribute("href", nextLink.getAttribute("href")!);
+  if (link.textContent !== nextLink.textContent)
+    link.textContent = nextLink.textContent;
+  if (details.textContent !== nextDetails.textContent)
+    details.textContent = nextDetails.textContent;
+}
+
+function usageKey(element: Element): string {
+  return (
+    element.getAttribute("data-usage-section") ??
+    element.getAttribute("data-usage-link") ??
+    ""
+  );
 }
