@@ -142,6 +142,7 @@ export async function startCatalogueServer(
     options.changesStatus ??
     (changedRoutes || componentChanges ? "ready" : "unavailable");
   let updateVersion = options.updateVersion ?? 1;
+  let contentVersion = updateVersion;
   const server = http.createServer((request, response) => {
     if (controls && !localHost(request))
       return send(
@@ -177,6 +178,7 @@ export async function startCatalogueServer(
       controls?.capability(),
       documents,
       options.liveChanges === false ? undefined : changesStatus,
+      contentVersion,
     ).catch(() => {
       if (!response.destroyed && !response.headersSent)
         send(
@@ -264,6 +266,7 @@ export async function startCatalogueServer(
         activeCatalogue = catalogue;
       }
       updateVersion = nextVersion;
+      if (update.kind !== "evidence") contentVersion = nextVersion;
       reviewRoutes?.invalidate();
       const payload = `event: update\ndata: ${updateVersion}\n\n`;
       for (const stream of streams) stream.write(payload);

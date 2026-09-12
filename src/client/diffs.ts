@@ -50,6 +50,15 @@ export function installDiffs(
     }
     doc.dispatchEvent(new win.Event("mokabook:comparison"));
   };
+  doc.addEventListener("mokabook:evidence-updated", () => {
+    request?.abort();
+    request = undefined;
+    loaded = undefined;
+    if (mode !== "current") {
+      mode = "current";
+      display();
+    }
+  });
   const load = async (refresh: boolean): Promise<void> => {
     const target = screen;
     const stage = target?.querySelector<HTMLElement>("[data-diff-stage]");

@@ -74,10 +74,11 @@ export async function serve(
       dependencies.changeClassifier ?? DEFAULT_CHANGE_CLASSIFIER,
       (compilation, accepted) => {
         server.completeCatalogue?.(compilation.manifest, accepted.generation);
-        server.publishUpdate();
+        server.publishUpdate({ kind: "evidence" });
       },
       (snapshot) =>
         server.publishUpdate({
+          kind: "evidence",
           changedRoutes: snapshot?.changedRoutes ?? null,
           componentChanges: snapshot ?? null,
           changesStatus: snapshot ? "ready" : "unavailable",

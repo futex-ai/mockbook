@@ -4,8 +4,12 @@ export const SHELL_NAV_STATUS_CSS = `
   display: inline-grid;
   place-items: center;
   width: 4ch;
-  height: 12px;
+  height: 15px;
   line-height: 1;
+}
+
+.mbk-nav-filter-count:has(.mbk-nav-spinner) {
+  background: none;
 }
 
 .mbk-nav-spinner {

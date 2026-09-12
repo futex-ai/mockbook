@@ -8,6 +8,10 @@ import type { StaticDelivery } from "../../navigation/delivery.js";
 
 /** Server-side context shared by every shell page. */
 export interface ShellContext {
+  /** Revision of the rendered content, independent of background evidence. */
+  contentVersion?: number;
+  /** Retained on-demand renderer used even after exhaustive Usage completes. */
+  previewGeneration?: string;
   /** Live calculation state; omitted by static catalogues without Changes. */
   changesStatus?: ChangesStatus;
   renderCapability?: RenderCapability;

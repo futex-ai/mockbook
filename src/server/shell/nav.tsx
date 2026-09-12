@@ -75,6 +75,7 @@ function LeafRow(props: {
       data-entry-id={props.node.entryId}
       data-entry-kind={props.node.entryKind}
       data-nav-row=""
+      data-nav-removed={props.node.key.startsWith("removed:") ? "" : undefined}
       data-removed-page={props.node.removedPage ? "" : undefined}
       hidden={props.node.removedPage ? true : undefined}
       data-route={props.node.route}

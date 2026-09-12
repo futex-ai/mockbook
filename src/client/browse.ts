@@ -25,14 +25,18 @@ import {
 } from "./browse_navigation_state.js";
 import { applyPreviewFragmentQuery } from "./preview_fragment.js";
 import { isSameBrowseDocument, NavigationSequencer } from "./navigation.js";
+import { applyNavigationEvidence } from "./browse_evidence.js";
+import { fetchBrowseDestination } from "./browse_fetch.js";
+import {
+  beginNavigation,
+  finishNavigation,
+  readPageStamp,
+} from "./browse_update_state.js";
 import { browseLinkTarget } from "./browse_links.js";
+import { handleBrowseControl } from "./browse_controls.js";
 import { copyText } from "./clipboard.js";
 import { attachFrameNavigation } from "./frame_navigation.js";
-import {
-  adoptStaticDelivery,
-  documentFrameHref,
-  normalizeStaticAlias,
-} from "./static_delivery.js";
+import { documentFrameHref, normalizeStaticAlias } from "./static_delivery.js";
 import {
   handleTagControlClick,
   handleTagPickerKeydown,
@@ -59,6 +63,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   let displayedUrl = new URL(win.location.href);
   const rememberDocument = (): void => {
     sequencer.cancel();
+    finishNavigation(doc);
     restoringHistory = false;
     displayedUrl = new URL(win.location.href);
   };
@@ -113,27 +118,11 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
   ): Promise<void> => {
     if (push) restoringHistory = false;
     const slot = sequencer.begin();
-    let response: Response;
-    let text: string;
-    try {
-      response = await win.fetch(url, {
-        headers: { accept: "text/html" },
-        signal: slot.signal,
-      });
-      if (!response.ok && response.status !== 404)
-        throw new Error(`status ${response.status}`);
-      text = await response.text();
-    } catch {
-      if (slot.isCurrent()) win.location.assign(url);
-      return;
-    }
-    if (!slot.isCurrent()) return;
-    const parsed = new win.DOMParser().parseFromString(text, "text/html");
-    const nextMain = parsed.querySelector("[data-mokabook-view]");
-    if (!nextMain || !adoptStaticDelivery(doc, parsed)) {
-      win.location.assign(url);
-      return;
-    }
+    beginNavigation(doc);
+    const destination = await fetchBrowseDestination(doc, win, url, slot);
+    if (!destination || !slot.isCurrent()) return;
+    const { parsed, view: nextMain, url: finalUrl } = destination;
+    const nextStamp = readPageStamp(parsed);
     const viewport = currentViewport(doc);
     disposeWorkspace();
     for (const frame of main.querySelectorAll("iframe")) frame.remove();
@@ -141,7 +130,16 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
     if (push) persistScroll();
     diffs.reset();
     main.innerHTML = nextMain.innerHTML;
-    const finalUrl = response.url || url;
+    const baseline = nextMain.getAttribute("data-mokabook-baseline");
+    if (baseline) main.setAttribute("data-mokabook-baseline", baseline);
+    else main.removeAttribute("data-mokabook-baseline");
+    if (nextStamp) {
+      applyNavigationEvidence(doc, parsed);
+      doc.documentElement.setAttribute(
+        "data-mokabook-update-version",
+        String(nextStamp.version),
+      );
+    }
     displayedUrl = new URL(finalUrl, win.location.href);
     attachFrameNavigation(doc, frameActions);
     applyPreviewFragmentQuery(doc, new URL(finalUrl, win.location.href).search);
@@ -168,6 +166,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       "navigation",
     );
     syncTagChips(doc);
+    finishNavigation(doc);
     setDrawer(shell, false);
     restoreRegionScrolls(doc, restoreScrolls ?? {});
     if (!push) {
@@ -213,43 +212,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
       }
       return;
     }
-    if (target.closest("[data-mokabook-menu]")) {
-      setDrawer(shell, shell.dataset["drawer"] !== "open");
-      return;
-    }
-    if (target.closest("[data-mokabook-collapse]")) {
-      for (const group of doc.querySelectorAll<HTMLDetailsElement>(
-        "details[data-nav-disclosure]",
-      ))
-        group.open = false;
-      return;
-    }
-    const schemeOption = target
-      .closest("[data-color-scheme-option]")
-      ?.getAttribute("data-color-scheme-option");
-    if (schemeOption === "dark" || schemeOption === "light") {
-      setColorScheme(doc, schemeOption);
-      diffs.update();
-      return;
-    }
-    const viewportOption = target
-      .closest("[data-viewport-option]")
-      ?.getAttribute("data-viewport-option");
-    if (viewportOption) {
-      setViewport(doc, viewportOption);
-      diffs.update();
-      return;
-    }
-    const filterButton = target.closest("[data-filter]");
-    if (filterButton) {
-      for (const option of doc.querySelectorAll("[data-filter]"))
-        option.setAttribute(
-          "aria-pressed",
-          option === filterButton ? "true" : "false",
-        );
-      applyNavVisibility(doc, "reveal-matches");
-      return;
-    }
+    if (handleBrowseControl(doc, target, diffs.update)) return;
     if (handleFrameClick(doc, target)) {
       event.preventDefault();
       return;
@@ -302,6 +265,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
         : undefined;
     if (isSameBrowseDocument(displayedUrl, new URL(win.location.href))) {
       sequencer.cancel();
+      finishNavigation(doc);
       restoringHistory = false;
       if (scrolls) restoreRegionScrolls(doc, scrolls);
       return;
