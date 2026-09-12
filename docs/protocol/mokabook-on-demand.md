@@ -55,6 +55,10 @@ The selected filter survives loading updates and their completion, even if the
 current preview is unchanged or there are zero Changes. Neither the tabs nor the
 navigation content's top edge moves when the count replaces the loader. Reduced
 motion disables rotation. Static exports without Changes still omit these controls.
+Evidence completion updates the mounted shell and retains navigation and preview
+documents. It cannot clear search, open a collapsed current folder or interrupt
+temporary props. The [live evidence contract](./mokabook-live-evidence.md) defines
+revision fences, navigation races, usage ownership and reload fallback.
 The existing mobile/desktop Inspection unavailable designs also cover this usage
 state: “Usage is unavailable until the catalogue has been checked.” It does not
 add an environment label or replace a real zero-consumer result.

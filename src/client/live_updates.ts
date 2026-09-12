@@ -30,10 +30,12 @@ export interface RecoveryState {
 
 const RECOVERY_KEY = "mokabook:live-update-recovery";
 
-/** Coordinate latest-wins reloads and one-shot directory-state recovery. */
+/** Coordinate latest-wins refreshes and one-shot reload recovery. */
 export class LiveUpdateController {
   #lastVersion: number;
   readonly #pageVersionKnown: boolean;
+  #pending: AbortController | undefined;
+  #closed = false;
 
   constructor(
     private readonly stream: UpdateEventStream,
@@ -42,6 +44,10 @@ export class LiveUpdateController {
     private readonly captureBrowseState: () =>
       BrowseRecoveryState | undefined = () => undefined,
     pageVersion?: number,
+    private readonly refresh?: (
+      version: number,
+      signal: AbortSignal,
+    ) => Promise<number | undefined>,
   ) {
     const knownPageVersion = isUpdateVersion(pageVersion) ? pageVersion : 0;
     this.#pageVersionKnown = knownPageVersion > 0;
@@ -56,6 +62,8 @@ export class LiveUpdateController {
 
   /** Close the stream when the shell unmounts. */
   close(): void {
+    this.#closed = true;
+    this.#pending?.abort();
     this.stream.close();
   }
 
@@ -88,11 +96,34 @@ export class LiveUpdateController {
   }
 
   private receive(version: number, forceReload: boolean): void {
-    if (!isUpdateVersion(version) || version <= this.#lastVersion) return;
+    if (
+      this.#closed ||
+      !isUpdateVersion(version) ||
+      version <= this.#lastVersion
+    )
+      return;
     const initialReady =
       !this.#pageVersionKnown && this.#lastVersion === 0 && !forceReload;
     this.#lastVersion = version;
     if (initialReady) return;
+    this.#pending?.abort();
+    if (this.refresh) {
+      const pending = new AbortController();
+      this.#pending = pending;
+      void this.refresh(version, pending.signal)
+        .then((applied) => {
+          if (pending.signal.aborted || this.#closed) return;
+          if (isUpdateVersion(applied) && applied >= version)
+            this.#lastVersion = Math.max(this.#lastVersion, applied);
+          else this.reload(version);
+        })
+        .catch(() => {
+          if (!pending.signal.aborted && !this.#closed) this.reload(version);
+        });
+    } else this.reload(version);
+  }
+
+  private reload(version: number): void {
     const browse = this.captureBrowseState();
     const recovery: RecoveryState = {
       ...(browse ? { browse } : {}),

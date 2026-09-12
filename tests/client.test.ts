@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { setImmediate } from "node:timers/promises";
 import test from "node:test";
 
 import { parseBrowseRecoveryState } from "../dist/client/browse_recovery.js";
@@ -103,6 +104,94 @@ test("Browse recovery parsing rejects malformed session state", () => {
     }),
     undefined,
   );
+});
+
+test("background refresh is latest-wins and catches up beyond its triggering version", async () => {
+  const stream = new FakeStream();
+  const location = new FakeLocation();
+  const requests: Array<{
+    version: number;
+    signal: AbortSignal;
+    resolve(value: number | undefined): void;
+  }> = [];
+  const controller = new LiveUpdateController(
+    stream,
+    new FakeStorage(),
+    location,
+    browseState,
+    1,
+    (version, signal) =>
+      new Promise((resolve) => requests.push({ version, signal, resolve })),
+  );
+  controller.start();
+  stream.update(2);
+  stream.update(3);
+  assert.equal(requests[0]?.signal.aborted, true);
+  requests[1]!.resolve(5);
+  await setImmediate();
+  stream.update(4);
+  requests[0]!.resolve(undefined);
+  await setImmediate();
+  assert.equal(requests.length, 2);
+  assert.equal(location.reloads, 0);
+  assert.equal(controller.consumeRecovery(), undefined);
+  stream.update(6);
+  requests[2]!.resolve(undefined);
+  await setImmediate();
+  assert.equal(location.reloads, 1);
+  assert.equal(controller.consumeRecovery()?.version, 6);
+  controller.close();
+});
+
+test("a reconnected newer ready snapshot refreshes without losing Browse state", async () => {
+  const stream = new FakeStream();
+  const location = new FakeLocation();
+  const versions: number[] = [];
+  const controller = new LiveUpdateController(
+    stream,
+    new FakeStorage(),
+    location,
+    browseState,
+    1,
+    async (version) => {
+      versions.push(version);
+      return version;
+    },
+  );
+  controller.start();
+  stream.ready(3);
+  await setImmediate();
+  assert.deepEqual(versions, [3]);
+  assert.equal(location.reloads, 0);
+  assert.equal(controller.consumeRecovery(), undefined);
+  controller.close();
+});
+
+test("shutdown cancels refreshes and ignores late failures and newer events", async () => {
+  const stream = new FakeStream();
+  const location = new FakeLocation();
+  let reject: (reason: Error) => void = () => {};
+  let pending: AbortSignal | undefined;
+  const controller = new LiveUpdateController(
+    stream,
+    new FakeStorage(),
+    location,
+    browseState,
+    1,
+    (_version, signal) =>
+      new Promise((_resolve, fail) => {
+        pending = signal;
+        reject = fail;
+      }),
+  );
+  controller.start();
+  stream.update(2);
+  controller.close();
+  assert.equal(pending?.aborted, true);
+  reject(new Error("disconnected"));
+  stream.update(3);
+  await setImmediate();
+  assert.equal(location.reloads, 0);
 });
 
 function browseState(): BrowseRecoveryState {

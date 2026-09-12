@@ -4,6 +4,7 @@ import { compileCatalogue } from "../../dist/build/compile.js";
 import { writeCompilation } from "../../dist/build/transaction.js";
 import { loadConfig } from "../../dist/config/load.js";
 import { startCatalogueServer } from "../../dist/server/http.js";
+import type { CatalogueUpdate } from "../../dist/server/update_messages.js";
 import { createFixture, removeFixture } from "../helpers/fixture.js";
 
 for (const mobile of [false, true]) {
@@ -20,6 +21,8 @@ for (const mobile of [false, true]) {
       manifest: compilation.manifest,
       changesStatus: "pending",
     });
+    const publish = (update: CatalogueUpdate) =>
+      server.publishUpdate({ ...update, kind: "evidence" });
     try {
       await page.setViewportSize(
         mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 },
@@ -27,6 +30,9 @@ for (const mobile of [false, true]) {
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
       await page.goto(`${server.url}/view/screens/home.html`);
+      await page
+        .locator("html")
+        .evaluate((root) => root.setAttribute("data-test-retained", "true"));
       if (mobile) await page.locator("[data-mokabook-menu]").click();
       const all = page.locator('[data-filter="all"]');
       const changes = page.locator('[data-filter="changed"]');
@@ -51,7 +57,7 @@ for (const mobile of [false, true]) {
       await expect(status).toBeHidden();
       await changes.click();
 
-      server.publishUpdate({
+      publish({
         changedRoutes: ["screens/details.html"],
         changesStatus: "ready",
       });
@@ -65,18 +71,18 @@ for (const mobile of [false, true]) {
       expect(await filter.boundingBox()).toEqual(initialFilter);
       expect(await tree.boundingBox()).toEqual(initialTree);
 
-      server.publishUpdate({ changedRoutes: null, changesStatus: "pending" });
+      publish({ changedRoutes: null, changesStatus: "pending" });
       await expect(status).toContainText("Checking for changes");
       await expect(changes).toHaveAttribute("aria-pressed", "true");
-      server.publishUpdate({ changedRoutes: [], changesStatus: "ready" });
+      publish({ changedRoutes: [], changesStatus: "ready" });
       await expect(changes.locator(".mbk-nav-filter-count")).toHaveText("0");
       await expect(changes).toHaveAttribute("aria-pressed", "true");
       await expect(status).toContainText("No changes found");
       expect(await filter.boundingBox()).toEqual(initialFilter);
 
-      server.publishUpdate({ changedRoutes: null, changesStatus: "pending" });
+      publish({ changedRoutes: null, changesStatus: "pending" });
       await expect(filter).toHaveAttribute("data-changes-status", "pending");
-      server.publishUpdate({ changesStatus: "unavailable" });
+      publish({ changesStatus: "unavailable" });
       await expect(status).toContainText("Changes are unavailable");
       await expect(page.locator(".mbk-nav-spinner")).toHaveCount(0);
       await page.screenshot({ path: testInfo.outputPath("unavailable.png") });
@@ -87,7 +93,7 @@ for (const mobile of [false, true]) {
       ).toBeVisible();
       expect(await filter.boundingBox()).toEqual(initialFilter);
       await page.emulateMedia({ reducedMotion: "reduce" });
-      server.publishUpdate({ changedRoutes: null, changesStatus: "pending" });
+      publish({ changedRoutes: null, changesStatus: "pending" });
       await expect(changes.locator(".mbk-nav-spinner")).toHaveCSS(
         "animation-name",
         "none",
@@ -98,6 +104,10 @@ for (const mobile of [false, true]) {
       await page.keyboard.press("Space");
       await expect(status).toBeVisible();
       expect(errors).toEqual([]);
+      await expect(page.locator("html")).toHaveAttribute(
+        "data-test-retained",
+        "true",
+      );
     } finally {
       await server.close();
       await removeFixture(fixture);

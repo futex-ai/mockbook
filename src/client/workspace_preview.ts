@@ -42,6 +42,25 @@ export function workspaceFrames(
       : [];
   });
 }
+
+/** Reveal a selected instance inside its authenticated current document. */
+export function revealWorkspaceInstance(
+  root: HTMLElement,
+  viewport: "mobile" | "desktop",
+  view: GeneratedComponentView | undefined,
+  key: string,
+): void {
+  const frame = root.querySelector<HTMLIFrameElement>(
+    `iframe[data-workspace-frame="${viewport}"]`,
+  );
+  if (!frame || !view?.usage) return;
+  const range = authenticateRanges(frame, view.path, view.usage)?.ranges.get(
+    key,
+  )?.[0];
+  const node = range?.startContainer.childNodes[range.startOffset];
+  const target = node?.nodeType === 1 ? (node as Element) : node?.parentElement;
+  target?.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
 export function highlightUnavailable(
   root: HTMLElement,
   views: readonly GeneratedComponentView[],

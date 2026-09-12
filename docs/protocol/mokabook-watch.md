@@ -2,8 +2,9 @@
 
 `mokabook serve` watches by default; `--no-watch` serves one deterministic
 snapshot. Every development catalogue shell loads the package-owned browser client, which connects to
-the versioned event stream and reloads its current durable URL after a higher
-version arrives. Snapshot panes do not run this client. Watch classification
+the versioned event stream. Higher versions refresh background evidence in place
+or reload the durable URL when content has changed, as defined by the
+[live evidence contract](./mokabook-live-evidence.md). Snapshot panes do not run this client. Watch classification
 derives from resolved config, both source graphs, and the resources referenced
 by generated output:
 
@@ -167,8 +168,9 @@ to replace generated output or restart the same child. The parent assigns a
 monotonic integer update version to each child and asset reload. Every served
 catalogue shell carries the update version captured when its request began. The client
 seeds its page baseline from that stamp: an equal event-stream `ready` version
-is a no-op, while a higher `ready` version or `update` event triggers one reload
-and one-shot state recovery. A document without a valid stamp retains
+is a no-op, while a higher `ready` version or `update` event requests the current
+shell snapshot. Equal content versions adopt evidence without navigation recovery;
+a newer content version triggers reload and one-shot state recovery. A document without a valid stamp retains
 compatibility behavior in which its first `ready` version establishes the
 baseline.
 
@@ -182,7 +184,7 @@ available zero count. They must retain subsequent-edit and comparison
 invalidation assertions rather than assuming exactly one publication per edit.
 
 Publishing an update without restarting the child marks its cached comparison
-stale before notifying browsers. Reload restores Current, so comparison work
+stale before notifying browsers. Both content reloads and evidence adoption restore Current, so comparison work
 waits for another explicit diff selection. Concurrent comparison requests reuse
 one regeneration and snapshots remain pinned to their immutable generation.
 

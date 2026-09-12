@@ -9,6 +9,7 @@ import {
   type ReloadLocation,
   type UpdateEventStream,
 } from "./live_updates.js";
+import { refreshBrowseEvidence } from "./browse_refresh.js";
 
 /** EventSource subset consumed by the browser adapter. */
 export interface BrowserEventSource {
@@ -26,6 +27,7 @@ export interface BrowserLiveUpdateEnvironment {
   location: ReloadLocation;
   onPageHide(callback: () => void): void;
   pageVersion?: number;
+  refresh?(version: number, signal: AbortSignal): Promise<number | undefined>;
   restoreBrowseState(state: BrowseRecoveryState): void;
   storage: RecoveryStorage;
 }
@@ -40,6 +42,7 @@ export function startBrowserLiveUpdates(
     environment.location,
     environment.captureBrowseState,
     environment.pageVersion,
+    environment.refresh,
   );
   const recovery = controller.consumeRecovery();
   if (recovery?.browse && recovery.url === environment.location.href)
@@ -88,6 +91,8 @@ if (typeof window !== "undefined" && typeof EventSource !== "undefined") {
     onPageHide: (callback) =>
       window.addEventListener("pagehide", callback, { once: true }),
     ...(updateVersion ? { pageVersion: updateVersion } : {}),
+    refresh: (version, signal) =>
+      refreshBrowseEvidence(document, window, version, signal),
     restoreBrowseState: (state) => restoreBrowseState(document, window, state),
     storage: window.sessionStorage,
   });
