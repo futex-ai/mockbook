@@ -10,7 +10,8 @@ narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` belongs only to static `export`.
 
 [Pages](./mokabook-pages.md) participate in Changes and removed-entry states,
-while comparison controls remain screen-only. The
+while comparison controls remain exclusive to changed screens and eligible
+component variants. The
 [shared catalogue snapshot](./mokabook-catalogue-changes.md) supplies metadata
 independently of screen results; removed pages are flat Changes-only rows with
 baseline ancestry. Review reads follow the [source policy](./mokabook-source-protection.md).
@@ -99,10 +100,11 @@ dropping views or disabling Git file validation.
 
 ## Screen controls
 
-Review-enabled screens and saved component variants with actual changed or removed comparison
-views offer Current / Side by side / Overlay / Difference in an opaque band
+Review-enabled changed screens and saved component variants with actual Changed
+or Removed comparison views offer Current / Side by side / Overlay / Difference in an opaque band
 beneath the heading. Known unchanged views show Unmodified without that band;
 known added views show Added with their current preview and no comparison band;
+known removed screens show Removed with a current empty state and no comparison band;
 unknown evidence has no invented status. Eligibility follows saved view evidence,
 so affected-only consumers can compare their actual rendered differences while
 staying outside Changes. Current is selected initially, including
@@ -119,14 +121,14 @@ frames remain sandboxed without scripts or catalogue navigation privileges.
 Overlay places the current snapshot at 50% opacity above its baseline;
 Difference uses CSS difference blending. These are document comparisons, not
 pixel measurements. They must never display invented pixel counts or percentages.
-Missing current views for removed entries remain explicit and legible in every mode.
+Missing current views for removed component variants remain explicit and legible in every mode.
 Comparison frames retain matching dimensions; individual browser expansion is
 available only in Current so it cannot misalign an overlay.
 
 Loading, unavailable, and failed comparison states use plain product copy.
 Failure offers a retry. All and Changes share the same comparison eligibility.
-Removed screens remain discoverable in Changes and show an explicit missing
-current state until a comparison is requested. Dependency and ignored-region
+Removed screens remain discoverable in Changes and show an explicit current
+empty state without offering a comparison. Dependency and ignored-region
 evidence stays secondary to the screen preview.
 
 ## Generation and serving

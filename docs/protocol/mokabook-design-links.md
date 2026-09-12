@@ -101,7 +101,6 @@ directory and catalogue group without moving the existing page.
 | Changed catalogue: Welcome / Details / Farewell | `design-changes-current` / `design-review-added` / `design-review-removed`                     |
 | MiniWelcome: Open the details screen            | `design-browse-details-screen`; under dark selection, `design-browse-light-only`               |
 | MiniDetails: Return to welcome                  | `design-browse-screen`; under dark selection, `design-browse-dark-scheme`                      |
-| MiniFarewell: Return to welcome                 | `design-browse-screen`                                                                         |
 | Depicted use-case step reference                | Welcome: `design-browse-screen`; Details: `design-browse-details-screen`                       |
 | Welcome/Details inspector: Example tour         | `design-browse-use-case`                                                                       |
 | Home menu open / drawer close                   | `design-browse-navigation` / `design-browse-home`                                              |
@@ -164,9 +163,9 @@ its Current action returns to `design-changes-current`. Current is already
 selected in `design-changes-current`, so it has no
 transition there. Returning to All uses the navigation table above.
 
-Added Details shows its Current preview without comparison modes; removed
-Farewell has no Current destination. Other modes on Removed and the dark
-comparison have no matching authored state and remain non-link depictions.
+Added Details shows its Current preview without comparison modes. Removed
+Farewell shows a current empty state without comparison modes and has no live
+product destination. Unsupported dark-comparison modes remain non-link depictions.
 Shared-impact/ignored-only and empty Changes keep a Current preview
 without comparison modes; factual evidence lives in Details. Their existing
 routes and All escape remain available. A future interactive mode needs its

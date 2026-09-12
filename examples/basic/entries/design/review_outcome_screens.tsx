@@ -1,16 +1,19 @@
 import { screen } from "mokabook";
 
-import { CompareGrid, MissingPane, Pane } from "./parts/compare.js";
+import { CompareGrid, Pane } from "./parts/compare.js";
+import { PreviewWorkspace } from "./components/parts/workspace.js";
 import {
   ComparePage,
   FramedShot,
   type CompareViewport,
 } from "./parts/compare_page.js";
 import { DESTINATIONS } from "./parts/destinations.js";
+import { DetailsPanel } from "./parts/details.js";
 import { ExampleWorkspace } from "./parts/example_workspace.js";
-import { MiniFarewell, MiniWelcome } from "./parts/mini_screens.js";
+import { MiniWelcome } from "./parts/mini_screens.js";
 import { ReviewNav } from "./parts/review.js";
 import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
+import { EmptyState } from "./parts/stage_content.js";
 
 function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   return (
@@ -65,34 +68,33 @@ function AddedCurrent({ viewport }: { viewport: CompareViewport }) {
   );
 }
 
-function RemovedCompare({ viewport }: { viewport: CompareViewport }) {
+function RemovedCurrent({ viewport }: { viewport: CompareViewport }) {
   return (
-    <ComparePage
+    <Shell
       design={DESTINATIONS.removed}
-      activeTitle="Farewell"
-      subject="farewell"
-      idChip="example-farewell"
-      state="removed"
-      title="Farewell"
       viewport={viewport}
-      render={(previewViewport) => (
-        <CompareGrid>
-          <Pane label="Before" side="before">
-            <FramedShot
-              address="example.test/farewell"
-              viewport={previewViewport}
-            >
-              <MiniFarewell compact={previewViewport === "mobile"} />
-            </FramedShot>
-          </Pane>
-          <MissingPane
-            label="Current"
-            message="This screen was removed on this branch."
-            side="after"
+      nav={viewport === "desktop" ? <ReviewNav activeTitle="Farewell" /> : null}
+    >
+      <ScreenHead
+        action={<ViewSwitch active={viewport} />}
+        crumbs={["Example", "Screens"]}
+        idChip="example-farewell"
+        status="removed"
+        title="Farewell"
+      />
+      <PreviewWorkspace
+        inspector={
+          <DetailsPanel subject="farewell" comparisonEvidence={null} />
+        }
+        render={() => (
+          <EmptyState
+            body="There is no current preview to show."
+            title="This screen was removed"
+            to={DESTINATIONS.home}
           />
-        </CompareGrid>
-      )}
-    />
+        )}
+      />
+    </Shell>
   );
 }
 
@@ -189,10 +191,10 @@ export const reviewOutcomeScreens = [
   }),
   screen({
     colorSchemes: ["light"],
-    description: "A removed screen keeping only its base render.",
-    desktop: <RemovedCompare viewport="desktop" />,
+    description: "A removed screen shown as an empty current state.",
+    desktop: <RemovedCurrent viewport="desktop" />,
     id: "design-review-removed",
-    mobile: <RemovedCompare viewport="mobile" />,
+    mobile: <RemovedCurrent viewport="mobile" />,
     slug: "removed",
     title: "Removed screen",
   }),

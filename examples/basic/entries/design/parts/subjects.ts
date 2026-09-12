@@ -36,9 +36,10 @@ export const SUBJECTS: Record<ScreenSubject, SubjectMetadata> = {
     tour: true,
   },
   farewell: {
-    description: "Farewell is a retired screen shown in the comparison.",
+    description: "Farewell was removed from the catalogue.",
     generated: "No current screen",
-    rationale: "The previous version remains available to review the removal.",
+    rationale:
+      "The empty state makes the removal clear while its recorded details remain available.",
     schemes: "light",
     source: "Previous version",
     tags: [],

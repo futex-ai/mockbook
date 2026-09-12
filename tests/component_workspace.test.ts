@@ -95,7 +95,7 @@ test("a renamed screen keeps distinct Added and Removed evidence in a component 
   assert.equal(after.status, "Added");
   assert.equal(after.comparisonEligible, false);
   assert.equal(before.status, "Removed");
-  assert.equal(before.comparisonEligible, true);
+  assert.equal(before.comparisonEligible, false);
   assert.deepEqual(after.change?.reasons, [
     { kind: "added" },
     { kind: "material" },
@@ -104,4 +104,46 @@ test("a renamed screen keeps distinct Added and Removed evidence in a component 
     { kind: "material" },
     { kind: "removed" },
   ]);
+});
+
+test("a removed component variant retains its previous comparison", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) =>
+    source.replace(
+      ', { id: "disabled", title: "Disabled", props: { label: "Continue", disabled: true } }',
+      "",
+    ),
+  );
+  const { result } = await compareReview(
+    fixture.after,
+    fixture.config,
+    fixture.git,
+    "main",
+  );
+  if (result.schemaVersion !== 3) assert.fail("Expected component result");
+  const catalogue = createCatalogue(fixture.after.manifest);
+  const entry = catalogue.byId.get("action");
+  if (entry?.kind !== "component") assert.fail("Expected component");
+  const data = workspaceData(
+    catalogue,
+    {
+      base: "main",
+      updateVersion: 1,
+      comparisons: true,
+      componentChanges: { baseline: fixture.before.manifest, result },
+    },
+    entry,
+  );
+  assert.equal(data.status, "Changed");
+  assert.equal(data.comparisonEligible, true);
+  assert.deepEqual(
+    data.variants.map((variant) => [
+      variant.value.id,
+      variant.status,
+      variant.comparisonEligible,
+    ]),
+    [
+      ["default", "Unmodified", false],
+      ["disabled", "Removed", true],
+    ],
+  );
 });

@@ -111,6 +111,8 @@ active content scrolls; closing and reopening retains edits. Viewport carets,
 the mobile menu, and the Usage icon use centered SVGs. Known entries show
 Added, Changed, Removed, or Unmodified; removing a variant marks its surviving
 component Changed. The States → Additions gallery demonstrates a newly added Badge.
+Removed screens show their status and current empty state without comparison
+controls; the removed component variant retains its baseline comparison.
 Comparison facts live in Details, using shared fixture values for prop differences
 and linked component changes. These rows do not generate descriptions of visual
 changes. Disabled highlighting explains its specific reason, and outline labels
@@ -160,8 +162,10 @@ routes, fixture relationships, mask geometry, and delivery status live in the
 [workspace design](../../docs/protocol/mokabook-component-workspace-design.md).
 
 All unchanged Browse designs, including the tag picker, omit comparison controls.
-Changed and removed designs retain an opaque comparison band. Added designs
-show their current preview and status without comparison controls. The
+Changed screens and changed or removed component variants retain an opaque
+comparison band. Added designs show their current preview and status without
+comparison controls; removed screens show their status and current empty state
+without them. The
 shared-impact and ignored-only examples open from All with zero Changes and one
 Current preview. Dependency evidence remains available in Details, while
 unchanged output and paired ignored-only edits do not fill the review list.

@@ -37,6 +37,12 @@ for (const viewport of ["desktop", "mobile"] as const) {
         await expect(page.locator(".ce-comparison-evidence")).not.toContainText(
           "corners and spacing",
         );
+        if (route === "states/removed-consumer")
+          await expect(
+            page.getByRole("region", { name: "Details", exact: true }),
+          ).toContainText(
+            "A former screen that is no longer in the catalogue.",
+          );
       }
       for (const route of [
         "overview",
@@ -76,7 +82,7 @@ for (const viewport of ["desktop", "mobile"] as const) {
         ["states/unavailable", "Component inspection is unavailable"],
         [
           "states/removed-consumer",
-          "Highlighting is unavailable in comparisons",
+          "Highlighting is unavailable for removed screens",
         ],
       ]) {
         await page.goto(componentDesignUrl(route!, viewport));

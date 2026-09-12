@@ -38,7 +38,6 @@ for (const viewport of ["mobile", "desktop"] as const) {
         "mbk-shot-link",
         ["design-browse-dark-scheme"],
       ],
-      ["design-review-removed", "mbk-shot-link", ["design-browse-screen"]],
       [
         "design-browse-use-case",
         "flow-step-link",
@@ -70,6 +69,9 @@ for (const viewport of ["mobile", "desktop"] as const) {
           );
       }
     }
+    const removed = await designDocument("design-review-removed", viewport);
+    assert.equal(byClass(removed.document, "mbk-shot-link").length, 0);
+    assert.equal(byClass(removed.document, "mbk-empty-link").length, 0);
   });
 
   test(`${viewport}: navigation chrome uses explicit leaves and canonical recovery`, async () => {

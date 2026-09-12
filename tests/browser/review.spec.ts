@@ -92,7 +92,7 @@ test("unchanged views omit comparisons while changed views retain all modes", as
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
-test("added screens stay current while removed screens retain legible missing panes", async ({
+test("added and removed screens stay current without comparison controls", async ({
   page,
 }) => {
   await page.goto(`${fixture.url}/view/screens/added.html`);
@@ -109,17 +109,15 @@ test("added screens stay current while removed screens retain legible missing pa
   await expect(
     page.locator('[data-route="screens/removed.html"]'),
   ).toBeVisible();
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Removed");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
   await expect(page.locator("[data-current-screen]")).toContainText(
     "This screen was removed",
   );
-  for (const mode of ["Overlay", "Difference", "Side by side"]) {
-    if (mode === "Overlay") await loadComparison(page, mode);
-    else await page.getByRole("button", { name: mode, exact: true }).click();
-    await expect(page.locator(".mb-pane-missing").first()).toContainText(
-      "This screen was removed",
-    );
-    await expect(page.locator(".mb-pane-missing").first()).toBeVisible();
-  }
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "There is no current preview to show.",
+  );
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
 test("pending requests cannot replace Current or a newly navigated screen", async ({

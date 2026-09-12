@@ -68,7 +68,7 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   expect(failures).toEqual([]);
 });
 
-test("added screens stay current while removed and light-only screens retain comparison sides", async ({
+test("added and removed screens stay current while light-only comparisons retain their sides", async ({
   page,
 }) => {
   await page.goto(`${site.url}/id/added/`);
@@ -82,12 +82,12 @@ test("added screens stay current while removed and light-only screens retain com
   await page.goto(`${site.url}/id/removed/`);
   await chooseViewport(page, "mobile");
   await expect(page).toHaveURL(`${site.url}/view/screens/removed.html`);
-  await page.getByRole("button", { name: "Side by side", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
-  await expect(
-    page.frameLocator("[data-diff-stage] iframe").locator("main"),
-  ).toHaveText("removed");
-  await expect(page.locator(".mb-pane-missing")).toContainText("removed");
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Removed");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "There is no current preview to show.",
+  );
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
   await page.goto(`${site.url}/view/screens/details.html`);
   await chooseScheme(page, "dark");
   await page.getByRole("button", { name: "Overlay", exact: true }).click();

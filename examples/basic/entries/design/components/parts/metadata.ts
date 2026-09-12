@@ -79,7 +79,7 @@ export const SCREENS = {
     id: "example-farewell",
     title: "Farewell",
     source: "screens/Farewell.tsx",
-    description: "A former screen retained for comparison.",
+    description: "A former screen that is no longer in the catalogue.",
   },
 } as const;
 

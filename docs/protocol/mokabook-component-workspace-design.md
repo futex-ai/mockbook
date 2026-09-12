@@ -33,7 +33,8 @@ of newly entered prop values. Highlighting uses the fixture's existing overlay
 geometry and never dims an ancestor of a highlighted component.
 
 Disable highlighting when no registered components exist, inspection is
-unavailable, or a comparison is selected. The tooltip and accessible description
+unavailable, a comparison is selected, or the screen was removed and has no
+current preview. The tooltip and accessible description
 state that specific reason; zero usage must not be confused with missing data.
 Highlight labels are separate rounded chips with a small gap above an intact
 rounded outline. The chip must not overlap the outline's corner or obscure the
@@ -86,13 +87,17 @@ empty designs retain Current without comparison controls.
 All is a catalogue filter, not evidence that the selected example changed.
 Known examples show Added, Changed, Removed, or Unmodified beside the title,
 using the selected entry's comparison state. Added and Unmodified examples retain
-their current preview with no comparison mode row. Changed, removed, or affected
-examples retain the relevant comparison controls. Temporary prop
+their current preview with no comparison mode row. Removed screens show their
+badge and current empty state without a comparison mode row. Changed screens,
+Changed or Removed component variants, and affected examples retain the relevant
+comparison controls. Temporary prop
 edits never create committed changes or make comparison controls appear.
 
 Normal component/control fixtures depict an unchanged saved example and zero
-catalogue changes. Changed component, independent screen change, and removal
-fixtures retain their explicit Changes counts and before/current presentation.
+catalogue changes. Changed component and independent screen-change fixtures
+retain their explicit Changes counts and before/current presentation. A Removed
+component variant retains before/current presentation; a Removed screen uses a
+current empty state.
 Missing inspection metadata is distinct from comparison availability.
 
 The runtime uses actual comparison eligibility for the selected saved example.
@@ -101,7 +106,8 @@ trigger eager screenshot work merely to decide whether to show a mode row.
 Affected consumers may still expose comparisons while staying out of Changes.
 
 Entry status and variant status are distinct. Removing Compact from Action is
-a Changed component with a Removed variant; Farewell is a Removed screen.
+a Changed component with a comparable Removed variant; Farewell is a Removed
+screen with no comparison controls.
 The Added Badge example lives in States → Additions and shows its current saved
 preview without comparison controls, plus one Changes entry. The existing unused Badge
 example remains Unmodified. Status must never be inferred from usage counts.
@@ -111,7 +117,8 @@ example remains Unmodified. Status must never be inferred from usage counts.
 Name the information icon Details. Keep comparison evidence, when present,
 inside this panel alongside description and secondary source metadata. Do not
 add a comparison disclosure below the canvas or a separate explanatory banner
-above it. The panel is available on removed-screen comparisons too. Unmodified
+above it. The panel remains available on a Removed screen's current empty state
+even though that screen has no comparison modes. Unmodified
 examples omit the comparison section.
 
 Use structured evidence: entry/variant state, a generic output-change reason,

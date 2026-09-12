@@ -66,9 +66,12 @@ export interface WorkspaceData {
   inputChanges: readonly InputChange[];
 }
 
-/** Comparisons need either two versions or removed content that Current cannot show. */
-function isComparisonEligible(status: EntryStatus | undefined): boolean {
-  return status === "Changed" || status === "Removed";
+/** Screens compare edits; component variants also retain removed saved values. */
+function isComparisonEligible(
+  status: EntryStatus | undefined,
+  kind: WorkspaceData["entry"]["kind"],
+): boolean {
+  return status === "Changed" || (kind === "component" && status === "Removed");
 }
 
 /** Entry state and actual saved views stay independent of Changes membership. */
@@ -140,7 +143,10 @@ export function workspaceData(
           return {
             value,
             removed: isRemoved,
-            comparisonEligible: isComparisonEligible(variantStatus),
+            comparisonEligible: isComparisonEligible(
+              variantStatus,
+              "component",
+            ),
             ...(variantStatus ? { status: variantStatus } : {}),
           };
         });
@@ -218,7 +224,7 @@ export function workspaceData(
     entry,
     removed,
     comparisons: context.comparisons ?? false,
-    comparisonEligible: isComparisonEligible(status),
+    comparisonEligible: isComparisonEligible(status, entry.kind),
     base: context.base,
     inputChanges,
     relatedComponents: (result?.components ?? [])

@@ -245,8 +245,17 @@ for (const viewport of ["desktop", "mobile"] as const) {
       await expect(
         page
           .locator(".ce-preview-view:visible")
-          .getByText("Farewell has been removed.", { exact: true }),
+          .getByText("This screen was removed", { exact: true }),
       ).toBeVisible();
+      await expect(
+        page
+          .locator(".ce-preview-view:visible")
+          .getByText("There is no current preview to show.", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("group", { name: "Comparison mode" }),
+      ).toHaveCount(0);
+      await expect(page.locator(".mbk-pane-missing")).toHaveCount(0);
       await expect(
         page.getByRole("switch", { name: "Highlight components" }),
       ).toBeDisabled();

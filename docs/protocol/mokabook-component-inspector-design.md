@@ -19,7 +19,8 @@ style, and a tooltip. Only the active icon has the sage selected treatment.
 
 Details contains the description, secondary source/reference metadata, and any
 comparison evidence. Comparison facts never occupy a separate canvas disclosure
-or header banner. The panel remains available on removed-screen comparisons.
+or header banner. The panel remains available on Removed screen current empty
+states even though those screens expose no comparison modes.
 Components contains the nested instance tree and explicit empty/unavailable
 states. Props contains the selected variant or instance's supplied values,
 slot ownership, and Open component/Highlight actions. Controls replaces the

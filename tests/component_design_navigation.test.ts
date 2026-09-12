@@ -38,7 +38,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
         INSPECTION_PAGES["direct-change"],
         INSPECTION_PAGES["removed-consumer"],
       ]).has(id);
-      const comparable = changed && id !== COMPONENT_PAGES.added;
+      const comparable =
+        changed &&
+        id !== COMPONENT_PAGES.added &&
+        id !== INSPECTION_PAGES["removed-consumer"];
       assert.equal(
         byClass(document, "ce-unmodified").length,
         changed ? 0 : 1,

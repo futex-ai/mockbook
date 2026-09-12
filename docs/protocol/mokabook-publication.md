@@ -148,6 +148,8 @@ performs the same filesystem consistency checks without consulting Git.
 With `--include-changes`, publish the existing All/Changes navigation and screen
 comparison controls, including a zero changed count. Retain removed-screen
 metadata, routes, and comparisons under the existing ID/route precedence rules.
+Render those removed screens with their Removed badge and current empty state,
+without exposing comparison controls.
 Include page impact and removed registered-page missing-current
 states from the [shared catalogue snapshot](./mokabook-catalogue-changes.md),
 including flat Changes rows after deleting their parents. Pages have no visual comparisons; screen metadata remains supported.

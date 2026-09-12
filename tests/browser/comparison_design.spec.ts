@@ -36,14 +36,14 @@ test("comparison designs use screen context instead of report chrome", async ({
   ]) {
     for (const viewport of ["desktop", "mobile"]) {
       await page.goto(design(`review/${route}.${viewport}.html`));
-      const hasComparison = route !== "outcomes/added";
+      const hasEvidence = route !== "outcomes/added";
       await expect(
         page.locator(".mbk-title-row .mbk-status, .mbk-review-summary"),
       ).toHaveCount(0);
       const comparisonDetails = page.getByText("Comparison details", {
         exact: true,
       });
-      if (hasComparison) {
+      if (hasEvidence) {
         await expect(comparisonDetails).toBeVisible();
       } else {
         await expect(comparisonDetails).toHaveCount(0);
@@ -58,13 +58,30 @@ test("comparison designs use screen context instead of report chrome", async ({
         viewport === "desktop" ? 1 : 0,
       );
       await expect(page.locator(".ce-inspector-resize:visible")).toHaveCount(
-        viewport === "desktop" && hasComparison ? 1 : 0,
+        viewport === "desktop" && hasEvidence ? 1 : 0,
       );
-      await expect(
-        page
-          .locator(viewport === "desktop" ? ".browser-frame" : ".phone-frame")
-          .first(),
-      ).toBeVisible();
+      if (route === "outcomes/removed") {
+        await expect(page.locator("[data-change-status]")).toHaveText(
+          "Removed",
+        );
+        await expect(
+          page.getByText("Farewell was removed from the catalogue.", {
+            exact: true,
+          }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("group", { name: "Comparison mode" }),
+        ).toHaveCount(0);
+        await expect(page.locator(".mbk-empty").first()).toContainText(
+          "There is no current preview to show.",
+        );
+      } else {
+        await expect(
+          page
+            .locator(viewport === "desktop" ? ".browser-frame" : ".phone-frame")
+            .first(),
+        ).toBeVisible();
+      }
     }
   }
 });

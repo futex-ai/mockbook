@@ -27,7 +27,11 @@ export function ComponentWorkspace({
   const stage = data.removed ? (
     <div className="mbk-empty" data-mokabook-stage="" data-viewport="both">
       <h2>This {entry.kind} was removed</h2>
-      <p>Select a comparison to see the previous version.</p>
+      <p>
+        {entry.kind === "component"
+          ? "Select a comparison to see the previous version."
+          : "There is no current preview to show."}
+      </p>
     </div>
   ) : (
     <TargetStage

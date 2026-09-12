@@ -45,7 +45,7 @@ mobile component and desktop component; there are no new user-flow pages.
 | `design-component-unavailable`              | `design/components/states/unavailable.html`           | Missing inspection metadata                             |
 | `design-component-unused`                   | `design/components/states/unused.html`                | Saved component with no consumers                       |
 | `design-component-removed`                  | `design/components/states/removed.html`               | Removed saved variant and former consumer               |
-| `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Retained removed-screen comparison                      |
+| `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Removed badge and current empty screen state            |
 | `design-component-added`                    | `design/components/states/additions/added.html`       | Added Badge current preview without comparison controls |
 
 Standalone files insert `.mobile` or `.desktop` before `.html`. All thirty-two component
@@ -97,9 +97,10 @@ mobile/desktop × light/dark. A component-only appearance edit produces exactly
 one Changes row, Action; Welcome and Details appear under Affected screens.
 An independent Welcome label edit adds Welcome, making two Changes rows.
 The removed-state scenario also retains the former Farewell consumer and links
-it to its before/current comparison. Farewell is independently removed, so
-that scenario has two Changes rows: Action and Farewell. The missing current
-side is explicit.
+it to its current empty state. Farewell is independently removed, so that
+scenario has two Changes rows: Action and Farewell. The Removed Action variant
+keeps its before/current comparison and explicit missing current side; Farewell
+has no comparison band.
 
 Every known entry carries an Added, Changed, Removed, or Unmodified badge beside
 its title. Action stays Changed when only Compact is removed; Farewell is Removed.
@@ -129,13 +130,14 @@ The same consumer DOM is used with highlighting off and on. Welcome uses an SVG 
 
 Mask geometry is fixed to the synthetic artboard's layout and tested against
 its actual DOM bounds. Runtime geometry collection, selection, Escape handling,
-and cleanup belong to Milestone 5. The comparison artboard disables highlighting.
+and cleanup belong to Milestone 5. Comparison artboards disable highlighting,
+as does a Removed screen because it has no current preview to inspect.
 An empty usage list says no registered components are used in this view;
 unavailable inspection never claims a zero count. Badge has a visible saved
 example and an explicit empty Used by list.
 
 Disabled highlight controls explain whether there are no registered components,
-inspection is unavailable, or a comparison is selected. Highlight chips have a
+inspection is unavailable, a comparison is selected, or the screen was removed. Highlight chips have a
 small gap above an intact rounded outline, shared by all three region layouts.
 
 ## Verification And Maintenance
