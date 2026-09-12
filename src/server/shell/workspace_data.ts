@@ -218,6 +218,9 @@ export function workspaceData(
       .map((item) => item.changedComponentId),
   );
   return {
+    ...(context.previewGeneration
+      ? { previewGeneration: context.previewGeneration }
+      : {}),
     ...(catalogue.manifest.schemaVersion === "live-index-1"
       ? {
           usageComplete: false,
@@ -241,7 +244,12 @@ export function workspaceData(
     components: [...catalogue.manifest.entries, ...catalogue.removedComponents]
       .filter((item): item is ManifestComponent => item.kind === "component")
       .map(({ id, title, route }) => ({ id, title, route })),
-    views: generatedViews(entry),
+    views: generatedViews(entry).map((view) => {
+      if (!context.previewGeneration || removed) return view;
+      const demand = { ...view };
+      delete demand.usage;
+      return demand;
+    }),
     variants,
     usedBy: (catalogue.manifest.schemaVersion === "live-index-1"
       ? []

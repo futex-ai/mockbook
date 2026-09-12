@@ -86,7 +86,7 @@ function waitForChildShutdown(
         complete &&
         server.completeCatalogue?.(complete.manifest, complete.generation)
       ) {
-        server.publishUpdate({ version: complete.version });
+        server.publishUpdate({ kind: "evidence", version: complete.version });
       }
       const runtime = parseRuntimeMessage(message);
       if (runtime && manifest) {
@@ -103,6 +103,7 @@ function waitForChildShutdown(
       const update = parseChildUpdateMessage(message);
       if (update)
         server.publishUpdate({
+          ...(update.kind ? { kind: update.kind } : {}),
           changesStatus:
             update.changesStatus ??
             (update.changedRoutes === null ? "pending" : "ready"),

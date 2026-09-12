@@ -11,8 +11,13 @@ import { isSafeCatalogueRoute } from "../config/paths.js";
 /** Whether live change detection is running, complete, or could not finish. */
 export type ChangesStatus = "pending" | "ready" | "unavailable";
 
-/** Mutable running-server state published before clients reload. */
+/** Evidence updates retain the current rendered content and user interactions. */
+export type CatalogueUpdateKind = "content" | "evidence";
+
+/** Mutable running-server state published before clients refresh. */
 export interface CatalogueUpdate {
+  /** Defaults to content, requiring clients to refresh their rendered documents. */
+  kind?: CatalogueUpdateKind;
   /** Omit to retain status unless the update replaces change evidence. */
   changesStatus?: ChangesStatus;
   /** Omit to retain state, use `null` when changed-route detection is unavailable. */
@@ -25,6 +30,7 @@ export interface CatalogueUpdate {
 
 /** Parent-to-child update command with an explicit changed-route snapshot. */
 export interface ChildUpdateMessage {
+  kind?: CatalogueUpdateKind;
   changesStatus?: ChangesStatus;
   changedRoutes: readonly string[] | null;
   componentChanges: ComponentChangeSnapshot | null;
@@ -78,8 +84,10 @@ export function childUpdateMessage(
   changedRoutes: readonly string[] | undefined,
   componentChanges?: ComponentChangeSnapshot,
   changesStatus?: ChangesStatus,
+  kind?: CatalogueUpdateKind,
 ): ChildUpdateMessage {
   return {
+    ...(kind ? { kind } : {}),
     ...(changesStatus ? { changesStatus } : {}),
     changedRoutes: changedRoutes ? [...changedRoutes] : null,
     componentChanges: componentChanges ?? null,
@@ -100,6 +108,7 @@ export function parseChildUpdateMessage(
     return undefined;
   }
   const candidate = value as {
+    kind?: unknown;
     changesStatus?: unknown;
     changedRoutes?: unknown;
     componentChanges?: unknown;
@@ -110,12 +119,16 @@ export function parseChildUpdateMessage(
     (candidate.version as number) <= 0 ||
     !isChangedRoutes(candidate.changedRoutes) ||
     !isComponentChanges(candidate.componentChanges) ||
+    (candidate.kind !== undefined &&
+      candidate.kind !== "content" &&
+      candidate.kind !== "evidence") ||
     (candidate.changesStatus !== undefined &&
       !isChangesStatus(candidate.changesStatus))
   ) {
     return undefined;
   }
   return {
+    ...(candidate.kind ? { kind: candidate.kind } : {}),
     ...(candidate.changesStatus
       ? { changesStatus: candidate.changesStatus }
       : {}),

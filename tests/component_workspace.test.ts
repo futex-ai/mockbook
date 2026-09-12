@@ -51,6 +51,15 @@ test("workspace badges, comparison eligibility and usage use recorded evidence",
   const defaultSelection = selectedVariant(data, "");
   assert.equal(defaultSelection.variant?.value.id, "default");
   assert.equal(defaultSelection.comparisonEligible, false);
+  assert.ok(data.views.every((view) => view.usage));
+  const live = workspaceData(
+    catalogue,
+    { ...context, previewGeneration: "live-generation" },
+    entry,
+  );
+  assert.deepEqual(live.usedBy, data.usedBy);
+  assert.equal(live.previewGeneration, "live-generation");
+  assert.ok(live.views.every((view) => view.usage === undefined));
   assert.equal(
     selectedVariant(data, "?variant=disabled").variant?.value.id,
     "disabled",

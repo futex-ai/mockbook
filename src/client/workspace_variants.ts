@@ -52,6 +52,7 @@ export function applyVariant(
   data: WorkspaceData,
   variant: WorkspaceVariant | undefined,
   error?: string,
+  options: { preservePreview?: boolean } = {},
 ): void {
   const doc = root.ownerDocument;
   const message = root.querySelector<HTMLElement>("[data-workspace-error]")!;
@@ -65,6 +66,9 @@ export function applyVariant(
   if (diff) diff.dataset["diffVariant"] = variant?.value.id ?? "";
   const title = root.querySelector<HTMLElement>("[data-workspace-status]")!;
   if (data.status) title.dataset["status"] = data.status;
+  else delete title.dataset["status"];
+  title.textContent = data.status ?? "";
+  title.hidden = data.status === undefined;
   const variantStatus = root.querySelector<HTMLElement>(
     "[data-workspace-variant-status]",
   );
@@ -79,7 +83,9 @@ export function applyVariant(
   if (toolbar) {
     if (!eligible)
       root
-        .querySelector<HTMLButtonElement>('[data-diff-mode="current"]')
+        .querySelector<HTMLButtonElement>(
+          '[data-diff-mode="current"][aria-pressed="false"]',
+        )
         ?.click();
     toolbar.hidden = !eligible;
   }
@@ -99,7 +105,7 @@ export function applyVariant(
     : "This variant was removed. Select a comparison to see its previous version.";
   const stage = preview.querySelector<HTMLElement>("[data-mokabook-stage]");
   if (stage) stage.hidden = Boolean(error || variant?.removed);
-  if (variant && !variant.removed) {
+  if (variant && !variant.removed && !options.preservePreview) {
     for (const frame of root.querySelectorAll<HTMLIFrameElement>(
       "iframe[data-workspace-frame]",
     )) {

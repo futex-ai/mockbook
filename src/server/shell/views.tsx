@@ -2,6 +2,8 @@
 // home, missing-route, and target views, plus the title and
 // active-route helpers the document scaffold and progressive navigation use.
 
+import { createHash } from "node:crypto";
+
 import type { Catalogue } from "../catalogue.js";
 import type { ShellContext } from "./context.js";
 import { DiffScreen } from "./diffs.js";
@@ -163,8 +165,22 @@ export function ShellMain(props: {
   context: ShellContext;
   view: ShellView;
 }) {
+  const route = activeRouteForView(props.view);
+  const baseline = props.catalogue.removedEntries.find(
+    ({ entry }) => entry.route === route,
+  );
   return (
-    <main className="mbk-main" data-mokabook-view="" id="mb-main" tabIndex={-1}>
+    <main
+      className="mbk-main"
+      data-mokabook-view=""
+      data-mokabook-baseline={
+        baseline
+          ? createHash("sha256").update(JSON.stringify(baseline)).digest("hex")
+          : undefined
+      }
+      id="mb-main"
+      tabIndex={-1}
+    >
       {props.view.kind === "home" ? (
         <HomeView catalogue={props.catalogue} />
       ) : null}
