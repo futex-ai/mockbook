@@ -63,6 +63,8 @@ not link chip CSS merely because another variant uses chips.
 
 Only exclusive selectors belong in an owned stylesheet. Tokens, resets, mixed
 selectors and cross-component layout/state rules stay in the shared design CSS.
+Keep shared host resets at zero specificity so owned component styles render
+identically in standalone samples and in-screen compositions.
 Keep configured watch paths in sync when introducing an owned sheet.
 
 `host.tsx` supplies standalone layout and semantic parents without fixture data.
