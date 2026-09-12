@@ -1,10 +1,11 @@
 import { DESTINATIONS } from "./destinations.js";
 import type { NavNode } from "./nav.js";
+import { COMPONENT_PAGES } from "../components/parts/destinations.js";
 
 export const NAV_TREE: readonly NavNode[] = [
   {
     key: "example",
-    count: 3,
+    count: 4,
     depth: 0,
     kind: "collection",
     label: "Example",
@@ -38,6 +39,28 @@ export const NAV_TREE: readonly NavNode[] = [
     kind: "flow",
     label: "Example tour",
     to: DESTINATIONS.tour,
+  },
+  {
+    key: "example-components",
+    count: 2,
+    depth: 1,
+    kind: "collection",
+    label: "Components",
+    open: true,
+  },
+  {
+    key: "action",
+    depth: 2,
+    kind: "component",
+    label: "Action",
+    to: COMPONENT_PAGES.default,
+  },
+  {
+    key: "toolbar",
+    depth: 2,
+    kind: "component",
+    label: "Toolbar",
+    to: COMPONENT_PAGES.toolbar,
   },
   {
     key: "design",

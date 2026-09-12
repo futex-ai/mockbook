@@ -71,6 +71,21 @@ const rows = [
     label: "Details",
     to: "design-browse-details-screen",
   },
+  {
+    key: "library",
+    kind: "collection",
+    depth: 0,
+    label: "Library",
+    count: 1,
+    open: true,
+  },
+  {
+    key: "action",
+    kind: "component",
+    depth: 1,
+    label: "Action",
+    to: "design-component-overview",
+  },
 ] as const;
 const sample = {
   rows,

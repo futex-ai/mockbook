@@ -95,7 +95,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
     (event) => {
       const group =
         event.target instanceof HTMLDetailsElement ? event.target : undefined;
-      if (!group?.hasAttribute("data-nav-collection")) return;
+      if (!group?.hasAttribute("data-nav-disclosure")) return;
       if (group.dataset["filterOpen"] !== undefined) return;
       navPreference.remember(doc);
     },
@@ -219,7 +219,7 @@ function initBrowseShell(doc: Document, win: Window & typeof globalThis): void {
     }
     if (target.closest("[data-mokabook-collapse]")) {
       for (const group of doc.querySelectorAll<HTMLDetailsElement>(
-        "details[data-nav-collection]",
+        "details[data-nav-disclosure]",
       ))
         group.open = false;
       return;
