@@ -45,6 +45,10 @@ a complex consumer value. Optional controls distinguish unset from empty text
 or null. Reset restores the saved variant; changing variants, routes, or entering
 comparisons discards edits. Published catalogues retain saved variants and
 inspection with controls read-only.
+Background Usage and Changes completion preserves local prop edits and the
+current preview. Complete Used by data appears without resetting controls;
+per-view inspection continues to use the records from the actual displayed
+on-demand document.
 
 Implementation changes belong to the component in Changes. Consuming pages are
 listed as affected; their own prop, slot, structure, layout, or explicit resource

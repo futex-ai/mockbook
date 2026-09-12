@@ -23,10 +23,15 @@ import { installInspectorTabs } from "./inspector_tabs.js";
 import { renderWorkspaceEvidence } from "./workspace_evidence.js";
 import { applyVariant, selectedVariant } from "./workspace_variants.js";
 import {
+  mergeWorkspaceEvidence,
+  updateWorkspaceEvidence,
+} from "./workspace_updates.js";
+import {
   workspaceViews,
   workspaceFrames,
   highlightUnavailable,
   renderViewContexts,
+  revealWorkspaceInstance,
 } from "./workspace_preview.js";
 
 export function installWorkspace(
@@ -43,6 +48,17 @@ export function installWorkspace(
   const { signal } = controller;
   const query = new URLSearchParams(win.location.search);
   let variant = selectedVariant(data, win.location.search);
+  root.addEventListener(
+    "mokabook:workspace-evidence",
+    (event) => {
+      mergeWorkspaceEvidence(
+        data,
+        (event as CustomEvent<WorkspaceData>).detail,
+      );
+      variant = updateWorkspaceEvidence(root, data, win.location.search);
+    },
+    { signal },
+  );
   let activeViewport: "mobile" | "desktop" =
     query.get("viewport") === "mobile" ? "mobile" : "desktop";
   let selected = query.get("instance") ?? undefined;
@@ -92,23 +108,8 @@ export function installWorkspace(
       .querySelector<HTMLElement>('[data-inspector-tab="props"]')
       ?.focus({ preventScroll: true });
     refresh();
-    if (highlight) {
-      const frame = root.querySelector<HTMLIFrameElement>(
-        `iframe[data-workspace-frame="${activeViewport}"]`,
-      );
-      const view = current();
-      if (frame && view?.usage) {
-        const range = authenticateRanges(
-          frame,
-          view.path,
-          view.usage,
-        )?.ranges.get(key)?.[0];
-        const node = range?.startContainer.childNodes[range.startOffset];
-        const target =
-          node?.nodeType === 1 ? (node as Element) : node?.parentElement;
-        target?.scrollIntoView({ block: "nearest", inline: "nearest" });
-      }
-    }
+    if (highlight)
+      revealWorkspaceInstance(root, activeViewport, current(), key);
   };
   const refresh = () => {
     stopHighlight?.();

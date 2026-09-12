@@ -65,6 +65,9 @@ export function renderShellPage(
         context.delivery ? JSON.stringify(context.delivery) : undefined
       }
       data-mokabook-update-version={context.updateVersion}
+      data-mokabook-content-version={
+        context.delivery ? undefined : context.contentVersion
+      }
       lang="en"
     >
       <head>

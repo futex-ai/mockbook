@@ -187,3 +187,59 @@ test("a pending renewal cannot restore a previously selected saved variant", asy
     pending.release();
   }
 });
+
+test("new evidence cancels renewal in place and the next comparison uses fresh snapshots", async ({
+  page,
+}) => {
+  const requests: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/__mokabook/diffs/review.json")
+      requests.push(request.url());
+  });
+  await page.goto(`${server.url}/view/screens/home.html`);
+  await chooseViewport(page, "desktop");
+  await loadComparison(page, "Overlay");
+  const frame = page.locator(".mb-pane--after iframe");
+  await expect(frame.contentFrame().locator("main")).toContainText(
+    "Updated screen",
+  );
+  const snapshot = await frame.getAttribute("src");
+  const root = page.locator("html");
+  const version = Number(
+    await root.getAttribute("data-mokabook-update-version"),
+  );
+  await root.evaluate((element) =>
+    element.setAttribute("data-test-retained", "true"),
+  );
+  const pending = await holdRenewal(page);
+  try {
+    await chooseViewport(page, "mobile");
+    await pending.arrived;
+    server.publishUpdate({ kind: "evidence", version: version + 1 });
+    await expect(root).toHaveAttribute(
+      "data-mokabook-update-version",
+      String(version + 1),
+    );
+    await expect(root).toHaveAttribute("data-test-retained", "true");
+    await expect(
+      page.getByRole("button", { name: "Current", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    pending.release();
+    await pending.finished;
+    await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
+    expect(requests).toHaveLength(1);
+    await loadComparison(page, "Overlay");
+    await expect(frame.contentFrame().locator("main")).toContainText(
+      "Updated screen",
+    );
+    expect((await frame.getAttribute("src"))!.split("/snapshots/")[0]).not.toBe(
+      snapshot!.split("/snapshots/")[0],
+    );
+    expect(requests).toHaveLength(2);
+    expect(new URL(requests[1]!).searchParams.get("route")).toBe(
+      "screens/home.html",
+    );
+  } finally {
+    pending.release();
+  }
+});

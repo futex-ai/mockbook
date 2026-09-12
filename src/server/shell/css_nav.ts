@@ -261,8 +261,10 @@ export const SHELL_NAV_CSS = `
 }
 
 .mbk-nav-filter-count {
-  margin-left: 5px;
-  color: var(--chrome-muted);
+  margin-left: 6px;
+  border-radius: 999px;
+  background: rgba(20, 28, 22, 0.08);
+  color: var(--chrome-ink-2);
   font-family: var(--mono);
   font-size: 10px;
 }

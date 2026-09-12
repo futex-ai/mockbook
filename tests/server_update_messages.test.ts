@@ -38,6 +38,8 @@ test("watch update messages preserve available and unavailable route state", () 
 test("watch update parsing rejects incomplete or unsafe IPC values", () => {
   for (const value of [
     null,
+    { ...childUpdateMessage(2, undefined), kind: "unknown" },
+    { ...childUpdateMessage(2, undefined), kind: null },
     { ...childUpdateMessage(2, undefined), changesStatus: "unknown" },
     { ...childUpdateMessage(2, undefined), changesStatus: null },
     { changedRoutes: null, componentChanges: null, type: "reload", version: 2 },
@@ -77,5 +79,21 @@ test("watch updates preserve explicit Changes loading and terminal states", () =
     );
     assert.equal(message.changesStatus, status);
     assert.deepEqual(parseChildUpdateMessage(message), message);
+  }
+});
+
+test("watch updates distinguish evidence from content without guessing from Changes status", () => {
+  for (const kind of ["content", "evidence"] as const) {
+    for (const status of ["pending", "ready", "unavailable"] as const) {
+      const message = childUpdateMessage(
+        2,
+        status === "ready" ? [] : undefined,
+        undefined,
+        status,
+        kind,
+      );
+      assert.equal(message.kind, kind);
+      assert.deepEqual(parseChildUpdateMessage(message), message);
+    }
   }
 });

@@ -29,8 +29,11 @@ Repeated view or mode switches share a pending renewal or capture and apply the
 latest viewport, scheme and mode when it completes. Changing the saved variant
 requests its own result and fences responses from the previous selection.
 Current and navigation cancel both renewal and capture requests; late responses
-cannot replace the current view. Network and capture failures use the existing
-comparison failure state and explicit retry.
+cannot replace the current view. Background [evidence updates](./mokabook-live-evidence.md)
+also cancel pending comparisons, discard their cached selection and return an
+active comparison to Current while preserving the mounted catalogue. The next
+explicit comparison uses the newly accepted evidence. Network and capture
+failures use the existing comparison failure state and explicit retry.
 
 The live server uses the accepted complete manifest and background Changes
 snapshot. Background classification retains the pinned branch-point commit,

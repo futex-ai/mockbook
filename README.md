@@ -208,8 +208,14 @@ All and Changes are visible from the first live shell. Changes shows a spinner
 instead of an uncomputed count; selecting it shows a loading sidebar without
 moving the tabs or tree. A failed check keeps the tabs with an explicit unavailable
 state, while a completed empty result shows zero. Versioned updates publish complete
-usage and then Changes. Shell requests never repeat that repository work. Baseline
-views are read in batches, not one Git process per view. Watched Serve also observes
+usage and then Changes. Shell requests never repeat that repository work.
+
+These background updates preserve the mounted page, previews, search, folder
+choices, focus, scroll and temporary props, including when All is selected.
+Authored content changes still reload; reconnects catch up to the latest evidence
+without replaying navigation recovery. See [live evidence updates](./docs/protocol/mokabook-live-evidence.md).
+
+Baseline views are read in batches, not one Git process per view. Watched Serve also observes
 Git ref changes off the request path. `--no-watch` uses the same fast startup but
 does not observe later source, resource or Git edits. Unavailable history omits
 change evidence while current previews remain accessible. See [on-demand Serve](./docs/protocol/mokabook-on-demand.md).
@@ -526,11 +532,10 @@ navigation row can update before the frame's stylesheets finish loading;
 strict visibility and control assertions after the readiness check.
 Real Git-backed comparison fixtures wait for completed Changes classification.
 The shared browser example also waits for terminal Changes in global setup
-before tests begin, so background startup reloads cannot interrupt history or
-navigation assertions.
-Loading-state tests own explicit pending fixtures, so startup reloads cannot
-interrupt unrelated mode or
-resize assertions. Run the full browser suite separately from other top-level
+before tests begin, so comparison and navigation assertions start with complete
+evidence. Loading-state and continuity tests own explicit pending fixtures to
+exercise evidence completion during browsing and editing.
+Run the full browser suite separately from other top-level
 checks: publication fixtures rebuild shared package and example output.
 Watched tests that assert a stable update version also wait for final Changes
 status before capturing their baseline; Usage completion alone can precede
