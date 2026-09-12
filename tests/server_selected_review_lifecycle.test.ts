@@ -185,3 +185,44 @@ test("selected snapshot failures do not poison the queue or overwrite retained p
   assert.equal(retry.status, 200);
   assert.notEqual(retry.url, first.url);
 });
+
+test("HEAD renews selected snapshots without capture and expired selections can be reacquired", async (t) => {
+  let now = Date.now();
+  t.mock.method(Date, "now", () => now);
+  const calls: string[] = [];
+  const server = await start(t, {
+    async generate(_source, selection) {
+      calls.push(selection.route);
+      return artifact(selection.route);
+    },
+  });
+  const first = await server.request("first.html");
+  assert.equal(first.status, 200);
+  now += 59_000;
+  const renewed = await fetch(first.url, { method: "HEAD" });
+  assert.equal(renewed.status, 200);
+  assert.equal(renewed.headers.get("cache-control"), "no-store");
+  assert.equal(await renewed.text(), "");
+  assert.deepEqual(calls, ["first.html"]);
+  now += 59_000;
+  assert.equal((await server.request("second.html")).status, 200);
+  const pane = new URL("snapshots/after/pane.html", first.url);
+  assert.equal((await fetch(pane)).status, 200);
+  now += 60_001;
+  assert.equal((await server.request("third.html")).status, 200);
+  assert.equal((await fetch(first.url, { method: "HEAD" })).status, 404);
+  assert.equal((await fetch(pane)).status, 404);
+  const recovered = await server.request("first.html");
+  assert.equal(recovered.status, 200);
+  assert.notEqual(recovered.url, first.url);
+  assert.equal(
+    (await fetch(new URL("snapshots/after/pane.html", recovered.url))).status,
+    200,
+  );
+  assert.deepEqual(calls, [
+    "first.html",
+    "second.html",
+    "third.html",
+    "first.html",
+  ]);
+});

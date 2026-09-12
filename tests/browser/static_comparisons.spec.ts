@@ -15,8 +15,12 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   page,
 }) => {
   const requests: string[] = [];
+  const renewals: string[] = [];
   const failures: string[] = [];
-  page.on("request", (request) => requests.push(request.url()));
+  page.on("request", (request) => {
+    requests.push(request.url());
+    if (request.method() === "HEAD") renewals.push(request.url());
+  });
   page.on("response", (response) => {
     if (response.status() >= 400) failures.push(response.url());
   });
@@ -60,6 +64,8 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   await modes.getByRole("button", { name: "Current", exact: true }).click();
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
   const json = requests.filter((url) => url.includes("review.json"));
+  expect(json).toHaveLength(2);
+  expect(renewals).toEqual([]);
   expect(new Set(json.map((url) => url.split("?")[0])).size).toBe(1);
   expect(json.some((url) => url.endsWith("?refresh=1"))).toBe(true);
   expect(requests.some((url) => url.includes("/__mokabook/events"))).toBe(

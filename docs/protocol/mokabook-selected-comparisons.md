@@ -14,9 +14,23 @@ The live browser requests
 or refresh. Current, navigation and filtering never request snapshots. Static
 delivery continues to request its complete, packaged comparison URL without
 selection parameters.
-Switching viewport or color scheme reuses the selection's loaded result; it does
-not fetch JSON again or restart a pending request. Changing the saved variant
+Changing viewport or color scheme inside a comparison, or switching between diff
+modes, first renews a loaded live generation with a non-cached HEAD request to its
+immutable `review.json` URL.
+A successful response at that same URL extends the server's retention and lets
+the browser reuse its loaded JSON before displaying the requested panes. If the
+generation is missing or the response resolves to a different generation, fetch
+the stable selected endpoint again, without `refresh=1`, and render only after
+the replacement result is ready. Do not reuse old snapshot URLs after failed
+renewal or depend on matching browser/server expiry clocks. Static delivery
+reuses its packaged result without renewal requests.
+
+Repeated view or mode switches share a pending renewal or capture and apply the
+latest viewport, scheme and mode when it completes. Changing the saved variant
 requests its own result and fences responses from the previous selection.
+Current and navigation cancel both renewal and capture requests; late responses
+cannot replace the current view. Network and capture failures use the existing
+comparison failure state and explicit retry.
 
 The live server uses the accepted complete manifest and background Changes
 snapshot. Background classification retains the pinned branch-point commit,
@@ -68,7 +82,8 @@ artifacts to 64 generations and 128 MiB, and each artifact to 64 MiB. Reject new
 captures that exceed capacity rather than removing snapshots still within their
 retention window. Expired entries are collected periodically and before new
 capture. A failed refresh preserves previous snapshots and does not poison later
-requests.
+requests. An idle open comparison does not keep its snapshots alive; its next
+view or mode switch renews or reacquires them before loading new panes.
 
 ## Verification
 
@@ -76,6 +91,10 @@ Regressions must prove that selection avoids unrelated output reads and renderer
 work, includes only the chosen variant, and keeps the existing before/after bytes.
 Cover schema v2 and v3, removed and added sides, themes/viewports, asset isolation,
 input mutation, malformed requests, coalescing, refresh, invalidation, cancellation,
-shutdown and retry. Measure real browser comparison readiness on the large fixture
+shutdown and retry. Advance the server clock to prove that idle screen and saved
+variant comparisons recover after snapshot collection, without failed pane
+requests. Cover HEAD retention extension, repeated switches during renewal,
+abandoned renewals, retry and static delivery's absence of renewal traffic.
+Measure real browser comparison readiness on the large fixture
 separately from startup and background Changes; a JSON response alone is not a
 visible comparison.

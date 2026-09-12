@@ -268,6 +268,10 @@ the selected screen or saved variant and its referenced assets, without rebuildi
 or snapshotting the entire catalogue. Checked-input fingerprints prevent later
 output edits from silently changing a comparison. See the
 [selected comparison contract](./docs/protocol/mokabook-selected-comparisons.md).
+Changing viewport, theme or comparison mode renews the loaded snapshots before
+using them. After an idle comparison expires, Mokabook automatically reacquires
+the same screen or saved variant. Available snapshots reuse their loaded result;
+published catalogues need no renewal requests.
 Published catalogues with Changes enabled prepare snapshots during publishing, then load
 and render them only after a diff option is selected. Comparisons
 stay in the same screen, with mobile/desktop and light/dark controls, secondary

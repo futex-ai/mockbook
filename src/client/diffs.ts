@@ -54,7 +54,7 @@ export function installDiffs(
     }
     doc.dispatchEvent(new win.Event("mokabook:comparison"));
   };
-  const load = async (refresh: boolean): Promise<void> => {
+  const load = async (refresh: boolean, cached?: LoadedDiff): Promise<void> => {
     const target = screen;
     const stage = target?.querySelector<HTMLElement>("[data-diff-stage]");
     if (!target || !stage) return;
@@ -63,35 +63,56 @@ export function installDiffs(
     request = pending;
     const selection = selectionKey(target);
     requestedSelection = selection;
+    loaded = undefined;
+    display();
     stage.setAttribute("aria-busy", "true");
-    stage.textContent = "Loading comparison…";
+    if (!cached) stage.textContent = "Loading comparison…";
     try {
       const delivery = readStaticDelivery(doc);
       if (delivery?.comparisonUrl === null)
         throw new Error("Comparisons are unavailable in this catalogue.");
-      const endpoint = new URL(
-        delivery?.comparisonUrl ?? "/__mokabook/diffs/review.json",
-        win.location.href,
-      );
-      if (!delivery) {
-        endpoint.searchParams.set("route", target.dataset["diffScreen"] ?? "");
-        const variant = target.dataset["diffVariant"];
-        if (variant) endpoint.searchParams.set("variant", variant);
+      let comparison = cached;
+      if (comparison && !delivery) {
+        const renewal = await win.fetch(comparison.url, {
+          method: "HEAD",
+          cache: "no-store",
+          signal: pending.signal,
+        });
+        if (!renewal.ok || renewal.url !== comparison.url)
+          comparison = undefined;
       }
-      if (refresh) endpoint.searchParams.set("refresh", "1");
-      const response = await win.fetch(endpoint.href, {
-        signal: pending.signal,
-        headers: { accept: "application/json" },
-      });
-      if (!response.ok) {
-        const failure = (await response.json()) as { details?: unknown };
-        throw new Error(
-          typeof failure.details === "string"
-            ? failure.details
-            : "Comparison unavailable",
+      if (!comparison) {
+        stage.textContent = "Loading comparison…";
+        const endpoint = new URL(
+          delivery?.comparisonUrl ?? "/__mokabook/diffs/review.json",
+          win.location.href,
         );
+        if (!delivery) {
+          endpoint.searchParams.set(
+            "route",
+            target.dataset["diffScreen"] ?? "",
+          );
+          const variant = target.dataset["diffVariant"];
+          if (variant) endpoint.searchParams.set("variant", variant);
+        }
+        if (refresh) endpoint.searchParams.set("refresh", "1");
+        const response = await win.fetch(endpoint.href, {
+          signal: pending.signal,
+          headers: { accept: "application/json" },
+        });
+        if (!response.ok) {
+          const failure = (await response.json()) as { details?: unknown };
+          throw new Error(
+            typeof failure.details === "string"
+              ? failure.details
+              : "Comparison unavailable",
+          );
+        }
+        comparison = {
+          result: parseReviewResult(await response.json()),
+          url: response.url,
+        };
       }
-      const result = parseReviewResult(await response.json());
       if (
         pending.signal.aborted ||
         !target.isConnected ||
@@ -100,7 +121,7 @@ export function installDiffs(
         mode === "current"
       )
         return;
-      loaded = { result, url: response.url };
+      loaded = comparison;
       loadedSelection = selection;
       display();
     } catch (error) {
@@ -136,6 +157,20 @@ export function installDiffs(
       }
     }
   };
+  const update = (refresh = false): void => {
+    if (mode === "current") {
+      display();
+      return;
+    }
+    const selection = screen ? selectionKey(screen) : undefined;
+    if (request && selection === requestedSelection && !refresh) {
+      display();
+      return;
+    }
+    const cached =
+      !refresh && selection === loadedSelection ? loaded : undefined;
+    void load(refresh, cached);
+  };
   doc.addEventListener("click", (event) => {
     const target =
       event.target instanceof win.Element ? event.target : undefined;
@@ -162,28 +197,11 @@ export function installDiffs(
         request?.abort();
         request = undefined;
       }
-      if (refresh) loaded = undefined;
-      display();
-      if (mode !== "current" && (refresh || (!loaded && !request)))
-        void load(Boolean(refresh));
+      update(Boolean(refresh));
       return;
     }
   });
-  return {
-    reset,
-    update: () => {
-      if (mode !== "current") {
-        const selection = screen ? selectionKey(screen) : undefined;
-        if (loaded && selection === loadedSelection) {
-          display();
-          return;
-        }
-        if (request && selection === requestedSelection) return;
-        loaded = undefined;
-        void load(false);
-      }
-    },
-  };
+  return { reset, update };
 }
 
 function selectionKey(screen: HTMLElement): string {

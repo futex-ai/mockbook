@@ -106,7 +106,7 @@ unknown evidence has no invented status. Eligibility follows saved view evidence
 so affected-only consumers can compare their actual rendered differences while
 staying outside Changes. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
-viewport or color scheme, and receiving a watched update do not generate
+viewport or color scheme in Current, and receiving a watched update do not generate
 comparison snapshots in development. Publications with Changes prepare snapshots at build time, but never fetch or render them while browsing in Current. The first
 explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
@@ -147,6 +147,9 @@ The development shell requests `/__mokabook/diffs/review.json` with the selected
 redirects to an immutable generation; snapshot URLs resolve relative to that
 response URL. No standalone HTML report or navigation payload is generated.
 Only comparison JSON and snapshot files are served through this private route.
+Before changing an open comparison's view or diff mode, the browser renews its
+generation with HEAD. A missing or replaced generation is reacquired for the
+same selection before new panes load; retained results reuse their loaded JSON.
 Development responses disable caching. Refresh requests and watched invalidation reuse
 the generation queue, retaining superseded snapshots briefly for in-flight
 requests and draining active work before shutdown.

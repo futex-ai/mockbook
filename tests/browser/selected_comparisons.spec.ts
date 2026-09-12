@@ -1,42 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { readCatalogueChanges } from "../../dist/server/component_changes.js";
-import {
-  startCatalogueServer,
-  type RunningServer,
-} from "../../dist/server/http.js";
-import { configuredServedReview } from "../../dist/server/review_routes.js";
-import { componentReviewFixture } from "../helpers/component_review_fixture.js";
+import type { RunningServer } from "../../dist/server/http.js";
 import { loadComparison } from "./comparison_actions.js";
+import { selectedComparisonFixture } from "./selected_comparison_fixture.js";
 import { chooseScheme, chooseViewport } from "./workspace_actions.js";
 
 let server: RunningServer;
 const cleanup: (() => Promise<void>)[] = [];
 test.beforeAll(async () => {
-  const fixture = await componentReviewFixture(
-    { after: (dispose) => cleanup.push(dispose) },
-    (source) =>
-      source
-        .replaceAll("Continue", "Proceed")
-        .replaceAll("Screen content", "Updated screen"),
-  );
-  const changes = await readCatalogueChanges(
-    fixture.config,
-    fixture.after.manifest,
-    "HEAD",
-    fixture.git,
-    "a".repeat(40),
-  );
-  server = await startCatalogueServer(fixture.config, {
-    base: "HEAD",
-    port: 0,
-    manifest: fixture.after.manifest,
-    componentChanges: changes,
-    review: configuredServedReview(fixture.config, "HEAD", fixture.git),
+  server = await selectedComparisonFixture({
+    after: (dispose) => cleanup.push(dispose),
   });
 });
 test.afterAll(async () => {
-  await server?.close();
   for (const dispose of cleanup.reverse()) await dispose();
 });
 
