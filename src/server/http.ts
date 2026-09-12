@@ -121,7 +121,18 @@ export async function startCatalogueServer(
   const fontAssets = timeSync("server.fonts", () => loadShellFontAssets());
   const streams = new Set<ServerResponse>();
   const reviewRoutes = options.review
-    ? new ReviewRoutes(options.review)
+    ? new ReviewRoutes(options.review, () =>
+        manifest.schemaVersion === 5 && componentChanges?.comparison
+          ? {
+              ...componentChanges.comparison,
+              before: componentChanges.baseline,
+              after: manifest,
+              ...(componentChanges.result
+                ? { result: componentChanges.result }
+                : {}),
+            }
+          : undefined,
+      )
     : undefined;
   let componentChanges =
     options.componentChanges ??

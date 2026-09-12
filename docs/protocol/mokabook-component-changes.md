@@ -48,7 +48,7 @@ detailed comparisons; unregistered catalogues retain `changedManifestRoutes`.
 Lightweight Browse classification reads committed/current manifests, validated
 usage metadata, and required fragment material from the Git branch point. It
 does not generate snapshots or copy comparison assets. Opening All/Changes,
-navigating, changing viewport/theme, and watch notifications retain the current
+navigating, changing viewport/theme in Current, and watch notifications retain the
 no-eager-comparison-generation contract. Cache classification by catalogue
 generation and resolved baseline; invalidate it with source, config, stylesheet,
 resource, or Git-baseline changes that affect its inputs. No-watch Serve and
@@ -62,6 +62,9 @@ results, with affected-only evidence separate from direct Changes membership.
 All comparisons keep full unmodified before/after documents and isolated assets.
 The [comparison schema](./mokabook-component-review.md) defines the exact result,
 Changes membership, reasons, affected evidence, side pairing, and validation.
+Live [selected comparisons](./mokabook-selected-comparisons.md) project this
+completed evidence onto one screen or saved variant before capturing its assets.
+They retain the full catalogue's affected-consumer evidence in the shell inspector.
 
 ## Normalization And Input Ownership
 

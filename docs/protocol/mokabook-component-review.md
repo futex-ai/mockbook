@@ -193,6 +193,11 @@ component is sufficient: saved-variant/control metadata edits can be direct
 changes without implementation impact. Every classification path performs this
 validation before returning results, including lightweight Browse updates.
 
+The [selected live endpoint](./mokabook-selected-comparisons.md) projects a validated
+complete result onto one screen or saved variant. Its response uses this schema's
+record and reference validation, while catalogue-wide source coverage and affected
+evidence remain owned by the original background classification and shell inspector.
+
 Entry ids and routes use normal catalogue validation. Snapshot paths are exact
 artifact-root-relative paths under `snapshots/before/` or `snapshots/after/`,
 as appropriate, retaining the selected fragment's relative path. Reject absolute
@@ -201,11 +206,13 @@ using existing snapshot/resource validation. Props in variant addresses use
 the corresponding side's schema and canonical wire codec. Instance keys are
 opaque validated identifiers and never become filesystem paths or selectors.
 
-Serving retained snapshots repeats regular-file and confinement checks at
+Serving filesystem-backed retained snapshots repeats regular-file and confinement checks at
 request time. Symlinks at the retained root, any descendant directory, or the
 file itself return 404, including artifacts modified after generation.
 Diagnostic Markdown renders authored titles as escaped single-line text and
 uses safe code-span delimiters for refs and paths; JSON retains original values.
+Selected live generations instead serve an immutable captured byte map; they do
+not reopen filesystem paths when delivering a retained snapshot.
 
 Lexical ordering uses UTF-16 code units, not a locale-sensitive collator.
 Sort screens by route and components by id. Variants follow current authored

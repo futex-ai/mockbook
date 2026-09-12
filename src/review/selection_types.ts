@@ -1,0 +1,32 @@
+/** Inputs for a comparison of one screen or one saved component variant. */
+import type { Manifest } from "../registry/types.js";
+import type { ReviewResultV3 } from "./component_types.js";
+import type { ReviewArtifact } from "./types.js";
+
+export interface ReviewSelection {
+  readonly route: string;
+  readonly variantId?: string;
+}
+
+/** Private evidence retained by background classification, never published as JSON. */
+export interface ReviewEvidence {
+  readonly baseCommit: string;
+  readonly baseRef: string;
+  readonly changedPaths: readonly string[];
+  readonly headDigests: Readonly<Record<string, string>>;
+}
+
+export interface SelectedReviewSource extends ReviewEvidence {
+  readonly before: Manifest;
+  readonly after: Manifest;
+  readonly result?: ReviewResultV3;
+}
+
+/** Capture validated, immutable pane bytes without compiling the consumer again. */
+export interface SelectedReviewProvider {
+  generate(
+    source: SelectedReviewSource,
+    selection: ReviewSelection,
+    signal: AbortSignal,
+  ): Promise<ReviewArtifact>;
+}

@@ -106,7 +106,7 @@ unknown evidence has no invented status. Eligibility follows saved view evidence
 so affected-only consumers can compare their actual rendered differences while
 staying outside Changes. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
-viewport or color scheme, and receiving a watched update do not generate
+viewport or color scheme in Current, and receiving a watched update do not generate
 comparison snapshots in development. Publications with Changes prepare snapshots at build time, but never fetch or render them while browsing in Current. The first
 explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
@@ -141,10 +141,15 @@ and schema. Its [static delivery contract](./mokabook-export-delivery.md)
 defines direct generation URLs without requiring a hosting-provider redirect;
 the server and repository adapter retain their stable redirect for compatibility.
 
-The development shell requests `/__mokabook/diffs/review.json` on demand. The response
+The development shell requests `/__mokabook/diffs/review.json` with the selected
+`route` and optional saved `variant` on demand, following the
+[selected comparison contract](./mokabook-selected-comparisons.md). The response
 redirects to an immutable generation; snapshot URLs resolve relative to that
 response URL. No standalone HTML report or navigation payload is generated.
 Only comparison JSON and snapshot files are served through this private route.
+Before changing an open comparison's view or diff mode, the browser renews its
+generation with HEAD. A missing or replaced generation is reacquired for the
+same selection before new panes load; retained results reuse their loaded JSON.
 Development responses disable caching. Refresh requests and watched invalidation reuse
 the generation queue, retaining superseded snapshots briefly for in-flight
 requests and draining active work before shutdown.
@@ -178,13 +183,15 @@ See [the shell design](./mokabook-shell-design.md) and
 
 ## Comparison engine
 
-An explicit development diff request, or publishing with `--include-changes`,
-compares the workspace with a configured base ref, defaulting
+Live background classification, complete comparison generation, and publishing
+with `--include-changes` compare the workspace with a configured base ref, defaulting
 to `origin/main`. It resolves the merge base shared by `HEAD` and that ref, then
 reads the committed `mockupsDir` tree at that branch point without checking it
 out or rebuilding it. Commits reachable only from the configured base do not
 enter the comparison. Head artifacts come from the current working tree after
-the same generated-output checks used by `mokabook check` succeed.
+the same generated-output checks used by `mokabook check` succeed. Selected live
+diffs reuse the accepted manifest and pinned classification; checked-input digests
+reject changed snapshot inputs without repeating an exhaustive build.
 Review inspects only the requested base paths, grouping exact literal pathspecs
 into count- and byte-bounded `ls-tree` operations, and reads regular-file blobs
 through output-byte- and object-count-bounded `cat-file` batches. A single blob
@@ -208,7 +215,7 @@ and Review records the matching changed path as evidence. The configured compari
 directory, including its symlink-resolved in-repository target, is excluded before changed-path and shared-impact evidence
 is calculated.
 
-The private output contains `review.json`, `summary.md`, an ownership marker,
+Complete comparison output contains `review.json`, `summary.md`, an ownership marker,
 and the isolated snapshots. No HTML report or navigation payload is written.
 The summary's `output changes` count includes only screens classified as added,
 removed, or changed, counting each screen once across all viewports and color
@@ -218,7 +225,9 @@ evidence, including screens with output changes; `impact-only` is the subset
 without output changes and can overlap ignored-only. Neither evidence nor
 ignored-only edits inflate output changes. These counts aggregate fragment
 comparisons per screen; the catalogue Changes total also considers rendered
-resources, reviewable metadata, and flows. The JSON retains every screen and its evidence.
+resources, reviewable metadata, and flows. Complete JSON retains every screen and its
+evidence. Selected live responses contain only the requested screen or saved variant
+and retain its snapshots in memory.
 
 Base and head panes live under separate route-preserving snapshot roots. Local
 resources referenced by pane HTML or CSS are copied transitively, including
