@@ -11,6 +11,8 @@ export function installDiffs(
 ): { reset(): void; update(): void } {
   let request: AbortController | undefined;
   let loaded: LoadedDiff | undefined;
+  let loadedSelection: string | undefined;
+  let requestedSelection: string | undefined;
   let screen: HTMLElement | undefined;
   let mode: DiffMode = "current";
 
@@ -18,6 +20,8 @@ export function installDiffs(
     request?.abort();
     request = undefined;
     loaded = undefined;
+    loadedSelection = undefined;
+    requestedSelection = undefined;
     screen = undefined;
     mode = "current";
   };
@@ -57,19 +61,28 @@ export function installDiffs(
     request?.abort();
     const pending = new win.AbortController();
     request = pending;
+    const selection = selectionKey(target);
+    requestedSelection = selection;
     stage.setAttribute("aria-busy", "true");
     stage.textContent = "Loading comparison…";
     try {
       const delivery = readStaticDelivery(doc);
       if (delivery?.comparisonUrl === null)
         throw new Error("Comparisons are unavailable in this catalogue.");
-      const response = await win.fetch(
-        `${delivery?.comparisonUrl ?? "/__mokabook/diffs/review.json"}${refresh ? "?refresh=1" : ""}`,
-        {
-          signal: pending.signal,
-          headers: { accept: "application/json" },
-        },
+      const endpoint = new URL(
+        delivery?.comparisonUrl ?? "/__mokabook/diffs/review.json",
+        win.location.href,
       );
+      if (!delivery) {
+        endpoint.searchParams.set("route", target.dataset["diffScreen"] ?? "");
+        const variant = target.dataset["diffVariant"];
+        if (variant) endpoint.searchParams.set("variant", variant);
+      }
+      if (refresh) endpoint.searchParams.set("refresh", "1");
+      const response = await win.fetch(endpoint.href, {
+        signal: pending.signal,
+        headers: { accept: "application/json" },
+      });
       if (!response.ok) {
         const failure = (await response.json()) as { details?: unknown };
         throw new Error(
@@ -83,16 +96,19 @@ export function installDiffs(
         pending.signal.aborted ||
         !target.isConnected ||
         screen !== target ||
+        selection !== selectionKey(target) ||
         mode === "current"
       )
         return;
       loaded = { result, url: response.url };
+      loadedSelection = selection;
       display();
     } catch (error) {
       if (
         pending.signal.aborted ||
         !target.isConnected ||
         screen !== target ||
+        selection !== selectionKey(target) ||
         mode === "current"
       )
         return;
@@ -157,9 +173,22 @@ export function installDiffs(
     reset,
     update: () => {
       if (mode !== "current") {
+        const selection = screen ? selectionKey(screen) : undefined;
+        if (loaded && selection === loadedSelection) {
+          display();
+          return;
+        }
+        if (request && selection === requestedSelection) return;
         loaded = undefined;
         void load(false);
       }
     },
   };
+}
+
+function selectionKey(screen: HTMLElement): string {
+  return JSON.stringify([
+    screen.dataset["diffScreen"],
+    screen.dataset["diffVariant"],
+  ]);
 }

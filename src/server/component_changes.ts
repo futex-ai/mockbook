@@ -1,15 +1,15 @@
 import { changedManifestRoutes } from "../registry/changed_routes.js";
 import { hasRegisteredComponents } from "../registry/manifest_capabilities.js";
 import { changedContentPaths } from "./changed_content.js";
+import { generatedViews } from "../components/views.js";
+import { EvidenceAssetReader } from "../review/evidence_assets.js";
+import type { ReviewEvidence } from "../review/selection_types.js";
 import path from "node:path";
 
 import { projectRealPath, toPosixPath } from "../config/paths.js";
 import type { ResolvedConfig } from "../config/types.js";
 import type { Manifest } from "../registry/types.js";
-import {
-  FileSystemReviewAssetReader,
-  GitReviewAssetReader,
-} from "../review/assets.js";
+import { GitReviewAssetReader } from "../review/assets.js";
 import {
   baselineResourceConfig,
   readBaseManifest,
@@ -28,6 +28,7 @@ export interface ComponentChangeSnapshot {
   baseline: Manifest;
   changedRoutes?: readonly string[];
   result?: ReviewResultV3;
+  comparison?: ReviewEvidence;
 }
 export interface ComponentChangeSource {
   baseline(): Promise<string>;
@@ -157,7 +158,7 @@ export async function readCatalogueChanges(
   const components =
     hasRegisteredComponents(baseline) || hasRegisteredComponents(manifest);
   const prefix = toPosixPath(path.relative(config.repoRoot, config.mockupsDir));
-  const reader = new FileSystemReviewAssetReader(config);
+  const reader = new EvidenceAssetReader(config);
   const result = components
     ? await classifyComponents({
         before: baseline,
@@ -196,8 +197,17 @@ export async function readCatalogueChanges(
     config,
     content,
   ).filter((route) => !components || pageRoutes.has(route));
+  for (const entry of manifest.entries)
+    for (const view of generatedViews(entry))
+      if (!reader.digests[view.path]) await reader.read(view.path);
   return {
     baseline,
+    comparison: {
+      baseCommit: commit,
+      baseRef: base,
+      changedPaths,
+      headDigests: reader.digests,
+    },
     ...(result ? { result } : {}),
     changedRoutes: [
       ...new Set([

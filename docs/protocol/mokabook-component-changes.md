@@ -62,6 +62,9 @@ results, with affected-only evidence separate from direct Changes membership.
 All comparisons keep full unmodified before/after documents and isolated assets.
 The [comparison schema](./mokabook-component-review.md) defines the exact result,
 Changes membership, reasons, affected evidence, side pairing, and validation.
+Live [selected comparisons](./mokabook-selected-comparisons.md) project this
+completed evidence onto one screen or saved variant before capturing its assets.
+They retain the full catalogue's affected-consumer evidence in the shell inspector.
 
 ## Normalization And Input Ownership
 
