@@ -101489,7 +101489,7 @@
                       "count",
                       [
                         "number",
-                        "2"
+                        "4"
                       ]
                     ],
                     [
@@ -101497,6 +101497,53 @@
                       [
                         "number",
                         "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "example"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
                       ]
                     ],
                     [
@@ -101536,7 +101583,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -101576,7 +101623,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -101613,24 +101660,64 @@
                   "object",
                   [
                     [
-                      "count",
+                      "depth",
                       [
                         "number",
                         "1"
                       ]
                     ],
                     [
+                      "key",
+                      [
+                        "string",
+                        "example-tour"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "flow"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example tour"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-browse-use-case"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
                       "depth",
                       [
                         "number",
-                        "0"
+                        "1"
                       ]
                     ],
                     [
                       "key",
                       [
                         "string",
-                        "library"
+                        "example-components"
                       ]
                     ],
                     [
@@ -101644,7 +101731,7 @@
                       "label",
                       [
                         "string",
-                        "Library"
+                        "Components"
                       ]
                     ],
                     [
@@ -101663,7 +101750,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -101692,6 +101779,159 @@
                       [
                         "string",
                         "design-component-overview"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "toolbar"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "component"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Toolbar"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-component-toolbar"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "design"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Design"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "browse-shell"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Browse shell"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "changes"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Changes"
                       ]
                     ]
                   ]
@@ -101763,7 +102003,7 @@
                       "count",
                       [
                         "number",
-                        "2"
+                        "4"
                       ]
                     ],
                     [
@@ -101771,6 +102011,53 @@
                       [
                         "number",
                         "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "example"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
                       ]
                     ],
                     [
@@ -101810,7 +102097,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -101969,7 +102256,7 @@
                       "count",
                       [
                         "number",
-                        "2"
+                        "4"
                       ]
                     ],
                     [
@@ -101977,6 +102264,53 @@
                       [
                         "number",
                         "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "example"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
                       ]
                     ],
                     [
@@ -102016,7 +102350,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -102056,7 +102390,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -102093,24 +102427,64 @@
                   "object",
                   [
                     [
-                      "count",
+                      "depth",
                       [
                         "number",
                         "1"
                       ]
                     ],
                     [
+                      "key",
+                      [
+                        "string",
+                        "example-tour"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "flow"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example tour"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-browse-use-case"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
                       "depth",
                       [
                         "number",
-                        "0"
+                        "1"
                       ]
                     ],
                     [
                       "key",
                       [
                         "string",
-                        "library"
+                        "example-components"
                       ]
                     ],
                     [
@@ -102124,7 +102498,7 @@
                       "label",
                       [
                         "string",
-                        "Library"
+                        "Components"
                       ]
                     ],
                     [
@@ -102143,7 +102517,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -102172,6 +102546,159 @@
                       [
                         "string",
                         "design-component-overview"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "toolbar"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "component"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Toolbar"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-component-toolbar"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "design"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Design"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "browse-shell"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Browse shell"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "changes"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Changes"
                       ]
                     ]
                   ]
@@ -102247,7 +102774,7 @@
                       "count",
                       [
                         "number",
-                        "2"
+                        "4"
                       ]
                     ],
                     [
@@ -102255,6 +102782,53 @@
                       [
                         "number",
                         "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "example"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
                       ]
                     ],
                     [
@@ -102294,7 +102868,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -102334,7 +102908,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -102371,24 +102945,64 @@
                   "object",
                   [
                     [
-                      "count",
+                      "depth",
                       [
                         "number",
                         "1"
                       ]
                     ],
                     [
+                      "key",
+                      [
+                        "string",
+                        "example-tour"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "flow"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Example tour"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-browse-use-case"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
                       "depth",
                       [
                         "number",
-                        "0"
+                        "1"
                       ]
                     ],
                     [
                       "key",
                       [
                         "string",
-                        "library"
+                        "example-components"
                       ]
                     ],
                     [
@@ -102402,7 +103016,7 @@
                       "label",
                       [
                         "string",
-                        "Library"
+                        "Components"
                       ]
                     ],
                     [
@@ -102421,7 +103035,7 @@
                       "depth",
                       [
                         "number",
-                        "1"
+                        "2"
                       ]
                     ],
                     [
@@ -102450,6 +103064,159 @@
                       [
                         "string",
                         "design-component-overview"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "toolbar"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "component"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Toolbar"
+                      ]
+                    ],
+                    [
+                      "to",
+                      [
+                        "string",
+                        "design-component-toolbar"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "count",
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "0"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "design"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Design"
+                      ]
+                    ],
+                    [
+                      "open",
+                      [
+                        "boolean",
+                        true
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "browse-shell"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Browse shell"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "object",
+                  [
+                    [
+                      "depth",
+                      [
+                        "number",
+                        "1"
+                      ]
+                    ],
+                    [
+                      "key",
+                      [
+                        "string",
+                        "changes"
+                      ]
+                    ],
+                    [
+                      "kind",
+                      [
+                        "string",
+                        "collection"
+                      ]
+                    ],
+                    [
+                      "label",
+                      [
+                        "string",
+                        "Changes"
                       ]
                     ]
                   ]

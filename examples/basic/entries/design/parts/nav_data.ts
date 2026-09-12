@@ -1,8 +1,8 @@
 import { DESTINATIONS } from "./destinations.js";
-import type { NavNode } from "./nav.js";
 import { COMPONENT_PAGES } from "../components/parts/destinations.js";
+import type { CatalogueNavigationProps } from "../library/chrome/catalogue-navigation.js";
 
-export const NAV_TREE: readonly NavNode[] = [
+export const NAV_TREE = [
   {
     key: "example",
     count: 4,
@@ -72,4 +72,4 @@ export const NAV_TREE: readonly NavNode[] = [
   },
   { key: "browse-shell", depth: 1, kind: "collection", label: "Browse shell" },
   { key: "changes", depth: 1, kind: "collection", label: "Changes" },
-];
+] as const satisfies CatalogueNavigationProps["rows"];
