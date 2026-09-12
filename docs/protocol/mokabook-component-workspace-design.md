@@ -85,9 +85,9 @@ empty designs retain Current without comparison controls.
 
 All is a catalogue filter, not evidence that the selected example changed.
 Known examples show Added, Changed, Removed, or Unmodified beside the title,
-using the selected entry's comparison state. Unmodified examples retain
-their current preview with no comparison mode row. Changed, added, removed,
-or affected examples retain the relevant comparison controls. Temporary prop
+using the selected entry's comparison state. Added and Unmodified examples retain
+their current preview with no comparison mode row. Changed, removed, or affected
+examples retain the relevant comparison controls. Temporary prop
 edits never create committed changes or make comparison controls appear.
 
 Normal component/control fixtures depict an unchanged saved example and zero
@@ -102,8 +102,8 @@ Affected consumers may still expose comparisons while staying out of Changes.
 
 Entry status and variant status are distinct. Removing Compact from Action is
 a Changed component with a Removed variant; Farewell is a Removed screen.
-The Added Badge example lives in States → Additions and shows a missing Before
-side, a current saved preview, and one Changes entry. The existing unused Badge
+The Added Badge example lives in States → Additions and shows its current saved
+preview without comparison controls, plus one Changes entry. The existing unused Badge
 example remains Unmodified. Status must never be inferred from usage counts.
 
 ## Comparison Details

@@ -47,9 +47,11 @@ export function applyVariant(
       ? `${variant.value.title} · ${variant.status}`
       : "";
   }
-  const status =
-    data.entry.kind === "component" ? variant?.status : data.status;
-  const eligible = status !== undefined && status !== "Unmodified" && !error;
+  const eligible =
+    !error &&
+    (data.entry.kind === "component"
+      ? (variant?.comparisonEligible ?? false)
+      : data.comparisonEligible);
   const toolbar = root.querySelector<HTMLElement>(".mbk-diff-toolbar");
   if (toolbar) {
     if (!eligible)

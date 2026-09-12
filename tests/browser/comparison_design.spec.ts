@@ -36,12 +36,18 @@ test("comparison designs use screen context instead of report chrome", async ({
   ]) {
     for (const viewport of ["desktop", "mobile"]) {
       await page.goto(design(`review/${route}.${viewport}.html`));
+      const hasComparison = route !== "outcomes/added";
       await expect(
         page.locator(".mbk-title-row .mbk-status, .mbk-review-summary"),
       ).toHaveCount(0);
-      await expect(
-        page.getByText("Comparison details", { exact: true }),
-      ).toBeVisible();
+      const comparisonDetails = page.getByText("Comparison details", {
+        exact: true,
+      });
+      if (hasComparison) {
+        await expect(comparisonDetails).toBeVisible();
+      } else {
+        await expect(comparisonDetails).toHaveCount(0);
+      }
       if (route.startsWith("impact/") && viewport === "desktop") {
         await expect(page.locator(".mbk-nav-filter-opt.active")).toHaveText(
           "All",
@@ -52,7 +58,7 @@ test("comparison designs use screen context instead of report chrome", async ({
         viewport === "desktop" ? 1 : 0,
       );
       await expect(page.locator(".ce-inspector-resize:visible")).toHaveCount(
-        viewport === "desktop" ? 1 : 0,
+        viewport === "desktop" && hasComparison ? 1 : 0,
       );
       await expect(
         page

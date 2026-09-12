@@ -22,9 +22,8 @@ export function ComponentWorkspace({
   const data = workspaceData(catalogue, context, entry);
   const eligible =
     entry.kind === "component"
-      ? data.variants[0]?.status !== "Unmodified" &&
-        data.variants[0]?.status !== undefined
-      : data.status !== undefined && data.status !== "Unmodified";
+      ? (data.variants[0]?.comparisonEligible ?? false)
+      : data.comparisonEligible;
   const stage = data.removed ? (
     <div className="mbk-empty" data-mokabook-stage="" data-viewport="both">
       <h2>This {entry.kind} was removed</h2>

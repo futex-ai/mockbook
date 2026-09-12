@@ -30,9 +30,14 @@ test("workspace badges, comparison eligibility and usage use recorded evidence",
   };
   const data = workspaceData(catalogue, context, entry);
   assert.equal(data.status, "Changed");
+  assert.equal(data.comparisonEligible, true);
   assert.deepEqual(
     data.variants.map((item) => item.status),
     ["Unmodified", "Unmodified"],
+  );
+  assert.deepEqual(
+    data.variants.map((item) => item.comparisonEligible),
+    [false, false],
   );
   assert.equal(data.affected.length, 0);
   assert.equal(
@@ -88,7 +93,9 @@ test("a renamed screen keeps distinct Added and Removed evidence in a component 
     catalogue.removedScreens[0]!,
   );
   assert.equal(after.status, "Added");
+  assert.equal(after.comparisonEligible, false);
   assert.equal(before.status, "Removed");
+  assert.equal(before.comparisonEligible, true);
   assert.deepEqual(after.change?.reasons, [
     { kind: "added" },
     { kind: "material" },

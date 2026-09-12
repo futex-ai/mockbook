@@ -47,14 +47,17 @@ Viewport/theme changes retain the variant, applying existing light-only rules.
 Current / Side by side / Overlay / Difference operate on the selected saved
 variant and viewport/theme. Changing variant while comparing uses that variant's
 comparison; late responses cannot replace a newer selection. Added/removed
-variants have explicit missing sides. Page navigation and reload start in
-Current, as screens do today. Saved variant selection and comparison are fully
-usable in served and published catalogues.
+variants retain their recorded state, but only removed variants need an explicit
+missing side. Added variants stay in Current without comparison modes because
+there is no baseline view. Page navigation and reload start in Current, as
+screens do today. Saved variant selection and comparison are fully usable in
+served and published catalogues.
 
-Only expose comparison modes when actual evidence makes the saved selection
-eligible. A known selection shows Added, Changed, Removed, or Unmodified beside
-its title from the entry's comparison state; a removed variant does not mark its
-surviving component Removed. Unmodified shows only its current preview.
+Only expose comparison modes when actual evidence marks the saved selection
+Changed or Removed. A known selection shows Added, Changed, Removed, or Unmodified
+beside its title from the entry's comparison state; a removed variant does not
+mark its surviving component Removed. Added and Unmodified show only their
+current preview.
 Unknown evidence does not imply Unmodified. Affected
 consumers can remain eligible without entering Changes; temporary control edits
 never establish comparison eligibility. Do not eagerly generate screenshots to

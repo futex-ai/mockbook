@@ -164,10 +164,10 @@ its Current action returns to `design-changes-current`. Current is already
 selected in `design-changes-current`, so it has no
 transition there. Returning to All uses the navigation table above.
 
-Added Details offers Current as `design-browse-details-screen`; removed
-Farewell has no Current destination. Other modes on Added/Removed, other modes
-on the dark comparison have no matching authored state and remain non-link
-depictions. Shared-impact/ignored-only and empty Changes keep a Current preview
+Added Details shows its Current preview without comparison modes; removed
+Farewell has no Current destination. Other modes on Removed and the dark
+comparison have no matching authored state and remain non-link depictions.
+Shared-impact/ignored-only and empty Changes keep a Current preview
 without comparison modes; factual evidence lives in Details. Their existing
 routes and All escape remain available. A future interactive mode needs its
 own contract and owning screen first.

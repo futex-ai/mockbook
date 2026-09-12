@@ -44,7 +44,7 @@ export function ComponentLayout({
         crumbs={["Example", "Components"]}
         idChip={id}
         action={<ViewControls viewport={viewport} />}
-        comparisons={status !== "unmodified"}
+        comparisons={status === "changed" || status === "removed"}
         status={status}
         comparisonMode={comparison ? "side-by-side" : "current"}
       />

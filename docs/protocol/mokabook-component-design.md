@@ -26,27 +26,27 @@ Published galleries with four, four, and two screens. The linked inspector and
 controls contracts own their additional route inventories. Every screen has a separate
 mobile component and desktop component; there are no new user-flow pages.
 
-| Entry id                                    | Route                                                 | State                                            |
-| ------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
-| `design-component-overview`                 | `design/components/overview.html`                     | Action page, default variant, props, and Used by |
-| `design-component-variants`                 | `design/components/pages/variants.html`               | Disabled saved variant                           |
-| `design-component-comparison`               | `design/components/pages/comparison.html`             | Saved variant before/current comparison          |
-| `design-component-affected`                 | `design/components/pages/affected.html`               | One changed component and two affected screens   |
-| `design-component-toolbar`                  | `design/components/pages/toolbar.html`                | Component consuming Action                       |
-| `design-component-help`                     | `design/components/pages/help.html`                   | Invoked component with no visible region         |
-| `design-component-inspection-details`       | `design/components/inspection/details.html`           | Repeated instances and selected props            |
-| `design-component-inspection-highlight`     | `design/components/inspection/highlight.html`         | Outermost component cutouts                      |
-| `design-component-inspection-nested`        | `design/components/inspection/nested.html`            | Nested Action selected in the screen and Props   |
-| `design-component-inspection-direct-change` | `design/components/inspection/direct-change.html`     | Independent screen prop change; two Changes      |
-| `design-component-inspection-consumer`      | `design/components/inspection/consumer.html`          | A second screen reached from Used by             |
-| `design-component-inspection-toolbar`       | `design/components/inspection/selection/toolbar.html` | Selected container with its own props            |
-| `design-component-inspection-help`          | `design/components/inspection/selection/help.html`    | Selected invisible instance                      |
-| `design-component-empty`                    | `design/components/states/empty.html`                 | Validated empty usage                            |
-| `design-component-unavailable`              | `design/components/states/unavailable.html`           | Missing inspection metadata                      |
-| `design-component-unused`                   | `design/components/states/unused.html`                | Saved component with no consumers                |
-| `design-component-removed`                  | `design/components/states/removed.html`               | Removed saved variant and former consumer        |
-| `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Retained removed-screen comparison               |
-| `design-component-added`                    | `design/components/states/additions/added.html`       | Added Badge with a missing Before side           |
+| Entry id                                    | Route                                                 | State                                                   |
+| ------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------- |
+| `design-component-overview`                 | `design/components/overview.html`                     | Action page, default variant, props, and Used by        |
+| `design-component-variants`                 | `design/components/pages/variants.html`               | Disabled saved variant                                  |
+| `design-component-comparison`               | `design/components/pages/comparison.html`             | Saved variant before/current comparison                 |
+| `design-component-affected`                 | `design/components/pages/affected.html`               | One changed component and two affected screens          |
+| `design-component-toolbar`                  | `design/components/pages/toolbar.html`                | Component consuming Action                              |
+| `design-component-help`                     | `design/components/pages/help.html`                   | Invoked component with no visible region                |
+| `design-component-inspection-details`       | `design/components/inspection/details.html`           | Repeated instances and selected props                   |
+| `design-component-inspection-highlight`     | `design/components/inspection/highlight.html`         | Outermost component cutouts                             |
+| `design-component-inspection-nested`        | `design/components/inspection/nested.html`            | Nested Action selected in the screen and Props          |
+| `design-component-inspection-direct-change` | `design/components/inspection/direct-change.html`     | Independent screen prop change; two Changes             |
+| `design-component-inspection-consumer`      | `design/components/inspection/consumer.html`          | A second screen reached from Used by                    |
+| `design-component-inspection-toolbar`       | `design/components/inspection/selection/toolbar.html` | Selected container with its own props                   |
+| `design-component-inspection-help`          | `design/components/inspection/selection/help.html`    | Selected invisible instance                             |
+| `design-component-empty`                    | `design/components/states/empty.html`                 | Validated empty usage                                   |
+| `design-component-unavailable`              | `design/components/states/unavailable.html`           | Missing inspection metadata                             |
+| `design-component-unused`                   | `design/components/states/unused.html`                | Saved component with no consumers                       |
+| `design-component-removed`                  | `design/components/states/removed.html`               | Removed saved variant and former consumer               |
+| `design-component-removed-consumer`         | `design/components/states/removed-consumer.html`      | Retained removed-screen comparison                      |
+| `design-component-added`                    | `design/components/states/additions/added.html`       | Added Badge current preview without comparison controls |
 
 Standalone files insert `.mobile` or `.desktop` before `.html`. All thirty-two component
 screens opt into light documents, matching the existing shell mockups. They

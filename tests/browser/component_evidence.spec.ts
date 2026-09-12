@@ -152,8 +152,9 @@ for (const viewport of ["desktop", "mobile"] as const) {
       }
       const preview = page.locator(".ce-preview-view:visible");
       await expect(
-        preview.getByText("This component did not exist before."),
-      ).toBeVisible();
+        page.getByRole("group", { name: "Comparison mode" }),
+      ).toHaveCount(0);
+      await expect(preview.locator(".mbk-pane-missing")).toHaveCount(0);
       await expect(preview.locator(".ce-badge")).toHaveText("New");
       await expect(
         page.locator(

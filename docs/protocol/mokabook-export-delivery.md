@@ -53,7 +53,8 @@ resolve to the same page; Cloudflare tests protect this existing deployment.
 Collections remain navigation folders, not new routed pages. Include use cases
 and registered whole-document pages. Empty registries remain invalid under the existing
 build contract; exporting one preserves the previous artifact. Missing views
-remain explicit in added/removed comparisons; never synthesize content.
+remain explicit in added/removed comparison data; never synthesize content.
+The shell keeps Added entries in Current without exposing comparison modes.
 
 Every manifest, generated, copied, and adapter-added path enters a single
 collision-checked inventory, including file/directory prefix collisions.
@@ -134,10 +135,11 @@ redirect for compatibility.
 
 Current remains the default after navigation/reload. Browsing, Changes filtering,
 and scheme/viewport switches do not request comparison JSON or snapshot files.
-Side by side, Overlay, and Difference retain the existing UI and missing-side
-states. Refresh/retry reload the same exported generation; only another export
-and deployment produces new comparison content. An open tab retains its loaded
-deployment's descriptor; reload the page to adopt a newer deployment. Progressive
+Added entries retain their current preview without comparison modes. Side by
+side, Overlay, and Difference retain the existing UI and missing-current state
+for removed entries. Refresh/retry reload the same exported generation; only
+another export and deployment produces new comparison content. An open tab
+retains its loaded deployment's descriptor; reload the page to adopt a newer deployment. Progressive
 navigation encountering a different deployment identity performs a full page load rather
 than mixing its new route with the old catalogue navigation. Hosts may
 retain prior generations for old tabs; if they remove them, the existing

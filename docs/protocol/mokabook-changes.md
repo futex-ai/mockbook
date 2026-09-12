@@ -99,9 +99,10 @@ dropping views or disabling Git file validation.
 
 ## Screen controls
 
-Review-enabled screens and saved component variants with actual changed/added/removed comparison
+Review-enabled screens and saved component variants with actual changed or removed comparison
 views offer Current / Side by side / Overlay / Difference in an opaque band
 beneath the heading. Known unchanged views show Unmodified without that band;
+known added views show Added with their current preview and no comparison band;
 unknown evidence has no invented status. Eligibility follows saved view evidence,
 so affected-only consumers can compare their actual rendered differences while
 staying outside Changes. Current is selected initially, including
@@ -118,7 +119,7 @@ frames remain sandboxed without scripts or catalogue navigation privileges.
 Overlay places the current snapshot at 50% opacity above its baseline;
 Difference uses CSS difference blending. These are document comparisons, not
 pixel measurements. They must never display invented pixel counts or percentages.
-Missing before/after views remain explicit and legible in every mode.
+Missing current views for removed entries remain explicit and legible in every mode.
 Comparison frames retain matching dimensions; individual browser expansion is
 available only in Current so it cannot misalign an overlay.
 

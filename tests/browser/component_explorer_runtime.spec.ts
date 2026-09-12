@@ -21,10 +21,15 @@ test.beforeAll(async () => {
       },
     },
     (source) =>
-      source.replace(
-        "<button data-viewport=",
-        '<button className="revised" data-viewport=',
-      ),
+      source
+        .replace(
+          "<button data-viewport=",
+          '<button className="revised" data-viewport=',
+        )
+        .replace(
+          '{ id: "disabled", title: "Disabled", props: { label: "Continue", disabled: true } }]',
+          '{ id: "disabled", title: "Disabled", props: { label: "Continue", disabled: true } }, { id: "new", title: "New", props: { label: "New" } }]',
+        ),
   );
   const compared = await compareReview(
     fixture.after,
@@ -184,7 +189,7 @@ test("desktop divider stays centered while resizing and mobile sheet keeps the p
   ).toBe(true);
 });
 
-test("component comparisons follow the saved variant and keep evidence inside Details", async ({
+test("component comparisons follow changed variants while added variants stay current", async ({
   page,
 }) => {
   await page.goto(`${server.url}/view/components/action.html`);
@@ -213,6 +218,16 @@ test("component comparisons follow the saved variant and keep evidence inside De
       .frameLocator('[data-workspace-frame="mobile"]')
       .getByRole("button", { name: "Continue" }),
   ).toBeDisabled();
+  await page.getByLabel("Saved variant", { exact: true }).selectOption("new");
+  await expect(page.locator("[data-workspace-variant-status]")).toHaveText(
+    "New · Added",
+  );
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(
+    page
+      .frameLocator('[data-workspace-frame="mobile"]')
+      .getByRole("button", { name: "New", exact: true }),
+  ).toBeVisible();
 });
 
 test("Used by links select a real screen instance and clear stale selection on navigation", async ({

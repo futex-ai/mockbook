@@ -29,7 +29,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
         id,
       );
       const toolbar = byClass(document, "mbk-cmp-toolbar")[0];
-      const comparable = new Set<string>([
+      const changed = new Set<string>([
         COMPONENT_PAGES.affected,
         COMPONENT_PAGES.added,
         COMPONENT_PAGES.comparison,
@@ -38,9 +38,10 @@ for (const viewport of ["mobile", "desktop"] as const) {
         INSPECTION_PAGES["direct-change"],
         INSPECTION_PAGES["removed-consumer"],
       ]).has(id);
+      const comparable = changed && id !== COMPONENT_PAGES.added;
       assert.equal(
         byClass(document, "ce-unmodified").length,
-        comparable ? 0 : 1,
+        changed ? 0 : 1,
         id,
       );
       if (comparable) {

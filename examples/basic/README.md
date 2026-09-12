@@ -160,7 +160,8 @@ routes, fixture relationships, mask geometry, and delivery status live in the
 [workspace design](../../docs/protocol/mokabook-component-workspace-design.md).
 
 All unchanged Browse designs, including the tag picker, omit comparison controls.
-Changed, added, and removed designs retain an opaque comparison band. The
+Changed and removed designs retain an opaque comparison band. Added designs
+show their current preview and status without comparison controls. The
 shared-impact and ignored-only examples open from All with zero Changes and one
 Current preview. Dependency evidence remains available in Details, while
 unchanged output and paired ignored-only edits do not fill the review list.

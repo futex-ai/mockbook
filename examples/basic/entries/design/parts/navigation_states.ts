@@ -104,7 +104,7 @@ export const NAVIGATION_STATES: Record<DesignDestination, NavigationState> = {
     schemeLinks: { dark: D.darkChanged },
   },
   [D.difference]: { ...welcomeFilters, comparison: welcomeModes },
-  [D.added]: { ...detailsFilters, comparison: { current: D.details } },
+  [D.added]: { ...detailsFilters },
   [D.removed]: { all: D.home },
   [D.darkChanged]: {
     ...welcomeFilters,

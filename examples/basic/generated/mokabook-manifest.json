@@ -274,7 +274,7 @@
         "examples/basic/generated/design-stage.css",
         "examples/basic/generated/design.css"
       ],
-      "description": "New components with an explicit missing Before side.",
+      "description": "New components shown in their current saved state.",
       "id": "design-component-additions",
       "kind": "collection",
       "navPath": [
@@ -87946,7 +87946,7 @@
               "componentId": "design-ui-inspector",
               "id": "inspector",
               "key": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
-              "order": 6,
+              "order": 2,
               "owner": {
                 "kind": "entry"
               },
@@ -88046,34 +88046,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-before",
-              "key": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
-              "order": 4,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This component did not exist before."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "a1e7a5316a755d86fe9766f2e7a7937ea6e27359be3841ebf7de902243535b8f"
-            },
-            {
               "componentId": "design-ui-metadata-row",
               "id": "related-docs",
               "key": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
@@ -88095,34 +88067,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-before",
-              "key": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
-              "order": 2,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This component did not exist before."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "a1e7a5316a755d86fe9766f2e7a7937ea6e27359be3841ebf7de902243535b8f"
-            },
-            {
               "componentId": "design-ui-metadata-row",
               "id": "tags",
               "key": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
@@ -88142,35 +88086,6 @@
               },
               "propsKey": "4f00bc9bafc15cf5d20da10758af015a7db7ff7e2359449c20010f315663df3d",
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
-            },
-            {
-              "componentId": "design-ui-comparison-toolbar",
-              "id": "design-ui-comparison-toolbar",
-              "key": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
-              "order": 1,
-              "owner": {
-                "instanceKey": "b9ead1d7304d13b55868e20310f08b2fbc61cd4f7f4737053e72b279ff3485bb",
-                "kind": "instance"
-              },
-              "props": {
-                "accessible": [
-                  "boolean",
-                  true
-                ],
-                "destinations": [
-                  "object",
-                  []
-                ],
-                "eligible": [
-                  "boolean",
-                  true
-                ],
-                "mode": [
-                  "string",
-                  "side-by-side"
-                ]
-              },
-              "propsKey": "03ee773ec2743d012d6f78d8006884d33ad6f18ed3ac8a9ce4ba5c5ba585ddc4"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -88232,30 +88147,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-after",
-              "key": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "order": 3,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
-            },
-            {
               "componentId": "design-ui-view-controls",
               "id": "view-controls",
               "key": "ae85906ebe733566d24f66e0f6e16d78ed70a7d28f616d27360f35868de37d2d",
@@ -88295,7 +88186,7 @@
                 ],
                 "comparisons": [
                   "boolean",
-                  true
+                  false
                 ],
                 "crumbs": [
                   "array",
@@ -88376,7 +88267,7 @@
                 ],
                 "mode": [
                   "string",
-                  "side-by-side"
+                  "current"
                 ],
                 "status": [
                   "string",
@@ -88387,31 +88278,7 @@
                   "Badge"
                 ]
               },
-              "propsKey": "c3b1099324f122695860dcc69f62c4299bae764a59e9f6cbde2d1812920ffe4c"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-after",
-              "key": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "order": 5,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
+              "propsKey": "a8ca7edeab2179d10b405c2fde41472af72f084db07c54dd0ba7bb96155c5b89"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -88580,23 +88447,24 @@
             },
             {
               "id": "r-5",
-              "parentId": "r-1",
               "target": {
-                "instanceKey": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
+                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
                 "kind": "instance"
               }
             },
             {
               "id": "r-6",
+              "parentId": "r-5",
               "target": {
-                "instanceKey": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
-                "kind": "instance"
+                "kind": "slot",
+                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
               }
             },
             {
               "id": "r-7",
+              "parentId": "r-6",
               "target": {
-                "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
+                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
                 "kind": "instance"
               }
             },
@@ -88605,99 +88473,102 @@
               "parentId": "r-7",
               "target": {
                 "kind": "slot",
-                "slotKey": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7"
-              }
-            },
-            {
-              "id": "r-9",
-              "target": {
-                "instanceKey": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-10",
-              "target": {
-                "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-11",
-              "parentId": "r-10",
-              "target": {
-                "kind": "slot",
-                "slotKey": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565"
-              }
-            },
-            {
-              "id": "r-12",
-              "target": {
-                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-13",
-              "parentId": "r-12",
-              "target": {
-                "kind": "slot",
-                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
-              }
-            },
-            {
-              "id": "r-14",
-              "parentId": "r-13",
-              "target": {
-                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-15",
-              "parentId": "r-14",
-              "target": {
-                "kind": "slot",
                 "slotKey": "26d5b43cac3251654b3e8741ebdf8d6d4018ebd6d7c01e6683c7a26e267a0486"
               }
             },
             {
-              "id": "r-16",
-              "parentId": "r-13",
+              "id": "r-9",
+              "parentId": "r-6",
               "target": {
                 "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-17",
-              "parentId": "r-16",
+              "id": "r-10",
+              "parentId": "r-9",
               "target": {
                 "kind": "slot",
                 "slotKey": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a"
               }
             },
             {
-              "id": "r-18",
-              "parentId": "r-13",
+              "id": "r-11",
+              "parentId": "r-6",
               "target": {
                 "instanceKey": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-19",
-              "parentId": "r-18",
+              "id": "r-12",
+              "parentId": "r-11",
               "target": {
                 "kind": "slot",
                 "slotKey": "8a6257cd2dccefd8d88388050d1817d2f68e1679ac0ad7ca24e44a2ca1b1effc"
               }
             },
             {
-              "id": "r-20",
-              "parentId": "r-13",
+              "id": "r-13",
+              "parentId": "r-6",
               "target": {
                 "instanceKey": "0e48378278028c4471da69743b0ffaa0d3d96a362d38717c0f19b58b50fd1152",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-14",
+              "parentId": "r-13",
+              "target": {
+                "kind": "slot",
+                "slotKey": "291c63cd3008d79b2bcadc74c9406e336674d381153641909191cecb2056a616"
+              }
+            },
+            {
+              "id": "r-15",
+              "parentId": "r-6",
+              "target": {
+                "instanceKey": "e2eaea9df0f57f9d470bfb8f27019a492fea0a20f5f411cf0ca54c8fdedef130",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-16",
+              "parentId": "r-15",
+              "target": {
+                "kind": "slot",
+                "slotKey": "8ce2cc60e442f105f33e86799190170ff5992b9e52377bf290747cf76027e6a4"
+              }
+            },
+            {
+              "id": "r-17",
+              "parentId": "r-6",
+              "target": {
+                "instanceKey": "85b9dab276862bed793e5577dc57c41583c914e4e1b2f250c733ea3ee4ba10d7",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-18",
+              "parentId": "r-17",
+              "target": {
+                "kind": "slot",
+                "slotKey": "e635c060a4860d7a83f90602fb1dc261f90e6cdeff9eeddaafd0f952804e4a7a"
+              }
+            },
+            {
+              "id": "r-19",
+              "parentId": "r-5",
+              "target": {
+                "kind": "slot",
+                "slotKey": "888d651e5d173a53314247c3a5a742d2f2fc7fbce6664f446daff0c5318a6eba"
+              }
+            },
+            {
+              "id": "r-20",
+              "parentId": "r-19",
+              "target": {
+                "instanceKey": "e763ca5c8c0f7169e2221ff8b99ee14a0fb203b823594b1811b1b30d44605fc6",
                 "kind": "instance"
               }
             },
@@ -88706,68 +88577,12 @@
               "parentId": "r-20",
               "target": {
                 "kind": "slot",
-                "slotKey": "291c63cd3008d79b2bcadc74c9406e336674d381153641909191cecb2056a616"
-              }
-            },
-            {
-              "id": "r-22",
-              "parentId": "r-13",
-              "target": {
-                "instanceKey": "e2eaea9df0f57f9d470bfb8f27019a492fea0a20f5f411cf0ca54c8fdedef130",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-23",
-              "parentId": "r-22",
-              "target": {
-                "kind": "slot",
-                "slotKey": "8ce2cc60e442f105f33e86799190170ff5992b9e52377bf290747cf76027e6a4"
-              }
-            },
-            {
-              "id": "r-24",
-              "parentId": "r-13",
-              "target": {
-                "instanceKey": "85b9dab276862bed793e5577dc57c41583c914e4e1b2f250c733ea3ee4ba10d7",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-25",
-              "parentId": "r-24",
-              "target": {
-                "kind": "slot",
-                "slotKey": "e635c060a4860d7a83f90602fb1dc261f90e6cdeff9eeddaafd0f952804e4a7a"
-              }
-            },
-            {
-              "id": "r-26",
-              "parentId": "r-12",
-              "target": {
-                "kind": "slot",
-                "slotKey": "888d651e5d173a53314247c3a5a742d2f2fc7fbce6664f446daff0c5318a6eba"
-              }
-            },
-            {
-              "id": "r-27",
-              "parentId": "r-26",
-              "target": {
-                "instanceKey": "e763ca5c8c0f7169e2221ff8b99ee14a0fb203b823594b1811b1b30d44605fc6",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-28",
-              "parentId": "r-27",
-              "target": {
-                "kind": "slot",
                 "slotKey": "1e48bc6c4f1473e7670a6bac515e3fd01e7e6031435b65866fd81ffe97c0b47b"
               }
             },
             {
-              "id": "r-29",
-              "parentId": "r-12",
+              "id": "r-22",
+              "parentId": "r-5",
               "target": {
                 "kind": "slot",
                 "slotKey": "7886c8b75535330d5fb1c8b6f56e8509ac661ad4b070d3d161821f4fe1beff08"
@@ -88803,14 +88618,6 @@
             {
               "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
               "key": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
-            {
-              "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "key": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -88865,14 +88672,6 @@
               }
             },
             {
-              "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "key": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
-            {
               "instanceKey": "85b9dab276862bed793e5577dc57c41583c914e4e1b2f250c733ea3ee4ba10d7",
               "key": "e635c060a4860d7a83f90602fb1dc261f90e6cdeff9eeddaafd0f952804e4a7a",
               "name": "children",
@@ -88891,7 +88690,7 @@
               "componentId": "design-ui-inspector",
               "id": "inspector",
               "key": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
-              "order": 7,
+              "order": 3,
               "owner": {
                 "kind": "entry"
               },
@@ -88991,34 +88790,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-before",
-              "key": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
-              "order": 5,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This component did not exist before."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "a1e7a5316a755d86fe9766f2e7a7937ea6e27359be3841ebf7de902243535b8f"
-            },
-            {
               "componentId": "design-ui-metadata-row",
               "id": "related-docs",
               "key": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
@@ -89038,34 +88809,6 @@
               },
               "propsKey": "a7fe293763800f95c0a7a04672b5be2c2278226c7fbf8c3907ccef89bb6db64e",
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-before",
-              "key": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
-              "order": 3,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This component did not exist before."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "a1e7a5316a755d86fe9766f2e7a7937ea6e27359be3841ebf7de902243535b8f"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -89213,35 +88956,6 @@
               "propsKey": "53be915ef65dd98ef09a78f5e15bb2130c8a5eb22f4c57aa2a94dff47730632c"
             },
             {
-              "componentId": "design-ui-comparison-toolbar",
-              "id": "design-ui-comparison-toolbar",
-              "key": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
-              "order": 1,
-              "owner": {
-                "instanceKey": "b9ead1d7304d13b55868e20310f08b2fbc61cd4f7f4737053e72b279ff3485bb",
-                "kind": "instance"
-              },
-              "props": {
-                "accessible": [
-                  "boolean",
-                  true
-                ],
-                "destinations": [
-                  "object",
-                  []
-                ],
-                "eligible": [
-                  "boolean",
-                  true
-                ],
-                "mode": [
-                  "string",
-                  "side-by-side"
-                ]
-              },
-              "propsKey": "03ee773ec2743d012d6f78d8006884d33ad6f18ed3ac8a9ce4ba5c5ba585ddc4"
-            },
-            {
               "componentId": "design-ui-metadata-row",
               "id": "saved-variant",
               "key": "85b9dab276862bed793e5577dc57c41583c914e4e1b2f250c733ea3ee4ba10d7",
@@ -89301,30 +89015,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-after",
-              "key": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "order": 4,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
-            },
-            {
               "componentId": "design-ui-view-controls",
               "id": "view-controls",
               "key": "ae85906ebe733566d24f66e0f6e16d78ed70a7d28f616d27360f35868de37d2d",
@@ -89364,7 +89054,7 @@
                 ],
                 "comparisons": [
                   "boolean",
-                  true
+                  false
                 ],
                 "crumbs": [
                   "array",
@@ -89445,7 +89135,7 @@
                 ],
                 "mode": [
                   "string",
-                  "side-by-side"
+                  "current"
                 ],
                 "status": [
                   "string",
@@ -89456,31 +89146,7 @@
                   "Badge"
                 ]
               },
-              "propsKey": "c3b1099324f122695860dcc69f62c4299bae764a59e9f6cbde2d1812920ffe4c"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-after",
-              "key": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "order": 6,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
+              "propsKey": "a8ca7edeab2179d10b405c2fde41472af72f084db07c54dd0ba7bb96155c5b89"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -89656,23 +89322,24 @@
             },
             {
               "id": "r-6",
-              "parentId": "r-2",
               "target": {
-                "instanceKey": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
+                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
                 "kind": "instance"
               }
             },
             {
               "id": "r-7",
+              "parentId": "r-6",
               "target": {
-                "instanceKey": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
-                "kind": "instance"
+                "kind": "slot",
+                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
               }
             },
             {
               "id": "r-8",
+              "parentId": "r-7",
               "target": {
-                "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
+                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
                 "kind": "instance"
               }
             },
@@ -89681,99 +89348,102 @@
               "parentId": "r-8",
               "target": {
                 "kind": "slot",
-                "slotKey": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7"
-              }
-            },
-            {
-              "id": "r-10",
-              "target": {
-                "instanceKey": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-11",
-              "target": {
-                "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-12",
-              "parentId": "r-11",
-              "target": {
-                "kind": "slot",
-                "slotKey": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565"
-              }
-            },
-            {
-              "id": "r-13",
-              "target": {
-                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-14",
-              "parentId": "r-13",
-              "target": {
-                "kind": "slot",
-                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
-              }
-            },
-            {
-              "id": "r-15",
-              "parentId": "r-14",
-              "target": {
-                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-16",
-              "parentId": "r-15",
-              "target": {
-                "kind": "slot",
                 "slotKey": "26d5b43cac3251654b3e8741ebdf8d6d4018ebd6d7c01e6683c7a26e267a0486"
               }
             },
             {
-              "id": "r-17",
-              "parentId": "r-14",
+              "id": "r-10",
+              "parentId": "r-7",
               "target": {
                 "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-18",
-              "parentId": "r-17",
+              "id": "r-11",
+              "parentId": "r-10",
               "target": {
                 "kind": "slot",
                 "slotKey": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a"
               }
             },
             {
-              "id": "r-19",
-              "parentId": "r-14",
+              "id": "r-12",
+              "parentId": "r-7",
               "target": {
                 "instanceKey": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-20",
-              "parentId": "r-19",
+              "id": "r-13",
+              "parentId": "r-12",
               "target": {
                 "kind": "slot",
                 "slotKey": "8a6257cd2dccefd8d88388050d1817d2f68e1679ac0ad7ca24e44a2ca1b1effc"
               }
             },
             {
-              "id": "r-21",
-              "parentId": "r-14",
+              "id": "r-14",
+              "parentId": "r-7",
               "target": {
                 "instanceKey": "0e48378278028c4471da69743b0ffaa0d3d96a362d38717c0f19b58b50fd1152",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-15",
+              "parentId": "r-14",
+              "target": {
+                "kind": "slot",
+                "slotKey": "291c63cd3008d79b2bcadc74c9406e336674d381153641909191cecb2056a616"
+              }
+            },
+            {
+              "id": "r-16",
+              "parentId": "r-7",
+              "target": {
+                "instanceKey": "e2eaea9df0f57f9d470bfb8f27019a492fea0a20f5f411cf0ca54c8fdedef130",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-17",
+              "parentId": "r-16",
+              "target": {
+                "kind": "slot",
+                "slotKey": "8ce2cc60e442f105f33e86799190170ff5992b9e52377bf290747cf76027e6a4"
+              }
+            },
+            {
+              "id": "r-18",
+              "parentId": "r-7",
+              "target": {
+                "instanceKey": "85b9dab276862bed793e5577dc57c41583c914e4e1b2f250c733ea3ee4ba10d7",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-19",
+              "parentId": "r-18",
+              "target": {
+                "kind": "slot",
+                "slotKey": "e635c060a4860d7a83f90602fb1dc261f90e6cdeff9eeddaafd0f952804e4a7a"
+              }
+            },
+            {
+              "id": "r-20",
+              "parentId": "r-6",
+              "target": {
+                "kind": "slot",
+                "slotKey": "888d651e5d173a53314247c3a5a742d2f2fc7fbce6664f446daff0c5318a6eba"
+              }
+            },
+            {
+              "id": "r-21",
+              "parentId": "r-20",
+              "target": {
+                "instanceKey": "e763ca5c8c0f7169e2221ff8b99ee14a0fb203b823594b1811b1b30d44605fc6",
                 "kind": "instance"
               }
             },
@@ -89782,68 +89452,12 @@
               "parentId": "r-21",
               "target": {
                 "kind": "slot",
-                "slotKey": "291c63cd3008d79b2bcadc74c9406e336674d381153641909191cecb2056a616"
-              }
-            },
-            {
-              "id": "r-23",
-              "parentId": "r-14",
-              "target": {
-                "instanceKey": "e2eaea9df0f57f9d470bfb8f27019a492fea0a20f5f411cf0ca54c8fdedef130",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-24",
-              "parentId": "r-23",
-              "target": {
-                "kind": "slot",
-                "slotKey": "8ce2cc60e442f105f33e86799190170ff5992b9e52377bf290747cf76027e6a4"
-              }
-            },
-            {
-              "id": "r-25",
-              "parentId": "r-14",
-              "target": {
-                "instanceKey": "85b9dab276862bed793e5577dc57c41583c914e4e1b2f250c733ea3ee4ba10d7",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-26",
-              "parentId": "r-25",
-              "target": {
-                "kind": "slot",
-                "slotKey": "e635c060a4860d7a83f90602fb1dc261f90e6cdeff9eeddaafd0f952804e4a7a"
-              }
-            },
-            {
-              "id": "r-27",
-              "parentId": "r-13",
-              "target": {
-                "kind": "slot",
-                "slotKey": "888d651e5d173a53314247c3a5a742d2f2fc7fbce6664f446daff0c5318a6eba"
-              }
-            },
-            {
-              "id": "r-28",
-              "parentId": "r-27",
-              "target": {
-                "instanceKey": "e763ca5c8c0f7169e2221ff8b99ee14a0fb203b823594b1811b1b30d44605fc6",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-29",
-              "parentId": "r-28",
-              "target": {
-                "kind": "slot",
                 "slotKey": "1e48bc6c4f1473e7670a6bac515e3fd01e7e6031435b65866fd81ffe97c0b47b"
               }
             },
             {
-              "id": "r-30",
-              "parentId": "r-13",
+              "id": "r-23",
+              "parentId": "r-6",
               "target": {
                 "kind": "slot",
                 "slotKey": "7886c8b75535330d5fb1c8b6f56e8509ac661ad4b070d3d161821f4fe1beff08"
@@ -89879,14 +89493,6 @@
             {
               "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
               "key": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
-            {
-              "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "key": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -89935,14 +89541,6 @@
             {
               "instanceKey": "e2eaea9df0f57f9d470bfb8f27019a492fea0a20f5f411cf0ca54c8fdedef130",
               "key": "8ce2cc60e442f105f33e86799190170ff5992b9e52377bf290747cf76027e6a4",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
-            {
-              "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "key": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -117868,17 +117466,57 @@
               "slotKey": "5ddb279e7e9aa1006b286a9fb2d1802e0ec664577e4dbfb66970a23cfbec2c69"
             },
             {
+              "componentId": "design-ui-device-frame",
+              "id": "mobile-phone",
+              "key": "07145e45ba28cd1a34e9d1668488f17b5b1d0796854cf563c2a21040c5d84f68",
+              "order": 2,
+              "owner": {
+                "kind": "entry"
+              },
+              "props": {
+                "address": [
+                  "string",
+                  ""
+                ],
+                "dark": [
+                  "boolean",
+                  false
+                ],
+                "device": [
+                  "string",
+                  "phone"
+                ],
+                "expandable": [
+                  "boolean",
+                  true
+                ],
+                "label": [
+                  "string",
+                  "Mobile"
+                ],
+                "lightOnly": [
+                  "boolean",
+                  false
+                ],
+                "small": [
+                  "boolean",
+                  true
+                ]
+              },
+              "propsKey": "1c814dfb0bc1121885341d49c766a537da1de766218f99abfded53295a5e03d7"
+            },
+            {
               "componentId": "design-ui-inspector",
               "id": "inspector",
               "key": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
-              "order": 6,
+              "order": 4,
               "owner": {
                 "kind": "entry"
               },
               "props": {
                 "initial": [
                   "string",
-                  "info"
+                  "closed"
                 ],
                 "sheetSize": [
                   "string",
@@ -117909,7 +117547,7 @@
                   ]
                 ]
               },
-              "propsKey": "334442452426f657d739274dcd65330ab3216748aea112abd86de878452f6e41"
+              "propsKey": "d2a76ffa6849f9585da30f33d68b0a21ae7857e0cbe46cba1f7e609dd26547eb"
             },
             {
               "componentId": "design-ui-tag-chip",
@@ -117937,34 +117575,6 @@
               "slotKey": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-before",
-              "key": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
-              "order": 4,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This screen was added on this branch."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "cd1c8ca4919a2617c8900eeb7c6f9ebfedf20307ee1b2de1ebf6af39a07822a1"
-            },
-            {
               "componentId": "design-ui-metadata-row",
               "id": "related-docs",
               "key": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
@@ -117984,34 +117594,6 @@
               },
               "propsKey": "df5ed8c5d0d9cf366faa9febb25a9075db66987dbf2f896d745c134a09e6ce10",
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-before",
-              "key": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
-              "order": 2,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This screen was added on this branch."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "cd1c8ca4919a2617c8900eeb7c6f9ebfedf20307ee1b2de1ebf6af39a07822a1"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -118035,6 +117617,46 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
+              "componentId": "design-ui-device-frame",
+              "id": "desktop-browser",
+              "key": "696abeb79f9e77b570b2cf718d50a714eef94d7e8080db1d3b1b06cf2b1bf7f8",
+              "order": 3,
+              "owner": {
+                "kind": "entry"
+              },
+              "props": {
+                "address": [
+                  "string",
+                  "example.test/details"
+                ],
+                "dark": [
+                  "boolean",
+                  false
+                ],
+                "device": [
+                  "string",
+                  "browser"
+                ],
+                "expandable": [
+                  "boolean",
+                  true
+                ],
+                "label": [
+                  "string",
+                  "Desktop"
+                ],
+                "lightOnly": [
+                  "boolean",
+                  false
+                ],
+                "small": [
+                  "boolean",
+                  false
+                ]
+              },
+              "propsKey": "9eadae855b4b8810e1314d3a19318d33d636e6f7271245e48f761041bd729d8e"
+            },
+            {
               "componentId": "design-ui-metadata-row",
               "id": "used-by",
               "key": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
@@ -118056,78 +117678,21 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-device-frame",
-              "id": "mobile-phone",
-              "key": "77aaba19bb9f71ebb21ec69fdbe16ec1b6a5a905808e124334ce03a383ef13fe",
-              "order": 0,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "address": [
-                  "string",
-                  ""
-                ],
-                "dark": [
-                  "boolean",
-                  false
-                ],
-                "device": [
-                  "string",
-                  "phone"
-                ],
-                "expandable": [
-                  "boolean",
-                  true
-                ],
-                "lightOnly": [
-                  "boolean",
-                  false
-                ],
-                "small": [
-                  "boolean",
-                  true
-                ]
-              },
-              "propsKey": "447951abd9addca4279b94211f91010c223ddaca8f0c4e18a9334c05f01c62de",
-              "slotKey": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7"
-            },
-            {
-              "componentId": "design-ui-comparison-toolbar",
-              "id": "design-ui-comparison-toolbar",
-              "key": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
+              "componentId": "design-ui-change-status",
+              "id": "design-ui-change-status",
+              "key": "85e98200dadef8cad3c79cff552c4c02d4fa04acc454e01cc700df60875f32f5",
               "order": 0,
               "owner": {
                 "instanceKey": "b9ead1d7304d13b55868e20310f08b2fbc61cd4f7f4737053e72b279ff3485bb",
                 "kind": "instance"
               },
               "props": {
-                "accessible": [
-                  "boolean",
-                  false
-                ],
-                "destinations": [
-                  "object",
-                  [
-                    [
-                      "current",
-                      [
-                        "string",
-                        "design-browse-details-screen"
-                      ]
-                    ]
-                  ]
-                ],
-                "eligible": [
-                  "boolean",
-                  true
-                ],
-                "mode": [
+                "status": [
                   "string",
-                  "side-by-side"
+                  "added"
                 ]
               },
-              "propsKey": "473311fa85d415ec406f10ee49d9d16a975524fe1502ed5212ac473068a62981"
+              "propsKey": "c700b01e5a372aea56c888a5d038e52e815be56ebbd5c511214bc9721c7fd3d8"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -118172,30 +117737,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-after",
-              "key": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "order": 3,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
-            },
-            {
               "componentId": "design-ui-screen-header",
               "id": "header",
               "key": "b9ead1d7304d13b55868e20310f08b2fbc61cd4f7f4737053e72b279ff3485bb",
@@ -118210,7 +117751,7 @@
                 ],
                 "comparisons": [
                   "boolean",
-                  true
+                  false
                 ],
                 "crumbs": [
                   "array",
@@ -118283,15 +117824,7 @@
                 ],
                 "destinations": [
                   "object",
-                  [
-                    [
-                      "current",
-                      [
-                        "string",
-                        "design-browse-details-screen"
-                      ]
-                    ]
-                  ]
+                  []
                 ],
                 "idChip": [
                   "string",
@@ -118299,75 +117832,18 @@
                 ],
                 "mode": [
                   "string",
-                  "side-by-side"
+                  "current"
+                ],
+                "status": [
+                  "string",
+                  "added"
                 ],
                 "title": [
                   "string",
                   "Details"
                 ]
               },
-              "propsKey": "966152bf329913b7750abf26d7192b7a9100f26cf87831b4c4028245c3cd53d7"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-after",
-              "key": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "order": 5,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
-            },
-            {
-              "componentId": "design-ui-device-frame",
-              "id": "desktop-browser",
-              "key": "e4c83b07858745176109d5efeeca9afd54e98356e06b345ef328a401d941da1f",
-              "order": 0,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "address": [
-                  "string",
-                  "example.test/details"
-                ],
-                "dark": [
-                  "boolean",
-                  false
-                ],
-                "device": [
-                  "string",
-                  "browser"
-                ],
-                "expandable": [
-                  "boolean",
-                  false
-                ],
-                "lightOnly": [
-                  "boolean",
-                  false
-                ],
-                "small": [
-                  "boolean",
-                  false
-                ]
-              },
-              "propsKey": "f4c54e06dadcde8b0b92164fc0070de9e395e27c91cfe3490418616eaa4086eb",
-              "slotKey": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565"
+              "propsKey": "ecd29fddd06ff21b19e8dc6963651ad1daf561b9cfff11da87384b1c7f22fd17"
             },
             {
               "componentId": "design-ui-top-bar",
@@ -118493,75 +117969,76 @@
               "id": "r-2",
               "parentId": "r-1",
               "target": {
+                "instanceKey": "85e98200dadef8cad3c79cff552c4c02d4fa04acc454e01cc700df60875f32f5",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-3",
+              "parentId": "r-1",
+              "target": {
                 "kind": "slot",
                 "slotKey": "5ddb279e7e9aa1006b286a9fb2d1802e0ec664577e4dbfb66970a23cfbec2c69"
               }
             },
             {
-              "id": "r-3",
-              "parentId": "r-2",
+              "id": "r-4",
+              "parentId": "r-3",
               "target": {
                 "instanceKey": "02ae2e55168f610926763cf8af18dee713e295efa5c5e269c6d80be11a941c8c",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-4",
-              "parentId": "r-1",
-              "target": {
-                "instanceKey": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
-                "kind": "instance"
-              }
-            },
-            {
               "id": "r-5",
               "target": {
-                "instanceKey": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
+                "instanceKey": "07145e45ba28cd1a34e9d1668488f17b5b1d0796854cf563c2a21040c5d84f68",
                 "kind": "instance"
               }
             },
             {
               "id": "r-6",
+              "parentId": "r-5",
               "target": {
-                "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-                "kind": "instance"
+                "kind": "slot",
+                "slotKey": "543c999a3843231e745de2e73d2e0b4d0ff5802ad13095ab2831fe25b3cdcf93"
               }
             },
             {
               "id": "r-7",
-              "parentId": "r-6",
               "target": {
-                "kind": "slot",
-                "slotKey": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7"
+                "instanceKey": "696abeb79f9e77b570b2cf718d50a714eef94d7e8080db1d3b1b06cf2b1bf7f8",
+                "kind": "instance"
               }
             },
             {
               "id": "r-8",
               "parentId": "r-7",
               "target": {
-                "instanceKey": "77aaba19bb9f71ebb21ec69fdbe16ec1b6a5a905808e124334ce03a383ef13fe",
-                "kind": "instance"
+                "kind": "slot",
+                "slotKey": "32add906d078563cd6442b209eb1c63f1e52ed118e74eb424cbf2876695ebf89"
               }
             },
             {
               "id": "r-9",
-              "parentId": "r-8",
               "target": {
-                "kind": "slot",
-                "slotKey": "2812990fbec5c0e27cc9d0d15c81f678b3ce159ca065652cb5bdffa70e04b518"
-              }
-            },
-            {
-              "id": "r-10",
-              "target": {
-                "instanceKey": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
+                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-11",
+              "id": "r-10",
+              "parentId": "r-9",
               "target": {
-                "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
+                "kind": "slot",
+                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
+              }
+            },
+            {
+              "id": "r-11",
+              "parentId": "r-10",
+              "target": {
+                "instanceKey": "f1201d04685b16dc9fe5b6896df6fcf3b362a2d66c4d1aa85a2309404a22eccf",
                 "kind": "instance"
               }
             },
@@ -118570,14 +118047,14 @@
               "parentId": "r-11",
               "target": {
                 "kind": "slot",
-                "slotKey": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565"
+                "slotKey": "aca0baa5eb71d82b77abf90eb3d54606c42c4d0a2aadee907b525b34911c69fe"
               }
             },
             {
               "id": "r-13",
-              "parentId": "r-12",
+              "parentId": "r-10",
               "target": {
-                "instanceKey": "e4c83b07858745176109d5efeeca9afd54e98356e06b345ef328a401d941da1f",
+                "instanceKey": "a1660369c055873d261da52447f71b2f9954f9b6c2aed049a932f5c8ff2264bd",
                 "kind": "instance"
               }
             },
@@ -118586,13 +118063,14 @@
               "parentId": "r-13",
               "target": {
                 "kind": "slot",
-                "slotKey": "0ea9bedc024f4c7cfeb5e1bf0642b001818091ed3900f7e1a7696eca4025de55"
+                "slotKey": "14db77d025bfb16d58cef28d61ab7e9ded1df47fdbc391cd84cf6140914fa2d2"
               }
             },
             {
               "id": "r-15",
+              "parentId": "r-10",
               "target": {
-                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
+                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
                 "kind": "instance"
               }
             },
@@ -118601,14 +118079,14 @@
               "parentId": "r-15",
               "target": {
                 "kind": "slot",
-                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
+                "slotKey": "26d5b43cac3251654b3e8741ebdf8d6d4018ebd6d7c01e6683c7a26e267a0486"
               }
             },
             {
               "id": "r-17",
-              "parentId": "r-16",
+              "parentId": "r-10",
               "target": {
-                "instanceKey": "f1201d04685b16dc9fe5b6896df6fcf3b362a2d66c4d1aa85a2309404a22eccf",
+                "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
                 "kind": "instance"
               }
             },
@@ -118617,92 +118095,44 @@
               "parentId": "r-17",
               "target": {
                 "kind": "slot",
-                "slotKey": "aca0baa5eb71d82b77abf90eb3d54606c42c4d0a2aadee907b525b34911c69fe"
-              }
-            },
-            {
-              "id": "r-19",
-              "parentId": "r-16",
-              "target": {
-                "instanceKey": "a1660369c055873d261da52447f71b2f9954f9b6c2aed049a932f5c8ff2264bd",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-20",
-              "parentId": "r-19",
-              "target": {
-                "kind": "slot",
-                "slotKey": "14db77d025bfb16d58cef28d61ab7e9ded1df47fdbc391cd84cf6140914fa2d2"
-              }
-            },
-            {
-              "id": "r-21",
-              "parentId": "r-16",
-              "target": {
-                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-22",
-              "parentId": "r-21",
-              "target": {
-                "kind": "slot",
-                "slotKey": "26d5b43cac3251654b3e8741ebdf8d6d4018ebd6d7c01e6683c7a26e267a0486"
-              }
-            },
-            {
-              "id": "r-23",
-              "parentId": "r-16",
-              "target": {
-                "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-24",
-              "parentId": "r-23",
-              "target": {
-                "kind": "slot",
                 "slotKey": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a"
               }
             },
             {
-              "id": "r-25",
-              "parentId": "r-24",
+              "id": "r-19",
+              "parentId": "r-18",
               "target": {
                 "instanceKey": "15e394a32edf484f5bf335a5d175aa21b368b6b9e9297e1d8e7a6ae93bbf266b",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-26",
-              "parentId": "r-16",
+              "id": "r-20",
+              "parentId": "r-10",
               "target": {
                 "instanceKey": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-27",
-              "parentId": "r-26",
+              "id": "r-21",
+              "parentId": "r-20",
               "target": {
                 "kind": "slot",
                 "slotKey": "8a6257cd2dccefd8d88388050d1817d2f68e1679ac0ad7ca24e44a2ca1b1effc"
               }
             },
             {
-              "id": "r-28",
-              "parentId": "r-16",
+              "id": "r-22",
+              "parentId": "r-10",
               "target": {
                 "instanceKey": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-29",
-              "parentId": "r-28",
+              "id": "r-23",
+              "parentId": "r-22",
               "target": {
                 "kind": "slot",
                 "slotKey": "2d22155475c3ad91159b97271aea2df260b0ef230acd19c3566bd7565deddc18"
@@ -118711,14 +118141,6 @@
           ],
           "resources": [],
           "slots": [
-            {
-              "instanceKey": "e4c83b07858745176109d5efeeca9afd54e98356e06b345ef328a401d941da1f",
-              "key": "0ea9bedc024f4c7cfeb5e1bf0642b001818091ed3900f7e1a7696eca4025de55",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
             {
               "instanceKey": "a1660369c055873d261da52447f71b2f9954f9b6c2aed049a932f5c8ff2264bd",
               "key": "14db77d025bfb16d58cef28d61ab7e9ded1df47fdbc391cd84cf6140914fa2d2",
@@ -118736,16 +118158,16 @@
               }
             },
             {
-              "instanceKey": "77aaba19bb9f71ebb21ec69fdbe16ec1b6a5a905808e124334ce03a383ef13fe",
-              "key": "2812990fbec5c0e27cc9d0d15c81f678b3ce159ca065652cb5bdffa70e04b518",
+              "instanceKey": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
+              "key": "2d22155475c3ad91159b97271aea2df260b0ef230acd19c3566bd7565deddc18",
               "name": "children",
               "owner": {
                 "kind": "entry"
               }
             },
             {
-              "instanceKey": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
-              "key": "2d22155475c3ad91159b97271aea2df260b0ef230acd19c3566bd7565deddc18",
+              "instanceKey": "696abeb79f9e77b570b2cf718d50a714eef94d7e8080db1d3b1b06cf2b1bf7f8",
+              "key": "32add906d078563cd6442b209eb1c63f1e52ed118e74eb424cbf2876695ebf89",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -118760,8 +118182,8 @@
               }
             },
             {
-              "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "key": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565",
+              "instanceKey": "07145e45ba28cd1a34e9d1668488f17b5b1d0796854cf563c2a21040c5d84f68",
+              "key": "543c999a3843231e745de2e73d2e0b4d0ff5802ad13095ab2831fe25b3cdcf93",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -118794,14 +118216,6 @@
             {
               "instanceKey": "f1201d04685b16dc9fe5b6896df6fcf3b362a2d66c4d1aa85a2309404a22eccf",
               "key": "aca0baa5eb71d82b77abf90eb3d54606c42c4d0a2aadee907b525b34911c69fe",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
-            {
-              "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "key": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -118844,17 +118258,57 @@
               "slotKey": "5ddb279e7e9aa1006b286a9fb2d1802e0ec664577e4dbfb66970a23cfbec2c69"
             },
             {
+              "componentId": "design-ui-device-frame",
+              "id": "mobile-phone",
+              "key": "07145e45ba28cd1a34e9d1668488f17b5b1d0796854cf563c2a21040c5d84f68",
+              "order": 3,
+              "owner": {
+                "kind": "entry"
+              },
+              "props": {
+                "address": [
+                  "string",
+                  ""
+                ],
+                "dark": [
+                  "boolean",
+                  false
+                ],
+                "device": [
+                  "string",
+                  "phone"
+                ],
+                "expandable": [
+                  "boolean",
+                  true
+                ],
+                "label": [
+                  "string",
+                  "Mobile"
+                ],
+                "lightOnly": [
+                  "boolean",
+                  false
+                ],
+                "small": [
+                  "boolean",
+                  false
+                ]
+              },
+              "propsKey": "2caa414f22fa18a98b397c84c50f4657bf344ba691b57654914688ab861bbf6e"
+            },
+            {
               "componentId": "design-ui-inspector",
               "id": "inspector",
               "key": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
-              "order": 7,
+              "order": 5,
               "owner": {
                 "kind": "entry"
               },
               "props": {
                 "initial": [
                   "string",
-                  "info"
+                  "closed"
                 ],
                 "sheetSize": [
                   "string",
@@ -118885,7 +118339,7 @@
                   ]
                 ]
               },
-              "propsKey": "334442452426f657d739274dcd65330ab3216748aea112abd86de878452f6e41"
+              "propsKey": "d2a76ffa6849f9585da30f33d68b0a21ae7857e0cbe46cba1f7e609dd26547eb"
             },
             {
               "componentId": "design-ui-tag-chip",
@@ -118913,34 +118367,6 @@
               "slotKey": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-before",
-              "key": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
-              "order": 5,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This screen was added on this branch."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "cd1c8ca4919a2617c8900eeb7c6f9ebfedf20307ee1b2de1ebf6af39a07822a1"
-            },
-            {
               "componentId": "design-ui-metadata-row",
               "id": "related-docs",
               "key": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
@@ -118960,34 +118386,6 @@
               },
               "propsKey": "df5ed8c5d0d9cf366faa9febb25a9075db66987dbf2f896d745c134a09e6ce10",
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-before",
-              "key": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
-              "order": 3,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Before"
-                ],
-                "message": [
-                  "string",
-                  "This screen was added on this branch."
-                ],
-                "side": [
-                  "string",
-                  "before"
-                ],
-                "state": [
-                  "string",
-                  "missing"
-                ]
-              },
-              "propsKey": "cd1c8ca4919a2617c8900eeb7c6f9ebfedf20307ee1b2de1ebf6af39a07822a1"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -119256,6 +118654,46 @@
               "propsKey": "36abed6aafcbadd09563b15817926412d8a45da1375d4dc1f0dd8ff21eb0b20c"
             },
             {
+              "componentId": "design-ui-device-frame",
+              "id": "desktop-browser",
+              "key": "696abeb79f9e77b570b2cf718d50a714eef94d7e8080db1d3b1b06cf2b1bf7f8",
+              "order": 4,
+              "owner": {
+                "kind": "entry"
+              },
+              "props": {
+                "address": [
+                  "string",
+                  "example.test/details"
+                ],
+                "dark": [
+                  "boolean",
+                  false
+                ],
+                "device": [
+                  "string",
+                  "browser"
+                ],
+                "expandable": [
+                  "boolean",
+                  true
+                ],
+                "label": [
+                  "string",
+                  "Desktop"
+                ],
+                "lightOnly": [
+                  "boolean",
+                  false
+                ],
+                "small": [
+                  "boolean",
+                  false
+                ]
+              },
+              "propsKey": "9eadae855b4b8810e1314d3a19318d33d636e6f7271245e48f761041bd729d8e"
+            },
+            {
               "componentId": "design-ui-metadata-row",
               "id": "used-by",
               "key": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
@@ -119277,78 +118715,21 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-device-frame",
-              "id": "mobile-phone",
-              "key": "77aaba19bb9f71ebb21ec69fdbe16ec1b6a5a905808e124334ce03a383ef13fe",
-              "order": 0,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "address": [
-                  "string",
-                  ""
-                ],
-                "dark": [
-                  "boolean",
-                  false
-                ],
-                "device": [
-                  "string",
-                  "phone"
-                ],
-                "expandable": [
-                  "boolean",
-                  true
-                ],
-                "lightOnly": [
-                  "boolean",
-                  false
-                ],
-                "small": [
-                  "boolean",
-                  true
-                ]
-              },
-              "propsKey": "447951abd9addca4279b94211f91010c223ddaca8f0c4e18a9334c05f01c62de",
-              "slotKey": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7"
-            },
-            {
-              "componentId": "design-ui-comparison-toolbar",
-              "id": "design-ui-comparison-toolbar",
-              "key": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
+              "componentId": "design-ui-change-status",
+              "id": "design-ui-change-status",
+              "key": "85e98200dadef8cad3c79cff552c4c02d4fa04acc454e01cc700df60875f32f5",
               "order": 0,
               "owner": {
                 "instanceKey": "b9ead1d7304d13b55868e20310f08b2fbc61cd4f7f4737053e72b279ff3485bb",
                 "kind": "instance"
               },
               "props": {
-                "accessible": [
-                  "boolean",
-                  false
-                ],
-                "destinations": [
-                  "object",
-                  [
-                    [
-                      "current",
-                      [
-                        "string",
-                        "design-browse-details-screen"
-                      ]
-                    ]
-                  ]
-                ],
-                "eligible": [
-                  "boolean",
-                  true
-                ],
-                "mode": [
+                "status": [
                   "string",
-                  "side-by-side"
+                  "added"
                 ]
               },
-              "propsKey": "473311fa85d415ec406f10ee49d9d16a975524fe1502ed5212ac473068a62981"
+              "propsKey": "c700b01e5a372aea56c888a5d038e52e815be56ebbd5c511214bc9721c7fd3d8"
             },
             {
               "componentId": "design-ui-metadata-row",
@@ -119393,30 +118774,6 @@
               "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
             },
             {
-              "componentId": "design-ui-comparison-pane",
-              "id": "mobile-after",
-              "key": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "order": 4,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
-            },
-            {
               "componentId": "design-ui-screen-header",
               "id": "header",
               "key": "b9ead1d7304d13b55868e20310f08b2fbc61cd4f7f4737053e72b279ff3485bb",
@@ -119431,7 +118788,7 @@
                 ],
                 "comparisons": [
                   "boolean",
-                  true
+                  false
                 ],
                 "crumbs": [
                   "array",
@@ -119504,15 +118861,7 @@
                 ],
                 "destinations": [
                   "object",
-                  [
-                    [
-                      "current",
-                      [
-                        "string",
-                        "design-browse-details-screen"
-                      ]
-                    ]
-                  ]
+                  []
                 ],
                 "idChip": [
                   "string",
@@ -119520,75 +118869,18 @@
                 ],
                 "mode": [
                   "string",
-                  "side-by-side"
+                  "current"
+                ],
+                "status": [
+                  "string",
+                  "added"
                 ],
                 "title": [
                   "string",
                   "Details"
                 ]
               },
-              "propsKey": "966152bf329913b7750abf26d7192b7a9100f26cf87831b4c4028245c3cd53d7"
-            },
-            {
-              "componentId": "design-ui-comparison-pane",
-              "id": "desktop-after",
-              "key": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "order": 6,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "label": [
-                  "string",
-                  "Current"
-                ],
-                "side": [
-                  "string",
-                  "after"
-                ],
-                "state": [
-                  "string",
-                  "present"
-                ]
-              },
-              "propsKey": "65d70f75db9c2ff7efd6dcf4824fb714b8a83df8feda0b184df35b6703bcb345"
-            },
-            {
-              "componentId": "design-ui-device-frame",
-              "id": "desktop-browser",
-              "key": "e4c83b07858745176109d5efeeca9afd54e98356e06b345ef328a401d941da1f",
-              "order": 0,
-              "owner": {
-                "kind": "entry"
-              },
-              "props": {
-                "address": [
-                  "string",
-                  "example.test/details"
-                ],
-                "dark": [
-                  "boolean",
-                  false
-                ],
-                "device": [
-                  "string",
-                  "browser"
-                ],
-                "expandable": [
-                  "boolean",
-                  false
-                ],
-                "lightOnly": [
-                  "boolean",
-                  false
-                ],
-                "small": [
-                  "boolean",
-                  false
-                ]
-              },
-              "propsKey": "f4c54e06dadcde8b0b92164fc0070de9e395e27c91cfe3490418616eaa4086eb",
-              "slotKey": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565"
+              "propsKey": "ecd29fddd06ff21b19e8dc6963651ad1daf561b9cfff11da87384b1c7f22fd17"
             },
             {
               "componentId": "design-ui-top-bar",
@@ -119721,75 +119013,76 @@
               "id": "r-3",
               "parentId": "r-2",
               "target": {
+                "instanceKey": "85e98200dadef8cad3c79cff552c4c02d4fa04acc454e01cc700df60875f32f5",
+                "kind": "instance"
+              }
+            },
+            {
+              "id": "r-4",
+              "parentId": "r-2",
+              "target": {
                 "kind": "slot",
                 "slotKey": "5ddb279e7e9aa1006b286a9fb2d1802e0ec664577e4dbfb66970a23cfbec2c69"
               }
             },
             {
-              "id": "r-4",
-              "parentId": "r-3",
+              "id": "r-5",
+              "parentId": "r-4",
               "target": {
                 "instanceKey": "02ae2e55168f610926763cf8af18dee713e295efa5c5e269c6d80be11a941c8c",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-5",
-              "parentId": "r-2",
-              "target": {
-                "instanceKey": "7b530de788a60b5d5a94733a4a667526d228f8468cca119e405c3fb5e12f3e16",
-                "kind": "instance"
-              }
-            },
-            {
               "id": "r-6",
               "target": {
-                "instanceKey": "52a2775fbb7ab331b72556ac9ec986d212d6d9d71198d12956c9441e3ca3c01b",
+                "instanceKey": "07145e45ba28cd1a34e9d1668488f17b5b1d0796854cf563c2a21040c5d84f68",
                 "kind": "instance"
               }
             },
             {
               "id": "r-7",
+              "parentId": "r-6",
               "target": {
-                "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-                "kind": "instance"
+                "kind": "slot",
+                "slotKey": "543c999a3843231e745de2e73d2e0b4d0ff5802ad13095ab2831fe25b3cdcf93"
               }
             },
             {
               "id": "r-8",
-              "parentId": "r-7",
               "target": {
-                "kind": "slot",
-                "slotKey": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7"
+                "instanceKey": "696abeb79f9e77b570b2cf718d50a714eef94d7e8080db1d3b1b06cf2b1bf7f8",
+                "kind": "instance"
               }
             },
             {
               "id": "r-9",
               "parentId": "r-8",
               "target": {
-                "instanceKey": "77aaba19bb9f71ebb21ec69fdbe16ec1b6a5a905808e124334ce03a383ef13fe",
-                "kind": "instance"
+                "kind": "slot",
+                "slotKey": "32add906d078563cd6442b209eb1c63f1e52ed118e74eb424cbf2876695ebf89"
               }
             },
             {
               "id": "r-10",
-              "parentId": "r-9",
               "target": {
-                "kind": "slot",
-                "slotKey": "2812990fbec5c0e27cc9d0d15c81f678b3ce159ca065652cb5bdffa70e04b518"
-              }
-            },
-            {
-              "id": "r-11",
-              "target": {
-                "instanceKey": "47cbcbe2dae1bb866faf8d21c18be718fbd99a1655013e9fd29c02e13b3411a8",
+                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-12",
+              "id": "r-11",
+              "parentId": "r-10",
               "target": {
-                "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
+                "kind": "slot",
+                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
+              }
+            },
+            {
+              "id": "r-12",
+              "parentId": "r-11",
+              "target": {
+                "instanceKey": "f1201d04685b16dc9fe5b6896df6fcf3b362a2d66c4d1aa85a2309404a22eccf",
                 "kind": "instance"
               }
             },
@@ -119798,14 +119091,14 @@
               "parentId": "r-12",
               "target": {
                 "kind": "slot",
-                "slotKey": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565"
+                "slotKey": "aca0baa5eb71d82b77abf90eb3d54606c42c4d0a2aadee907b525b34911c69fe"
               }
             },
             {
               "id": "r-14",
-              "parentId": "r-13",
+              "parentId": "r-11",
               "target": {
-                "instanceKey": "e4c83b07858745176109d5efeeca9afd54e98356e06b345ef328a401d941da1f",
+                "instanceKey": "a1660369c055873d261da52447f71b2f9954f9b6c2aed049a932f5c8ff2264bd",
                 "kind": "instance"
               }
             },
@@ -119814,13 +119107,14 @@
               "parentId": "r-14",
               "target": {
                 "kind": "slot",
-                "slotKey": "0ea9bedc024f4c7cfeb5e1bf0642b001818091ed3900f7e1a7696eca4025de55"
+                "slotKey": "14db77d025bfb16d58cef28d61ab7e9ded1df47fdbc391cd84cf6140914fa2d2"
               }
             },
             {
               "id": "r-16",
+              "parentId": "r-11",
               "target": {
-                "instanceKey": "09266d615371a988becc39dffe7368a53c8f9a1449781b833e1ac1c0107bca5b",
+                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
                 "kind": "instance"
               }
             },
@@ -119829,14 +119123,14 @@
               "parentId": "r-16",
               "target": {
                 "kind": "slot",
-                "slotKey": "6f2d079a812b300673a934c20affb3f7bd7fe185ce7f603a7a1edd0f0919c057"
+                "slotKey": "26d5b43cac3251654b3e8741ebdf8d6d4018ebd6d7c01e6683c7a26e267a0486"
               }
             },
             {
               "id": "r-18",
-              "parentId": "r-17",
+              "parentId": "r-11",
               "target": {
-                "instanceKey": "f1201d04685b16dc9fe5b6896df6fcf3b362a2d66c4d1aa85a2309404a22eccf",
+                "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
                 "kind": "instance"
               }
             },
@@ -119845,92 +119139,44 @@
               "parentId": "r-18",
               "target": {
                 "kind": "slot",
-                "slotKey": "aca0baa5eb71d82b77abf90eb3d54606c42c4d0a2aadee907b525b34911c69fe"
-              }
-            },
-            {
-              "id": "r-20",
-              "parentId": "r-17",
-              "target": {
-                "instanceKey": "a1660369c055873d261da52447f71b2f9954f9b6c2aed049a932f5c8ff2264bd",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-21",
-              "parentId": "r-20",
-              "target": {
-                "kind": "slot",
-                "slotKey": "14db77d025bfb16d58cef28d61ab7e9ded1df47fdbc391cd84cf6140914fa2d2"
-              }
-            },
-            {
-              "id": "r-22",
-              "parentId": "r-17",
-              "target": {
-                "instanceKey": "a6da4fb277826207535fb96c387e790875c61408f5a082a713b23894efd7f394",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-23",
-              "parentId": "r-22",
-              "target": {
-                "kind": "slot",
-                "slotKey": "26d5b43cac3251654b3e8741ebdf8d6d4018ebd6d7c01e6683c7a26e267a0486"
-              }
-            },
-            {
-              "id": "r-24",
-              "parentId": "r-17",
-              "target": {
-                "instanceKey": "5d3c06ef671b0cfe242eede9154041fd67ae232e24091ae57dbcbb38fd8c8c9b",
-                "kind": "instance"
-              }
-            },
-            {
-              "id": "r-25",
-              "parentId": "r-24",
-              "target": {
-                "kind": "slot",
                 "slotKey": "3453531f027aa6fc11d32f3e51512a2756476fed17753c9f9c13e54a2831784a"
               }
             },
             {
-              "id": "r-26",
-              "parentId": "r-25",
+              "id": "r-20",
+              "parentId": "r-19",
               "target": {
                 "instanceKey": "15e394a32edf484f5bf335a5d175aa21b368b6b9e9297e1d8e7a6ae93bbf266b",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-27",
-              "parentId": "r-17",
+              "id": "r-21",
+              "parentId": "r-11",
               "target": {
                 "instanceKey": "4e2e2bc7f2553b4b7895da65657e408320c0ef17dba3a6683bcb69978e770cb5",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-28",
-              "parentId": "r-27",
+              "id": "r-22",
+              "parentId": "r-21",
               "target": {
                 "kind": "slot",
                 "slotKey": "8a6257cd2dccefd8d88388050d1817d2f68e1679ac0ad7ca24e44a2ca1b1effc"
               }
             },
             {
-              "id": "r-29",
-              "parentId": "r-17",
+              "id": "r-23",
+              "parentId": "r-11",
               "target": {
                 "instanceKey": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
                 "kind": "instance"
               }
             },
             {
-              "id": "r-30",
-              "parentId": "r-29",
+              "id": "r-24",
+              "parentId": "r-23",
               "target": {
                 "kind": "slot",
                 "slotKey": "2d22155475c3ad91159b97271aea2df260b0ef230acd19c3566bd7565deddc18"
@@ -119939,14 +119185,6 @@
           ],
           "resources": [],
           "slots": [
-            {
-              "instanceKey": "e4c83b07858745176109d5efeeca9afd54e98356e06b345ef328a401d941da1f",
-              "key": "0ea9bedc024f4c7cfeb5e1bf0642b001818091ed3900f7e1a7696eca4025de55",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
-            },
             {
               "instanceKey": "a1660369c055873d261da52447f71b2f9954f9b6c2aed049a932f5c8ff2264bd",
               "key": "14db77d025bfb16d58cef28d61ab7e9ded1df47fdbc391cd84cf6140914fa2d2",
@@ -119964,16 +119202,16 @@
               }
             },
             {
-              "instanceKey": "77aaba19bb9f71ebb21ec69fdbe16ec1b6a5a905808e124334ce03a383ef13fe",
-              "key": "2812990fbec5c0e27cc9d0d15c81f678b3ce159ca065652cb5bdffa70e04b518",
+              "instanceKey": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
+              "key": "2d22155475c3ad91159b97271aea2df260b0ef230acd19c3566bd7565deddc18",
               "name": "children",
               "owner": {
                 "kind": "entry"
               }
             },
             {
-              "instanceKey": "6cb236fc80364805c44aed10a9ed55898104c245158c66f9ed2205a25135d08e",
-              "key": "2d22155475c3ad91159b97271aea2df260b0ef230acd19c3566bd7565deddc18",
+              "instanceKey": "696abeb79f9e77b570b2cf718d50a714eef94d7e8080db1d3b1b06cf2b1bf7f8",
+              "key": "32add906d078563cd6442b209eb1c63f1e52ed118e74eb424cbf2876695ebf89",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -119988,8 +119226,8 @@
               }
             },
             {
-              "instanceKey": "cbcc59ef055d4626dd3eb527b350bfb1bde36a67124fb41a35a75f5e5b45aae0",
-              "key": "37fa82e24b6eef2de2f2c71aac63909bc0ce6798fe56da3e0dc84396cf70f565",
+              "instanceKey": "07145e45ba28cd1a34e9d1668488f17b5b1d0796854cf563c2a21040c5d84f68",
+              "key": "543c999a3843231e745de2e73d2e0b4d0ff5802ad13095ab2831fe25b3cdcf93",
               "name": "children",
               "owner": {
                 "kind": "entry"
@@ -120026,14 +119264,6 @@
               "owner": {
                 "kind": "entry"
               }
-            },
-            {
-              "instanceKey": "aa300901d6a4628988c09498189cf4bcedeb6db80217e9f14a7f723e3cab3e67",
-              "key": "c4094a2aade170f119cbd5a0df791a7c6c106e86d152a34992bfa6b4e53ab7c7",
-              "name": "children",
-              "owner": {
-                "kind": "entry"
-              }
             }
           ],
           "styles": [],
@@ -120051,7 +119281,7 @@
         "examples/basic/generated/design-stage.css",
         "examples/basic/generated/design.css"
       ],
-      "description": "An added screen with no base render to compare against.",
+      "description": "An added screen shown directly in its current state.",
       "fragments": {
         "desktop": "design/review/outcomes/added.desktop.html",
         "mobile": "design/review/outcomes/added.mobile.html"

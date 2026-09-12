@@ -23,6 +23,7 @@ export type EntryStatus = "Added" | "Changed" | "Removed" | "Unmodified";
 export interface WorkspaceVariant {
   value: ManifestComponentVariant;
   removed: boolean;
+  comparisonEligible: boolean;
   status?: EntryStatus;
 }
 export interface UsageLink {
@@ -59,9 +60,15 @@ export interface WorkspaceData {
   comparison?: ComponentReview | ScreenReviewV3;
   base: string;
   comparisons: boolean;
+  comparisonEligible: boolean;
   removed: boolean;
   relatedComponents: readonly { title: string; route: string }[];
   inputChanges: readonly InputChange[];
+}
+
+/** Comparisons need either two versions or removed content that Current cannot show. */
+function isComparisonEligible(status: EntryStatus | undefined): boolean {
+  return status === "Changed" || status === "Removed";
 }
 
 /** Entry state and actual saved views stay independent of Changes membership. */
@@ -133,6 +140,7 @@ export function workspaceData(
           return {
             value,
             removed: isRemoved,
+            comparisonEligible: isComparisonEligible(variantStatus),
             ...(variantStatus ? { status: variantStatus } : {}),
           };
         });
@@ -210,6 +218,7 @@ export function workspaceData(
     entry,
     removed,
     comparisons: context.comparisons ?? false,
+    comparisonEligible: isComparisonEligible(status),
     base: context.base,
     inputChanges,
     relatedComponents: (result?.components ?? [])

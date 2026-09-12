@@ -74,6 +74,7 @@ for (const viewport of ["mobile", "desktop"] as const) {
       "design-review-ignored-only",
       "design-review-empty",
       "design-browse-details-screen",
+      "design-review-added",
       "design-browse-dark-scheme",
       "design-browse-light-only",
     ]) {
@@ -81,7 +82,6 @@ for (const viewport of ["mobile", "desktop"] as const) {
       assert.equal(byClass(document, "mbk-cmp-toolbar").length, 0, source);
     }
     for (const [source, expected] of [
-      ["design-review-added", [["Current", "design-browse-details-screen"]]],
       ["design-review-removed", []],
       ["design-review-dark-scheme", []],
     ] as const) {

@@ -7,11 +7,10 @@ import {
   type CompareViewport,
 } from "./parts/compare_page.js";
 import { DESTINATIONS } from "./parts/destinations.js";
-import {
-  MiniDetails,
-  MiniFarewell,
-  MiniWelcome,
-} from "./parts/mini_screens.js";
+import { ExampleWorkspace } from "./parts/example_workspace.js";
+import { MiniFarewell, MiniWelcome } from "./parts/mini_screens.js";
+import { ReviewNav } from "./parts/review.js";
+import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
 
 function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   return (
@@ -47,34 +46,22 @@ function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   );
 }
 
-function AddedCompare({ viewport }: { viewport: CompareViewport }) {
+function AddedCurrent({ viewport }: { viewport: CompareViewport }) {
   return (
-    <ComparePage
+    <Shell
       design={DESTINATIONS.added}
-      activeTitle="Details"
-      subject="details"
-      idChip="example-details"
-      state="added"
-      title="Details"
       viewport={viewport}
-      render={(previewViewport) => (
-        <CompareGrid>
-          <MissingPane
-            label="Before"
-            message="This screen was added on this branch."
-            side="before"
-          />
-          <Pane label="Current" side="after">
-            <FramedShot
-              address="example.test/details"
-              viewport={previewViewport}
-            >
-              <MiniDetails compact={previewViewport === "mobile"} />
-            </FramedShot>
-          </Pane>
-        </CompareGrid>
-      )}
-    />
+      nav={viewport === "desktop" ? <ReviewNav activeTitle="Details" /> : null}
+    >
+      <ScreenHead
+        action={<ViewSwitch active={viewport} />}
+        crumbs={["Example", "Screens"]}
+        idChip="example-details"
+        status="added"
+        title="Details"
+      />
+      <ExampleWorkspace subject="details" viewport={viewport} />
+    </Shell>
   );
 }
 
@@ -193,10 +180,10 @@ export const reviewOutcomeScreens = [
   }),
   screen({
     colorSchemes: ["light"],
-    description: "An added screen with no base render to compare against.",
-    desktop: <AddedCompare viewport="desktop" />,
+    description: "An added screen shown directly in its current state.",
+    desktop: <AddedCurrent viewport="desktop" />,
     id: "design-review-added",
-    mobile: <AddedCompare viewport="mobile" />,
+    mobile: <AddedCurrent viewport="mobile" />,
     slug: "added",
     title: "Added screen",
   }),
