@@ -165,7 +165,9 @@ All unchanged Browse designs, including the tag picker, omit comparison controls
 Changed screens and changed or removed component variants retain an opaque
 comparison band. Added designs show their current preview and status without
 comparison controls; removed screens show their status and current empty state
-without them. The
+without them. The Added outcome still shows its factual branch evidence in
+Details; evidence availability, comparison eligibility, and initial inspector
+disclosure are independent. The
 shared-impact and ignored-only examples open from All with zero Changes and one
 Current preview. Dependency evidence remains available in Details, while
 unchanged output and paired ignored-only edits do not fill the review list.

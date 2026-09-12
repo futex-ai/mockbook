@@ -9,17 +9,44 @@ import { element } from "./inspector_panels.js";
 export function selectedVariant(
   data: WorkspaceData,
   search: string,
-): { variant?: WorkspaceVariant; error?: string } {
-  if (data.entry.kind !== "component") return {};
+): {
+  variant?: WorkspaceVariant;
+  error?: string;
+  comparisonEligible: boolean;
+} {
+  if (data.entry.kind !== "component")
+    return { comparisonEligible: data.comparisonEligible };
   const ids = new URLSearchParams(search).getAll("variant");
-  if (ids.length > 1) return { error: "Choose one saved variant." };
+  if (ids.length > 1)
+    return {
+      error: "Choose one saved variant.",
+      comparisonEligible: false,
+    };
   const variant = ids.length
     ? data.variants.find((item) => item.value.id === ids[0])
     : data.variants[0];
   return variant
-    ? { variant }
-    : { error: "This saved variant is unavailable. Choose another variant." };
+    ? { variant, comparisonEligible: variant.comparisonEligible }
+    : {
+        error: "This saved variant is unavailable. Choose another variant.",
+        comparisonEligible: false,
+      };
 }
+
+/** Whether the selected saved view can open an on-demand comparison. */
+function selectedComparisonEligible(
+  data: WorkspaceData,
+  variant: WorkspaceVariant | undefined,
+  error?: string,
+): boolean {
+  return (
+    !error &&
+    (data.entry.kind === "component"
+      ? (variant?.comparisonEligible ?? false)
+      : data.comparisonEligible)
+  );
+}
+
 export function applyVariant(
   root: HTMLElement,
   data: WorkspaceData,
@@ -47,11 +74,7 @@ export function applyVariant(
       ? `${variant.value.title} · ${variant.status}`
       : "";
   }
-  const eligible =
-    !error &&
-    (data.entry.kind === "component"
-      ? (variant?.comparisonEligible ?? false)
-      : data.comparisonEligible);
+  const eligible = selectedComparisonEligible(data, variant, error);
   const toolbar = root.querySelector<HTMLElement>(".mbk-diff-toolbar");
   if (toolbar) {
     if (!eligible)

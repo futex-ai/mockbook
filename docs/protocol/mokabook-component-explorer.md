@@ -68,6 +68,11 @@ existing logical-id contract. Generated standalone links resolve to the default
 variant's viewport/theme fragment. Variant selectors and Used by links are
 shell-owned URLs; do not overload the existing logical fragment grammar with
 component prop JSON or variant suffixes.
+Affected-consumer links carry explicit comparison eligibility. A removed screen
+link opens its Removed current empty state without a comparison query; an
+eligible removed component variant may request its retained baseline comparison.
+The destination validates the selected view again before activating any
+comparison query.
 
 The shared inspector has Details, Props/Controls, and Usage icons. Composed
 components also have Nested components, listing their rendered registered

@@ -48,7 +48,9 @@ test("workspace badges, comparison eligibility and usage use recorded evidence",
     data.usedBy.filter((item) => item.route === "components/pane.html").length,
     4,
   );
-  assert.equal(selectedVariant(data, "").variant?.value.id, "default");
+  const defaultSelection = selectedVariant(data, "");
+  assert.equal(defaultSelection.variant?.value.id, "default");
+  assert.equal(defaultSelection.comparisonEligible, false);
   assert.equal(
     selectedVariant(data, "?variant=disabled").variant?.value.id,
     "disabled",
@@ -145,5 +147,9 @@ test("a removed component variant retains its previous comparison", async (t) =>
       ["default", "Unmodified", false],
       ["disabled", "Removed", true],
     ],
+  );
+  assert.equal(
+    selectedVariant(data, "?variant=disabled").comparisonEligible,
+    true,
   );
 });

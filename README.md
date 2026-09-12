@@ -274,6 +274,10 @@ their Removed status and an explicit current empty state without comparison
 controls; removed component variants retain an explicit missing current side.
 Affected consumers can show their real before/after differences without entering Changes. Comparison,
 shared-impact, and declared-dependency evidence stays in the Details inspector.
+Evidence remains available independently of comparison controls. Links and
+incoming comparison URLs are checked against the selected saved view, so a
+current-only Added or Removed screen cannot activate a hidden comparison;
+Removed component variants can still open their retained baseline.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
 rules, and isolated snapshot dependencies. Its private diagnostic summary counts

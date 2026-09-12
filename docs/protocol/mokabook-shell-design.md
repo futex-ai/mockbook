@@ -363,6 +363,10 @@ ignored-only, and empty state. Removed screens show a status badge and current
 empty state instead. Comparison bands always retain
 an opaque surface and their border. Static catalogues without comparison data
 omit the band.
+The Added outcome still exposes factual branch evidence in Details. Comparison
+eligibility, evidence availability, and initial inspector disclosure are modeled
+independently in the mockups, matching the runtime rather than using the presence
+of a mode band to decide whether Details exists or starts open.
 
 Both viewports reuse the existing device-frame components. Before and current
 snapshots remain in script-disabled iframes. Overlay composites the current

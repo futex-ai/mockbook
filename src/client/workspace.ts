@@ -289,10 +289,7 @@ export function installWorkspace(
   if (currentInstance()) open("props");
   else if (tabs.preferredOpen ?? data.entry.kind === "component")
     open("details", false);
-  if (
-    (data.removed || variant.variant?.removed) &&
-    query.get("comparison") === "side"
-  )
+  if (query.get("comparison") === "side" && variant.comparisonEligible)
     root.querySelector<HTMLButtonElement>('[data-diff-mode="side"]')?.click();
   return () => controller.abort();
 }

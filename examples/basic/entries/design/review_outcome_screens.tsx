@@ -63,7 +63,11 @@ function AddedCurrent({ viewport }: { viewport: CompareViewport }) {
         status="added"
         title="Details"
       />
-      <ExampleWorkspace subject="details" viewport={viewport} />
+      <ExampleWorkspace
+        subject="details"
+        viewport={viewport}
+        comparisonEvidence={<p>Added to this branch.</p>}
+      />
     </Shell>
   );
 }
@@ -83,9 +87,7 @@ function RemovedCurrent({ viewport }: { viewport: CompareViewport }) {
         title="Farewell"
       />
       <PreviewWorkspace
-        inspector={
-          <DetailsPanel subject="farewell" comparisonEvidence={null} />
-        }
+        inspector={<DetailsPanel subject="farewell" comparisonEvidence open />}
         render={() => (
           <EmptyState
             body="There is no current preview to show."

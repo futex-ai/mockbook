@@ -65,7 +65,8 @@ function ChangesScreen({
         inspector={
           <DetailsPanel
             subject="welcome"
-            comparisonEvidence={overlay ? null : undefined}
+            comparisonEvidence={overlay || undefined}
+            open={overlay}
           />
         }
         render={(previewViewport) =>

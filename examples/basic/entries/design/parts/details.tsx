@@ -108,7 +108,7 @@ export function DetailsPanel({
           ...(destination ? { destination } : {}),
         },
       ]}
-      initial={open || evidence ? "info" : "closed"}
+      initial={open ? "info" : "closed"}
       sheetSize="compact"
       info={info}
     />

@@ -114,6 +114,10 @@ comparison snapshots in development. Publications with Changes prepare snapshots
 explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
 Navigation must never let a late comparison response replace another screen.
+Shell-owned links carry comparison intent only when the destination saved view
+is eligible. The destination revalidates that eligibility before honoring a
+comparison query, so stale, manually edited, or historical URLs cannot bypass a
+current-only state or trigger a hidden comparison request.
 
 Diffs render inside the existing main region with the catalogue, title, details,
 viewport, and scheme controls retained. Both viewports are supported. Snapshot
@@ -129,7 +133,10 @@ Loading, unavailable, and failed comparison states use plain product copy.
 Failure offers a retry. All and Changes share the same comparison eligibility.
 Removed screens remain discoverable in Changes and show an explicit current
 empty state without offering a comparison. Dependency and ignored-region
-evidence stays secondary to the screen preview.
+evidence stays secondary to the screen preview. Evidence availability is
+independent of comparison-mode eligibility and the inspector's initial
+disclosure; Added and Removed screens can retain factual Details without gaining
+comparison controls.
 
 ## Generation and serving
 

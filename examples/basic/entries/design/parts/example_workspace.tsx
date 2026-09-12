@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { PreviewWorkspace } from "../components/parts/workspace.js";
 import { DetailsPanel } from "./details.js";
 import { MiniDetails, MiniWelcome } from "./mini_screens.js";
@@ -10,6 +12,7 @@ export function ExampleWorkspace({
   viewport,
   open = false,
   activeTag,
+  comparisonEvidence,
   dark = false,
   lightOnly = false,
 }: {
@@ -17,13 +20,19 @@ export function ExampleWorkspace({
   viewport: ArtboardViewport;
   open?: boolean;
   activeTag?: string | undefined;
+  comparisonEvidence?: ReactNode;
   dark?: boolean;
   lightOnly?: boolean;
 }) {
   return (
     <PreviewWorkspace
       inspector={
-        <DetailsPanel subject={subject} open={open} activeTag={activeTag} />
+        <DetailsPanel
+          subject={subject}
+          open={open}
+          activeTag={activeTag}
+          comparisonEvidence={comparisonEvidence}
+        />
       }
       render={(previewViewport) => {
         const content =

@@ -36,18 +36,24 @@ test("comparison designs use screen context instead of report chrome", async ({
   ]) {
     for (const viewport of ["desktop", "mobile"]) {
       await page.goto(design(`review/${route}.${viewport}.html`));
-      const hasEvidence = route !== "outcomes/added";
       await expect(
         page.locator(".mbk-title-row .mbk-status, .mbk-review-summary"),
       ).toHaveCount(0);
       const comparisonDetails = page.getByText("Comparison details", {
         exact: true,
       });
-      if (hasEvidence) {
-        await expect(comparisonDetails).toBeVisible();
-      } else {
-        await expect(comparisonDetails).toHaveCount(0);
+      if (route === "outcomes/added") {
+        await expect(
+          page.locator('details[data-panel="info"]'),
+        ).not.toHaveAttribute("open", "");
+        await page
+          .getByRole("button", { name: "Details", exact: true })
+          .click();
+        await expect(
+          page.getByText("Added to this branch.", { exact: true }),
+        ).toBeVisible();
       }
+      await expect(comparisonDetails).toBeVisible();
       if (route.startsWith("impact/") && viewport === "desktop") {
         await expect(page.locator(".mbk-nav-filter-opt.active")).toHaveText(
           "All",
@@ -58,7 +64,7 @@ test("comparison designs use screen context instead of report chrome", async ({
         viewport === "desktop" ? 1 : 0,
       );
       await expect(page.locator(".ce-inspector-resize:visible")).toHaveCount(
-        viewport === "desktop" && hasEvidence ? 1 : 0,
+        viewport === "desktop" ? 1 : 0,
       );
       if (route === "outcomes/removed") {
         await expect(page.locator("[data-change-status]")).toHaveText(
