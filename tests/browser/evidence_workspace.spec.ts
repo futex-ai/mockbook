@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
+import type { ReviewResultV3 } from "../../dist/review/component_types.js";
 import { controlsEntrySource } from "../helpers/component_controls_fixture.js";
 import { startEvidenceFixture } from "../helpers/evidence_fixture.js";
+import { expectFrameLoaded } from "./workspace_actions.js";
 
 test("Usage and Changes completion preserve edited props and their live preview", async ({
   page,
@@ -104,3 +106,102 @@ test("Usage and Changes completion preserve edited props and their live preview"
     await fixture.close();
   }
 });
+
+test("Changes completion preserves keyboard focus on an unchanged Usage link", async ({
+  page,
+}) => {
+  const fixture = await startEvidenceFixture(controlsEntrySource());
+  const { server, runtime, compilation } = fixture;
+  try {
+    await page.goto(`${server.url}/view/components/action.html`);
+    expect(
+      server.completeCatalogue?.(compilation.manifest, runtime.generation),
+    ).toBe(true);
+    server.publishUpdate({ kind: "evidence" });
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-mokabook-update-version",
+      "2",
+    );
+    await page.getByRole("tab", { name: "Usage", exact: true }).click();
+    const usage = page.getByRole("tabpanel", {
+      name: "Usage",
+      exact: true,
+    });
+    const home = usage.getByRole("link", { name: "Home", exact: true }).first();
+    await home.focus();
+    await expect(home).toBeFocused();
+    const retained = await home.elementHandle();
+
+    server.publishUpdate({
+      kind: "evidence",
+      componentChanges: {
+        baseline: compilation.manifest,
+        result: affectedUsageResult(),
+      },
+      changedRoutes: [],
+      changesStatus: "ready",
+    });
+
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-mokabook-update-version",
+      "3",
+    );
+    await expect(usage).toContainText("Affected screens and components");
+    await expect(home).toBeFocused();
+    expect(await retained!.evaluate((link) => link.isConnected)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/screens\/home\.html/);
+    await expectFrameLoaded(
+      page.locator('[data-workspace-frame="mobile"]'),
+      /\/screens\/home\.mobile\.html/,
+    );
+  } finally {
+    await fixture.close();
+  }
+});
+
+function affectedUsageResult(): ReviewResultV3 {
+  return {
+    baseCommit: "a".repeat(40),
+    baseRef: "main",
+    changedPaths: ["entries/fixture.mockup.tsx"],
+    ignoredImpact: [],
+    schemaVersion: 3,
+    sharedImpact: [],
+    screens: [],
+    components: [],
+    changes: [
+      {
+        kind: "component",
+        after: {
+          id: "action",
+          route: "components/action.html",
+          title: "Action",
+        },
+        reasons: [{ kind: "material" }],
+      },
+    ],
+    affectedConsumers: [
+      {
+        changedComponentId: "action",
+        consumer: { kind: "screen", route: "screens/home.html" },
+        evidence: [
+          {
+            side: "after",
+            context: {
+              kind: "screen",
+              entry: {
+                id: "home",
+                route: "screens/home.html",
+                title: "Home",
+              },
+              viewport: "mobile",
+              colorScheme: "light",
+            },
+            via: [{ componentId: "action", instanceKey: "affected-action" }],
+          },
+        ],
+      },
+    ],
+  };
+}
