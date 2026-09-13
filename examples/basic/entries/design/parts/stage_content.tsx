@@ -41,7 +41,7 @@ export function EmptyState({
 }: {
   body: string;
   code?: string;
-  linkLabel: string;
+  linkLabel?: string;
   title: string;
   to: DesignDestination;
 }) {
@@ -50,8 +50,8 @@ export function EmptyState({
       mokabookInstance={useDesignInstance("empty")}
       body={body}
       title={title}
-      actionLabel={linkLabel}
       destination={to}
+      {...optional("actionLabel", linkLabel)}
       {...optional("code", code)}
     />
   );

@@ -8,6 +8,7 @@ const reasons = {
   empty: "No registered components in this view",
   unavailable: "Component inspection is unavailable",
   comparison: "Highlighting is unavailable in comparisons",
+  removed: "Highlighting is unavailable for removed screens",
 } as const;
 const viewportOptions = [
   ["mobile", "Mobile"],

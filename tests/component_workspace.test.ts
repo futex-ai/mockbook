@@ -30,9 +30,14 @@ test("workspace badges, comparison eligibility and usage use recorded evidence",
   };
   const data = workspaceData(catalogue, context, entry);
   assert.equal(data.status, "Changed");
+  assert.equal(data.comparisonEligible, true);
   assert.deepEqual(
     data.variants.map((item) => item.status),
     ["Unmodified", "Unmodified"],
+  );
+  assert.deepEqual(
+    data.variants.map((item) => item.comparisonEligible),
+    [false, false],
   );
   assert.equal(data.affected.length, 0);
   assert.equal(
@@ -43,7 +48,9 @@ test("workspace badges, comparison eligibility and usage use recorded evidence",
     data.usedBy.filter((item) => item.route === "components/pane.html").length,
     4,
   );
-  assert.equal(selectedVariant(data, "").variant?.value.id, "default");
+  const defaultSelection = selectedVariant(data, "");
+  assert.equal(defaultSelection.variant?.value.id, "default");
+  assert.equal(defaultSelection.comparisonEligible, false);
   assert.ok(data.views.every((view) => view.usage));
   const live = workspaceData(
     catalogue,
@@ -97,7 +104,9 @@ test("a renamed screen keeps distinct Added and Removed evidence in a component 
     catalogue.removedScreens[0]!,
   );
   assert.equal(after.status, "Added");
+  assert.equal(after.comparisonEligible, false);
   assert.equal(before.status, "Removed");
+  assert.equal(before.comparisonEligible, false);
   assert.deepEqual(after.change?.reasons, [
     { kind: "added" },
     { kind: "material" },
@@ -106,4 +115,50 @@ test("a renamed screen keeps distinct Added and Removed evidence in a component 
     { kind: "material" },
     { kind: "removed" },
   ]);
+});
+
+test("a removed component variant retains its previous comparison", async (t) => {
+  const fixture = await componentReviewFixture(t, (source) =>
+    source.replace(
+      ', { id: "disabled", title: "Disabled", props: { label: "Continue", disabled: true } }',
+      "",
+    ),
+  );
+  const { result } = await compareReview(
+    fixture.after,
+    fixture.config,
+    fixture.git,
+    "main",
+  );
+  if (result.schemaVersion !== 3) assert.fail("Expected component result");
+  const catalogue = createCatalogue(fixture.after.manifest);
+  const entry = catalogue.byId.get("action");
+  if (entry?.kind !== "component") assert.fail("Expected component");
+  const data = workspaceData(
+    catalogue,
+    {
+      base: "main",
+      updateVersion: 1,
+      comparisons: true,
+      componentChanges: { baseline: fixture.before.manifest, result },
+    },
+    entry,
+  );
+  assert.equal(data.status, "Changed");
+  assert.equal(data.comparisonEligible, true);
+  assert.deepEqual(
+    data.variants.map((variant) => [
+      variant.value.id,
+      variant.status,
+      variant.comparisonEligible,
+    ]),
+    [
+      ["default", "Unmodified", false],
+      ["disabled", "Removed", true],
+    ],
+  );
+  assert.equal(
+    selectedVariant(data, "?variant=disabled").comparisonEligible,
+    true,
+  );
 });

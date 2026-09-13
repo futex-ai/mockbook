@@ -1,17 +1,19 @@
 import { screen } from "mokabook";
 
-import { CompareGrid, MissingPane, Pane } from "./parts/compare.js";
+import { CompareGrid, Pane } from "./parts/compare.js";
+import { PreviewWorkspace } from "./components/parts/workspace.js";
 import {
   ComparePage,
   FramedShot,
   type CompareViewport,
 } from "./parts/compare_page.js";
 import { DESTINATIONS } from "./parts/destinations.js";
-import {
-  MiniDetails,
-  MiniFarewell,
-  MiniWelcome,
-} from "./parts/mini_screens.js";
+import { DetailsPanel } from "./parts/details.js";
+import { ExampleWorkspace } from "./parts/example_workspace.js";
+import { MiniWelcome } from "./parts/mini_screens.js";
+import { ReviewNav } from "./parts/review.js";
+import { ScreenHead, Shell, ViewSwitch } from "./parts/shell.js";
+import { EmptyState } from "./parts/stage_content.js";
 
 function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   return (
@@ -47,65 +49,54 @@ function ChangedCompare({ viewport }: { viewport: CompareViewport }) {
   );
 }
 
-function AddedCompare({ viewport }: { viewport: CompareViewport }) {
+function AddedCurrent({ viewport }: { viewport: CompareViewport }) {
   return (
-    <ComparePage
+    <Shell
       design={DESTINATIONS.added}
-      activeTitle="Details"
-      subject="details"
-      idChip="example-details"
-      state="added"
-      title="Details"
       viewport={viewport}
-      render={(previewViewport) => (
-        <CompareGrid>
-          <MissingPane
-            label="Before"
-            message="This screen was added on this branch."
-            side="before"
-          />
-          <Pane label="Current" side="after">
-            <FramedShot
-              address="example.test/details"
-              viewport={previewViewport}
-            >
-              <MiniDetails compact={previewViewport === "mobile"} />
-            </FramedShot>
-          </Pane>
-        </CompareGrid>
-      )}
-    />
+      nav={viewport === "desktop" ? <ReviewNav activeTitle="Details" /> : null}
+    >
+      <ScreenHead
+        action={<ViewSwitch active={viewport} />}
+        crumbs={["Example", "Screens"]}
+        idChip="example-details"
+        status="added"
+        title="Details"
+      />
+      <ExampleWorkspace
+        subject="details"
+        viewport={viewport}
+        comparisonEvidence={<p>Added to this branch.</p>}
+      />
+    </Shell>
   );
 }
 
-function RemovedCompare({ viewport }: { viewport: CompareViewport }) {
+function RemovedCurrent({ viewport }: { viewport: CompareViewport }) {
   return (
-    <ComparePage
+    <Shell
       design={DESTINATIONS.removed}
-      activeTitle="Farewell"
-      subject="farewell"
-      idChip="example-farewell"
-      state="removed"
-      title="Farewell"
       viewport={viewport}
-      render={(previewViewport) => (
-        <CompareGrid>
-          <Pane label="Before" side="before">
-            <FramedShot
-              address="example.test/farewell"
-              viewport={previewViewport}
-            >
-              <MiniFarewell compact={previewViewport === "mobile"} />
-            </FramedShot>
-          </Pane>
-          <MissingPane
-            label="Current"
-            message="This screen was removed on this branch."
-            side="after"
+      nav={viewport === "desktop" ? <ReviewNav activeTitle="Farewell" /> : null}
+    >
+      <ScreenHead
+        action={<ViewSwitch active={viewport} />}
+        crumbs={["Example", "Screens"]}
+        idChip="example-farewell"
+        status="removed"
+        title="Farewell"
+      />
+      <PreviewWorkspace
+        inspector={<DetailsPanel subject="farewell" comparisonEvidence open />}
+        render={() => (
+          <EmptyState
+            body="There is no current preview to show."
+            title="This screen was removed"
+            to={DESTINATIONS.home}
           />
-        </CompareGrid>
-      )}
-    />
+        )}
+      />
+    </Shell>
   );
 }
 
@@ -193,19 +184,19 @@ export const reviewOutcomeScreens = [
   }),
   screen({
     colorSchemes: ["light"],
-    description: "An added screen with no base render to compare against.",
-    desktop: <AddedCompare viewport="desktop" />,
+    description: "An added screen shown directly in its current state.",
+    desktop: <AddedCurrent viewport="desktop" />,
     id: "design-review-added",
-    mobile: <AddedCompare viewport="mobile" />,
+    mobile: <AddedCurrent viewport="mobile" />,
     slug: "added",
     title: "Added screen",
   }),
   screen({
     colorSchemes: ["light"],
-    description: "A removed screen keeping only its base render.",
-    desktop: <RemovedCompare viewport="desktop" />,
+    description: "A removed screen shown as an empty current state.",
+    desktop: <RemovedCurrent viewport="desktop" />,
     id: "design-review-removed",
-    mobile: <RemovedCompare viewport="mobile" />,
+    mobile: <RemovedCurrent viewport="mobile" />,
     slug: "removed",
     title: "Removed screen",
   }),

@@ -263,7 +263,7 @@ classification publishes a later update with the complete replacement snapshot;
 failed or superseded calculations cannot restore stale rows.
 Served `/static/` files use `Cache-Control: no-store`, so a watched reload reads
 the rebuilt fragments and resources even when their URLs remain unchanged.
-Screens and saved component variants with actual comparison changes offer
+Changed screens and changed or removed saved component variants offer
 Current / Side by side / Overlay / Difference beneath the heading. The controls
 are available from All and Changes, and start in Current. Known unchanged views
 show Unmodified without a comparison band; unknown evidence has no status badge.
@@ -283,9 +283,16 @@ and render them only after a diff option is selected. Comparisons
 stay in the same screen, with mobile/desktop and light/dark controls, secondary
 impact evidence, and a refresh option. Loading and failure states keep the
 catalogue available and offer a retry. Navigation and reload return to Current.
-Added and removed entries show explicit missing sides. Affected consumers can
-show their real before/after differences without entering Changes. Comparison,
+Added entries show their current preview and Added status without comparison
+controls because there is no earlier version to compare. Removed screens show
+their Removed status and an explicit current empty state without comparison
+controls; removed component variants retain an explicit missing current side.
+Affected consumers can show their real before/after differences without entering Changes. Comparison,
 shared-impact, and declared-dependency evidence stays in the Details inspector.
+Evidence remains available independently of comparison controls. Links and
+incoming comparison URLs are checked against the selected saved view, so a
+current-only Added or Removed screen cannot activate a hidden comparison;
+Removed component variants can still open their retained baseline.
 
 The comparison engine retains the Git branch-point baseline, ignored-region
 rules, and isolated snapshot dependencies. Its private diagnostic summary counts

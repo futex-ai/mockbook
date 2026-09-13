@@ -74,7 +74,7 @@ test("published Mokabook exposes lazy comparisons in the actual shell", async ({
   expect(failed).toEqual([]);
 });
 
-test("published comparisons retain mobile, dark, and removed-screen navigation", async ({
+test("published comparisons retain mobile, dark, and current-only added and removed screens", async ({
   page,
 }) => {
   const failures: string[] = [];
@@ -87,25 +87,23 @@ test("published comparisons retain mobile, dark, and removed-screen navigation",
     "This screen was removed",
   );
   await chooseViewport(page, "mobile");
-  await page.getByRole("button", { name: "Side by side", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
-  await expect(
-    page.frameLocator("[data-diff-stage] iframe").locator("main"),
-  ).toHaveText("removed");
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Removed");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "There is no current preview to show.",
+  );
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
   await page.getByRole("button", { name: "Open catalogue navigation" }).click();
   await page.locator('[data-filter="changed"]').click();
   await expect(
     page.locator('[data-route="screens/removed.html"]'),
   ).toBeVisible();
   await page.locator('[data-route="screens/added.html"]').click();
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Added");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
   await expect(
-    page.getByRole("button", { name: "Current", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Overlay", exact: true }).click();
-  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
-  await expect(page.locator(".mb-pane-missing")).toHaveText(
-    "This screen was added on this branch.",
-  );
+    page.frameLocator('[data-workspace-frame="mobile"]').locator("main"),
+  ).toHaveText("added");
   await page.goto(`${preview.url}/view/screens/home`);
   await chooseViewport(page, "mobile");
   await chooseScheme(page, "dark");

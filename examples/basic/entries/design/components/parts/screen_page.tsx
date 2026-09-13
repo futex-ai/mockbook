@@ -1,7 +1,5 @@
-import { MockLink } from "mokabook";
-
-import { MissingPane, Pane, CompareGrid } from "../../parts/compare.js";
 import { ScreenHead, type ArtboardViewport } from "../../parts/shell.js";
+import { EmptyState } from "../../parts/stage_content.js";
 import { ViewControls } from "./view_controls.js";
 import { PreviewWorkspace } from "./workspace.js";
 import { SCREENS, screenIdentity } from "./metadata.js";
@@ -38,8 +36,8 @@ export function ScreenPage({
           title={title}
           crumbs={["Example", "Screens"]}
           idChip={id}
-          comparisonMode={removed ? "side-by-side" : "current"}
-          comparisons={comparison !== undefined}
+          comparisonMode="current"
+          comparisons={comparison?.status === "changed"}
           status={comparison?.status ?? "unmodified"}
           action={
             <ViewControls
@@ -47,7 +45,7 @@ export function ScreenPage({
               highlight={{
                 active: highlighting,
                 unavailable: removed
-                  ? "comparison"
+                  ? "removed"
                   : state === "unavailable" || state === "empty"
                     ? state
                     : undefined,
@@ -59,22 +57,12 @@ export function ScreenPage({
           inspector={<ScreenDetails state={state} />}
           render={(previewViewport) =>
             removed ? (
-              <div className="ce-removed-screen">
-                <p>Screen removed</p>
-                <CompareGrid>
-                  <Pane side="before" label="Before">
-                    <ConsumerFrame state={state} viewport={previewViewport} />
-                  </Pane>
-                  <MissingPane
-                    side="after"
-                    label="Current"
-                    message="Farewell has been removed."
-                  />
-                </CompareGrid>
-                <MockLink to="design-component-removed">
-                  Back to Action’s affected screens
-                </MockLink>
-              </div>
+              <EmptyState
+                body="There is no current preview to show."
+                linkLabel="Back to Action’s affected screens"
+                title="This screen was removed"
+                to="design-component-removed"
+              />
             ) : (
               <ConsumerFrame state={state} viewport={previewViewport} />
             )

@@ -39,9 +39,21 @@ test("comparison designs use screen context instead of report chrome", async ({
       await expect(
         page.locator(".mbk-title-row .mbk-status, .mbk-review-summary"),
       ).toHaveCount(0);
-      await expect(
-        page.getByText("Comparison details", { exact: true }),
-      ).toBeVisible();
+      const comparisonDetails = page.getByText("Comparison details", {
+        exact: true,
+      });
+      if (route === "outcomes/added") {
+        await expect(
+          page.locator('details[data-panel="info"]'),
+        ).not.toHaveAttribute("open", "");
+        await page
+          .getByRole("button", { name: "Details", exact: true })
+          .click();
+        await expect(
+          page.getByText("Added to this branch.", { exact: true }),
+        ).toBeVisible();
+      }
+      await expect(comparisonDetails).toBeVisible();
       if (route.startsWith("impact/") && viewport === "desktop") {
         await expect(page.locator(".mbk-nav-filter-opt.active")).toHaveText(
           "All",
@@ -54,11 +66,28 @@ test("comparison designs use screen context instead of report chrome", async ({
       await expect(page.locator(".ce-inspector-resize:visible")).toHaveCount(
         viewport === "desktop" ? 1 : 0,
       );
-      await expect(
-        page
-          .locator(viewport === "desktop" ? ".browser-frame" : ".phone-frame")
-          .first(),
-      ).toBeVisible();
+      if (route === "outcomes/removed") {
+        await expect(page.locator("[data-change-status]")).toHaveText(
+          "Removed",
+        );
+        await expect(
+          page.getByText("Farewell was removed from the catalogue.", {
+            exact: true,
+          }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("group", { name: "Comparison mode" }),
+        ).toHaveCount(0);
+        await expect(page.locator(".mbk-empty").first()).toContainText(
+          "There is no current preview to show.",
+        );
+      } else {
+        await expect(
+          page
+            .locator(viewport === "desktop" ? ".browser-frame" : ".phone-frame")
+            .first(),
+        ).toBeVisible();
+      }
     }
   }
 });

@@ -47,14 +47,17 @@ Viewport/theme changes retain the variant, applying existing light-only rules.
 Current / Side by side / Overlay / Difference operate on the selected saved
 variant and viewport/theme. Changing variant while comparing uses that variant's
 comparison; late responses cannot replace a newer selection. Added/removed
-variants have explicit missing sides. Page navigation and reload start in
-Current, as screens do today. Saved variant selection and comparison are fully
-usable in served and published catalogues.
+variants retain their recorded state, but only removed variants need an explicit
+missing side. Added variants stay in Current without comparison modes because
+there is no baseline view. Page navigation and reload start in Current, as
+screens do today. Saved variant selection and comparison are fully usable in
+served and published catalogues.
 
-Only expose comparison modes when actual evidence makes the saved selection
-eligible. A known selection shows Added, Changed, Removed, or Unmodified beside
-its title from the entry's comparison state; a removed variant does not mark its
-surviving component Removed. Unmodified shows only its current preview.
+Only expose comparison modes when actual evidence marks the saved selection
+Changed or Removed. A known selection shows Added, Changed, Removed, or Unmodified
+beside its title from the entry's comparison state; a removed variant does not
+mark its surviving component Removed. Added and Unmodified show only their
+current preview.
 Unknown evidence does not imply Unmodified. Affected
 consumers can remain eligible without entering Changes; temporary control edits
 never establish comparison eligibility. Do not eagerly generate screenshots to
@@ -65,6 +68,11 @@ existing logical-id contract. Generated standalone links resolve to the default
 variant's viewport/theme fragment. Variant selectors and Used by links are
 shell-owned URLs; do not overload the existing logical fragment grammar with
 component prop JSON or variant suffixes.
+Affected-consumer links carry explicit comparison eligibility. A removed screen
+link opens its Removed current empty state without a comparison query; an
+eligible removed component variant may request its retained baseline comparison.
+The destination validates the selected view again before activating any
+comparison query.
 
 The shared inspector has Details, Props/Controls, and Usage icons. Composed
 components also have Nested components, listing their rendered registered
@@ -78,7 +86,8 @@ never infer visual explanations from pixels or add a banner above the canvas.
 Props contains the supplied values, and Usage
 contains Used by screens/components derived from current usage. A changed
 component also exposes Affected screens from baseline/current evidence. Removed
-consumers link to their retained comparison view. Lists distinguish direct and
+consumers link to their Removed badge and current empty state; their comparison
+evidence remains in Details. Lists distinguish direct and
 transitive use and show actual instance/view counts without counting reused flow
 frames as additional screen uses. Empty lists have explicit empty states. The
 [inspector design contract](./mokabook-component-inspector-design.md) defines the
@@ -145,6 +154,7 @@ screen. Route changes and reload turn it off and clear stale instance selection.
 A viewport/theme change rebinds usage to the new document; preserve a selection
 only if its identity still exists. Entering a comparison turns highlighting off;
 its toggle is unavailable in comparison modes, whose snapshots stay unmodified.
+Removed screens also disable it because there is no current preview to inspect.
 Component-page nested inspection can reuse this same mechanism.
 
 ## Frame And Publishing Boundary

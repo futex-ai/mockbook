@@ -15,7 +15,10 @@ const propSchema = {
     scheme,
     highlight: optionalFlag,
     unavailable: {
-      schema: { kind: "enum", values: ["empty", "unavailable", "comparison"] },
+      schema: {
+        kind: "enum",
+        values: ["empty", "unavailable", "comparison", "removed"],
+      },
       optional: true,
     },
     schemeDisabled: optionalFlag,

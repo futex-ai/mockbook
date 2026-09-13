@@ -34,7 +34,7 @@ export function usageHref(link: UsageLink): string {
     instance: link.instanceKey,
   });
   if (link.variantId) query.set("variant", link.variantId);
-  if (link.removed) query.set("comparison", "side");
+  if (link.removed && link.comparisonEligible) query.set("comparison", "side");
   return `/view/${link.route.split("/").map(encodeURIComponent).join("/")}?${query}`;
 }
 export function renderUsage(panel: HTMLElement, data: WorkspaceData): void {
@@ -64,7 +64,7 @@ export function renderUsage(panel: HTMLElement, data: WorkspaceData): void {
     list.className = "mbk-usage-list";
     const groups = new Map<string, UsageLink[]>();
     for (const item of links) {
-      const key = `${item.route}|${item.variantId ?? ""}|${item.removed}`;
+      const key = `${item.route}|${item.variantId ?? ""}|${item.removed}|${item.comparisonEligible}`;
       groups.set(key, [...(groups.get(key) ?? []), item]);
     }
     for (const values of groups.values()) {
