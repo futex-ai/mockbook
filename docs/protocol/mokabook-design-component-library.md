@@ -74,7 +74,7 @@ Controls below use text, boolean, number and primitive enum selections only.
    a band supply eligible fixture data. Preserve the opaque background, refresh
    depiction and current linked/native/inactive behavior for each screen family.
 5. **View controls:** selected preview `mobile/desktop/both`, depicted scheme,
-   optional highlight state and unavailable reason `empty/unavailable/comparison`;
+   optional highlight state and unavailable reason `empty/unavailable/comparison/removed`;
    optional scheme-disabled state and supported theme destinations. Controls:
    selection, scheme, highlight and reason. The single icon group lives in the
    screen header: viewport dropdown, theme icon, and optional highlight toggle.

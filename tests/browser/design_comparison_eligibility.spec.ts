@@ -15,8 +15,6 @@ const changedDesigns = new Set([
   "design-changes-current",
   "design-changes-overlay",
   "design-review-changed",
-  "design-review-added",
-  "design-review-removed",
   "design-review-difference",
   "design-review-dark-scheme",
   "design-publication-changes",
@@ -36,11 +34,16 @@ for (const viewport of ["desktop", "mobile"] as const) {
       await page.goto(
         pathToFileURL(path.join(directory, entry.fragments[viewport])).href,
       );
-      const componentChange =
-        entry.route.startsWith("design/components/") &&
-        (await page.locator(".ce-change-status:not(.ce-unmodified)").count()) >
-          0;
-      const expected = changedDesigns.has(entry.id) || componentChange;
+      const componentDesign = entry.route.startsWith("design/components/");
+      const changedComponentOrScreen =
+        componentDesign &&
+        (await page.locator('[data-change-status="changed"]').count()) > 0;
+      const removedComponent =
+        componentDesign &&
+        (await page.locator('[data-change-status="removed"]').count()) > 0 &&
+        (await page.locator(".ce-variants").count()) > 0;
+      const componentComparison = changedComponentOrScreen || removedComponent;
+      const expected = changedDesigns.has(entry.id) || componentComparison;
       const toolbar = page.locator(".mbk-cmp-toolbar");
       await expect(toolbar, entry.id).toHaveCount(expected ? 1 : 0);
       if (expected) {

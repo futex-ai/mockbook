@@ -74,7 +74,10 @@ releases evidence waiting for it. Only the current navigation may commit.
 Update entry/variant statuses, comparison eligibility, baseline variants,
 Details evidence and complete Used by/Affected usage without reinstalling the
 workspace. Keep temporary props, current variant/instance selection, inspector
-disclosure, highlight state and authenticated preview documents intact.
+disclosure, highlight state and authenticated preview documents intact. Usage
+updates retain matching link elements while adding, removing or changing only
+the affected sections and rows, so background completion cannot interrupt a
+keyboard interaction with an unchanged link.
 Background evidence never calls the preview-source swapping path for a retained
 saved variant. Evidence changes invalidate loaded/pending comparisons and return
 an active comparison to Current; another explicit selection requests comparison

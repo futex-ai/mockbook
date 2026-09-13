@@ -34,42 +34,50 @@ export function usageHref(link: UsageLink): string {
     instance: link.instanceKey,
   });
   if (link.variantId) query.set("variant", link.variantId);
-  if (link.removed) query.set("comparison", "side");
+  if (link.removed && link.comparisonEligible) query.set("comparison", "side");
   return `/view/${link.route.split("/").map(encodeURIComponent).join("/")}?${query}`;
 }
 export function renderUsage(panel: HTMLElement, data: WorkspaceData): void {
   const doc = panel.ownerDocument;
   panel.replaceChildren();
   if (data.usageComplete === false) {
-    panel.append(
-      element(
-        doc,
-        "p",
-        "Usage is unavailable until the catalogue has been checked.",
-      ),
+    const status = element(
+      doc,
+      "p",
+      "Usage is unavailable until the catalogue has been checked.",
     );
+    status.dataset["usageSection"] = "status";
+    panel.append(status);
     return;
   }
-  for (const [title, links] of [
-    ["Used by", data.usedBy],
-    ["Affected screens and components", data.affected],
+  for (const [key, title, links] of [
+    ["used-by", "Used by", data.usedBy],
+    ["affected", "Affected screens and components", data.affected],
   ] as const) {
     if (title !== "Used by" && links.length === 0) continue;
-    panel.append(element(doc, "h3", title));
+    const section = element(doc, "section");
+    section.dataset["usageSection"] = key;
+    section.append(element(doc, "h3", title));
     if (!links.length) {
-      panel.append(element(doc, "p", "No recorded consumers."));
+      section.append(element(doc, "p", "No recorded consumers."));
+      panel.append(section);
       continue;
     }
     const list = element(doc, "ul");
     list.className = "mbk-usage-list";
     const groups = new Map<string, UsageLink[]>();
     for (const item of links) {
-      const key = `${item.route}|${item.variantId ?? ""}|${item.removed}`;
+      const key = `${item.route}|${item.variantId ?? ""}|${item.removed}|${item.comparisonEligible}`;
       groups.set(key, [...(groups.get(key) ?? []), item]);
     }
     for (const values of groups.values()) {
       const first = values[0]!;
       const row = element(doc, "li");
+      row.dataset["usageLink"] = JSON.stringify([
+        first.route,
+        first.variantId ?? "",
+        first.removed,
+      ]);
       const link = element(
         doc,
         "a",
@@ -86,7 +94,8 @@ export function renderUsage(panel: HTMLElement, data: WorkspaceData): void {
       );
       list.append(row);
     }
-    panel.append(list);
+    section.append(list);
+    panel.append(section);
   }
 }
 export function renderInstances(

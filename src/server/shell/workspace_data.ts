@@ -23,6 +23,7 @@ export type EntryStatus = "Added" | "Changed" | "Removed" | "Unmodified";
 export interface WorkspaceVariant {
   value: ManifestComponentVariant;
   removed: boolean;
+  comparisonEligible: boolean;
   status?: EntryStatus;
 }
 export interface UsageLink {
@@ -34,6 +35,7 @@ export interface UsageLink {
   instanceKey: string;
   direct: boolean;
   removed: boolean;
+  comparisonEligible: boolean;
 }
 export interface InputChange {
   instanceId: string;
@@ -59,9 +61,18 @@ export interface WorkspaceData {
   comparison?: ComponentReview | ScreenReviewV3;
   base: string;
   comparisons: boolean;
+  comparisonEligible: boolean;
   removed: boolean;
   relatedComponents: readonly { title: string; route: string }[];
   inputChanges: readonly InputChange[];
+}
+
+/** Screens compare edits; component variants also retain removed saved values. */
+function isComparisonEligible(
+  status: EntryStatus | undefined,
+  kind: WorkspaceData["entry"]["kind"],
+): boolean {
+  return status === "Changed" || (kind === "component" && status === "Removed");
 }
 
 /** Entry state and actual saved views stay independent of Changes membership. */
@@ -133,24 +144,35 @@ export function workspaceData(
           return {
             value,
             removed: isRemoved,
+            comparisonEligible: isComparisonEligible(
+              variantStatus,
+              "component",
+            ),
             ...(variantStatus ? { status: variantStatus } : {}),
           };
         });
   const affected: UsageLink[] = (result?.affectedConsumers ?? [])
     .filter((item) => item.changedComponentId === entry.id)
     .flatMap((item) =>
-      item.evidence.map((evidence) => ({
-        title: evidence.context.entry.title,
-        route: evidence.context.entry.route,
-        ...(evidence.context.kind === "component"
-          ? { variantId: evidence.context.variantId }
-          : {}),
-        viewport: evidence.context.viewport,
-        colorScheme: evidence.context.colorScheme,
-        instanceKey: evidence.via.at(-1)!.instanceKey,
-        direct: evidence.via.length === 1,
-        removed: !catalogue.byRoute.has(evidence.context.entry.route),
-      })),
+      item.evidence.map((evidence) => {
+        const removed = !catalogue.byRoute.has(evidence.context.entry.route);
+        return {
+          title: evidence.context.entry.title,
+          route: evidence.context.entry.route,
+          ...(evidence.context.kind === "component"
+            ? { variantId: evidence.context.variantId }
+            : {}),
+          viewport: evidence.context.viewport,
+          colorScheme: evidence.context.colorScheme,
+          instanceKey: evidence.via.at(-1)!.instanceKey,
+          direct: evidence.via.length === 1,
+          removed,
+          comparisonEligible: isComparisonEligible(
+            removed ? "Removed" : "Changed",
+            evidence.context.kind,
+          ),
+        };
+      }),
     );
   const inputChanges: InputChange[] = [];
   if (baseline)
@@ -213,6 +235,7 @@ export function workspaceData(
     entry,
     removed,
     comparisons: context.comparisons ?? false,
+    comparisonEligible: isComparisonEligible(status, entry.kind),
     base: context.base,
     inputChanges,
     relatedComponents: (result?.components ?? [])
@@ -246,6 +269,7 @@ export function workspaceData(
               instanceKey: instance.key,
               direct: instance.owner.kind === "entry",
               removed: false,
+              comparisonEligible: false,
             })),
         ),
       ),

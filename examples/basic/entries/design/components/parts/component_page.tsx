@@ -1,5 +1,4 @@
 import type { ArtboardViewport } from "../../parts/shell.js";
-import { CompareGrid, MissingPane, Pane } from "../../parts/compare.js";
 import { actionVariants } from "./action_props.js";
 import {
   ComponentDetails,
@@ -31,7 +30,7 @@ export function ComponentPage({
     <ComponentLayout
       design={COMPONENT_PAGES[state]}
       identity={COMPONENT_BY_STATE[state]}
-      comparison={comparison || state === "added"}
+      comparison={comparison}
       status={evidence?.status ?? "unmodified"}
       scenario={
         state === "removed"
@@ -48,20 +47,9 @@ export function ComponentPage({
     >
       {(previewViewport) =>
         state === "added" ? (
-          <div className="ce-component-comparison">
-            <CompareGrid>
-              <MissingPane
-                side="before"
-                label="Before"
-                message="This component did not exist before."
-              />
-              <Pane side="after" label="Current">
-                <ComponentCanvas viewport={previewViewport}>
-                  <span className="ce-badge">New</span>
-                </ComponentCanvas>
-              </Pane>
-            </CompareGrid>
-          </div>
+          <ComponentCanvas viewport={previewViewport}>
+            <span className="ce-badge">New</span>
+          </ComponentCanvas>
         ) : comparison ? (
           <ComponentComparison
             removed={state === "removed"}

@@ -67,6 +67,11 @@ Props requests validate and capture only the edited view and its resource closur
 They never clone a full rendered manifest or validate unrelated documents. Existing
 origin/token checks, cancellation, last-valid previews and memory/time limits apply.
 
+Explicit live diffs reuse completed background evidence and capture only the selected
+screen or saved variant plus its assets. They do not repeat compilation or catalogue
+classification. The [selected comparison contract](./mokabook-selected-comparisons.md)
+defines request scope, checked-input digests, immutable snapshots and cancellation.
+
 ## Background work and replacement
 
 Both Serve modes complete the generated tree and Changes in background work.

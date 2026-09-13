@@ -7,6 +7,12 @@ import type { ResolvedConfig } from "../config/types.js";
 import { MokabookError } from "../errors.js";
 import type { GitClient } from "../review/git.js";
 import { runReview } from "../review/run.js";
+import { RepositorySelectedReview } from "../review/selected.js";
+import type {
+  SelectedReviewProvider,
+  SelectedReviewSource,
+} from "../review/selection_types.js";
+import { SelectedReviewRoutes } from "./selected_review_routes.js";
 import {
   ReviewGenerationStore,
   type ReviewArtifactProvider,
@@ -26,6 +32,7 @@ const GENERATION_ROUTE = `${DIFF_ROUTE}__generations/`;
 export interface ServedReview extends ReviewArtifactProvider {
   /** Comparison base ref, shown when the comparison cannot be generated. */
   base: string;
+  selected?: SelectedReviewProvider;
 }
 
 /** Serve the configured Git comparison from the consumer's Review engine. */
@@ -36,6 +43,7 @@ export function configuredServedReview(
 ): ServedReview {
   return {
     base,
+    selected: new RepositorySelectedReview(config, git),
     async generate(options): Promise<void> {
       await runReview(
         config,
@@ -59,14 +67,22 @@ export class ReviewRoutes {
   private queuedGeneration: Promise<ReviewGeneration> | undefined;
   private readonly generations: ReviewGenerationStore;
   private stale = false;
+  private readonly selected: SelectedReviewRoutes | undefined;
 
-  constructor(private readonly review: ServedReview) {
+  constructor(
+    private readonly review: ServedReview,
+    source: () => SelectedReviewSource | undefined = () => undefined,
+  ) {
     this.generations = new ReviewGenerationStore(review);
+    this.selected = review.selected
+      ? new SelectedReviewRoutes(review.selected, source, review.base)
+      : undefined;
   }
 
   /** Mark the cached artifact stale after an update that reloads browsers. */
   invalidate(): void {
     if (!this.closed) this.stale = true;
+    this.selected?.invalidate();
   }
 
   /** Drain generation work and remove retained artifacts when the server stops. */
@@ -81,6 +97,7 @@ export class ReviewRoutes {
     response: ServerResponse,
     method: string,
   ): Promise<void> {
+    if (await this.selected?.handle(url, response, method)) return;
     if (url.pathname.startsWith(GENERATION_ROUTE)) {
       const requested = generationPath(url.pathname);
       if (
@@ -168,6 +185,7 @@ export class ReviewRoutes {
 
   private async finishClose(): Promise<void> {
     this.closed = true;
+    await this.selected?.close();
     const pending = this.queuedGeneration ?? this.generation;
     if (pending) await Promise.allSettled([pending]);
     await this.generations.close();

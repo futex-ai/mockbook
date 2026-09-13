@@ -71,7 +71,7 @@ export const stateScreens = [
     title: "Removed variant and former consumer",
     colorSchemes: ["light"],
     description:
-      "The removed Compact variant retains its Before canvas and links a removed affected screen to its retained comparison.",
+      "The removed Compact variant retains its Before canvas and links a removed affected screen to its current empty state.",
     desktop: <RemovedVariantDesktop />,
     mobile: <RemovedVariantMobile />,
   }),

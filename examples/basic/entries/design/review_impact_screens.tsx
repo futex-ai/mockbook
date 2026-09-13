@@ -53,6 +53,7 @@ function SharedImpactSummary({ viewport }: { viewport: ReviewViewport }) {
           <DetailsPanel
             subject="welcome"
             comparisonEvidence={<SharedImpactCard />}
+            open
           />
         }
         render={(previewViewport) => (
@@ -84,6 +85,7 @@ function IgnoredOnlyCompare({ viewport }: { viewport: ReviewViewport }) {
           <DetailsPanel
             subject="welcome"
             comparisonEvidence={<IgnoredImpactCard />}
+            open
           />
         }
         render={(previewViewport) => (

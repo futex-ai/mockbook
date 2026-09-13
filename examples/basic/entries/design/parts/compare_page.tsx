@@ -54,7 +54,7 @@ export function ComparePage({
       />
       <PreviewWorkspace
         stage={false}
-        inspector={<DetailsPanel subject={subject} comparisonEvidence={null} />}
+        inspector={<DetailsPanel subject={subject} comparisonEvidence open />}
         render={(previewViewport) => (
           <ComparisonStage state={state} viewport={previewViewport}>
             {render(previewViewport)}

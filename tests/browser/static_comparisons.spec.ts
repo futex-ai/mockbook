@@ -15,8 +15,12 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   page,
 }) => {
   const requests: string[] = [];
+  const renewals: string[] = [];
   const failures: string[] = [];
-  page.on("request", (request) => requests.push(request.url()));
+  page.on("request", (request) => {
+    requests.push(request.url());
+    if (request.method() === "HEAD") renewals.push(request.url());
+  });
   page.on("response", (response) => {
     if (response.status() >= 400) failures.push(response.url());
   });
@@ -60,6 +64,8 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   await modes.getByRole("button", { name: "Current", exact: true }).click();
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
   const json = requests.filter((url) => url.includes("review.json"));
+  expect(json).toHaveLength(2);
+  expect(renewals).toEqual([]);
   expect(new Set(json.map((url) => url.split("?")[0])).size).toBe(1);
   expect(json.some((url) => url.endsWith("?refresh=1"))).toBe(true);
   expect(requests.some((url) => url.includes("/__mokabook/events"))).toBe(
@@ -68,27 +74,26 @@ test("isolated comparisons stay lazy, immutable, sandboxed, and responsive", asy
   expect(failures).toEqual([]);
 });
 
-test("added, removed, and light-only screens retain the right comparison sides", async ({
+test("added and removed screens stay current while light-only comparisons retain their sides", async ({
   page,
 }) => {
-  for (const [id, label] of [
-    ["removed", "removed"],
-    ["added", "added"],
-  ]) {
-    await page.goto(`${site.url}/id/${id}/`);
-    await chooseViewport(page, "mobile");
-    await expect(page).toHaveURL(`${site.url}/view/screens/${id}.html`);
-    await page
-      .getByRole("button", { name: "Side by side", exact: true })
-      .click();
-    await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(1);
-    await expect(
-      page.frameLocator("[data-diff-stage] iframe").locator("main"),
-    ).toHaveText(label ?? "");
-    await expect(page.locator(".mb-pane-missing")).toContainText(
-      id === "added" ? "added" : "removed",
-    );
-  }
+  await page.goto(`${site.url}/id/added/`);
+  await chooseViewport(page, "mobile");
+  await expect(page).toHaveURL(`${site.url}/view/screens/added.html`);
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(
+    page.frameLocator('[data-workspace-frame="mobile"]').locator("main"),
+  ).toHaveText("added");
+
+  await page.goto(`${site.url}/id/removed/`);
+  await chooseViewport(page, "mobile");
+  await expect(page).toHaveURL(`${site.url}/view/screens/removed.html`);
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Removed");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "There is no current preview to show.",
+  );
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
   await page.goto(`${site.url}/view/screens/details.html`);
   await chooseScheme(page, "dark");
   await page.getByRole("button", { name: "Overlay", exact: true }).click();

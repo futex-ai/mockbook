@@ -10,7 +10,8 @@ narrows the same navigation tree. There is no Review tab, launcher, report
 section, or `mokabook review` command; `--out` belongs only to static `export`.
 
 [Pages](./mokabook-pages.md) participate in Changes and removed-entry states,
-while comparison controls remain screen-only. The
+while comparison controls remain exclusive to changed screens and eligible
+component variants. The
 [shared catalogue snapshot](./mokabook-catalogue-changes.md) supplies metadata
 independently of screen results; removed pages are flat Changes-only rows with
 baseline ancestry. Review reads follow the [source policy](./mokabook-source-protection.md).
@@ -99,18 +100,24 @@ dropping views or disabling Git file validation.
 
 ## Screen controls
 
-Review-enabled screens and saved component variants with actual changed/added/removed comparison
-views offer Current / Side by side / Overlay / Difference in an opaque band
+Review-enabled changed screens and saved component variants with actual Changed
+or Removed comparison views offer Current / Side by side / Overlay / Difference in an opaque band
 beneath the heading. Known unchanged views show Unmodified without that band;
+known added views show Added with their current preview and no comparison band;
+known removed screens show Removed with a current empty state and no comparison band;
 unknown evidence has no invented status. Eligibility follows saved view evidence,
 so affected-only consumers can compare their actual rendered differences while
 staying outside Changes. Current is selected initially, including
 after navigation and reload. Selecting Changes, opening a screen, changing its
-viewport or color scheme, and receiving a watched update do not generate
+viewport or color scheme in Current, and receiving a watched update do not generate
 comparison snapshots in development. Publications with Changes prepare snapshots at build time, but never fetch or render them while browsing in Current. The first
 explicit diff selection requests the comparison in either delivery mode.
 Returning to Current cancels pending UI work and restores the current screen.
 Navigation must never let a late comparison response replace another screen.
+Shell-owned links carry comparison intent only when the destination saved view
+is eligible. The destination revalidates that eligibility before honoring a
+comparison query, so stale, manually edited, or historical URLs cannot bypass a
+current-only state or trigger a hidden comparison request.
 
 Diffs render inside the existing main region with the catalogue, title, details,
 viewport, and scheme controls retained. Both viewports are supported. Snapshot
@@ -118,15 +125,18 @@ frames remain sandboxed without scripts or catalogue navigation privileges.
 Overlay places the current snapshot at 50% opacity above its baseline;
 Difference uses CSS difference blending. These are document comparisons, not
 pixel measurements. They must never display invented pixel counts or percentages.
-Missing before/after views remain explicit and legible in every mode.
+Missing current views for removed component variants remain explicit and legible in every mode.
 Comparison frames retain matching dimensions; individual browser expansion is
 available only in Current so it cannot misalign an overlay.
 
 Loading, unavailable, and failed comparison states use plain product copy.
 Failure offers a retry. All and Changes share the same comparison eligibility.
-Removed screens remain discoverable in Changes and show an explicit missing
-current state until a comparison is requested. Dependency and ignored-region
-evidence stays secondary to the screen preview.
+Removed screens remain discoverable in Changes and show an explicit current
+empty state without offering a comparison. Dependency and ignored-region
+evidence stays secondary to the screen preview. Evidence availability is
+independent of comparison-mode eligibility and the inspector's initial
+disclosure; Added and Removed screens can retain factual Details without gaining
+comparison controls.
 
 ## Generation and serving
 
@@ -141,10 +151,15 @@ and schema. Its [static delivery contract](./mokabook-export-delivery.md)
 defines direct generation URLs without requiring a hosting-provider redirect;
 the server and repository adapter retain their stable redirect for compatibility.
 
-The development shell requests `/__mokabook/diffs/review.json` on demand. The response
+The development shell requests `/__mokabook/diffs/review.json` with the selected
+`route` and optional saved `variant` on demand, following the
+[selected comparison contract](./mokabook-selected-comparisons.md). The response
 redirects to an immutable generation; snapshot URLs resolve relative to that
 response URL. No standalone HTML report or navigation payload is generated.
 Only comparison JSON and snapshot files are served through this private route.
+Before changing an open comparison's view or diff mode, the browser renews its
+generation with HEAD. A missing or replaced generation is reacquired for the
+same selection before new panes load; retained results reuse their loaded JSON.
 Development responses disable caching. Refresh requests and watched invalidation reuse
 the generation queue, retaining superseded snapshots briefly for in-flight
 requests and draining active work before shutdown.
@@ -178,13 +193,15 @@ See [the shell design](./mokabook-shell-design.md) and
 
 ## Comparison engine
 
-An explicit development diff request, or publishing with `--include-changes`,
-compares the workspace with a configured base ref, defaulting
+Live background classification, complete comparison generation, and publishing
+with `--include-changes` compare the workspace with a configured base ref, defaulting
 to `origin/main`. It resolves the merge base shared by `HEAD` and that ref, then
 reads the committed `mockupsDir` tree at that branch point without checking it
 out or rebuilding it. Commits reachable only from the configured base do not
 enter the comparison. Head artifacts come from the current working tree after
-the same generated-output checks used by `mokabook check` succeed.
+the same generated-output checks used by `mokabook check` succeed. Selected live
+diffs reuse the accepted manifest and pinned classification; checked-input digests
+reject changed snapshot inputs without repeating an exhaustive build.
 Review inspects only the requested base paths, grouping exact literal pathspecs
 into count- and byte-bounded `ls-tree` operations, and reads regular-file blobs
 through output-byte- and object-count-bounded `cat-file` batches. A single blob
@@ -208,7 +225,7 @@ and Review records the matching changed path as evidence. The configured compari
 directory, including its symlink-resolved in-repository target, is excluded before changed-path and shared-impact evidence
 is calculated.
 
-The private output contains `review.json`, `summary.md`, an ownership marker,
+Complete comparison output contains `review.json`, `summary.md`, an ownership marker,
 and the isolated snapshots. No HTML report or navigation payload is written.
 The summary's `output changes` count includes only screens classified as added,
 removed, or changed, counting each screen once across all viewports and color
@@ -218,7 +235,9 @@ evidence, including screens with output changes; `impact-only` is the subset
 without output changes and can overlap ignored-only. Neither evidence nor
 ignored-only edits inflate output changes. These counts aggregate fragment
 comparisons per screen; the catalogue Changes total also considers rendered
-resources, reviewable metadata, and flows. The JSON retains every screen and its evidence.
+resources, reviewable metadata, and flows. Complete JSON retains every screen and its
+evidence. Selected live responses contain only the requested screen or saved variant
+and retain its snapshots in memory.
 
 Base and head panes live under separate route-preserving snapshot roots. Local
 resources referenced by pane HTML or CSS are copied transitively, including

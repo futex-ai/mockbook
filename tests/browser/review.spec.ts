@@ -92,28 +92,32 @@ test("unchanged views omit comparisons while changed views retain all modes", as
   await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
-test("added and removed screens retain legible missing panes in every mode", async ({
+test("added and removed screens stay current without comparison controls", async ({
   page,
 }) => {
-  for (const name of ["added", "removed"]) {
-    await page.goto(`${fixture.url}/view/screens/${name}.html`);
-    await page.locator('[data-filter="changed"]').click();
-    await expect(
-      page.locator(`[data-route="screens/${name}.html"]`),
-    ).toBeVisible();
-    if (name === "removed")
-      await expect(page.locator("[data-current-screen]")).toContainText(
-        "This screen was removed",
-      );
-    for (const mode of ["Overlay", "Difference", "Side by side"]) {
-      if (mode === "Overlay") await loadComparison(page, mode);
-      else await page.getByRole("button", { name: mode, exact: true }).click();
-      await expect(page.locator(".mb-pane-missing").first()).toContainText(
-        `This screen was ${name}`,
-      );
-      await expect(page.locator(".mb-pane-missing").first()).toBeVisible();
-    }
-  }
+  await page.goto(`${fixture.url}/view/screens/added.html`);
+  await page.locator('[data-filter="changed"]').click();
+  await expect(page.locator('[data-route="screens/added.html"]')).toBeVisible();
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Added");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(
+    page.frameLocator('[data-workspace-frame="desktop"]').locator("main"),
+  ).toHaveText("added");
+
+  await page.goto(`${fixture.url}/view/screens/removed.html`);
+  await page.locator('[data-filter="changed"]').click();
+  await expect(
+    page.locator('[data-route="screens/removed.html"]'),
+  ).toBeVisible();
+  await expect(page.locator("[data-workspace-status]")).toHaveText("Removed");
+  await expect(page.locator(".mbk-diff-toolbar")).toBeHidden();
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "This screen was removed",
+  );
+  await expect(page.locator("[data-current-screen]")).toContainText(
+    "There is no current preview to show.",
+  );
+  await expect(page.locator("[data-diff-stage] iframe")).toHaveCount(0);
 });
 
 test("pending requests cannot replace Current or a newly navigated screen", async ({

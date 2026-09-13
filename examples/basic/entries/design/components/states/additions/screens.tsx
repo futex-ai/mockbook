@@ -14,7 +14,7 @@ export const additionDesigns = collection({
   id: "design-component-additions",
   segment: "additions",
   title: "Additions",
-  description: "New components with an explicit missing Before side.",
+  description: "New components shown in their current saved state.",
   children: [
     screen({
       id: "design-component-added",

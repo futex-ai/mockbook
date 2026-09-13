@@ -19,7 +19,13 @@ style, and a tooltip. Only the active icon has the sage selected treatment.
 
 Details contains the description, secondary source/reference metadata, and any
 comparison evidence. Comparison facts never occupy a separate canvas disclosure
-or header banner. The panel remains available on removed-screen comparisons.
+or header banner. The panel remains available on Removed screen current empty
+states even though those screens expose no comparison modes.
+Evidence availability, comparison-mode eligibility, and the initially open
+inspector panel are independent authored states. In particular, the Added screen
+mockup includes its factual branch evidence in Details while remaining
+current-only and initially closed; an artboard must explicitly choose whether
+Details starts open.
 Components contains the nested instance tree and explicit empty/unavailable
 states. Props contains the selected variant or instance's supplied values,
 slot ownership, and Open component/Highlight actions. Controls replaces the
