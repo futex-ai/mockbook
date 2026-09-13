@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.1](https://github.com/futex-ai/mokabook/compare/v0.8.0...v0.8.1) (2026-09-13)
+
+
+### Bug Fixes
+
+* keep added and removed screens current-only ([#64](https://github.com/futex-ai/mokabook/issues/64)) ([9301443](https://github.com/futex-ai/mokabook/commit/93014436aea164d76c504d2d06a4edde98f5025c))
+* load selected comparisons and recover expired snapshots ([#62](https://github.com/futex-ai/mokabook/issues/62)) ([b19dc62](https://github.com/futex-ai/mokabook/commit/b19dc627f78354863ddf60478f3cfa6671ffdfa2))
+* preserve catalogue state on evidence updates ([#59](https://github.com/futex-ai/mokabook/issues/59)) ([7cefa42](https://github.com/futex-ai/mokabook/commit/7cefa427a1612458c0f9f7f40ed205aa02c12687))
+* preserve Usage link focus during updates ([#63](https://github.com/futex-ai/mokabook/issues/63)) ([e0dc6d1](https://github.com/futex-ai/mokabook/commit/e0dc6d10163e79e0b991d1cd25b53778810dffe7))
+
 ## [0.8.0](https://github.com/futex-ai/mokabook/compare/v0.7.1...v0.8.0) (2026-09-11)
 
 
